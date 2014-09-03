@@ -95,8 +95,6 @@ let rec of_text_element = function
   | Code s -> <:html<<code>$str:s$</code>&>>
   | PreCode s -> <:html<<pre><code>$str:s$</code></pre>&>>
   | Verbatim s -> <:html<<pre>$str:s$</pre>&>>
-  | Block t ->
-    <:html<<div class="block">BLOCK: $of_text_elements t$</div>&>> (* TODO: test *)
   | Ref (Link href, None) ->
     <:html<<a href=$str:href$>REF_LINK NONE: $str:href$</a>&>> (* TODO: test *)
   | Target (None,href) ->
@@ -210,12 +208,12 @@ let map_tag tag_fun = function
     tag_fun "deprecated" "Deprecated" (of_text_elements t)
   | Param (s,t) ->
     tag_fun "param" s (of_text_elements t)
-  | Raised_exception (s,t) ->
+  | Raise (s,t) ->
     tag_fun "raises" "Raises"
     <:html<<code>$str:s$</code> $of_text_elements t$>>
-  | Return_value t ->
+  | Return t ->
     tag_fun "return" "Returns" (of_text_elements t)
-  | Custom (s, t) ->
+  | Tag (s, t) ->
     tag_fun ("custom "^s) (String.capitalize s) (of_text_elements t)
 
 let maybe_div_doc ({ info; tags }) = match info, tags with
@@ -383,6 +381,7 @@ let of_type ({ name; doc; param; manifest; decl }) =
 
 let of_exn ({ name; doc; args; ret }) =
   let doc = maybe_div_doc doc in
+  let name = OpamDocPath.Exn.Name.to_string name in
   let args = args_of_constructor args ret in
   <:html<
   <div class="exception">
@@ -460,7 +459,7 @@ let link_of_library doc_base library =
   let name = name_of_library library in
   let uri = uri_of_library doc_base library in
   <:html<<a href=$uri:uri$>$str:name$</a>&>>
-    
+
 let uri_of_module_name doc_base library mod_name =
   let lib_uri = uri_of_library doc_base library in
   Uri.(resolve "http" lib_uri (of_string (mod_name ^ "/")))
