@@ -19,67 +19,125 @@ open OpamDocTypes
 
 module OpamModule = OpamDocPath.Module
 
+type pathloc = {
+  index_depth   : int;
+  doc_base      : Uri.t;
+  unit_depth    : int;
+  internal_path : OpamModule.t;
+}
+
+let pathloc ~index_depth ~doc_base internal_path =
+  let unit_depth = OpamModule.fold_left (fun i _ -> i + 1) 0 internal_path in
+  {
+    index_depth; doc_base; unit_depth = unit_depth - 1; internal_path;
+  }
+
 let keyword text = <:html<<span class="keyword">$str:text$</span>&>>
 
-let rec link_module_path ?text modu =
+let rec ascent_of_depth tl = function
+  | 0 -> tl
+  | n -> ascent_of_depth ("../" ^ tl) (n - 1)
+
+let href_of_project ~pathloc project =
+  Uri.of_string ((ascent_of_depth "" pathloc.index_depth) ^ project ^ "/")
+
+let href_of_package ~pathloc pkg =
+  let pkg_s = (OpamPackage.to_string pkg) ^ "/" in
+  let project = OpamPackage.(Name.to_string (name pkg)) in
+  Uri.(resolve "http" (href_of_project ~pathloc project) (of_string pkg_s))
+
+let href_of_library ~pathloc lib =
+  let pkg = OpamLibrary.package lib in
+  let lib_name = OpamLibrary.(Name.to_string (name lib)) in
+  Uri.(resolve "http"
+         (resolve "http" (href_of_package ~pathloc pkg) pathloc.doc_base)
+         (of_string (lib_name ^ "/")))
+
+let hctx ctx (name : string) = match Uri.fragment ctx with
+  | None -> Uri.with_fragment ctx (Some name)
+  | Some frag -> Uri.with_fragment ctx (Some (frag^"/"^name))
+
+let rec href_of_module ~pathloc modu =
   let name = OpamModule.(Name.to_string (name modu)) in
-  let href = Uri.of_string ("../" ^ name ^ "/") in (* TODO: FIXME *)
+  match OpamModule.parent modu with
+  | None ->
+    let lib = OpamModule.library modu in
+    Uri.(resolve "http"
+           (href_of_library ~pathloc lib)
+           (of_string (name ^ "/")))
+  | Some p -> hctx (href_of_module ~pathloc p) ("module:"^name)
+
+let rec id_of_path path name = match OpamModule.parent path with
+  | None -> name
+  | Some p ->
+    id_of_path p ("module:"^OpamModule.(Name.to_string (name path))^"/"^name)
+
+let rec link_module_path ?text ~pathloc modu =
+  let name = OpamModule.(Name.to_string (name modu)) in
+  let href = href_of_module ~pathloc modu in
   match text with
   | None ->
     let path = match OpamModule.parent modu with
       | None -> <:html<&>>
-      | Some p -> <:html<$link_module_path p$.>>
+      | Some p -> <:html<$link_module_path ~pathloc p$.>>
     in
     <:html<$path$<a href=$uri:href$>$str:name$</a>&>>
   | Some html ->
     <:html<<a href=$uri:href$>$html$</a>&>>
 
-let maybe_link_module_path ?text = function
-  | Known path -> link_module_path ?text path
+let maybe_link_module_path ?text ~pathloc = function
+  | Known path -> link_module_path ?text ~pathloc path
   | Unknown s  -> <:html<$str:s$>>
 
-let link_module_type_path ?text path =
+let link_module_type_path ?text ~pathloc path =
   let open OpamDocPath.ModuleType in
   let name = Name.to_string (name path) in
-  let href = Uri.of_string ("../" ^ name ^ "/") in (* TODO: FIXME *)
+  let modu = parent path in
+  let phref = href_of_module ~pathloc modu in
+  let href = hctx phref ("modtype:" ^ name) in
   match text with
   | None ->
-    let modu = parent path in
-    <:html<$link_module_path modu$.<a href=$uri:href$>$str:name$</a>&>>
+    let phtml = link_module_path ~pathloc modu in
+    <:html<$phtml$.<a href=$uri:href$>$str:name$</a>&>>
   | Some html ->
     <:html<<a href=$uri:href$>$html$</a>&>>
 
-let maybe_link_module_type_path ?text = function
-  | Known path -> link_module_type_path ?text path
+let maybe_link_module_type_path ?text ~pathloc = function
+  | Known path -> link_module_type_path ?text ~pathloc path
   | Unknown s  -> <:html<$str:s$>>
 
-let link_type_path ?text path =
+let link_type_path ?text ~pathloc path =
   let open OpamDocPath.Type in
   let name = Name.to_string (name path) in
-  let href = Uri.of_string ("../" ^ name ^ "/") in (* TODO: FIXME *)
+  let modu = parent path in
+  let phref = href_of_module ~pathloc modu in
+  let href = hctx phref ("type:" ^ name) in
   match text with
   | None ->
-    let modu = parent path in
-    <:html<$link_module_path modu$.<a href=$uri:href$>$str:name$</a>&>>
+    let phtml = link_module_path ~pathloc modu in
+    <:html<$phtml$.<a href=$uri:href$>$str:name$</a>&>>
   | Some html ->
     <:html<<a href=$uri:href$>$html$</a>&>>
 
-let maybe_link_type_path ?text = function
-  | Known path -> link_type_path ?text path
+let maybe_link_type_path ?text ~pathloc = function
+  | Known path -> link_type_path ?text ~pathloc path
   | Unknown s  -> <:html<$str:s$>>
 
-let link_val_path ?text path =
+let link_val_path ?text ~pathloc path =
   let open OpamDocPath.Value in
   let name = Name.to_string (name path) in
-  let href = Uri.of_string ("../" ^ name ^ "/") in (* TODO: FIXME *)
+  let modu = parent path in
+  let phref = href_of_module ~pathloc modu in
+  let href = hctx phref ("val:" ^ name) in
   match text with
   | None ->
-    let modu = parent path in
-    <:html<$link_module_path modu$.<a href=$uri:href$>$str:name$</a>&>>
+    let phtml = link_module_path ~pathloc modu in
+    <:html<$phtml$.<a href=$uri:href$>$str:name$</a>&>>
   | Some html ->
     <:html<<a href=$uri:href$>$html$</a>&>>
 
 let section_attrs ?level label_opt =
+  (* TODO: ids for unnamed sections? ocamldoc does it... *)
   let level_attrs = match level with
     | None       -> ["class","section"]
     | Some level -> ["class","section level_"^(string_of_int level)]
@@ -90,7 +148,9 @@ let section_attrs ?level label_opt =
   in
   level_attrs@label_attrs
 
-let rec of_text_element = function
+let rec of_text_element ~pathloc txt =
+  let of_text_elements = of_text_elements ~pathloc in
+  match txt with
   | Raw s -> <:html<$str:s$>>
   | Code s -> <:html<<code>$str:s$</code>&>>
   | PreCode s -> <:html<<pre><code>$str:s$</code></pre>&>>
@@ -101,8 +161,8 @@ let rec of_text_element = function
     <:html<<a href=$str:href$>TARGET NONE: $str:href$</a>&>> (* TODO: test *)
   | Target (Some a,href) ->
     <:html<<a href=$str:href$>TARGET SOME: $str:a$</a>&>> (* TODO: test *)
-  | Ref (Link href, Some t) ->
-    <:html<<a href=$str:href$>REF_LINK: $of_text_elements t$</a>&>> (* TODO: test *)
+  | Ref (Link href, Some t) -> (* hyperlink *)
+    <:html<<a href=$str:href$>$of_text_elements t$</a>&>>
   | Style (Bold, els) ->
     <:html<<b>$of_text_elements els$</b>&>>
   | Style (Italic, els) ->
@@ -124,9 +184,9 @@ let rec of_text_element = function
     <span style="color:orange">CUSTOM($str:s$) $of_text_elements els$</span>
     >> (* TODO: test *)
   | List elss ->
-    <:html<<ul>$list:lis_of_elss elss$</ul>&>>
+    <:html<<ul>$list:lis_of_elss ~pathloc elss$</ul>&>>
   | Enum elss ->
-    <:html<<ol>$list:lis_of_elss elss$</ol>&>>
+    <:html<<ol>$list:lis_of_elss ~pathloc elss$</ol>&>>
   | Newline ->
     <:html<<br />&>> (* TODO: use <p> *)
   | Title (1,label_opt,els) ->
@@ -149,29 +209,42 @@ let rec of_text_element = function
     <:html<
     <h6 $alist:section_attrs ~level label_opt$>$of_text_elements els$</h6>
     >>
-  | Ref (Module m, None) -> link_module_path m
+  | Ref (Module m, None) -> link_module_path ~pathloc m
   | Ref (Module m, Some els) -> (* TODO: test *)
-    link_module_path ~text:<:html<$of_text_elements els$>> m
-  | Ref (ModuleType m, None) -> link_module_type_path m
+    link_module_path ~text:<:html<$of_text_elements els$>> ~pathloc m
+  | Ref (ModuleType m, None) -> link_module_type_path ~pathloc m
   | Ref (ModuleType m, Some els) -> (* TODO: test *)
-    link_module_type_path ~text:<:html<$of_text_elements els$>> m
-  | Ref (Type t, None) -> link_type_path t
+    link_module_type_path ~text:<:html<$of_text_elements els$>> ~pathloc m
+  | Ref (Type t, None) -> link_type_path ~pathloc t
   | Ref (Type t, Some els) -> (* TODO: test *)
-    link_type_path ~text:<:html<$of_text_elements els$>> t
-  | Ref (Val v, None) -> link_val_path v
+    link_type_path ~text:<:html<$of_text_elements els$>> ~pathloc t
+  | Ref (Val v, None) -> link_val_path ~pathloc v
   | Ref (Val v, Some els) -> (* TODO: test *)
-    link_val_path ~text:<:html<$of_text_elements els$>> v
+    link_val_path ~text:<:html<$of_text_elements els$>> ~pathloc v
   | TEXT_todo s -> <:html<<span style="color: red">TODO: $str:s$</span>&>>
-and lis_of_elss elss = List.map (fun els ->
-  <:html<<li>$list:List.map of_text_element els$</li>&>>
+and lis_of_elss ~pathloc elss = List.map (fun els ->
+  let f = of_text_element ~pathloc in
+  <:html<<li>$list:List.map f els$</li>&>>
 ) elss
-and of_text_elements els = <:html<$list:List.map of_text_element els$>>
+and of_text_elements ~pathloc els =
+  let f = of_text_element ~pathloc in
+  <:html<$list:List.map f els$>>
 
 let short_module_declaration name rhs doc =
   <:html<
     <div class="module">
       <div class="intro">
         $keyword "module"$ $str:name$ $rhs$
+      </div>
+      $doc$
+    </div>
+  >>
+
+let short_module_type_declaration name rhs doc =
+  <:html<
+    <div class="module_type">
+      <div class="intro">
+        $keyword "module type"$ $str:name$ $rhs$
       </div>
       $doc$
     </div>
@@ -193,7 +266,9 @@ let span_tag classes label html =
   </span>
   >>
 
-let map_tag tag_fun = function
+let map_tag ~pathloc tag_fun tag =
+  let of_text_elements = of_text_elements ~pathloc in
+  match tag with
   | Author s ->
     tag_fun "author" "Author" <:html<$str:s$>>
   | Version s ->
@@ -216,78 +291,31 @@ let map_tag tag_fun = function
   | Tag (s, t) ->
     tag_fun ("custom "^s) (String.capitalize s) (of_text_elements t)
 
-let maybe_div_doc ({ info; tags }) = match info, tags with
+let maybe_div_doc ~pathloc ({ info; tags }) =
+  match info, tags with
   | [], [] -> <:html<&>>
   | text, tags ->
     <:html<
       <div class="doc">
-        $of_text_elements text$
-        $list:List.map (map_tag div_tag) tags$
+        $of_text_elements ~pathloc text$
+        $list:List.map (map_tag ~pathloc div_tag) tags$
       </div>
     >>
 
-let maybe_span_doc doc = match doc.info with
+let maybe_span_doc ~pathloc doc = match doc.info with
   | [] -> <:html<&>>
   | text ->
-    let tags = List.map (map_tag span_tag) doc.tags in
-    <:html< <span class="doc">(* $of_text_elements text$$list:tags$ *)</span>&>>
-
-let of_nested_module ({ name; doc; desc } : nested_module) =
-  let doc = maybe_div_doc doc in
-  let name = OpamModule.Name.to_string name in
-  match desc with
-  | Alias path ->
-    short_module_declaration name
-    <:html<= $maybe_link_module_path path$>> doc
-  | Type (Path path) ->
-    short_module_declaration name
-    <:html<: $maybe_link_module_type_path path$>> doc
-  | Type Signature ->
-    <:html<
-    <div class="module">
-      <div class="intro">$keyword "module"$ $str:name$ : $keyword "sig"$</div>
-      $doc$
-      <div class="sig">signature</div>
-      <div class="outro">$keyword "end"$</div>
-    </div>
-    >>
-  | MODULE_todo s -> <:html<<span style="color:red">TODO: $str:s$</span>&>>
-
-let short_module_type_declaration name rhs doc =
-  <:html<
-    <div class="module_type">
-      <div class="intro">
-        $keyword "module type"$ $str:name$ $rhs$
-      </div>
-      $doc$
-    </div>
-  >>
-
-let of_nested_module_type ({ name; doc; desc} : nested_module_type) =
-  let doc = maybe_div_doc doc in
-  let name = OpamDocPath.ModuleType.Name.to_string name in
-  match desc with
-  | Manifest Signature ->
-    <:html<
-    <div class="module_type">
-      <div class="intro">
-        $keyword "module type"$ $str:name$ = $keyword "sig"$
-      </div>
-      <div class="sig">signature</div>
-      <div class="outro">$keyword "end"$</div>
-    </div>
-    >>
-  | Manifest (Path path) ->
-    short_module_type_declaration name
-    <:html<= $maybe_link_module_type_path path$>> doc
-  | Abstract -> short_module_type_declaration name <:html<&>> doc
-  | MODULE_TYPE_todo s -> <:html<<span style="color:red">TODO: $str:s$</span>&>>
+    let tags = List.map (map_tag ~pathloc span_tag) doc.tags in
+    let comment = of_text_elements ~pathloc text in
+    <:html< <span class="doc">(* $comment$$list:tags$ *)</span>&>>
 
 let html_product = List.fold_left (fun phtml ehtml ->
   <:html<$phtml$ * $ehtml$>>
 )
 
-let rec of_type_expr = function
+let rec of_type_expr ~pathloc expr =
+  let of_type_expr = of_type_expr ~pathloc in
+  match expr with
   | Var v when v = "_" -> <:html<_>>
   | Var v -> <:html<'$str:v$>>
   | Alias (t,v) -> (* TODO: test *)
@@ -302,29 +330,34 @@ let rec of_type_expr = function
     let e = of_type_expr e in
     let els = List.map of_type_expr els in
     <:html<($html_product e els$)>>
-  | Constr (path, [])  -> maybe_link_type_path path
+  | Constr (path, [])  -> maybe_link_type_path ~pathloc path
   | Constr (path, [a]) ->
-    <:html<$of_type_expr a$ $maybe_link_type_path path$>>
+    <:html<$of_type_expr a$ $maybe_link_type_path ~pathloc path$>>
   | Constr (path, a::argl)  ->
     let a = of_type_expr a in
     let argl = List.map of_type_expr argl in
     let args = List.fold_left (fun phtml arghtml ->
       <:html<$phtml$, $arghtml$>>
     ) a argl in
-    <:html<($args$) $maybe_link_type_path path$>>
+    <:html<($args$) $maybe_link_type_path ~pathloc path$>>
   | TYPE_EXPR_todo s -> <:html<<span style="color:red">TODO: $str:s$</span>&>>
 
-let of_val ({ name; doc; type_ }) =
-  let doc = maybe_div_doc doc in
+let of_val ~pathloc ({ name; doc; type_ }) =
+  let doc = maybe_div_doc ~pathloc doc in
   let name = OpamDocPath.Value.Name.to_string name in
+  let id = id_of_path pathloc.internal_path ("val:" ^ name) in
   <:html<
+  <div id=$str:id$>
   <div class="val">
-    $keyword "val"$ $str:name$ : $of_type_expr type_$
+    $keyword "val"$ $str:name$ : $of_type_expr ~pathloc type_$
     $doc$
+  </div>
   </div>
   >>
 
-let args_of_constructor args ret = match args, ret with
+let args_of_constructor ~pathloc args ret =
+  let of_type_expr = of_type_expr ~pathloc in
+  match args, ret with
   | [],       None    -> <:html<&>>
   | a::args,  None    ->
     let a = of_type_expr a in
@@ -338,24 +371,26 @@ let args_of_constructor args ret = match args, ret with
     let arghtml = html_product a args in
     <:html< : $arghtml$ -> $of_type_expr rt$>>
 
-let of_constructor ({ name; doc; args; ret } : constructor) =
+let of_constructor ~pathloc ({ name; doc; args; ret } : constructor) =
   let name = OpamDocPath.Constructor.Name.to_string name in
-  let sig_ = args_of_constructor args ret in
-  let doc = maybe_span_doc doc in
+  let sig_ = args_of_constructor ~pathloc args ret in
+  let doc = maybe_span_doc ~pathloc doc in
   <:html<<div class="constr">| $str:name$$sig_$$doc$</div>&>>
 
-let of_field ({ name; doc; type_ } : field) =
+let of_field ~pathloc ({ name; doc; type_ } : field) =
   let name = OpamDocPath.Field.Name.to_string name in
-  let doc = maybe_span_doc doc in
-  <:html<<div class="field">$str:name$ : $of_type_expr type_$;$doc$</div>&>>
+  let doc = maybe_span_doc ~pathloc doc in
+  let thtml = of_type_expr ~pathloc type_ in
+  <:html<<div class="field">$str:name$ : $thtml$;$doc$</div>&>>
 
-let of_type_decl = function
-  | Variant constrs -> <:html<$list:List.map of_constructor constrs$>>
-  | Record fields -> <:html<{$list:List.map of_field fields$}>>
+let of_type_decl ~pathloc = function
+  | Variant constrs ->
+    <:html<$list:List.map (of_constructor ~pathloc) constrs$>>
+  | Record fields -> <:html<{$list:List.map (of_field ~pathloc) fields$}>>
   | TYPE_todo s -> <:html<<span style="color:red">TODO: $str:s$</span>&>>
 
-let of_type ({ name; doc; param; manifest; decl }) =
-  let doc = maybe_div_doc doc in
+let of_type ~pathloc ({ name; doc; param; manifest; decl }) =
+  let doc = maybe_div_doc ~pathloc doc in
   let name = OpamDocPath.Type.Name.to_string name in
   let params = match param with
     | []  -> <:html<&>>
@@ -366,69 +401,150 @@ let of_type ({ name; doc; param; manifest; decl }) =
   in
   let manifest = match manifest with
     | None -> <:html<&>>
-    | Some t -> <:html< = $of_type_expr t$>>
+    | Some t -> <:html< = $of_type_expr ~pathloc t$>>
   in
   let decl = match decl with
     | None -> <:html<&>>
-    | Some d -> <:html< = $of_type_decl d$>>
+    | Some d -> <:html< = $of_type_decl ~pathloc d$>>
   in
+  let id = id_of_path pathloc.internal_path ("type:" ^ name) in
   <:html<
+  <div id=$str:id$>
   <div class="type">
     $keyword "type"$ $params$$str:name$$manifest$$decl$
     $doc$
   </div>
+  </div>
   >>
 
-let of_exn ({ name; doc; args; ret }) =
-  let doc = maybe_div_doc doc in
+let of_exn ~pathloc ({ name; doc; args; ret }) =
+  let doc = maybe_div_doc ~pathloc doc in
   let name = OpamDocPath.Exn.Name.to_string name in
-  let args = args_of_constructor args ret in
+  let args = args_of_constructor ~pathloc args ret in
+  let id = id_of_path pathloc.internal_path ("exception:" ^ name) in
   <:html<
+  <div id=$str:id$>
   <div class="exception">
     $keyword "exception"$ $str:name$$args$
     $doc$
   </div>
+  </div>
   >>
 
-let of_signature_item : signature_item -> Cow.Html.t = function
-  | Val val_ -> of_val val_
-  | Types types -> <:html<$list:List.map of_type types$>>
+let rec of_nested_module doc_state ~pathloc nested =
+  let ({ name; doc; desc } : nested_module) = nested in
+  let doc = maybe_div_doc ~pathloc doc in
+  let path = OpamModule.create_submodule pathloc.internal_path name in
+  let name = OpamModule.Name.to_string name in
+  match desc with
+  | Alias path ->
+    short_module_declaration name
+    <:html<= $maybe_link_module_path ~pathloc path$>> doc
+  | Type (Path path) ->
+    short_module_declaration name
+    <:html<: $maybe_link_module_type_path ~pathloc path$>> doc
+  | Type Signature ->
+    let id = id_of_path pathloc.internal_path ("module:" ^ name) in
+    let inner : module_ = OpamDocState.load_module doc_state path in
+    let pathloc = { pathloc with
+      unit_depth = pathloc.unit_depth + 1;
+      internal_path = path;
+    } in
+    let signature = of_module_type_expr doc_state ~pathloc inner.type_ in
+    <:html<
+    <div id=$str:id$>
+    <div class="module">
+      <div class="intro">$keyword "module"$ $str:name$ : $keyword "sig"$</div>
+      $doc$
+      <div class="sig">
+        $signature$
+      </div>
+      <div class="outro">$keyword "end"$</div>
+    </div>
+    </div>
+    >>
+  | MODULE_todo s -> <:html<<span style="color:red">TODO: $str:s$</span>&>>
+
+and of_nested_module_type doc_state ~pathloc (nested : nested_module_type) =
+  let { name; doc; desc } = nested in
+  let doc = maybe_div_doc ~pathloc doc in
+  let path = OpamDocPath.ModuleType.create pathloc.internal_path name in
+  let name = OpamDocPath.ModuleType.Name.to_string name in
+  match desc with
+  | Manifest Signature ->
+    let id = id_of_path pathloc.internal_path ("modtype:" ^ name) in
+    let inner = OpamDocState.load_module_type doc_state path in
+    let pathloc = { pathloc with
+      unit_depth = pathloc.unit_depth + 1;
+      (*internal_path = path;*)
+      (* opam-doc-base is broken here. Nested signatures/modules won't work. *)
+    } in
+    let signature = of_module_type_expr doc_state ~pathloc inner.expr in
+    <:html<
+    <div id=$str:id$>
+    <div class="module_type">
+      <div class="intro">
+        $keyword "module type"$ $str:name$ = $keyword "sig"$
+      </div>
+      $doc$
+      <div class="sig">
+        $signature$
+      </div>
+      <div class="outro">$keyword "end"$</div>
+    </div>
+    </div>
+    >>
+  | Manifest (Path path) ->
+    short_module_type_declaration name
+    <:html<= $maybe_link_module_type_path ~pathloc path$>> doc
+  | Abstract -> short_module_type_declaration name <:html<&>> doc
+  | MODULE_TYPE_todo s -> <:html<<span style="color:red">TODO: $str:s$</span>&>>
+
+and of_signature_item doc_state ~pathloc : signature_item -> Cow.Html.t =
+  function
+  | Val val_ -> of_val ~pathloc val_
+  | Types types -> <:html<$list:List.map (of_type ~pathloc) types$>>
   | Modules modules ->
-    <:html<$list:List.map of_nested_module modules$>>
-  | ModuleType module_type -> of_nested_module_type module_type
+    <:html<$list:List.map (of_nested_module doc_state ~pathloc) modules$>>
+  | ModuleType module_type ->
+    of_nested_module_type doc_state ~pathloc module_type
   | Comment { info } ->
     <:html<
-    <div class="comment">$of_text_elements info$</div>
+    <div class="comment">$of_text_elements ~pathloc info$</div>
     >>
-  | Exn exn -> of_exn exn
+  | Exn exn -> of_exn ~pathloc exn
   | SIG_todo s -> <:html<<span style="color:red">TODO: $str:s$</span>&>>
 
-let of_module_type_expr : module_type_expr option -> Cow.Html.t = function
+and of_module_type_expr doc_state ~pathloc
+    : module_type_expr option -> Cow.Html.t =
+  function
   | None -> <:html<&>>
   | Some (Signature sig_items) ->
-    <:html<$list:List.map of_signature_item sig_items$>>
+    <:html<$list:List.map (of_signature_item doc_state ~pathloc) sig_items$>>
 
-let of_module (modu : module_) =
-  let path = link_module_path modu.path in
+let of_module doc_state ~pathloc (modu : module_) =
+  let path = link_module_path ~pathloc modu.path in
   let title = <:html<<h1 class="title">Module $path$</h1>&>> in
   let alias = match modu.alias with
     | None -> <:html<&>>
     | Some (Unknown s) -> <:html<= $str:s$>>
-    | Some (Known path) -> <:html<= $link_module_path path$>>
+    | Some (Known path) -> <:html<= $link_module_path ~pathloc path$>>
   in
   let module_type_path = match modu.type_path with
     | None -> <:html<&>>
     | Some (Unknown s) -> <:html<: $str:s$>>
-    | Some (Known path) -> <:html<: $link_module_type_path path$>>
+    | Some (Known path) -> <:html<: $link_module_type_path ~pathloc path$>>
   in
-  let doc = maybe_div_doc modu.doc in
+  let doc = maybe_div_doc ~pathloc modu.doc in
   <:html<
-  <div class="ocamlary-doc">
+  <div class="ocamlary-doc module">
     $title$
     $alias$
     $module_type_path$
     $doc$
-    $of_module_type_expr modu.type_$
+    <div class="sig">
+      $of_module_type_expr doc_state ~pathloc modu.type_$
+    </div>
   </div>
   >>
 
@@ -440,6 +556,7 @@ let libraries ({ Ocamlary.doc_state }) pkg =
       let library = OpamLibrary.create package.path lib_name in
       OpamDocState.load_library doc_state library
     ) package.libraries in
+    Printf.eprintf "Loading libraries for %s succeeded (%d)\n%!" (OpamPackage.to_string pkg) (List.length libraries);
     libraries
   with e ->
     Printf.eprintf "Loading libraries for %s raised %s\n%!"

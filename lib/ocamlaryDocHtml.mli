@@ -15,11 +15,17 @@
  *
  *)
 
+type pathloc
+
+val pathloc :
+  index_depth:int -> doc_base:Uri.t -> OpamDocPath.Module.t -> pathloc
+
 val name_of_library : OpamDocTypes.library -> string
-
-val of_module : OpamDocTypes.module_ -> Cow.Html.t
-
 val libraries : Ocamlary.state -> OpamPackage.t -> OpamDocTypes.library list
+
+val of_module :
+  OpamDocState.state -> pathloc:pathloc -> OpamDocTypes.module_ -> Cow.Html.t
+
 val index_of_library : doc_base:Uri.t -> OpamDocTypes.library -> Cow.Html.t
 val widget_of_libraries :
   doc_base:Uri.t -> OpamDocTypes.library list -> Cow.Html.t
