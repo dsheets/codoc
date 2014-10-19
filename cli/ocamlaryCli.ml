@@ -15,13 +15,16 @@
  *
  *)
 
-type state = {
-  doc_state : OpamDocState.state;
-}
+open Cmdliner
 
-let load_state ?(opam_dir=OpamGlobals.default_opam_dir) () =
-  OpamGlobals.root_dir := opam_dir;
-  let opam_state  = OpamState.load_state "ocamlary" in
-  let units_state = OpamUnitsState.load_state opam_state in
-  let doc_state   = OpamDocState.load_state opam_state units_state in
-  { doc_state }
+type format = Html | Xml
+
+let format = Arg.(value (
+  let docv = "FORMAT" in
+  let doc  = "the formats of documentation to generate" in
+  let formats = enum [
+    "text/html", Html; "html", Html;
+    "application/xml", Xml; "xml", Xml;
+  ] in
+  opt (list formats) [Html] & info ["t";"type"] ~docv ~doc
+))

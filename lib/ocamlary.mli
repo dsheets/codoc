@@ -19,4 +19,4 @@ type state = {
   doc_state : OpamDocState.state;
 }
 
-val load_state : unit -> state
+val load_state : ?opam_dir:string -> unit -> state

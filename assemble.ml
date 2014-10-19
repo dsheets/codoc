@@ -8,6 +8,10 @@ let opam_doc_base = pkg "opam-doc-base"
 let cow_pp = pkg_pp "cow.syntax"
 let cow = pkg "cow"
 
+let cmdliner = pkg "cmdliner"
+let webmaster_cli = pkg "webmaster.cli"
+let webmaster = pkg "webmaster"
+
 let library = `Path ["lib"]
 let cli = `Path ["cli"]
 
@@ -25,8 +29,28 @@ let ocamlary_doc_html = unit "ocamlaryDocHtml" ~deps:[
 
 let ocamlary = lib "ocamlary" (`Units [ocamlary; ocamlary_doc_html])
 
+let ocamlary_cli = unit "ocamlaryCli" ~deps:[cmdliner] cli
+
+let ocamlary_doc = unit "ocamlaryDoc" ~deps:[
+  cow_pp;
+  cow;
+  webmaster_cli;
+  webmaster;
+  ocamlary;
+] cli
+
+let ocamlary_cmd = unit "ocamlaryMain" ~deps:[
+  cmdliner;
+  webmaster_cli;
+] cli
+
+let bin = bin "ocamlary" (`Units [
+  ocamlary_cli; ocamlary_doc; ocamlary_cmd;
+])
+
 ;;
 
 assemble (project ~version "ocamlary" [
   ocamlary;
+  bin;
 ])
