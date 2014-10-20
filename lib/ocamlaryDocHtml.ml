@@ -329,9 +329,14 @@ let rec of_type_expr ~pathloc expr =
   | Variant { kind=Fixed; elements } ->
     <:html<[ $list:polyvar_elements ~pathloc elements$ ]&>>
   | Variant { kind=Closed csl; elements } -> (* TODO: test csl *)
-    let sl = String.concat ", " csl in
     let els = polyvar_elements ~pathloc elements in
-    <:html<<span style="color:red">TODO closed($str:sl$) [&lt; $list:els$ ]</span>&>>
+    let open_tags = match csl with
+      | []  -> <:html<&>>
+      | csl ->
+        let clopen = String.concat " " (List.map (fun x -> "`"^x) csl) in
+        <:html< &gt; $str:clopen$&>>
+    in
+    <:html<[&lt; $list:els$$open_tags$ ]&>>
   | Variant { kind=Open; elements } ->
     <:html<[&gt; $list:polyvar_elements ~pathloc elements$ ]&>>
   | Object { methods=[]; open_ } ->
@@ -362,19 +367,17 @@ and of_type_constr ?(cons="") ~pathloc path = function
       <:html<$phtml$, $arghtml$>>
     ) a argl in
     <:html<($args$) $maybe_link_type_path ~pathloc path$>>
-and of_constr_arg ~pathloc = function
-  | Some typ -> of_type_expr ~pathloc typ
-  | None     -> <:html<&>>
 and polyvar_element ~pathloc : variant_element -> Cow.Html.t = function
   | Type (path, argl) -> of_type_constr ~pathloc path argl
-  | Constructor (name, []) -> <:html<`$str:name$&>>
-  | Constructor (name, arg::args) ->
+  | Constructor (name, _, []) -> <:html<`$str:name$>>
+  | Constructor (name, empty, arg::args) ->
+    let empty = if empty then <:html<&amp; >> else <:html<&>> in
     let arghtml = List.fold_left (fun html arg ->
-      <:html<$html$ &amp; $of_constr_arg ~pathloc arg$&>>
-    ) (of_constr_arg ~pathloc arg) args in
+      <:html<$html$ &amp; $of_type_expr ~pathloc arg$&>>
+    ) <:html<$empty$$of_type_expr ~pathloc arg$>> args in
     <:html<`$str:name$ of $arghtml$&>>
 and polyvar_elements ~pathloc = List.map (fun pve ->
-  <:html<| $polyvar_element ~pathloc pve$ &>>
+  <:html<<div class="constr">| $polyvar_element ~pathloc pve$</div>&>>
 )
 
 let of_val ~pathloc ({ name; doc; type_ }) =
