@@ -310,7 +310,7 @@ let ident_class = Identifier.(function
   | Argument _ -> "modarg"
   | ModuleType _ -> "modtype"
   | Type _ -> type_class
-  | CoreType _ -> "type"
+  | CoreType _ -> type_class
   | Constructor _ -> "cons"
   | Field _ -> "field"
   | Extension _ -> "ext"
@@ -755,7 +755,7 @@ and polyvar_element ~pathloc : 'a TypeExpr.Variant.element -> Cow.Html.t =
     <:html<`$str:name$ of $arghtml$&>>
   )
 and polyvar_elements ~pathloc = List.map (fun pve ->
-  <:html<<div class="constr">| $polyvar_element ~pathloc pve$</div>&>>
+  <:html<<div class="cons">| $polyvar_element ~pathloc pve$</div>&>>
 )
 and of_labeled_type_expr ~pathloc t = TypeExpr.(function
   | None -> of_type_expr ~pathloc t
@@ -785,7 +785,7 @@ let of_external ~pathloc { External.id; doc; type_; primitives } =
   let primitives = List.map (fun p -> <:html<"$str:p$" >>) primitives in
   <:html<
   <div id=$str:id$>
-  <div class="external">
+  <div class="external val">
     $keyword "external"$ $str:name$ : $of_type_expr ~pathloc type_$
     = $list:primitives$
     $doc$
@@ -814,14 +814,14 @@ let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
   let name = name_of_ident (Identifier.any id) in
   let sig_ = args_of_constructor ~pathloc args res in
   let doc  = maybe_span_doc ~pathloc doc in
-  <:html<<div class="constr">| $str:name$$sig_$$doc$</div>&>>
+  <:html<<div class="cons">| $str:name$$sig_$$doc$</div>&>>
 
 (* TODO: add id *)
 let of_extension ~pathloc { Extension.Constructor.id; doc; args; res } =
   let name = name_of_ident (Identifier.any id) in
   let sig_ = args_of_constructor ~pathloc args res in
   let doc  = maybe_span_doc ~pathloc doc in
-  <:html<<div class="ext">| $str:name$$sig_$$doc$</div>&>>
+  <:html<<div class="cons">| $str:name$$sig_$$doc$</div>&>>
 
 (* TODO: add id *)
 let of_field ~pathloc { TypeDecl.Field.id; doc; type_ } =
@@ -894,7 +894,7 @@ let of_type_ext ~pathloc
   let private_ = if private_ then keyword "private" else <:html<&>> in
   let constrs = List.map (of_extension ~pathloc) constructors in
   <:html<
-  <div class="typext">
+  <div class="ext">
     $keyword "type"$ $params$$name_link$ += $private_$$list:constrs$
     $doc$
   </div>
@@ -908,7 +908,7 @@ let of_exception ~pathloc { Exception.id; doc; args; res } =
   let id = id_of_ident ~pathloc id in
   <:html<
   <div id=$str:id$>
-  <div class="exception">
+  <div class="exn">
     $keyword "exception"$ $str:name$$args$
     $doc$
   </div>
@@ -1065,7 +1065,7 @@ let module_declaration
 let module_type_declaration ~id name rhs doc rest =
   <:html<
     <div id=$str:id$>
-    <div class="module_type">
+    <div class="modtype">
       <div class="intro">
         $keyword "module type"$ $str:name$ $rhs$
       </div>
