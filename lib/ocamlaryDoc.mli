@@ -15,13 +15,17 @@
  *
  *)
 
-type state = {
-  doc_state : OpamDocState.state;
-}
+type path = string
 
-let load_state ?(opam_dir=OpamGlobals.default_opam_dir) () =
-  OpamGlobals.root_dir := opam_dir;
-  let opam_state  = OpamState.load_state "ocamlary" in
-  let units_state = OpamUnitsState.load_state opam_state in
-  let doc_state   = OpamDocState.load_state opam_state units_state in
-  { doc_state }
+type root =
+| Cmti of path * string
+| Xml of path * root
+| Html of path * root
+
+val name_of_root : root -> string
+val path_of_root : root -> path
+
+val xml_of_root : root -> Cow.Xml.t
+
+val root_of_xml : Xmlm.tag -> root option list -> root option
+val data_of_xml : string -> root option

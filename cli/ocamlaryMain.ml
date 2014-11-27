@@ -35,7 +35,7 @@ let doc_cmd =
   ] @ help_sections
   in
   let path' = path ~doc:"the module, interface, or directory to document" 0 in
-  Term.(ret (pure OcamlaryDoc.generate
+  Term.(ret (pure OcamlaryCliDoc.generate
                $ common $ OcamlaryCli.format $ output $ path'),
         info "doc" ~doc ~sdocs:global_option_section ~man)
 

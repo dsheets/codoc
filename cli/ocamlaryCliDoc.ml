@@ -17,41 +17,49 @@
 
 open OcamlaryCli
 
-let doc_state = Lazy.from_fun Ocamlary.load_state
-
 let xml path xml_file =
-  let cmti_info = Cmt_format.read_cmt path in
-  let pkg = OpamPackage.of_string "_adhoc.1" in
-  let lib = OpamLibrary.create pkg (OpamLibrary.Name.of_string "_adhoc") in
-  let name =
-    OpamDocName.Module.of_string cmti_info.Cmt_format.cmt_modname
-  in
-  let md = OpamDocPath.(Module.create (Lib lib) name) in
-  let res _ = None in
-  let tree = match cmti_info.Cmt_format.cmt_annots with
-    | Cmt_format.Interface sg -> sg
-    | _ -> failwith "not cmti... what should i do?" (* TODO *)
-  in
-  let intf = OpamDocCmti.read_interface_tree res md tree in
+  let root = OcamlaryDoc.Cmti (path, FindlibUnits.unit_name_of_path path) in
+  let unit = DocOck.(match read_cmti root path with
+    | Not_an_interface -> failwith (path^" is not an interface") (* TODO *)
+    | Wrong_version_interface ->
+      failwith (path^" has the wrong format version") (* TODO *)
+    | Corrupted_interface -> failwith (path^" is corrupted") (* TODO *)
+    | Not_a_typedtree -> failwith (path^" is not a typed tree") (* TODO *)
+    | Ok unit -> unit
+  ) in
   let out_file = open_out xml_file in
   let output = Xmlm.make_output (`Channel out_file) in
-  OpamDocXml.module_to_xml output intf;
+  let printer = DocOckXmlPrint.build (fun output root ->
+    Xmlm.output_tree (fun x -> x) output (List.hd (OcamlaryDoc.xml_of_root root))
+  ) in
+  DocOckXmlPrint.file printer output unit;
   close_out out_file;
   false
 
 let html xml_file html_file =
   let in_file = open_in xml_file in
   let input = Xmlm.make_input (`Channel in_file) in
-  let modu = OpamDocXml.(module_of_xml { input; source=Some xml_file }) in
+  let parse = DocOckXmlParse.build (fun input ->
+    match Xmlm.input_tree
+      ~el:OcamlaryDoc.root_of_xml
+      ~data:OcamlaryDoc.data_of_xml
+      input
+    with None -> failwith "can't find root" (* TODO: fixme *)
+    | Some root -> root
+  ) in
+  let unit = DocOckXmlParse.(match file parse input with
+    | Ok unit -> unit
+    | Error (None, pos', s)
+    | Error (Some _, pos', s) -> failwith (xml_file^": "^s) (* TODO: pos *)
+  ) in
   close_in in_file;
-  let pathloc = OcamlaryDocHtml.pathloc
+  let pathloc = OcamlaryDocHtml.pathloc (* TODO: fixme *)
     ~index_depth:0
     ~doc_base:(Uri.of_string "SOME_DOC_BASE")
-    (OpamDocPath.Module modu.OpamDocTypes.path)
+    (DocOckPaths.Identifier.module_signature unit.DocOckTypes.Unit.id)
   in
-  let doc_state = Lazy.force doc_state in
   let html =
-    OcamlaryDocHtml.of_top_module doc_state.Ocamlary.doc_state ~pathloc modu
+    OcamlaryDocHtml.of_unit ~pathloc unit
   in
   (* TODO: fixme *)
   let html = <:html<<html><head><link rel="stylesheet" type="text/css" href="file:///home/dsheets/Code/ocamlary/share/ocamlary.css"/></head><body>$html$</body></html>&>> in

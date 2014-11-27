@@ -18,14 +18,14 @@
 type pathloc
 
 val pathloc :
-  index_depth:int -> doc_base:Uri.t -> OpamDocPath.parent -> pathloc
-
-val name_of_library : OpamDocTypes.library -> string
-val libraries : Ocamlary.state -> OpamPackage.t -> OpamDocTypes.library list
+  index_depth:int -> doc_base:Uri.t
+  -> OcamlaryDoc.root DocOckPaths.Identifier.signature -> pathloc
+(** Create a path location value for relative linking. *)
 
 val of_top_module :
-  OpamDocState.state -> pathloc:pathloc -> OpamDocTypes.module_ -> Cow.Html.t
+  pathloc:pathloc -> OcamlaryDoc.root DocOckTypes.Module.t -> Cow.Html.t
+(** Generate a documentation page from a module. *)
 
-val index_of_library : doc_base:Uri.t -> OpamDocTypes.library -> Cow.Html.t
-val widget_of_libraries :
-  doc_base:Uri.t -> OpamDocTypes.library list -> Cow.Html.t
+val of_unit :
+  pathloc:pathloc -> OcamlaryDoc.root DocOckTypes.Unit.t -> Cow.Html.t
+(** Generate a documentation page from a compilation unit. *)

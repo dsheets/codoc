@@ -2,11 +2,13 @@ open Assemblage
 
 let version = "0.1.0"
 
-let opam_lib = pkg "opam-lib"
-let opam_units = pkg "opam-units"
-let opam_doc_base = pkg "opam-doc-base"
+let doc_ock_lib = pkg "doc-ock-lib"
+let doc_ock_xml = pkg "doc-ock-xml"
+
 let cow_pp = pkg_pp "cow.syntax"
 let cow = pkg "cow"
+
+let findlib_units = pkg "ocamlfind-units"
 
 let cmdliner = pkg "cmdliner"
 let webmaster_cli = pkg "webmaster.cli"
@@ -16,36 +18,44 @@ let library = `Path ["lib"]
 let cli = `Path ["cli"]
 
 let ocamlary = unit "ocamlary" ~deps:[
-  opam_lib;
-  opam_units;
-  opam_doc_base;
+  doc_ock_lib;
 ] library
+
+let ocamlary_doc = unit "ocamlaryDoc" ~deps:[cow_pp; cow] library
 
 let ocamlary_doc_html = unit "ocamlaryDocHtml" ~deps:[
-  opam_doc_base;
+  doc_ock_lib;
   cow_pp;
   cow;
+  ocamlary_doc;
 ] library
 
-let ocamlary = lib "ocamlary" (`Units [ocamlary; ocamlary_doc_html])
+let ocamlary = lib "ocamlary" (`Units [
+  ocamlary;
+  ocamlary_doc;
+  ocamlary_doc_html;
+])
 
 let ocamlary_cli = unit "ocamlaryCli" ~deps:[cmdliner] cli
 
-let ocamlary_doc = unit "ocamlaryDoc" ~deps:[
+let ocamlary_cli_doc = unit "ocamlaryCliDoc" ~deps:[
   cow_pp;
   cow;
+  findlib_units;
   webmaster_cli;
   webmaster;
+  doc_ock_xml;
   ocamlary;
 ] cli
 
 let ocamlary_cmd = unit "ocamlaryMain" ~deps:[
   cmdliner;
   webmaster_cli;
+  ocamlary_cli_doc;
 ] cli
 
 let bin = bin "ocamlary" (`Units [
-  ocamlary_cli; ocamlary_doc; ocamlary_cmd;
+  ocamlary_cli; ocamlary_cli_doc; ocamlary_cmd;
 ])
 
 ;;
