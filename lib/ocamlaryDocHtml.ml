@@ -1166,12 +1166,13 @@ and of_substitutions ~pathloc base acc = ModuleType.(function
     of_substitutions ~pathloc base
     (<:html<$keyword "module"$ $name$ = $rhs$ $rest$>> :: acc) subs
   | (TypeEq (type_frag, type_eqn))::subs ->
-    (* TODO: private *)
     let { TypeDecl.Equation.params; private_; manifest } = type_eqn in
     let name = link_fragment ~pathloc base (Fragment.any type_frag) in
     let params = of_type_params params in
     let manifest = match manifest with
-      | Some m -> <:html< = $of_type_expr ~pathloc m$>>
+      | Some m ->
+        let p=if private_ then <:html<$keyword "private"$ >> else <:html<&>> in
+        <:html< = $p$$of_type_expr ~pathloc m$>>
       | None -> <:html<&>>
     in
     <:html<$keyword "type"$ $params$$name$$manifest$>>
