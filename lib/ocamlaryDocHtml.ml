@@ -725,9 +725,15 @@ let rec of_type_expr ~pathloc expr =
     <:html<$str:vars$ . $of_type_expr expr$&>>
   | Class (path, argl) ->
     of_type_constr ~cons:"#" ~pathloc (Path.type_of_class_type path) argl
-  | Package { Package.path; substitutions } -> (* TODO: test *)
-    (* TODO: substitutions *)
+  | Package { Package.path; substitutions=[] } ->
     <:html<(module $link_path ~pathloc (Path.any path)$)>>
+  | Package { Package.path; substitutions=sub::subs } ->
+    let sub = of_package_sub ~pathloc path sub in
+    let subs = List.map (of_package_sub ~pathloc path) subs in
+    let subs = fold_html <:html< $keyword "and"$ >>
+      <:html< $keyword "with"$ $sub$>> subs
+    in
+    <:html<(module $link_path ~pathloc (Path.any path)$$subs$)>>
   )
 and of_object_method ~pathloc { TypeExpr.Object.name; type_ } =
   <:html<$str:name$ : $of_type_expr ~pathloc type_$&>>
@@ -762,6 +768,15 @@ and of_labeled_type_expr ~pathloc t = TypeExpr.(function
   | Some (Label l) -> <:html<$str:l$:$of_type_expr ~pathloc t$>>
   | Some (Optional l) -> <:html<?$str:l$:$of_type_expr ~pathloc t$>>
 )
+and of_package_sub ~pathloc path (fragment, expr) =
+  let path = match path with
+    | Path.Resolved resolved ->
+      Some (Identifier.module_type_signature (Path.Resolved.identifier resolved))
+    | _ -> None
+  in
+  let type_ = keyword "type" in
+  let fragment_link = link_fragment ~pathloc path (Fragment.any fragment) in
+  <:html<$type_$ $fragment_link$ = $of_type_expr ~pathloc expr$>>
 
 let of_value ~pathloc { Value.id; doc; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
