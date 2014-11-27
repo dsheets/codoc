@@ -856,29 +856,35 @@ let of_type_params = TypeDecl.(function
       <:html<($str:String.concat ", " type_vars$) >>
 )
 
-(* TODO: private and constraints *)
 let of_type ~pathloc
     { TypeDecl.id; doc;
       equation={ TypeDecl.Equation.params; private_; manifest; constraints };
       representation;
     } =
+  let of_type_expr = of_type_expr ~pathloc in
+  let of_rep = of_type_representation ~pathloc in
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
   let name = name_of_ident id in
   let params = of_type_params params in
-  let manifest = match manifest with
-    | None -> <:html<&>>
-    | Some t -> <:html< = $of_type_expr ~pathloc t$>>
+  let priv = if private_ then <:html<$keyword "private"$ >> else <:html<&>> in
+  let constraints = fold_html_str "" <:html<&>>
+    (List.map (fun (c,c') ->
+      <:html< $keyword "constraint"$ $of_type_expr c$ = $of_type_expr c'$>>
+     ) constraints)
   in
-  let representation = match representation with
-    | None -> <:html<&>>
-    | Some r -> <:html< = $of_type_representation ~pathloc r$>>
+  let rhs = match manifest, representation with
+    | None, None -> <:html<&>>
+    | Some t, None -> <:html< = $priv$$of_type_expr t$>>
+    | None, Some r -> <:html< = $priv$$of_rep r$>>
+    | Some t, Some r ->
+      <:html< = $of_type_expr t$ = $priv$$of_rep r$>>
   in
   let id = id_of_ident ~pathloc id in
   <:html<
   <div id=$str:id$>
   <div class="type">
-    $keyword "type"$ $params$$str:name$$manifest$$representation$
+    $keyword "type"$ $params$$str:name$$rhs$$constraints$
     $doc$
   </div>
   </div>
