@@ -971,7 +971,7 @@ let rec of_type_expr ~pathloc expr =
   TypeExpr.(match expr with
   | Var v when v = "_" -> <:html<_>>
   | Var v -> <:html<'$str:v$>>
-  | Any -> <:html<<span style="color: red">TODO: ANY</span>&>> (* TODO: test *)
+  | Any -> <:html<_>>
   | Alias (t,v) -> (* TODO: parens are only sometimes required *)
     <:html<($of_type_expr t$ $keyword "as"$ '$str:v$)&>>
   | Arrow (label, t, t') ->
