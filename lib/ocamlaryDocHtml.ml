@@ -33,13 +33,6 @@ type pathloc = {
 module Identifier = struct
   include Identifier
 
-  type signature_kind = [ `Module | `ModuleType ]
-  type class_signature_kind = [ `Class | `ClassType ]
-  type container_kind = [ signature_kind | class_signature_kind ]
-  type parent_kind = [ container_kind | `Type ]
-
-  type 'a parent = ('a, parent_kind) Identifier.t
-
   class type ['a] module_map = object
     method root : root -> 'a
     method argument : root signature -> int -> string -> 'a
@@ -50,17 +43,17 @@ module Identifier = struct
     method module_type : root signature -> string -> 'a
   end
 
-  class type ['a] type_map = object
+  class type ['a] datatype_map = object
     method type_ : root signature -> string -> 'a
     method core_type : string -> 'a
   end
 
-  class type ['a] constructor_map = object
-    method constructor : root type_ -> string -> 'a
+  class type ['a] variant_constructor_map = object
+    method constructor : root datatype -> string -> 'a
   end
 
   class type ['a] field_map = object
-    method field : root type_ -> string -> 'a
+    method field : root datatype -> string -> 'a
   end
 
   class type ['a] extension_map = object
@@ -113,12 +106,12 @@ module Identifier = struct
 
   class type ['a] parent_map = object
     inherit ['a] container_map
-    inherit ['a] type_map
+    inherit ['a] datatype_map
   end
 
   class type ['a] any_map = object
     inherit ['a] parent_map
-    inherit ['a] constructor_map
+    inherit ['a] variant_constructor_map
     inherit ['a] extension_map
     inherit ['a] exception_map
     inherit ['a] field_map
@@ -127,19 +120,6 @@ module Identifier = struct
     inherit ['a] instance_variable_map
     inherit ['a] label_map
   end
-
-  let parent_of_signature : 'a signature -> 'a parent = function
-    | Root _ | Module _ | Argument _ | ModuleType _ as x -> x
-
-  let parent_of_type : 'a type_ -> 'a parent = function
-    | Type _ | CoreType _ as x -> x
-
-  let parent_of_class_signature : 'a class_signature -> 'a parent = function
-    | Class _ | ClassType _ as x -> x
-
-  let parent_of_container : 'a container -> 'a parent = function
-    | Root _ | Module _ | Argument _ | ModuleType _
-    | Class _ | ClassType _ as x -> x
 
   class virtual ['a] any_parent_map = object (self : 'self)
     constraint 'self = 'a #any_map
@@ -154,9 +134,9 @@ module Identifier = struct
     method type_ p n =
       self#parent (Type (p, n)) (parent_of_signature p) n
     method constructor p n =
-      self#parent (Constructor (p, n)) (parent_of_type p) n
+      self#parent (Constructor (p, n)) (parent_of_datatype p) n
     method field p n =
-      self#parent (Field (p, n)) (parent_of_type p) n
+      self#parent (Field (p, n)) (parent_of_datatype p) n
     method extension p n =
       self#parent (Extension (p, n)) (parent_of_signature p) n
     method exception_ p n =
@@ -198,9 +178,6 @@ let map_ident map = Identifier.(function
 
 module Path_resolved = struct
   include Path.Resolved
-
-  type class_signature_kind = [ `Class | `ClassType ]
-  type type_kind = [ class_signature_kind | `Type ]
 
   class type ['a, 'b] module_map = object
     constraint 'b = [< kind > `Module]
@@ -275,8 +252,6 @@ let map_resolved_path map = Path_resolved.(function
 module Fragment_resolved = struct
   include Fragment.Resolved
 
-  type type_kind = [ `Type | `Class | `ClassType ]
-
   class type ['a] root_map = object
     method root : 'a
   end
@@ -343,22 +318,6 @@ let map_resolved_fragment
 module Reference_resolved = struct
   include Reference.Resolved
 
-  type signature_kind = [ `Module | `ModuleType ]
-  type class_signature_kind = [ `Class | `ClassType ]
-  type extension_kind = [ `Extension | `Exception ]
-  type constructor_kind = [ extension_kind | `Constructor ]
-  type type_kind = [ class_signature_kind | `Type ]
-  type container_kind = [ signature_kind | class_signature_kind ]
-  type parent_kind = [ container_kind | type_kind ]
-
-  let parent_of_container : 'a container -> 'a parent = Identifier.(function
-    | Identifier
-        (Root _ | Argument _
-            | Module _ | ModuleType _
-            | Class _  | ClassType _)
-    | Module _ | ModuleType _ | Class _ | ClassType _ as x -> x
-  )
-
   class type ['a,'b] module_map = object
     constraint 'b = [< kind > `Module]
     method module_ : root signature -> string -> 'a
@@ -376,7 +335,7 @@ module Reference_resolved = struct
     inherit ['a,'b] module_type_map
   end
 
-  class type ['a,'b] type_extension_map = object
+  class type ['a,'b] extension_map = object
     constraint 'b = [< kind > `Extension]
     method extension : root signature -> string -> 'a
     method identifier : (root,'b) Identifier.t -> 'a
@@ -388,20 +347,20 @@ module Reference_resolved = struct
     method identifier : (root,'b) Identifier.t -> 'a
   end
 
-  class type ['a,'b] extension_map = object
-    inherit ['a,'b] type_extension_map
+  class type ['a,'b] type_extension_map = object
+    inherit ['a,'b] extension_map
     inherit ['a,'b] exception_map
   end
 
-  class type ['a,'b] variant_map = object
+  class type ['a,'b] variant_constructor_map = object
     constraint 'b = [< kind > `Constructor]
     method constructor : root datatype -> string -> 'a
     method identifier : (root,'b) Identifier.t -> 'a
   end
 
   class type ['a,'b] constructor_map = object
-    inherit ['a,'b] extension_map
-    inherit ['a,'b] variant_map
+    inherit ['a,'b] type_extension_map
+    inherit ['a,'b] variant_constructor_map
   end
 
   class type ['a,'b] class_map = object
@@ -881,8 +840,8 @@ let rec of_text_element ~pathloc txt =
   | Reference (Class c, None) -> link_reference ~pathloc (any c)
   | Reference (Class c, Some els) -> (* TODO: test *)
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any c)
-  | Reference (ClassType c, None) -> link_reference ~pathloc (any c)
-  | Reference (ClassType c, Some els) -> (* TODO: test *)
+  | Reference (ClassSignature c, None) -> link_reference ~pathloc (any c)
+  | Reference (ClassSignature c, Some els) -> (* TODO: test *)
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any c)
   | Reference (Method m, None) -> link_reference ~pathloc (any m)
   | Reference (Method m, Some els) -> (* TODO: test *)
@@ -1039,7 +998,7 @@ let rec of_type_expr ~pathloc expr =
     let vars = String.concat " " (List.map (fun v -> "'"^v) vars) in
     <:html<$str:vars$ . $of_type_expr expr$&>>
   | Class (path, argl) ->
-    of_type_constr ~cons:"#" ~pathloc (Path.type_of_class_type path) argl
+    of_type_constr ~cons:"#" ~pathloc (Path.type_of_class_signature path) argl
   | Package { Package.path; substitutions=[] } ->
     <:html<(module $link_path ~pathloc (Path.any path)$)>>
   | Package { Package.path; substitutions=sub::subs } ->
