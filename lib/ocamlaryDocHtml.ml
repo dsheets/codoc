@@ -882,9 +882,12 @@ and lis_of_elss ~pathloc elss = List.map (fun els ->
 ) elss
 and of_text_elements ~pathloc els =
   let f = of_text_element ~pathloc in
+  <:html<$list:List.map f els$>>
+
+let paragraphs_of_text ~pathloc els =
   let paras = List.map (fun els ->
     <:html<
-    <p>$list:List.map f els$</p>
+    <p>$of_text_elements ~pathloc els$</p>
     >>
   ) (OcamlaryDoc.paragraphize els) in
   <:html<$list:paras$>>
@@ -943,7 +946,7 @@ let maybe_div_doc ~pathloc ({ Documentation.text; tags }) =
   | text, tags ->
     <:html<
       <div class="doc">
-        $of_text_elements ~pathloc text$
+        $paragraphs_of_text ~pathloc text$
         $list:List.map (map_tag ~pathloc div_tag) tags$
       </div>
     >>
