@@ -555,17 +555,19 @@ let ident_class = Identifier.(function
 
 let classify cls name = Printf.sprintf "%s:%s" cls name
 
+let name_of_argument i name = Printf.sprintf "%d:%s" i name
+
 class id_of_ident_map ~pathloc : [string] Identifier.any_map = object (self)
   inherit [string] Identifier.any_parent_map
 
   method root _ = "" (* TODO: check against pathloc; should be self *)
   method core_type name = classify type_class name
   method core_exception name = classify exn_class name
-  method argument parent i name = (* TODO: fixme *)
+  method argument parent i name =
     self#parent
       (Identifier.Argument (parent, i, name))
       (Identifier.parent_of_signature parent)
-      name
+      (name_of_argument i name)
   method private parent ident parent name =
     Printf.sprintf "%s/%s"
       (map_ident self (Identifier.any parent))
@@ -583,11 +585,11 @@ class href_of_ident_map ~pathloc : [Uri.t] Identifier.any_map = object (self)
     Uri.of_string (OcamlaryDoc.path_of_root r)
   method core_type name = Uri.of_string name (* TODO: fixme *)
   method core_exception name = Uri.of_string name (* TODO: fixme *)
-  method argument parent i name = (* TODO: fixme *)
+  method argument parent i name =
     self#parent
       (Identifier.Argument (parent, i, name))
       (Identifier.parent_of_signature parent)
-      name
+      (name_of_argument i name)
   method private parent ident parent name = (* TODO: fixme with pathloc *)
     Uri.(with_fragment (of_string "") (Some (id_of_ident ~pathloc ident)))
 end
@@ -606,11 +608,11 @@ object (self)
     <:html<<a href=$uri:uri$>$str:OcamlaryDoc.name_of_root r$</a>&>>
   method core_type name = <:html<$str:name$>> (* TODO: link *)
   method core_exception name = <:html<$str:name$>> (* TODO: link *)
-  method argument parent i name = (* TODO: fixme *)
+  method argument parent i name =
     self#parent
       (Identifier.Argument (parent, i, name))
       (Identifier.parent_of_signature parent)
-      name
+      (name_of_argument i name)
   method private parent ident parent name =
     let href = href_of_ident ~pathloc ident in
     match text with
