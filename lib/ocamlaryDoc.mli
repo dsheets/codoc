@@ -24,6 +24,10 @@ type root =
 
 type text = root DocOckTypes.Documentation.text
 
+type t =
+| Para of text
+| Block of text
+
 val name_of_root : root -> string
 val path_of_root : root -> path
 
@@ -32,4 +36,4 @@ val xml_of_root : root -> Cow.Xml.t
 val root_of_xml : Xmlm.tag -> root option list -> root option
 val data_of_xml : string -> root option
 
-val paragraphize : text -> text list
+val paragraphize : text -> t list

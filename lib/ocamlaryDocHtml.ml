@@ -764,11 +764,11 @@ let rec of_text_element ~pathloc txt =
   | Style (Emphasize, els) ->
     <:html<<em>$of_text_elements els$</em>&>>
   | Style (Center, els) ->
-    <:html<<div class="doc-center">$of_text_elements els$</div>&>>
+    <:html<<div class="doc-center">$paragraphs_of_text ~pathloc els$</div>&>>
   | Style (Left, els) ->
-    <:html<<div class="doc-left">$of_text_elements els$</div>&>>
+    <:html<<div class="doc-left">$paragraphs_of_text ~pathloc els$</div>&>>
   | Style (Right, els) ->
-    <:html<<div class="doc-right">$of_text_elements els$</div>&>>
+    <:html<<div class="doc-right">$paragraphs_of_text ~pathloc els$</div>&>>
   | Style (Superscript, els) ->
     <:html<<sup>$of_text_elements els$</sup>&>>
   | Style (Subscript, els) ->
@@ -877,18 +877,19 @@ let rec of_text_element ~pathloc txt =
     >>
   ))
 and lis_of_elss ~pathloc elss = List.map (fun els ->
-  let f = of_text_element ~pathloc in
-  <:html<<li>$list:List.map f els$</li>&>>
+  <:html<<li>$of_text_elements ~pathloc els$</li>&>>
 ) elss
 and of_text_elements ~pathloc els =
   let f = of_text_element ~pathloc in
   <:html<$list:List.map f els$>>
-
-let paragraphs_of_text ~pathloc els =
-  let paras = List.map (fun els ->
-    <:html<
-    <p>$of_text_elements ~pathloc els$</p>
-    >>
+and paragraphs_of_text ~pathloc els =
+  let paras = List.map OcamlaryDoc.(function
+    | Para els ->
+      <:html<
+      <p>$of_text_elements ~pathloc els$</p>
+      >>
+    | Block els ->
+      <:html<$of_text_elements ~pathloc els$>>
   ) (OcamlaryDoc.paragraphize els) in
   <:html<$list:paras$>>
 

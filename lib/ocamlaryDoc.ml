@@ -24,6 +24,10 @@ type root =
 
 type text = root DocOckTypes.Documentation.text
 
+type t =
+| Para of text
+| Block of text
+
 let rec name_of_root = function
   | Cmti (_, name) -> name
   | Xml (_, r) -> name_of_root r
@@ -67,11 +71,33 @@ let root_of_xml tag root_opt_list =
 
 let data_of_xml _ = None    
 
-(* TODO: split block elements like <pre>? headers? *)
+let is_block = DocOckTypes.Documentation.(function
+  | Raw _ | Code _ | Reference _
+  | Style ((Bold | Italic | Emphasize | Superscript | Subscript), _)
+  | Newline -> false
+
+  | PreCode _ | Verbatim _ | List _ | Enum _ | Title _ | Special _
+  | Style ((Center | Left | Right), _) -> true
+
+  | Style (Custom _, _) -> false (* TODO: check *)
+  | Target _ -> false (* TODO: check *)
+)
+
 let paragraphize txt =
-  let rec collect paras acc = DocOckTypes.Documentation.(function
-    | Newline::rest -> collect ((List.rev acc)::paras) [] rest
-    | other::rest -> collect paras (other::acc) rest
-    | [] -> List.rev ((List.rev acc)::paras)
+  let rec collect paras acc els = DocOckTypes.Documentation.(match acc, els with
+    | (Block [] | Para []), Newline::rest -> collect paras (Para []) rest
+    | Para acc, Newline::rest ->
+      collect (Para (List.rev acc)::paras) (Para []) rest
+    | Para [], other::rest when is_block other ->
+      collect paras (Block [other]) rest
+    | Para acc, other::rest when is_block other ->
+      collect (Para (List.rev acc)::paras) (Block [other]) rest
+    | Para acc, other::rest -> collect paras (Para (other::acc)) rest
+    | Block acc, other::rest when is_block other ->
+      collect paras (Block (other::acc)) rest
+    | Block acc, other::rest ->
+      collect (Block (List.rev acc)::paras) (Para [other]) rest
+    | Para acc, []  -> List.rev (Para (List.rev acc)::paras)
+    | Block acc, [] -> List.rev (Block (List.rev acc)::paras)
   ) in
-  collect [] [] txt
+  collect [] (Para []) txt
