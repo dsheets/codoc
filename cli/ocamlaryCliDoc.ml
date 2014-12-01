@@ -36,6 +36,13 @@ let xml path xml_file =
   close_out out_file;
   false
 
+let xml_error xml_file ?start (line,col) s = match start with
+  | Some (start_line, start_col) ->
+    Printf.eprintf "\n%s line %d column %d - line %d column %d:\n%s\n\n"
+      xml_file start_line start_col line col s
+  | None ->
+    Printf.eprintf "\n%s line %d column %d:\n%s\n\n" xml_file line col s
+
 let html xml_file html_file =
   let in_file = open_in xml_file in
   let input = Xmlm.make_input (`Channel in_file) in
@@ -47,36 +54,36 @@ let html xml_file html_file =
     with None -> failwith "can't find root" (* TODO: fixme *)
     | Some root -> root
   ) in
-  let unit = DocOckXmlParse.(match file parse input with
-    | Ok unit -> unit
-    | Error (None, pos', s)
-    | Error (Some _, pos', s) -> failwith (xml_file^": "^s) (* TODO: pos *)
-  ) in
-  close_in in_file;
-  let pathloc = OcamlaryDocHtml.pathloc (* TODO: fixme *)
-    ~index_depth:0
-    ~doc_base:(Uri.of_string "SOME_DOC_BASE")
-    (DocOckPaths.Identifier.module_signature unit.DocOckTypes.Unit.id)
-  in
-  let html =
-    OcamlaryDocHtml.of_unit ~pathloc unit
-  in
+  match DocOckXmlParse.file parse input with
+  | DocOckXmlParse.Error (start, pos, s) ->
+    close_in in_file;
+    xml_error xml_file ?start pos s;
+    true
+  | DocOckXmlParse.Ok unit ->
+    close_in in_file;
+    let pathloc = OcamlaryDocHtml.pathloc (* TODO: fixme *)
+      ~index_depth:0
+      ~doc_base:(Uri.of_string "SOME_DOC_BASE")
+      (DocOckPaths.Identifier.module_signature unit.DocOckTypes.Unit.id)
+    in
+    let html =
+      OcamlaryDocHtml.of_unit ~pathloc unit
+    in
   (* TODO: fixme *)
-  let html = <:html<<html><head><link rel="stylesheet" type="text/css" href="file:///home/dsheets/Code/ocamlary/share/ocamlary.css"/></head><body>$html$</body></html>&>> in
-  let out_file = open_out html_file in
-  let output = Xmlm.make_output (`Channel out_file) in
-  Htmlm.Xhtmlm.output_doc_tree output (List.hd html);
-  close_out out_file;
-  false
+    let html = <:html<<html><head><link rel="stylesheet" type="text/css" href="file:///home/dsheets/Code/ocamlary/share/ocamlary.css"/></head><body>$html$</body></html>&>> in
+    let out_file = open_out html_file in
+    let output = Xmlm.make_output (`Channel out_file) in
+    Htmlm.Xhtmlm.output_doc_tree output (List.hd html);
+    close_out out_file;
+    false
 
 let only_cmti f path output =
-  Printf.eprintf "%s\n%!" path;
   if Filename.check_suffix path ".cmti"
-  then f path output
-  else begin
-    Printf.eprintf "Skipping non-cmti %s\n%!" path;
-    true
+  then begin
+    Printf.eprintf "%s\n%!" path;
+    f path output
   end
+  else false
 
 open Webmaster_cli
 
