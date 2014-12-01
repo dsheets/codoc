@@ -1436,6 +1436,8 @@ and rhs_rest_of_sig ~pathloc = ModuleType.(function
     let arg = name_of_ident (Identifier.any arg_ident) in (* TODO: more? *)
     <:html<$keyword "functor"$ ($str:arg$ : $rhs_sig$$rest_sig$) -> $rhs$>>,
     rest
+  | With (With (expr, subs), subs') ->
+    rhs_rest_of_sig ~pathloc (With (expr, subs @ subs'))
   | With (expr, subs) ->
     let base = base_of_module_type_expr ~pathloc expr in
     let rhs, rest = rhs_rest_of_sig ~pathloc expr in
@@ -1459,7 +1461,7 @@ and of_substitutions ~pathloc base acc = ModuleType.(function
     let rhs, rest = rhs_rest_of_decl ~pathloc module_eqn in
     let name = link_fragment ~pathloc base (Fragment.any module_frag) in
     of_substitutions ~pathloc base
-    (<:html<$keyword "module"$ $name$ = $rhs$ $rest$>> :: acc) subs
+      (<:html<$keyword "module"$ $name$ = $rhs$ $rest$>> :: acc) subs
   | (TypeEq (type_frag, type_eqn))::subs ->
     let { TypeDecl.Equation.params; private_; manifest } = type_eqn in
     let name = link_fragment ~pathloc base (Fragment.any type_frag) in
@@ -1470,20 +1472,23 @@ and of_substitutions ~pathloc base acc = ModuleType.(function
         <:html< = $p$$of_type_expr ~pathloc m$>>
       | None -> <:html<&>>
     in
-    <:html<$keyword "type"$ $params$$name$$manifest$>>
+    of_substitutions ~pathloc base
+      (<:html<$keyword "type"$ $params$$name$$manifest$>> :: acc) subs
   | (ModuleSubst (module_frag, module_path))::subs ->
     let rhs = link_path ~pathloc (Path.any module_path) in
     let name = link_fragment ~pathloc base (Fragment.any module_frag) in
     of_substitutions ~pathloc base
-    (<:html<$keyword "module"$ $name$ := $rhs$>> :: acc) subs
+      (<:html<$keyword "module"$ $name$ := $rhs$>> :: acc) subs
   | (TypeSubst (type_frag, params, type_path))::subs ->
     let name = link_fragment ~pathloc base (Fragment.any type_frag) in
     let params =
       of_type_params (List.map (fun p -> (TypeDecl.Var p, None)) params)
     in
     let type_path = link_path ~pathloc (Path.any type_path) in
-    <:html<$keyword "type"$ $params$$name$ := $params$$type_path$>>
-  | [] -> match acc with
+    of_substitutions ~pathloc base
+      (<:html<$keyword "type"$ $params$$name$ := $params$$type_path$>> :: acc)
+      subs
+  | [] -> match List.rev acc with
     | [] -> <:html<&>>
     | [one] -> one
     | h::t -> fold_html <:html< $keyword "and"$ >> h t
