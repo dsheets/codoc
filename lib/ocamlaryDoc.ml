@@ -95,6 +95,8 @@ let paragraphize txt =
     | Para acc, other::rest -> collect paras (Para (other::acc)) rest
     | Block acc, other::rest when is_block other ->
       collect paras (Block (other::acc)) rest
+    | Block acc, Newline::rest ->
+      collect (Block (List.rev acc)::paras) (Para []) rest
     | Block acc, other::rest ->
       collect (Block (List.rev acc)::paras) (Para [other]) rest
     | Para acc, []  -> List.rev (Para (List.rev acc)::paras)
