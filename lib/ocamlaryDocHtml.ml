@@ -814,10 +814,10 @@ let rec of_text_element ~pathloc txt =
     <h6 $alist:section_attrs ~level ~pathloc label_opt$>$of_text_elements els$</h6>
     >>
   | Reference (Module m, None) -> link_reference ~pathloc (any m)
-  | Reference (Module m, Some els) -> (* TODO: test *)
+  | Reference (Module m, Some els) ->
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any m)
   | Reference (ModuleType m, None) -> link_reference ~pathloc (any m)
-  | Reference (ModuleType m, Some els) -> (* TODO: test *)
+  | Reference (ModuleType m, Some els) ->
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any m)
   | Reference (Type t, None) -> link_reference ~pathloc (any t)
   | Reference (Type t, Some els) -> (* TODO: test *)
@@ -1000,7 +1000,7 @@ let rec of_type_expr ~pathloc expr =
   | Class (path, argl) ->
     of_type_constr ~cons:"#" ~pathloc (Path.type_of_class_signature path) argl
   | Package { Package.path; substitutions=[] } ->
-    <:html<(module $link_path ~pathloc (Path.any path)$)>>
+    <:html<($keyword "module"$ $link_path ~pathloc (Path.any path)$)>>
   | Package { Package.path; substitutions=sub::subs } ->
     let sub = of_package_sub ~pathloc path sub in
     let subs = List.map (of_package_sub ~pathloc path) subs in
@@ -1135,7 +1135,7 @@ let string_of_variance = TypeDecl.(function
 let of_type_params = TypeDecl.(function
     | []            -> <:html<&>>
     | [Any, vari]   ->
-      <:html<$str:string_of_variance vari$<span style="color: red">ANY</span> >> (* TODO: test *)
+      <:html<$str:string_of_variance vari$_ >>
     | [Var p, vari] -> <:html<$str:string_of_variance vari$'$str:p$ >>
     | ps            ->
       let type_vars = List.map (function
