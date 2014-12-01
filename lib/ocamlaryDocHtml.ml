@@ -780,7 +780,7 @@ let rec of_text_element ~pathloc txt =
   | Enum elss ->
     <:html<<ol>$list:lis_of_elss ~pathloc elss$</ol>&>>
   | Newline ->
-    <:html<<br />&>> (* TODO: use <p> *)
+    <:html<<br />&>>
   | Title (1,label_opt,els) ->
     <:html<
     <h1 $alist:section_attrs ~pathloc label_opt$>$of_text_elements els$</h1>
@@ -880,7 +880,12 @@ and lis_of_elss ~pathloc elss = List.map (fun els ->
 ) elss
 and of_text_elements ~pathloc els =
   let f = of_text_element ~pathloc in
-  <:html<$list:List.map f els$>>
+  let paras = List.map (fun els ->
+    <:html<
+    <p>$list:List.map f els$</p>
+    >>
+  ) (OcamlaryDoc.paragraphize els) in
+  <:html<$list:paras$>>
 
 let div_tag classes label html =
   let classes = "tag "^classes in

@@ -22,6 +22,8 @@ type root =
 | Xml of path * root
 | Html of path * root
 
+type text = root DocOckTypes.Documentation.text
+
 val name_of_root : root -> string
 val path_of_root : root -> path
 
@@ -29,3 +31,5 @@ val xml_of_root : root -> Cow.Xml.t
 
 val root_of_xml : Xmlm.tag -> root option list -> root option
 val data_of_xml : string -> root option
+
+val paragraphize : text -> text list

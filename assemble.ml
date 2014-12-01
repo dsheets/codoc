@@ -17,7 +17,11 @@ let webmaster = pkg "webmaster"
 let library = `Path ["lib"]
 let cli = `Path ["cli"]
 
-let ocamlary_doc = unit "ocamlaryDoc" ~deps:[cow_pp; cow] library
+let ocamlary_doc = unit "ocamlaryDoc" ~deps:[
+  cow_pp;
+  cow;
+  doc_ock_lib;
+] library
 
 let ocamlary_doc_html = unit "ocamlaryDocHtml" ~deps:[
   doc_ock_lib;

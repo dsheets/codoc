@@ -22,6 +22,8 @@ type root =
 | Xml of path * root
 | Html of path * root
 
+type text = root DocOckTypes.Documentation.text
+
 let rec name_of_root = function
   | Cmti (_, name) -> name
   | Xml (_, r) -> name_of_root r
@@ -64,3 +66,12 @@ let root_of_xml tag root_opt_list =
   | _ -> None (* TODO: fixme *)
 
 let data_of_xml _ = None    
+
+(* TODO: split block elements like <pre>? headers? *)
+let paragraphize txt =
+  let rec collect paras acc = DocOckTypes.Documentation.(function
+    | Newline::rest -> collect ((List.rev acc)::paras) [] rest
+    | other::rest -> collect paras (other::acc) rest
+    | [] -> List.rev ((List.rev acc)::paras)
+  ) in
+  collect [] [] txt
