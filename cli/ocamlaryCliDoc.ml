@@ -70,9 +70,10 @@ let html xml_file html_file =
       OcamlaryDocHtml.of_unit ~pathloc unit
     in
   (* TODO: fixme *)
-    let html = <:html<<html><head><link rel="stylesheet" type="text/css" href="file:///home/dsheets/Code/ocamlary/share/ocamlary.css"/></head><body>$html$</body></html>&>> in
+    let html = <:html<<html><head><meta charset="utf-8"/><link rel="stylesheet" type="text/css" href="file:///home/dsheets/Code/ocamlary/share/ocamlary.css"/></head><body>$html$</body></html>&>> in
     let out_file = open_out html_file in
-    let output = Xmlm.make_output (`Channel out_file) in
+    output_string out_file "<!DOCTYPE html>\n";
+    let output = Xmlm.make_output ~decl:false (`Channel out_file) in
     Htmlm.Xhtmlm.output_doc_tree output (List.hd html);
     close_out out_file;
     false
