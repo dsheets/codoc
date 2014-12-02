@@ -991,7 +991,7 @@ let rec of_type_expr ~pathloc expr =
   | Alias (t,v) -> (* TODO: parens are only sometimes required *)
     <:html<($of_type_expr t$ $keyword "as"$ '$str:v$)&>>
   | Arrow (label, t, t') ->
-    <:html<$of_labeled_type_expr ~pathloc t label$ -> $of_type_expr t'$>>
+    <:html<$of_labeled_type_expr ~pathloc t label$ &rarr; $of_type_expr t'$>>
   | Tuple []       -> <:html<()>>
   | Tuple (e::els) ->
     let e = of_type_expr e in
@@ -1328,7 +1328,9 @@ let rec of_class_decl ~pathloc = Class.(function
   | ClassType class_type_expr -> of_class_type_expr ~pathloc class_type_expr
   | Arrow (label, type_, decl) ->
     <:html<
-    $of_labeled_type_expr ~pathloc type_ label$ -> $of_class_decl ~pathloc decl$
+    $of_labeled_type_expr ~pathloc type_ label$
+    &rarr;
+    $of_class_decl ~pathloc decl$
     >>
 )
 
@@ -1450,12 +1452,12 @@ and rhs_rest_of_sig ~pathloc = ModuleType.(function
     >>
   | Functor (None, expr) -> (* TODO: test *)
     let rhs, rest = rhs_rest_of_sig ~pathloc expr in
-    <:html<$keyword "functor"$ () -> $rhs$>>, rest
+    <:html<$keyword "functor"$ () &rarr; $rhs$>>, rest
   | Functor (Some (arg_ident, arg_sig), expr) ->
     let rhs_sig, rest_sig = rhs_rest_of_sig ~pathloc arg_sig in
     let rhs, rest = rhs_rest_of_sig ~pathloc expr in
     let arg = name_of_ident (Identifier.any arg_ident) in (* TODO: more? *)
-    <:html<$keyword "functor"$ ($str:arg$ : $rhs_sig$$rest_sig$) -> $rhs$>>,
+    <:html<$keyword "functor"$ ($str:arg$ : $rhs_sig$$rest_sig$) &rarr; $rhs$>>,
     rest
   | With (With (expr, subs), subs') ->
     rhs_rest_of_sig ~pathloc (With (expr, subs @ subs'))
