@@ -1484,7 +1484,7 @@ and of_substitutions ~pathloc base acc = ModuleType.(function
     let rhs, rest = rhs_rest_of_decl ~pathloc module_eqn in
     let name = link_fragment ~pathloc base (Fragment.any module_frag) in
     of_substitutions ~pathloc base
-      (<:html<$keyword "module"$ $name$ = $rhs$ $rest$>> :: acc) subs
+      (<:html<$keyword "module"$ $name$ $rhs$ $rest$>> :: acc) subs
   | (TypeEq (type_frag, type_eqn))::subs ->
     let { TypeDecl.Equation.params; private_; manifest } = type_eqn in
     let name = link_fragment ~pathloc base (Fragment.any type_frag) in
