@@ -864,11 +864,14 @@ let rec of_text_element ~pathloc txt =
            CUSTOM: $of_text_elements els$ $str:s$ $str:s'$
            </span>
     >>
-  | Special (Modules mods) -> (* TODO: test *)
-    let mods_html = List.map (fun m -> link_reference ~pathloc (any m)) mods in
-    <:html<<span style="color: red">
-           Special module index: $list:mods_html$
-           </span>
+  | Special (Modules mods) ->
+    let mods_html = List.map (fun m ->
+      <:html<<tr><td>$link_reference ~pathloc (any m)$</td></tr>&>>
+    ) mods in
+    <:html<
+    <table class="module_index">
+    $list:mods_html$
+    </table>
     >>
   | Special Index -> (* TODO: test *)
     <:html<<span style="color: red">
