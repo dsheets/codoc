@@ -993,15 +993,11 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Arrow (label, (Arrow _ as t), t') ->
       (* Tuple binds more tightly *)
     let domain = of_labeled_type_expr ~group:true ~pathloc t label in
-    let html = <:html<<span class="arrow">$domain$
-      &rarr;
-      $of_type_expr t'$</span>&>> in
+    let html = <:html<$domain$ &rarr; $of_type_expr t'$>> in
     if group then <:html<($html$)>> else html
   | Arrow (label, t, t') ->
     let domain = of_labeled_type_expr ~pathloc t label in
-    let html = <:html<<span class="arrow">$domain$
-      &rarr;
-      $of_type_expr t'$</span>&>> in
+    let html = <:html<$domain$ &rarr; $of_type_expr t'$>> in
     if group then <:html<($html$)>> else html
   | Tuple []       -> <:html<()>>
   | Tuple (e::els) ->
