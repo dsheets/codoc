@@ -730,17 +730,12 @@ let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Cow.Html.t =
   | Resolved resolved -> link_resolved_reference ?text ~pathloc () resolved
   )
 
-let section_attrs ?level ~pathloc label_opt =
-  (* TODO: ids for unnamed sections? ocamldoc does it... *)
-  let level_attrs = match level with
-    | None       -> ["class","section"]
-    | Some level -> ["class","section level_"^(string_of_int level)]
-  in
-  let label_attrs = match label_opt with
-    | None -> []
-    | Some label -> ["id",id_of_ident ~pathloc (Identifier.any label)]
-  in
-  level_attrs@label_attrs
+let section_attrs ~pathloc level =
+  ["class","section level_"^(string_of_int level)]
+
+let label_attr ~pathloc = function
+  | None -> [] (* TODO: ids for unnamed sections? ocamldoc does it... *)
+  | Some label -> ["id",id_of_ident ~pathloc (Identifier.any label)]
 
 let rec of_text_element ~pathloc txt =
   let of_text_elements = of_text_elements ~pathloc in
@@ -783,37 +778,53 @@ let rec of_text_element ~pathloc txt =
     <:html<<ol>$list:lis_of_elss ~pathloc elss$</ol>&>>
   | Newline ->
     <:html<<br />&>>
-  | Title (1,label_opt,els) ->
+  | Title (1 as level,label_opt,els) ->
     <:html<
-    <h1 $alist:section_attrs ~pathloc label_opt$>$of_text_elements els$</h1>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h1 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h1>
+    </div>
     >>
-  | Title (2,label_opt,els) ->
+  | Title (2 as level,label_opt,els) ->
     <:html<
-    <h2 $alist:section_attrs ~pathloc label_opt$>$of_text_elements els$</h2>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h2 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h2>
+    </div>
     >>
-  | Title (3,label_opt,els) ->
+  | Title (3 as level,label_opt,els) ->
     <:html<
-    <h3 $alist:section_attrs ~pathloc label_opt$>$of_text_elements els$</h3>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h3 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h3>
+    </div>
     >>
-  | Title (4,label_opt,els) ->
+  | Title (4 as level,label_opt,els) ->
     <:html<
-    <h4 $alist:section_attrs ~pathloc label_opt$>$of_text_elements els$</h4>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h4 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h4>
+    </div>
     >>
-  | Title (5,label_opt,els) ->
+  | Title (5 as level,label_opt,els) ->
     <:html<
-    <h5 $alist:section_attrs ~pathloc label_opt$>$of_text_elements els$</h5>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h5 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h5>
+    </div>
     >>
-  | Title (6,label_opt,els) ->
+  | Title (6 as level,label_opt,els) ->
     <:html<
-    <h6 $alist:section_attrs ~pathloc label_opt$>$of_text_elements els$</h6>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h6 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h6>
+    </div>
     >>
   | Title (level,label_opt,els) when level < 1 ->
     <:html<
-    <h1 $alist:section_attrs ~level ~pathloc label_opt$>$of_text_elements els$</h1>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h1 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h1>
+    </div>
     >>
   | Title (level,label_opt,els) ->
     <:html<
-    <h6 $alist:section_attrs ~level ~pathloc label_opt$>$of_text_elements els$</h6>
+    <div $alist:label_attr ~pathloc label_opt$>
+    <h6 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h6>
+    </div>
     >>
   | Reference (Module m, None) -> link_reference ~pathloc (any m)
   | Reference (Module m, Some els) ->
