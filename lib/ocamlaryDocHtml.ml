@@ -530,7 +530,7 @@ let name_of_ident_map = new name_of_ident_map
 let name_of_ident = map_ident name_of_ident_map
 
 let type_class = "type"
-let exn_class = "exn"
+let exn_class = "exn" (* exception *)
 
 (* TODO: use these for CSS class names? *)
 let ident_class = Identifier.(function
@@ -540,8 +540,8 @@ let ident_class = Identifier.(function
   | ModuleType _ -> "modtype"
   | Type _ -> type_class
   | CoreType _ -> type_class
-  | Constructor _ -> "cons"
-  | Field _ -> "field"
+  | Constructor _ -> "cons" (* const *)
+  | Field _ -> "field" (* recfield *)
   | Extension _ -> "ext"
   | Exception _ -> exn_class
   | CoreException _ -> exn_class
@@ -549,8 +549,8 @@ let ident_class = Identifier.(function
   | Class _ -> "class"
   | ClassType _ -> "classtype"
   | Method _ -> "method"
-  | InstanceVariable _ -> "var"
-  | Label _ -> "label"
+  | InstanceVariable _ -> "var" (* attribute *)
+  | Label _ -> "label" (* section *)
 )
 
 let classify cls name = Printf.sprintf "%s:%s" cls name
@@ -1121,11 +1121,12 @@ let args_of_constructor ~pathloc args res =
     let arghtml = fold_html_str " * " a args in
     <:html< : $arghtml$ -> $of_type_expr rt$>>
 
-(* TODO: add id *)
 let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
-  let name = name_of_ident (Identifier.any id) in
+  let id = Identifier.any id in
+  let name = name_of_ident id in
   let sig_ = args_of_constructor ~pathloc args res in
   let doc  = maybe_span_doc ~pathloc doc in
+  anchor ~pathloc id
   <:html<<div class="cons">| $str:name$$sig_$$doc$</div>&>>
 
 (* TODO: add id *)
@@ -1135,11 +1136,12 @@ let of_extension ~pathloc { Extension.Constructor.id; doc; args; res } =
   let doc  = maybe_span_doc ~pathloc doc in
   <:html<<div class="cons">| $str:name$$sig_$$doc$</div>&>>
 
-(* TODO: add id *)
 let of_field ~pathloc { TypeDecl.Field.id; doc; type_ } =
-  let name = name_of_ident (Identifier.any id) in
+  let id = Identifier.any id in
+  let name = name_of_ident id in
   let doc = maybe_span_doc ~pathloc doc in
   let thtml = of_type_expr ~pathloc type_ in
+  anchor ~pathloc id
   <:html<<div class="field">$str:name$ : $thtml$;$doc$</div>&>>
 
 let of_type_representation ~pathloc = TypeDecl.Representation.(function
