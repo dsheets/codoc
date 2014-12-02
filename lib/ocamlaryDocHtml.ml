@@ -1221,11 +1221,6 @@ let of_exception ~pathloc { Exception.id; doc; args; res } =
   </div>
   >>
 
-let of_comment ~pathloc = Documentation.(function
-  | Documentation doc -> maybe_div_doc ~pathloc doc
-  | Stop -> <:html<<span style="color: red">STOP</span>&>> (* TODO: do *)
-)
-
 let of_instance_variable ~pathloc
     { InstanceVariable.id; doc; mutable_; virtual_; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
@@ -1279,22 +1274,31 @@ let of_class_params = TypeDecl.(function
       <:html< [$str:String.concat ", " type_vars$]>>
 )
 
+let rec fold_doc_items f ?(suppress=false) acc = function
+  | [] -> List.rev acc
+  | next::rest -> match f next with
+    | None -> let suppress = not suppress in fold_doc_items f ~suppress acc rest
+    | Some _ when suppress -> fold_doc_items f ~suppress acc rest
+    | Some html -> fold_doc_items f ~suppress (html::acc) rest
+
 let rec of_class_signature_item ~pathloc = ClassSignature.(function
-  | InstanceVariable instance -> of_instance_variable ~pathloc instance
-  | Method method_ -> of_method ~pathloc method_
+  | InstanceVariable instance -> Some (of_instance_variable ~pathloc instance)
+  | Method method_ -> Some (of_method ~pathloc method_)
   | Constraint (a, b) ->
-    <:html<
+    Some <:html<
     <div class="constraint">
     $keyword "constraint"$ $of_type_expr ~pathloc a$ $of_type_expr ~pathloc b$
     </div>
     >>
   | Inherit class_type ->
-    <:html<
+    Some <:html<
     <div class="inherit">
     $keyword "inherit"$ $of_class_type_expr ~pathloc class_type$
     </div>
     >>
-  | Comment comment -> of_comment ~pathloc comment
+  | Comment (Documentation.Documentation doc) ->
+    Some (maybe_div_doc ~pathloc doc)
+  | Comment Documentation.Stop -> None
 )
 and of_class_type_expr ~pathloc = ClassType.(function
   | Constr (path, [])   -> link_path ~pathloc (Path.any path)
@@ -1308,7 +1312,10 @@ and of_class_type_expr ~pathloc = ClassType.(function
       | None -> <:html<&>>
       | Some expr -> <:html<($of_type_expr ~pathloc expr$) >>
     in
-    <:html<$self$$list:List.map (of_class_signature_item ~pathloc) items$>>
+    let html_list =
+      fold_doc_items (of_class_signature_item ~pathloc) [] items
+    in
+    <:html<$self$$list:html_list$>>
 )
 
 let rec of_class_decl ~pathloc = Class.(function
@@ -1531,21 +1538,24 @@ and of_include ~pathloc module_type_expr =
   >> (* TODO: test *)
 
 and of_signature_item ~pathloc = Signature.(function
-  | Value val_ -> of_value ~pathloc val_
-  | External ext -> of_external ~pathloc ext
-  | Type type_ -> of_type ~pathloc type_
-  | TypExt ext -> of_type_ext ~pathloc ext
-  | Exception exn -> of_exception ~pathloc exn
-  | Class class_ -> of_class ~pathloc class_
-  | ClassType class_type -> of_class_type ~pathloc class_type
-  | Module module_ -> of_module ~pathloc module_
-  | ModuleType module_type -> of_module_type ~pathloc module_type
-  | Include module_type_expr -> of_include ~pathloc module_type_expr
-  | Comment comment -> of_comment ~pathloc comment
+  | Value val_ -> Some (of_value ~pathloc val_)
+  | External ext -> Some (of_external ~pathloc ext)
+  | Type type_ -> Some (of_type ~pathloc type_)
+  | TypExt ext -> Some (of_type_ext ~pathloc ext)
+  | Exception exn -> Some (of_exception ~pathloc exn)
+  | Class class_ -> Some (of_class ~pathloc class_)
+  | ClassType class_type -> Some (of_class_type ~pathloc class_type)
+  | Module module_ -> Some (of_module ~pathloc module_)
+  | ModuleType module_type -> Some (of_module_type ~pathloc module_type)
+  | Include module_type_expr -> Some (of_include ~pathloc module_type_expr)
+  | Comment (Documentation.Documentation doc) ->
+    Some (maybe_div_doc ~pathloc doc)
+  | Comment Documentation.Stop -> None
 )
 
 and of_signature ~pathloc signature =
-  <:html<$list:List.map (of_signature_item ~pathloc) signature$>>
+  let html_list = fold_doc_items (of_signature_item ~pathloc) [] signature in
+  <:html<$list:html_list$>>
 
 let of_top_module ~pathloc { Module.id; doc; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
