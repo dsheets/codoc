@@ -730,12 +730,22 @@ let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Cow.Html.t =
   | Resolved resolved -> link_resolved_reference ?text ~pathloc () resolved
   )
 
+let anchor ~pathloc id html =
+  <:html<
+  <div class="region" id=$str:id_of_ident ~pathloc id$>
+  <a href=$uri:href_of_ident ~pathloc id$ class="anchor">#</a>
+  $html$
+  </div>
+  >>
+
 let section_attrs ~pathloc level =
   ["class","section level_"^(string_of_int level)]
 
-let label_attr ~pathloc = function
-  | None -> [] (* TODO: ids for unnamed sections? ocamldoc does it... *)
-  | Some label -> ["id",id_of_ident ~pathloc (Identifier.any label)]
+(* TODO: ids for unnamed sections? ocamldoc does it... *)
+let label_anchor ~pathloc label_opt html = match label_opt with
+  | None -> <:html<<div class="region">$html$</div>&>>
+  | Some label ->
+    anchor ~pathloc (Identifier.any label) html
 
 let rec of_text_element ~pathloc txt =
   let of_text_elements = of_text_elements ~pathloc in
@@ -779,52 +789,44 @@ let rec of_text_element ~pathloc txt =
   | Newline ->
     <:html<<br />&>>
   | Title (1 as level,label_opt,els) ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h1 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h1>
-    </div>
     >>
   | Title (2 as level,label_opt,els) ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h2 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h2>
-    </div>
     >>
   | Title (3 as level,label_opt,els) ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h3 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h3>
-    </div>
     >>
   | Title (4 as level,label_opt,els) ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h4 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h4>
-    </div>
     >>
   | Title (5 as level,label_opt,els) ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h5 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h5>
-    </div>
     >>
   | Title (6 as level,label_opt,els) ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h6 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h6>
-    </div>
     >>
   | Title (level,label_opt,els) when level < 1 ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h1 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h1>
-    </div>
     >>
   | Title (level,label_opt,els) ->
+    label_anchor ~pathloc label_opt
     <:html<
-    <div $alist:label_attr ~pathloc label_opt$>
     <h6 $alist:section_attrs ~pathloc level$>$of_text_elements els$</h6>
-    </div>
     >>
   | Reference (Module m, None) -> link_reference ~pathloc (any m)
   | Reference (Module m, Some els) ->
@@ -1081,13 +1083,11 @@ let of_value ~pathloc { Value.id; doc; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
   let ident = Identifier.any id in
   let name = name_of_ident ident in
-  let id = id_of_ident ~pathloc ident in
+  anchor ~pathloc ident
   <:html<
-  <div id=$str:id$>
   <div class="val">
     $keyword "val"$ $str:name$ : $of_type_expr ~pathloc type_$
     $doc$
-  </div>
   </div>
   >>
 
@@ -1095,15 +1095,13 @@ let of_external ~pathloc { External.id; doc; type_; primitives } =
   let doc = maybe_div_doc ~pathloc doc in
   let ident = Identifier.any id in
   let name = name_of_ident ident in
-  let id = id_of_ident ~pathloc ident in
   let primitives = List.map (fun p -> <:html<"$str:p$" >>) primitives in
+  anchor ~pathloc ident
   <:html<
-  <div id=$str:id$>
   <div class="external val">
     $keyword "external"$ $str:name$ : $of_type_expr ~pathloc type_$
     = $list:primitives$
     $doc$
-  </div>
   </div>
   >>
 
@@ -1194,13 +1192,11 @@ let of_type ~pathloc
     | Some t, Some r ->
       <:html< = $of_type_expr t$ = $priv$$of_rep r$>>
   in
-  let id = id_of_ident ~pathloc id in
+  anchor ~pathloc id
   <:html<
-  <div id=$str:id$>
   <div class="type">
     $keyword "type"$ $params$$str:name$$rhs$$constraints$
     $doc$
-  </div>
   </div>
   >>
 
@@ -1225,13 +1221,11 @@ let of_exception ~pathloc { Exception.id; doc; args; res } =
   let id = Identifier.any id in
   let name = name_of_ident id in
   let args = args_of_constructor ~pathloc args res in
-  let id = id_of_ident ~pathloc id in
+  anchor ~pathloc id
   <:html<
-  <div id=$str:id$>
   <div class="exn">
     $keyword "exception"$ $str:name$$args$
     $doc$
-  </div>
   </div>
   >>
 
@@ -1240,7 +1234,6 @@ let of_instance_variable ~pathloc
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
   let name = name_of_ident id in
-  let id = id_of_ident ~pathloc id in
   let mutable_ =
     if mutable_ then <:html< $keyword "mutable"$>> else <:html<&>>
   in
@@ -1248,12 +1241,11 @@ let of_instance_variable ~pathloc
     if virtual_ then <:html< $keyword "virtual"$>> else <:html<&>>
   in
   let type_ = of_type_expr ~pathloc type_ in
+  anchor ~pathloc id
   <:html<
-  <div id=$str:id$>
   <div class="classval">
   $keyword "val"$$mutable_$$virtual_$ $str:name$ : $type_$
   $doc$
-  </div>
   </div>
   >>
 
@@ -1261,7 +1253,6 @@ let of_method ~pathloc { Method.id; doc; private_; virtual_; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
   let name = name_of_ident id in
-  let id = id_of_ident ~pathloc id in
   let private_ =
     if private_ then <:html< $keyword "private"$>> else <:html<&>>
   in
@@ -1269,12 +1260,11 @@ let of_method ~pathloc { Method.id; doc; private_; virtual_; type_ } =
     if virtual_ then <:html< $keyword "virtual"$>> else <:html<&>>
   in
   let type_ = of_type_expr ~pathloc type_ in
+  anchor ~pathloc id
   <:html<
-  <div id=$str:id$>
   <div class="method">
   $keyword "method"$$private_$$virtual_$ $str:name$ : $type_$
   $doc$
-  </div>
   </div>
   >>
 
@@ -1349,13 +1339,11 @@ let of_class ~pathloc { Class.id; doc; virtual_; params; type_ } =
   in
   let params = of_class_params params in
   let decl = of_class_decl ~pathloc type_ in
-  let id = id_of_ident ~pathloc id in
+  anchor ~pathloc id
   <:html<
-  <div id=$str:id$>
   <div class="class">
     $keyword "class"$$virtual_$$params$ $str:name$ : $decl$
     $doc$
-  </div>
   </div>
   >>
 
@@ -1368,13 +1356,11 @@ let of_class_type ~pathloc { ClassType.id; doc; virtual_; params; expr } =
   in
   let params = of_class_params params in
   let expr = of_class_type_expr ~pathloc expr in
-  let id = id_of_ident ~pathloc id in
+  anchor ~pathloc id
   <:html<
-  <div id=$str:id$>
   <div class="classtype">
     $keyword "class type"$$virtual_$$params$ $str:name$ = $expr$
     $doc$
-  </div>
   </div>
   >>
 
@@ -1384,28 +1370,29 @@ let module_declaration
   let classes = String.concat " " ("module"::extra_classes) in
   let title = title_fn <:html<$keyword "module"$ $name$>> in
   let id = Identifier.any id in
-  let id = id_of_ident ~pathloc id in
+  let anchor html = if List.mem "ocamlary-doc" extra_classes
+    then html
+    else anchor ~pathloc id html
+  in
+  anchor
   <:html<
-  <div id=$str:id$>
-    <div class=$str:classes$>
+  <div class=$str:classes$>
       <div class="intro">$title$ $rhs$</div>
       $doc$
       $rest$
-    </div>
   </div>
   >>
 
-let module_type_declaration ~id name rhs doc rest =
+let module_type_declaration ~id ~pathloc name rhs doc rest =
+  anchor ~pathloc id
   <:html<
-    <div id=$str:id$>
-    <div class="modtype">
-      <div class="intro">
-        $keyword "module type"$ $str:name$ $rhs$
-      </div>
-      $doc$
-      $rest$
+  <div class="modtype">
+    <div class="intro">
+      $keyword "module type"$ $str:name$ $rhs$
     </div>
-    </div>
+    $doc$
+    $rest$
+  </div>
   >>
 
 (* Predicate for module type expressions that don't have a signature body
@@ -1534,14 +1521,13 @@ and of_module_type ~pathloc { ModuleType.id; doc; expr } =
   } in
   let id = Identifier.any id in
   let name = name_of_ident id in
-  let id = id_of_ident ~pathloc id in
   let rhs, rest = match expr with
     | None -> <:html<&>>, <:html<&>>
     | Some expr ->
       let rhs, rest = rhs_rest_of_sig ~pathloc expr in
       <:html<= $rhs$>>, rest
   in
-  module_type_declaration ~id name rhs doc rest
+  module_type_declaration ~id ~pathloc name rhs doc rest
 
 and of_include ~pathloc module_type_expr =
   let rhs, rest = rhs_rest_of_sig ~pathloc module_type_expr in
