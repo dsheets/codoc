@@ -1018,7 +1018,7 @@ let rec of_type_expr ~pathloc expr =
     let subs = fold_html <:html< $keyword "and"$ >>
       <:html< $keyword "with"$ $sub$>> subs
     in
-    <:html<(module $link_path ~pathloc (Path.any path)$$subs$)>>
+    <:html<($keyword "module"$ $link_path ~pathloc (Path.any path)$$subs$)>>
   )
 and of_object_method ~pathloc { TypeExpr.Object.name; type_ } =
   <:html<$str:name$ : $of_type_expr ~pathloc type_$&>>
