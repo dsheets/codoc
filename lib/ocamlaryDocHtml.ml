@@ -1067,7 +1067,7 @@ and polyvar_element ~pathloc : 'a TypeExpr.Variant.element -> Cow.Html.t =
       <:html<$empty$$of_type_expr ~pathloc arg$>>
       args
     in
-    <:html<`$str:name$ of $arghtml$&>>
+    <:html<`$str:name$ $keyword "of"$ $arghtml$&>>
   )
 and polyvar_elements ~pathloc = List.map (fun pve ->
   <:html<<div class="cons">| $polyvar_element ~pathloc pve$</div>&>>
@@ -1119,17 +1119,19 @@ let args_of_constructor ~pathloc args res =
   | [],       None    -> <:html<&>>
   | [TypeExpr.Tuple _ as a], None ->
     <:html< $keyword "of"$ ($of_type_expr a$)>>
+  | [TypeExpr.Arrow _ as a], None ->
+    <:html< $keyword "of"$ $of_type_expr a$>>
   | a::args,  None    ->
-    let a = of_type_expr a in
-    let args = List.map of_type_expr args in
+    let a = of_type_expr ~group:true a in
+    let args = List.map (of_type_expr ~group:true) args in
     let arghtml = fold_html_str " * " a args in
     <:html< $keyword "of"$ $arghtml$>>
   | [],       Some rt -> <:html< : $of_type_expr rt$>>
   | a::args,  Some rt ->
-    let a = of_type_expr a in
-    let args = List.map of_type_expr args in
+    let a = of_type_expr ~group:true a in
+    let args = List.map (of_type_expr ~group:true) args in
     let arghtml = fold_html_str " * " a args in
-    <:html< : $arghtml$ -> $of_type_expr rt$>>
+    <:html< : $arghtml$ &rarr; $of_type_expr rt$>>
 
 let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
   let id = Identifier.any id in
