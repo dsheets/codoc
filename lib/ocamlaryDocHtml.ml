@@ -982,7 +982,7 @@ let fold_html sep = List.fold_left (fun phtml ehtml ->
 
 let fold_html_str sep = fold_html <:html<$str:sep$>>
 
-let rec of_type_expr ~pathloc expr =
+let rec of_type_expr ?(group=false) ~pathloc expr =
   let of_type_expr = of_type_expr ~pathloc in
   TypeExpr.(match expr with
   | Var v when v = "_" -> <:html<_>>
@@ -990,13 +990,25 @@ let rec of_type_expr ~pathloc expr =
   | Any -> <:html<_>>
   | Alias (t,v) -> (* TODO: parens are only sometimes required *)
     <:html<($of_type_expr t$ $keyword "as"$ '$str:v$)&>>
+  | Arrow (label, (Arrow _ as t), t') ->
+      (* Tuple binds more tightly *)
+    let domain = of_labeled_type_expr ~group:true ~pathloc t label in
+    let html = <:html<<span class="arrow">$domain$
+      &rarr;
+      $of_type_expr t'$</span>&>> in
+    if group then <:html<($html$)>> else html
   | Arrow (label, t, t') ->
-    <:html<$of_labeled_type_expr ~pathloc t label$ &rarr; $of_type_expr t'$>>
+    let domain = of_labeled_type_expr ~pathloc t label in
+    let html = <:html<<span class="arrow">$domain$
+      &rarr;
+      $of_type_expr t'$</span>&>> in
+    if group then <:html<($html$)>> else html
   | Tuple []       -> <:html<()>>
   | Tuple (e::els) ->
-    let e = of_type_expr e in
-    let els = List.map of_type_expr els in
-    <:html<($fold_html_str " * " e els$)>>
+    let e = of_type_expr ~group:true e in
+    let els = List.map (of_type_expr ~group:true) els in
+    let html = fold_html_str " * " e els in
+    if group then <:html<($html$)>> else html
   | Constr (path, argl) -> of_type_constr ~pathloc path argl
   | Variant { Variant.kind=Variant.Fixed; elements } ->
     <:html<[ $list:polyvar_elements ~pathloc elements$ ]&>>
@@ -1041,7 +1053,7 @@ and of_object_method ~pathloc { TypeExpr.Object.name; type_ } =
 and of_type_constr ?(cons="") ~pathloc path = function
   | []  -> link_path ~pathloc (Path.any path)
   | [a] ->
-    let arg = of_type_expr ~pathloc a in
+    let arg = of_type_expr ~group:true ~pathloc a in
     <:html<$arg$ $str:cons$$link_path ~pathloc (Path.any path)$>>
   | a::argl ->
     let a = of_type_expr ~pathloc a in
@@ -1064,10 +1076,10 @@ and polyvar_element ~pathloc : 'a TypeExpr.Variant.element -> Cow.Html.t =
 and polyvar_elements ~pathloc = List.map (fun pve ->
   <:html<<div class="cons">| $polyvar_element ~pathloc pve$</div>&>>
 )
-and of_labeled_type_expr ~pathloc t = TypeExpr.(function
-  | None -> of_type_expr ~pathloc t
-  | Some (Label l) -> <:html<$str:l$:$of_type_expr ~pathloc t$>>
-  | Some (Optional l) -> <:html<?$str:l$:$of_type_expr ~pathloc t$>>
+and of_labeled_type_expr ?(group=false) ~pathloc t = TypeExpr.(function
+  | None -> of_type_expr ~group ~pathloc t
+  | Some (Label l) -> <:html<$str:l$:$of_type_expr ~group ~pathloc t$>>
+  | Some (Optional l) -> <:html<?$str:l$:$of_type_expr ~group ~pathloc t$>>
 )
 and of_package_sub ~pathloc path (fragment, expr) =
   let path = match path with
@@ -1109,6 +1121,8 @@ let args_of_constructor ~pathloc args res =
   let of_type_expr = of_type_expr ~pathloc in
   match args, res with
   | [],       None    -> <:html<&>>
+  | [TypeExpr.Tuple _ as a], None ->
+    <:html< $keyword "of"$ ($of_type_expr a$)>>
   | a::args,  None    ->
     let a = of_type_expr a in
     let args = List.map of_type_expr args in
