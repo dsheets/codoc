@@ -1006,12 +1006,12 @@ let maybe_div_doc ~pathloc ({ Documentation.text; tags }) =
       </div>
     >>
 
-let maybe_span_doc ~pathloc doc = Documentation.(match doc.text with
-  | [] -> <:html<&>>
+let maybe_td_doc ~pathloc doc = Documentation.(match doc.text with
+  | [] -> <:html<<td/><td/><td/>&>>
   | text ->
     let tags = List.map (map_tag ~pathloc span_tag) doc.tags in
     let comment = of_text_elements ~pathloc text in
-    <:html< <span class="doc">(* $comment$$list:tags$ *)</span>&>>
+    <:html<<td>(*</td><td class="doc">$comment$$list:tags$</td><td>*)</td>&>>
 )
 
 let fold_html sep = List.fold_left (fun phtml ehtml ->
@@ -1172,32 +1172,46 @@ let args_of_constructor ~pathloc args res =
     <:html< : $arghtml$ &rarr; $of_type_expr rt$>>
 
 let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
-  let id = Identifier.any id in
+  let id   = Identifier.any id in
   let name = name_of_ident id in
   let sig_ = args_of_constructor ~pathloc args res in
-  let doc  = maybe_span_doc ~pathloc doc in
+  let doc  = maybe_td_doc ~pathloc doc in
+  let cons =
   anchor ~pathloc id
-  <:html<<div class="cons">| $str:name$$sig_$$doc$</div>&>>
+    <:html<| $str:name$$sig_$>>
+  in
+  <:html<<tr class="cons"><td>$cons$</td>$doc$</tr>&>>
 
-(* TODO: add id *)
 let of_extension ~pathloc { Extension.Constructor.id; doc; args; res } =
+  let id   = Identifier.any id in
   let name = name_of_ident (Identifier.any id) in
   let sig_ = args_of_constructor ~pathloc args res in
-  let doc  = maybe_span_doc ~pathloc doc in
-  <:html<<div class="cons">| $str:name$$sig_$$doc$</div>&>>
+  let doc  = maybe_td_doc ~pathloc doc in
+  let cons =
+    anchor ~pathloc id
+      <:html<| $str:name$$sig_$>>
+  in
+  <:html<<tr class="cons"><td>$cons$</td>$doc$</tr>&>>
 
 let of_field ~pathloc { TypeDecl.Field.id; doc; type_ } =
   let id = Identifier.any id in
   let name = name_of_ident id in
-  let doc = maybe_span_doc ~pathloc doc in
+  let doc = maybe_td_doc ~pathloc doc in
   let thtml = of_type_expr ~pathloc type_ in
-  anchor ~pathloc id
-  <:html<<div class="field">$str:name$ : $thtml$;$doc$</div>&>>
+  let field = anchor ~pathloc id <:html<$str:name$>> in
+  <:html<<tr class="field">
+  <td>$field$</td><td>: $thtml$</td><td>;</td>$doc$
+  </tr>&>>
 
 let of_type_representation ~pathloc = TypeDecl.Representation.(function
   | Variant constrs ->
-    <:html<$list:List.map (of_constructor ~pathloc) constrs$>>
-  | Record fields -> <:html<{$list:List.map (of_field ~pathloc) fields$}>>
+    <:html<<table>
+    $list:List.map (of_constructor ~pathloc) constrs$
+    </table>&>>
+  | Record fields ->
+    <:html<{<table>
+    $list:List.map (of_field ~pathloc) fields$
+    </table>}>>
   | Extensible -> <:html<..>>
 )
 
@@ -1252,8 +1266,6 @@ let of_type ~pathloc
   </div>
   >>
 
-(* TODO: test shadowed ext constructors *)
-(* TODO: test type ext path *)
 let of_type_ext ~pathloc
     { Extension.type_path; doc; type_params; private_; constructors } =
   let doc = maybe_div_doc ~pathloc doc in
@@ -1263,7 +1275,10 @@ let of_type_ext ~pathloc
   let constrs = List.map (of_extension ~pathloc) constructors in
   <:html<
   <div class="ext">
-    $keyword "type"$ $params$$name_link$ += $private_$$list:constrs$
+    $keyword "type"$ $params$$name_link$ += $private_$
+    <table>
+    $list:constrs$
+    </table>
     $doc$
   </div>
   >>
