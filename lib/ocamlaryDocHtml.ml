@@ -529,6 +529,22 @@ let name_of_ident_map = new name_of_ident_map
 
 let name_of_ident = map_ident name_of_ident_map
 
+class string_of_ident_map : [string] Identifier.any_map = object (self)
+  inherit [string] Identifier.any_parent_map
+
+  method root = OcamlaryDoc.name_of_root
+  method core_type name = name
+  method core_exception name = name
+  method argument parent i name = (* TODO: better syntax? *)
+    (map_ident self (Identifier.any parent))^"."^(string_of_int i)^","^name
+  method private parent ident parent name =
+    (map_ident self (Identifier.any parent))^"."^name
+end
+
+let string_of_ident_map = new string_of_ident_map
+
+let string_of_ident = map_ident string_of_ident_map
+
 let type_class = "type"
 let exn_class = "exn" (* exception *)
 
@@ -728,6 +744,28 @@ let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Cow.Html.t =
     | Some html -> html (* TODO: link ?? *)
     end
   | Resolved resolved -> link_resolved_reference ?text ~pathloc () resolved
+  )
+
+class string_of_resolved_reference_map
+  : [string, Reference.kind] Reference_resolved.any_map =
+object (self)
+  inherit [string] Reference_resolved.any_parent_map
+
+  method identifier ident = string_of_ident (Identifier.any ident)
+  method private parent _reference parent name =
+    (map_resolved_reference self (Reference.Resolved.any parent))^"."^name
+end
+
+let string_of_resolved_reference_map = new string_of_resolved_reference_map
+
+let string_of_resolved_reference =
+  map_resolved_reference string_of_resolved_reference_map
+
+let rec string_of_reference : ('a,'b) Reference.t -> string =
+  Reference.(function
+  | Root root -> root
+  | Dot (parent, name) -> (string_of_reference (any parent))^"."^name
+  | Resolved resolved -> string_of_resolved_reference resolved
   )
 
 let anchor ~pathloc id html =
