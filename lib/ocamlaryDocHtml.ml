@@ -86,7 +86,7 @@ module Identifier = struct
   end
 
   class type ['a] label_map = object
-    method label : root container -> string -> 'a
+    method label : root parent -> string -> 'a
   end
 
   class type ['a] signature_map = object
@@ -152,7 +152,7 @@ module Identifier = struct
     method instance_variable p n =
       self#parent (InstanceVariable (p, n)) (parent_of_class_signature p) n
     method label p n =
-      self#parent (Label (p, n)) (parent_of_container p) n
+      self#parent (Label (p, n)) p n
   end
 end
 
@@ -183,6 +183,8 @@ module Path_resolved = struct
     constraint 'b = [< kind > `Module]
     method module_ : root module_ -> string -> 'a
     method apply : root module_ -> root Path.module_ -> 'a
+    method subst : root module_type -> (root,'b) t -> 'a
+    method subst_alias : root module_ -> (root,'b) t -> 'a
     method identifier : (root,'b) Identifier.t -> 'a
   end
 
@@ -241,6 +243,8 @@ end
 
 let map_resolved_path map = Path_resolved.(function
   | Identifier i         -> map#identifier i
+  | Subst (rsub, li)     -> map#subst rsub li
+  | SubstAlias (rsub, li)-> map#subst_alias rsub li
   | Module (p, name)     -> map#module_ p name
   | Apply (p, path)      -> map#apply p path
   | ModuleType (p, name) -> map#module_type p name
@@ -256,25 +260,29 @@ module Fragment_resolved = struct
     method root : 'a
   end
 
-  class type ['a] module_map = object
-    method module_ : signature -> string -> 'a
+  class type ['a,'b,'c] module_map = object
+    constraint 'b = [< kind > `Module]
+    constraint 'c = [< sort > `Branch]
+    method module_ : root signature -> string -> 'a
+    method subst : root Path.Resolved.module_type -> (root,'b,'c) raw -> 'a
+    method subst_alias : root Path.Resolved.module_ -> (root,'b,'c) raw -> 'a
   end
 
-  class type ['a] signature_map = object
+  class type ['a,'b,'c] signature_map = object
     inherit ['a] root_map
-    inherit ['a] module_map
+    inherit ['a,'b,'c] module_map
   end
 
   class type ['a] datatype_map = object
-    method type_ : signature -> string -> 'a
+    method type_ : root signature -> string -> 'a
   end
 
   class type ['a] class_map = object
-    method class_ : signature -> string -> 'a
+    method class_ : root signature -> string -> 'a
   end
 
   class type ['a] class_type_map = object
-    method class_type : signature -> string -> 'a
+    method class_type : root signature -> string -> 'a
   end
 
   class type ['a] type_map = object
@@ -283,20 +291,20 @@ module Fragment_resolved = struct
     inherit ['a] class_type_map
   end
 
-  class type ['a] any_map = object
-    inherit ['a] module_map
+  class type ['a,'b,'c] any_map = object
+    inherit ['a,'b,'c] module_map
     inherit ['a] type_map
   end
 
-  class type ['a] raw_map = object
+  class type ['a,'b,'c] raw_map = object
     inherit ['a] root_map
-    inherit ['a] any_map
+    inherit ['a,'b,'c] any_map
   end
 
-  class virtual ['a] any_parent_map = object (self : 'self)
-    constraint 'self = 'a #any_map
+  class virtual ['a,'b,'c] any_parent_map = object (self : 'self)
+    constraint 'self = ('a,'b,'c) #any_map
 
-    method private virtual parent : any -> signature -> string -> 'a
+    method private virtual parent : root any -> root signature -> string -> 'a
 
     method module_ p n    = self#parent (Module (p, n)) p n
     method type_ p n      = self#parent (Type (p, n)) p n
@@ -305,14 +313,16 @@ module Fragment_resolved = struct
   end
 end
 
-let map_resolved_fragment
-    : 'a #Fragment_resolved.any_map -> Fragment_resolved.any -> 'a
+let rec map_resolved_fragment
+    : ('a,'b,'c) #Fragment_resolved.any_map -> root Fragment_resolved.any -> 'a
   = fun map ->
     Fragment_resolved.(function
-    | Module (p, name)    -> map#module_ p name
-    | Type (p, name)      -> map#type_ p name
-    | Class (p, name)     -> map#class_ p name
-    | ClassType (p, name) -> map#class_type p name
+    | Subst (rsub, li)     -> map#subst rsub li
+    | SubstAlias (rsub, li)-> map#subst_alias rsub li
+    | Module (p, name)     -> map#module_ p name
+    | Type (p, name)       -> map#type_ p name
+    | Class (p, name)      -> map#class_ p name
+    | ClassType (p, name)  -> map#class_type p name
     )
 
 module Reference_resolved = struct
@@ -427,7 +437,7 @@ module Reference_resolved = struct
 
   class type ['a,'b] label_map = object
     constraint 'b = [< kind > `Label]
-    method label : root container -> string -> 'a
+    method label : root parent -> string -> 'a
     method identifier : (root,'b) Identifier.t -> 'a
   end
 
@@ -445,14 +455,10 @@ module Reference_resolved = struct
     constraint 'self = ('a, kind) #any_map
 
     method private virtual parent : root any -> root parent -> string -> 'a
-    method private parent_container reference parent_container name =
-      self#parent reference (parent_of_container parent_container) name
     method private parent_signature reference parent_signature name =
-      self#parent_container
-        reference (container_of_signature parent_signature) name
+      self#parent reference (parent_of_signature parent_signature) name
     method private parent_class reference parent_class name =
-      self#parent_container
-        reference (container_of_class_signature parent_class) name
+      self#parent reference (parent_of_class_signature parent_class) name
     method private parent_type reference parent_type name =
       self#parent reference (parent_of_datatype parent_type) name
 
@@ -469,7 +475,7 @@ module Reference_resolved = struct
     method method_ p n     = self#parent_class (Method (p, n)) p n
     method instance_variable p n =
       self#parent_class (InstanceVariable (p, n)) p n
-    method label p n       = self#parent_container (Label (p, n)) p n
+    method label p n       = self#parent (Label (p, n)) p n
   end
 end
 
@@ -654,6 +660,10 @@ object (self)
     let ident = Identifier.any ident in
     let text = <:html<$str:name_of_ident ident$>> in
     link_ident ~text ~pathloc () ident
+  method subst _rsub li =
+    map_resolved_path self (Path.Resolved.any li)
+  method subst_alias _rsub li =
+    map_resolved_path self (Path.Resolved.any li)
   method apply func module_path = (* TODO: test *)
     let html = map_resolved_path self (Path.Resolved.any func) in
     <:html<$html$($link_path ~pathloc (Path.any module_path)$)>>
@@ -680,9 +690,13 @@ let rec link_path ~pathloc : ('a,'b) Path.t -> Cow.Html.t =
   )
 
 class link_resolved_fragment_map ~pathloc base
-  : [Cow.Html.t] Fragment_resolved.any_map =
+  : [Cow.Html.t, Fragment.Resolved.kind, [`Branch]] Fragment_resolved.any_map =
 object (self)
-  inherit [Cow.Html.t] Fragment_resolved.any_parent_map
+  inherit [Cow.Html.t, Fragment.Resolved.kind, [`Branch]]
+    Fragment_resolved.any_parent_map
+
+  method subst _rsub li = map_resolved_fragment self li
+  method subst_alias _rsub li = map_resolved_fragment self li
 
   method private parent fragment parent name = Fragment_resolved.(
     let text = <:html<$str:name$>> in
@@ -692,11 +706,14 @@ object (self)
         link_ident ~text ~pathloc () ident
       | None -> text
     in
-    match parent with
-    | Root -> link
-    | Module _ as parent -> (* need to capture GADT eq *)
-      let phtml = map_resolved_fragment self parent in
-      <:html<$phtml$.$link$>>
+    let rec render : root signature -> Cow.Html.t = function
+      | Root -> link
+      | Subst (_, li) -> render li
+      | SubstAlias (_, li) -> render li
+      | Module _ as parent -> (* need to capture GADT eq *)
+        let phtml = map_resolved_fragment self parent in
+        <:html<$phtml$.$link$>>
+    in render parent
   )
 end
 
@@ -706,12 +723,17 @@ let link_resolved_fragment_map ~pathloc base =
 let link_resolved_fragment ~pathloc base =
   map_resolved_fragment (link_resolved_fragment_map ~pathloc base)
 
-let rec link_fragment ~pathloc base : 'a Fragment.t -> Cow.Html.t =
+let rec link_fragment ~pathloc base
+    : 'a Fragment.any -> Cow.Html.t =
   Fragment.(function
   | Resolved resolved -> link_resolved_fragment ~pathloc base resolved
   | Dot (Resolved Resolved.Root, name) -> <:html<$str:name$>> (* TODO: test *)
-  | Dot ((Dot _ | Resolved (Resolved.Module _)) as parent , name) ->
-    <:html<$link_fragment ~pathloc base parent$.$str:name$>>
+  | Dot ((Dot _ | Resolved (Resolved.Module _)) as parent, name) ->
+    <:html<$link_fragment ~pathloc base (any parent)$.$str:name$>>
+  | signature -> match split signature with (* TODO: test *)
+    | name, None -> <:html<$str:name$>>
+    | name, Some parent ->
+      <:html<$link_fragment ~pathloc base parent$.$str:name$>>
   )
 
 class link_resolved_reference_map ?text ~pathloc ()
@@ -893,8 +915,8 @@ let rec of_text_element ~pathloc txt =
   | Reference (Class c, None) -> link_reference ~pathloc (any c)
   | Reference (Class c, Some els) -> (* TODO: test *)
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any c)
-  | Reference (ClassSignature c, None) -> link_reference ~pathloc (any c)
-  | Reference (ClassSignature c, Some els) -> (* TODO: test *)
+  | Reference (ClassType c, None) -> link_reference ~pathloc (any c)
+  | Reference (ClassType c, Some els) -> (* TODO: test *)
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any c)
   | Reference (Method m, None) -> link_reference ~pathloc (any m)
   | Reference (Method m, Some els) -> (* TODO: test *)
@@ -1071,7 +1093,7 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
     let vars = String.concat " " (List.map (fun v -> "'"^v) vars) in
     <:html<$str:vars$ . $of_type_expr expr$&>>
   | Class (path, argl) ->
-    of_type_constr ~cons:"#" ~pathloc (Path.type_of_class_signature path) argl
+    of_type_constr ~cons:"#" ~pathloc (Path.type_of_class_type path) argl
   | Package { Package.path; substitutions=[] } ->
     <:html<($keyword "module"$ $link_path ~pathloc (Path.any path)$)>>
   | Package { Package.path; substitutions=sub::subs } ->
@@ -1118,7 +1140,8 @@ and of_labeled_type_expr ?(group=false) ~pathloc t = TypeExpr.(function
 and of_package_sub ~pathloc path (fragment, expr) =
   let path = match path with
     | Path.Resolved resolved ->
-      Some (Identifier.module_type_signature (Path.Resolved.identifier resolved))
+      Some (Identifier.signature_of_module_type
+              (Path.Resolved.identifier resolved))
     | _ -> None
   in
   let type_ = keyword "type" in
@@ -1467,7 +1490,7 @@ let module_type_declaration ~id ~pathloc name rhs doc rest =
 (* Predicate for module type expressions that don't have a signature body
    in the primary expression. *)
 let rec is_short_sig = ModuleType.(function
-  | Ident _ -> true
+  | Path _ -> true
   | Signature _ -> false
   | Functor (_, expr) -> is_short_sig expr
   | With (expr, _) -> is_short_sig expr
@@ -1477,11 +1500,11 @@ let rec is_short_sig = ModuleType.(function
 
 let rec base_of_module_type_expr ~pathloc = ModuleType.(function
   | TypeOf (Module.Alias (Path.Resolved path)) ->
-    Some (Identifier.module_signature (Path.Resolved.identifier path))
-  | Ident (Path.Resolved path) ->
-    Some (Identifier.module_type_signature (Path.Resolved.identifier path))
+    Some (Identifier.signature_of_module (Path.Resolved.identifier path))
+  | Path (Path.Resolved path) ->
+    Some (Identifier.signature_of_module_type (Path.Resolved.identifier path))
   | TypeOf (Module.Alias _)
-  | Ident _ -> None
+  | Path _ -> None
   | Signature _ | Functor _ -> (* TODO: make sure anonymous paths are named *)
     Some pathloc.internal_path
   | TypeOf (Module.ModuleType expr)
@@ -1491,7 +1514,7 @@ let rec base_of_module_type_expr ~pathloc = ModuleType.(function
 let rec of_module ~pathloc { Module.id; doc; type_ } =
   let pathloc = { pathloc with
     unit_depth = pathloc.unit_depth + 1;
-    internal_path = Identifier.module_signature id;
+    internal_path = Identifier.signature_of_module id;
   } in
   let id = Identifier.any id in
   let name = name_of_ident id in
@@ -1508,7 +1531,7 @@ and rhs_rest_of_decl ~pathloc = Module.(function
 )
 
 and rhs_rest_of_sig ~pathloc = ModuleType.(function
-  | Ident path -> link_path ~pathloc (Path.any path), <:html<&>>
+  | Path path -> link_path ~pathloc (Path.any path), <:html<&>>
   | Signature s -> keyword "sig",
     let signature = of_signature ~pathloc s in
     <:html<
@@ -1586,7 +1609,7 @@ and of_module_type ~pathloc { ModuleType.id; doc; expr } =
   let doc = maybe_div_doc ~pathloc doc in
   let pathloc = { pathloc with
     unit_depth = pathloc.unit_depth + 1;
-    internal_path = Identifier.module_type_signature id;
+    internal_path = Identifier.signature_of_module_type id;
   } in
   let id = Identifier.any id in
   let name = name_of_ident id in

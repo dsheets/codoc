@@ -17,16 +17,28 @@
 
 open OcamlaryCli
 
+let read_cmti root path = DocOck.(match read_cmti root path with
+  | Not_an_interface -> failwith (path^" is not an interface") (* TODO *)
+  | Wrong_version_interface ->
+    failwith (path^" has the wrong format version") (* TODO *)
+  | Corrupted_interface -> failwith (path^" is corrupted") (* TODO *)
+  | Not_a_typedtree -> failwith (path^" is not a typed tree") (* TODO *)
+  | Ok unit -> unit
+)
+
+let rec read = OcamlaryDoc.(function
+  | Cmti (path, name) as root -> read_cmti root path
+  | Xml (_path, root) -> read root
+  | Html (_path, root) -> read root
+)
+
+let resolver = DocOckResolve.build_resolver
+  (fun s -> print_endline ("resolve "^s); None)
+  read
+
 let xml path xml_file =
   let root = OcamlaryDoc.Cmti (path, FindlibUnits.unit_name_of_path path) in
-  let unit = DocOck.(match read_cmti root path with
-    | Not_an_interface -> failwith (path^" is not an interface") (* TODO *)
-    | Wrong_version_interface ->
-      failwith (path^" has the wrong format version") (* TODO *)
-    | Corrupted_interface -> failwith (path^" is corrupted") (* TODO *)
-    | Not_a_typedtree -> failwith (path^" is not a typed tree") (* TODO *)
-    | Ok unit -> unit
-  ) in
+  let unit = DocOckResolve.resolve resolver (read_cmti root path) in
   let out_file = open_out xml_file in
   let output = Xmlm.make_output (`Channel out_file) in
   let printer = DocOckXmlPrint.build (fun output root ->
@@ -64,7 +76,7 @@ let html xml_file html_file =
     let pathloc = OcamlaryDocHtml.pathloc (* TODO: fixme *)
       ~index_depth:0
       ~doc_base:(Uri.of_string "SOME_DOC_BASE")
-      (DocOckPaths.Identifier.module_signature unit.DocOckTypes.Unit.id)
+      (DocOckPaths.Identifier.signature_of_module unit.DocOckTypes.Unit.id)
     in
     let html =
       OcamlaryDocHtml.of_unit ~pathloc unit
