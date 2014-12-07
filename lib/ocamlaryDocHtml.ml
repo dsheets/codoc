@@ -1216,12 +1216,15 @@ let of_extension ~pathloc { Extension.Constructor.id; doc; args; res } =
   in
   <:html<<tr class="cons"><td>$cons$</td>$doc$</tr>&>>
 
-let of_field ~pathloc { TypeDecl.Field.id; doc; type_ } =
+let of_field ~pathloc { TypeDecl.Field.id; doc; type_; mutable_ } =
   let id = Identifier.any id in
   let name = name_of_ident id in
   let doc = maybe_td_doc ~pathloc doc in
   let thtml = of_type_expr ~pathloc type_ in
-  let field = anchor ~pathloc id <:html<$str:name$>> in
+  let mutable_ =
+    if mutable_ then <:html<$keyword "mutable"$ >> else <:html<&>>
+  in
+  let field = anchor ~pathloc id <:html<$mutable_$$str:name$>> in
   <:html<<tr class="field">
   <td>$field$</td><td>: $thtml$</td><td>;</td>$doc$
   </tr>&>>
