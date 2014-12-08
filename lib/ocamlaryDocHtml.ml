@@ -743,12 +743,18 @@ object (self)
 
   method identifier ident =
     let ident = Identifier.any ident in
-    let text = <:html<$str:name_of_ident ident$>> in
+    let text = match text with
+      | None -> <:html<$str:name_of_ident ident$>>
+      | Some text -> text
+    in
     link_ident ~text ~pathloc () ident
   method private parent reference parent _name =
-    let phtml = map_resolved_reference self (Reference.Resolved.any parent) in
     let link = self#identifier (Reference.Resolved.identifier reference) in
-    <:html<$phtml$.$link$&>>
+    match text with
+    | None ->
+      let phtml = map_resolved_reference self (Reference.Resolved.any parent) in
+      <:html<$phtml$.$link$&>>
+    | Some _ -> link
 end
 
 let link_resolved_reference_map ?text ~pathloc () =
@@ -895,7 +901,7 @@ let rec of_text_element ~pathloc txt =
   | Reference (ModuleType m, Some els) ->
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any m)
   | Reference (Type t, None) -> link_reference ~pathloc (any t)
-  | Reference (Type t, Some els) -> (* TODO: test *)
+  | Reference (Type t, Some els) ->
     link_reference ~text:<:html<$of_text_elements els$>> ~pathloc (any t)
   | Reference (Constructor c, None) -> link_reference ~pathloc (any c)
   | Reference (Constructor c, Some els) -> (* TODO: test *)
