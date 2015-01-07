@@ -17,14 +17,21 @@
 
 open Cmdliner
 
-type format = Html | Xml
+module Format = struct
+  type t = Html | Xml
+
+  let start = [ Xml ]
+  let depends = function
+    | Xml -> []
+    | Html -> [ Xml ]
+end
 
 let format = Arg.(value (
   let docv = "FORMAT" in
   let doc  = "the formats of documentation to generate" in
   let formats = enum [
-    "text/html", Html; "html", Html;
-    "application/xml", Xml; "xml", Xml;
+    "text/html", Format.Html; "html", Format.Html;
+    (*"application/xml", Format.Xml; "xml", Format.Xml;*)
   ] in
-  opt (list formats) [Html] & info ["t";"type"] ~docv ~doc
+  opt (list formats) [Format.Html] & info ["t";"type"] ~docv ~doc
 ))

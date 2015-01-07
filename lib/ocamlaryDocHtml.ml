@@ -18,538 +18,28 @@
 open DocOckTypes
 open DocOckPaths
 
-type root = OcamlaryDoc.root =
-            | Cmti of string * string
-            | Xml of string * root
-            | Html of string * root
+open OcamlaryDocMaps
+open OcamlaryDoc
+
+type 'a href = 'a * Uri.t
 
 type pathloc = {
-  index_depth   : int;
-  doc_base      : Uri.t;
-  unit_depth    : int;
-  internal_path : root Identifier.signature;
+  root        : root;
+  path        : root Identifier.signature;
+  index       : root -> Uri.t option;
 }
 
-module Identifier = struct
-  include Identifier
-
-  class type ['a] module_map = object
-    method root : root -> 'a
-    method argument : root signature -> int -> string -> 'a
-    method module_ : root signature -> string -> 'a
-  end
-
-  class type ['a] module_type_map = object
-    method module_type : root signature -> string -> 'a
-  end
-
-  class type ['a] datatype_map = object
-    method type_ : root signature -> string -> 'a
-    method core_type : string -> 'a
-  end
-
-  class type ['a] variant_constructor_map = object
-    method constructor : root datatype -> string -> 'a
-  end
-
-  class type ['a] field_map = object
-    method field : root datatype -> string -> 'a
-  end
-
-  class type ['a] extension_map = object
-    method extension : root signature -> string -> 'a
-  end
-
-  class type ['a] exception_map = object
-    method exception_ : root signature -> string -> 'a
-    method core_exception : string -> 'a
-  end
-
-  class type ['a] value_map = object
-    method value : root signature -> string -> 'a
-  end
-
-  class type ['a] class_map = object
-    method class_ : root signature -> string -> 'a
-  end
-
-  class type ['a] class_type_map = object
-    method class_type : root signature -> string -> 'a
-  end
-
-  class type ['a] method_map = object
-    method method_ : root class_signature -> string -> 'a
-  end
-
-  class type ['a] instance_variable_map = object
-    method instance_variable : root class_signature -> string -> 'a
-  end
-
-  class type ['a] label_map = object
-    method label : root parent -> string -> 'a
-  end
-
-  class type ['a] signature_map = object
-    inherit ['a] module_map
-    inherit ['a] module_type_map
-  end
-
-  class type ['a] class_signature_map = object
-    inherit ['a] class_map
-    inherit ['a] class_type_map
-  end
-
-  class type ['a] container_map = object
-    inherit ['a] signature_map
-    inherit ['a] class_signature_map
-  end
-
-  class type ['a] parent_map = object
-    inherit ['a] container_map
-    inherit ['a] datatype_map
-  end
-
-  class type ['a] any_map = object
-    inherit ['a] parent_map
-    inherit ['a] variant_constructor_map
-    inherit ['a] extension_map
-    inherit ['a] exception_map
-    inherit ['a] field_map
-    inherit ['a] value_map
-    inherit ['a] method_map
-    inherit ['a] instance_variable_map
-    inherit ['a] label_map
-  end
-
-  class virtual ['a] any_parent_map = object (self : 'self)
-    constraint 'self = 'a #any_map
-
-    method private virtual parent :
-        root any -> root parent -> string -> 'a
-
-    method module_ p n =
-      self#parent (Module (p, n)) (parent_of_signature p) n
-    method module_type p n =
-      self#parent (ModuleType (p, n)) (parent_of_signature p) n
-    method type_ p n =
-      self#parent (Type (p, n)) (parent_of_signature p) n
-    method constructor p n =
-      self#parent (Constructor (p, n)) (parent_of_datatype p) n
-    method field p n =
-      self#parent (Field (p, n)) (parent_of_datatype p) n
-    method extension p n =
-      self#parent (Extension (p, n)) (parent_of_signature p) n
-    method exception_ p n =
-      self#parent (Exception (p, n)) (parent_of_signature p) n
-    method value p n =
-      self#parent (Value (p, n)) (parent_of_signature p) n
-    method class_ p n =
-      self#parent (Class (p, n)) (parent_of_signature p) n
-    method class_type p n =
-      self#parent (ClassType (p, n)) (parent_of_signature p) n
-    method method_ p n =
-      self#parent (Method (p, n)) (parent_of_class_signature p) n
-    method instance_variable p n =
-      self#parent (InstanceVariable (p, n)) (parent_of_class_signature p) n
-    method label p n =
-      self#parent (Label (p, n)) p n
-  end
-end
-
-let map_ident map = Identifier.(function
-  | Root root                  -> map#root root
-  | CoreType name              -> map#core_type name
-  | CoreException name         -> map#core_exception name
-  | Argument (parent, i, name) -> map#argument parent i name
-  | Module (p, name)           -> map#module_ p name
-  | ModuleType (p, name)       -> map#module_type p name
-  | Type (p, name)             -> map#type_ p name
-  | Constructor (p, name)      -> map#constructor p name
-  | Field (p, name)            -> map#field p name
-  | Extension (p, name)        -> map#extension p name
-  | Exception (p, name)        -> map#exception_ p name
-  | Value (p, name)            -> map#value p name
-  | Class (p, name)            -> map#class_ p name
-  | ClassType (p, name)        -> map#class_type p name
-  | Method (p, name)           -> map#method_ p name
-  | InstanceVariable (p, name) -> map#instance_variable p name
-  | Label (p, name)            -> map#label p name
-)
-
-module Path_resolved = struct
-  include Path.Resolved
-
-  class type ['a, 'b] module_map = object
-    constraint 'b = [< kind > `Module]
-    method module_ : root module_ -> string -> 'a
-    method apply : root module_ -> root Path.module_ -> 'a
-    method subst : root module_type -> (root,'b) t -> 'a
-    method subst_alias : root module_ -> (root,'b) t -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a, 'b] module_type_map = object
-    constraint 'b = [< kind > `ModuleType]
-    method module_type : root module_ -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a, 'b] datatype_map = object
-    constraint 'b = [< kind > `Type]
-    method type_ : root module_ -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a, 'b] class_map = object
-    constraint 'b = [< kind > `Class]
-    method class_ : root module_ -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a, 'b] class_type_map = object
-    constraint 'b = [< kind > `ClassType]
-    method class_type : root module_ -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a, 'b] class_signature_map = object
-    inherit ['a, 'b] class_map
-    inherit ['a, 'b] class_type_map
-  end
-
-  class type ['a, 'b] type_map = object
-    inherit ['a, 'b] class_signature_map
-    inherit ['a, 'b] datatype_map
-  end
-
-  class type ['a, 'b] any_map = object
-    inherit ['a, 'b] module_map
-    inherit ['a, 'b] module_type_map
-    inherit ['a, 'b] type_map
-  end
-
-  class virtual ['a] any_parent_map = object (self : 'self)
-    constraint 'self = ('a, kind) #any_map
-
-    method private virtual parent : root any -> root module_ -> string -> 'a
-
-    method module_ p n     = self#parent (Module (p, n)) p n
-    method module_type p n = self#parent (ModuleType (p, n)) p n
-    method type_ p n       = self#parent (Type (p, n)) p n
-    method class_ p n      = self#parent (Class (p, n)) p n
-    method class_type p n  = self#parent (ClassType (p, n)) p n
-  end
-end
-
-let map_resolved_path map = Path_resolved.(function
-  | Identifier i         -> map#identifier i
-  | Subst (rsub, li)     -> map#subst rsub li
-  | SubstAlias (rsub, li)-> map#subst_alias rsub li
-  | Module (p, name)     -> map#module_ p name
-  | Apply (p, path)      -> map#apply p path
-  | ModuleType (p, name) -> map#module_type p name
-  | Type (p, name)       -> map#type_ p name
-  | Class (p, name)      -> map#class_ p name
-  | ClassType (p, name)  -> map#class_type p name
-)
-
-module Fragment_resolved = struct
-  include Fragment.Resolved
-
-  class type ['a] root_map = object
-    method root : 'a
-  end
-
-  class type ['a,'b,'c] module_map = object
-    constraint 'b = [< kind > `Module]
-    constraint 'c = [< sort > `Branch]
-    method module_ : root signature -> string -> 'a
-    method subst : root Path.Resolved.module_type -> (root,'b,'c) raw -> 'a
-    method subst_alias : root Path.Resolved.module_ -> (root,'b,'c) raw -> 'a
-  end
-
-  class type ['a,'b,'c] signature_map = object
-    inherit ['a] root_map
-    inherit ['a,'b,'c] module_map
-  end
-
-  class type ['a] datatype_map = object
-    method type_ : root signature -> string -> 'a
-  end
-
-  class type ['a] class_map = object
-    method class_ : root signature -> string -> 'a
-  end
-
-  class type ['a] class_type_map = object
-    method class_type : root signature -> string -> 'a
-  end
-
-  class type ['a] type_map = object
-    inherit ['a] datatype_map
-    inherit ['a] class_map
-    inherit ['a] class_type_map
-  end
-
-  class type ['a,'b,'c] any_map = object
-    inherit ['a,'b,'c] module_map
-    inherit ['a] type_map
-  end
-
-  class type ['a,'b,'c] raw_map = object
-    inherit ['a] root_map
-    inherit ['a,'b,'c] any_map
-  end
-
-  class virtual ['a,'b,'c] any_parent_map = object (self : 'self)
-    constraint 'self = ('a,'b,'c) #any_map
-
-    method private virtual parent : root any -> root signature -> string -> 'a
-
-    method module_ p n    = self#parent (Module (p, n)) p n
-    method type_ p n      = self#parent (Type (p, n)) p n
-    method class_ p n     = self#parent (Class (p, n)) p n
-    method class_type p n = self#parent (ClassType (p, n)) p n
-  end
-end
-
-let rec map_resolved_fragment
-    : ('a,'b,'c) #Fragment_resolved.any_map -> root Fragment_resolved.any -> 'a
-  = fun map ->
-    Fragment_resolved.(function
-    | Subst (rsub, li)     -> map#subst rsub li
-    | SubstAlias (rsub, li)-> map#subst_alias rsub li
-    | Module (p, name)     -> map#module_ p name
-    | Type (p, name)       -> map#type_ p name
-    | Class (p, name)      -> map#class_ p name
-    | ClassType (p, name)  -> map#class_type p name
-    )
-
-module Reference_resolved = struct
-  include Reference.Resolved
-
-  class type ['a,'b] module_map = object
-    constraint 'b = [< kind > `Module]
-    method module_ : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] module_type_map = object
-    constraint 'b = [< kind > `ModuleType]
-    method module_type : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] signature_map = object
-    inherit ['a,'b] module_map
-    inherit ['a,'b] module_type_map
-  end
-
-  class type ['a,'b] extension_map = object
-    constraint 'b = [< kind > `Extension]
-    method extension : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] exception_map = object
-    constraint 'b = [< kind > `Exception]
-    method exception_ : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] type_extension_map = object
-    inherit ['a,'b] extension_map
-    inherit ['a,'b] exception_map
-  end
-
-  class type ['a,'b] variant_constructor_map = object
-    constraint 'b = [< kind > `Constructor]
-    method constructor : root datatype -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] constructor_map = object
-    inherit ['a,'b] type_extension_map
-    inherit ['a,'b] variant_constructor_map
-  end
-
-  class type ['a,'b] class_map = object
-    constraint 'b = [< kind > `Class]
-    method class_ : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] class_type_map = object
-    constraint 'b = [< kind > `ClassType]
-    method class_type : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] class_signature_map = object
-    inherit ['a,'b] class_map
-    inherit ['a,'b] class_type_map
-  end
-
-  class type ['a,'b] datatype_map = object
-    constraint 'b = [< kind > `Type]
-    method type_ : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] type_map = object
-    inherit ['a,'b] class_signature_map
-    inherit ['a,'b] datatype_map
-  end
-
-  class type ['a,'b] container_map = object
-    inherit ['a,'b] signature_map
-    inherit ['a,'b] class_signature_map
-  end
-
-  class type ['a,'b] parent_map = object
-    inherit ['a,'b] container_map
-    inherit ['a,'b] type_map
-  end
-
-  class type ['a,'b] field_map = object
-    constraint 'b = [< kind > `Field]
-    method field : root datatype -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] value_map = object
-    constraint 'b = [< kind > `Value]
-    method value : root signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] method_map = object
-    constraint 'b = [< kind > `Method]
-    method method_ : root class_signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] instance_variable_map = object
-    constraint 'b = [< kind > `InstanceVariable]
-    method instance_variable : root class_signature -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] label_map = object
-    constraint 'b = [< kind > `Label]
-    method label : root parent -> string -> 'a
-    method identifier : (root,'b) Identifier.t -> 'a
-  end
-
-  class type ['a,'b] any_map = object
-    inherit ['a,'b] parent_map
-    inherit ['a,'b] constructor_map
-    inherit ['a,'b] field_map
-    inherit ['a,'b] value_map
-    inherit ['a,'b] method_map
-    inherit ['a,'b] instance_variable_map
-    inherit ['a,'b] label_map
-  end
-
-  class virtual ['a] any_parent_map = object (self : 'self)
-    constraint 'self = ('a, kind) #any_map
-
-    method private virtual parent : root any -> root parent -> string -> 'a
-    method private parent_signature reference parent_signature name =
-      self#parent reference (parent_of_signature parent_signature) name
-    method private parent_class reference parent_class name =
-      self#parent reference (parent_of_class_signature parent_class) name
-    method private parent_type reference parent_type name =
-      self#parent reference (parent_of_datatype parent_type) name
-
-    method module_ p n     = self#parent_signature (Module (p, n)) p n
-    method module_type p n = self#parent_signature (ModuleType (p, n)) p n
-    method type_ p n       = self#parent_signature (Type (p, n)) p n
-    method constructor p n = self#parent_type (Constructor (p, n)) p n
-    method field p n       = self#parent_type (Field (p, n)) p n
-    method extension p n   = self#parent_signature (Extension (p, n)) p n
-    method exception_ p n  = self#parent_signature (Exception (p, n)) p n
-    method value p n       = self#parent_signature (Value (p, n)) p n
-    method class_ p n      = self#parent_signature (Class (p, n)) p n
-    method class_type p n  = self#parent_signature (ClassType (p, n)) p n
-    method method_ p n     = self#parent_class (Method (p, n)) p n
-    method instance_variable p n =
-      self#parent_class (InstanceVariable (p, n)) p n
-    method label p n       = self#parent (Label (p, n)) p n
-  end
-end
-
-let map_resolved_reference map = Reference.Resolved.(function
-  | Identifier ident           -> map#identifier ident
-  | Module (p, name)           -> map#module_ p name
-  | ModuleType (p, name)       -> map#module_type p name
-  | Type (p, name)             -> map#type_ p name
-  | Constructor (p, name)      -> map#constructor p name
-  | Field (p, name)            -> map#field p name
-  | Extension (p, name)        -> map#extension p name
-  | Exception (p, name)        -> map#exception_ p name
-  | Value (p, name)            -> map#value p name
-  | Class (p, name)            -> map#class_ p name
-  | ClassType (p, name)        -> map#class_type p name
-  | Method (p, name)           -> map#method_ p name
-  | InstanceVariable (p, name) -> map#instance_variable p name
-  | Label (p, name)            -> map#label p name
-)
-
-let parent_list ident =
-  let rec path acc ident = Identifier.(match ident with
-    | Root _ -> ident::acc
-    | Module (p, _)
-    | Argument (p, _, _)
-    | ModuleType (p, _) -> path (ident::acc) p
-  ) in
-  List.(tl (rev (path [] ident)))
-
-let pathloc ~index_depth ~doc_base internal_path =
+let pathloc ~unit ~index =
+  let signature = Identifier.signature_of_module unit.Unit.id in
   {
-    index_depth; doc_base;
-    unit_depth = List.length (parent_list internal_path);
-    internal_path;
+    root = fst (Maps.root_of_ident_signature signature);
+    path = signature;
+    index;
   }
 
+let self_uri = Uri.of_string ""
+
 let keyword text = <:html<<span class="keyword">$str:text$</span>&>>
-
-let rec ascent_of_depth tl = function
-  | 0 -> tl
-  | n -> ascent_of_depth ("../" ^ tl) (n - 1)
-
-let href_of_project ~pathloc project =
-  Uri.of_string ((ascent_of_depth "" pathloc.index_depth) ^ project ^ "/")
-
-class name_of_ident_map : [string] Identifier.any_map = object (self)
-  inherit [string] Identifier.any_parent_map
-
-  method root = OcamlaryDoc.name_of_root
-  method core_type name = name
-  method core_exception name = name
-  method argument _ _ name = name
-  method private parent _ _ name = name
-end
-
-let name_of_ident_map = new name_of_ident_map
-
-let name_of_ident = map_ident name_of_ident_map
-
-class string_of_ident_map : [string] Identifier.any_map = object (self)
-  inherit [string] Identifier.any_parent_map
-
-  method root = OcamlaryDoc.name_of_root
-  method core_type name = name
-  method core_exception name = name
-  method argument parent i name = (* TODO: better syntax? *)
-    (map_ident self (Identifier.any parent))^"."^(string_of_int i)^","^name
-  method private parent ident parent name =
-    (map_ident self (Identifier.any parent))^"."^name
-end
-
-let string_of_ident_map = new string_of_ident_map
-
-let string_of_ident = map_ident string_of_ident_map
 
 let type_class = "type"
 let exn_class = "exn" (* exception *)
@@ -579,97 +69,112 @@ let classify cls name = Printf.sprintf "%s:%s" cls name
 
 let name_of_argument i name = Printf.sprintf "%d:%s" i name
 
-class id_of_ident_map ~pathloc : [string] Identifier.any_map = object (self)
-  inherit [string] Identifier.any_parent_map
+class id_of_ident_map ~pathloc :
+  [unit, root, string] Identifier.any_fold =
+object (self)
+  inherit [unit, root, string] Identifier.any_parent_fold
 
-  method root _ = "" (* TODO: check against pathloc; should be self *)
-  method core_type name = classify type_class name
-  method core_exception name = classify exn_class name
-  method argument parent i name =
-    self#parent
+  method root () _ _ = ""
+  method core_type () name = classify type_class name
+  method core_exception () name = classify exn_class name
+  method argument () parent i name =
+    self#parent ()
       (Identifier.Argument (parent, i, name))
       (Identifier.parent_of_signature parent)
       (name_of_argument i name)
-  method private parent ident parent name =
+  method private parent () ident parent name =
     Printf.sprintf "%s/%s"
-      (map_ident self (Identifier.any parent))
+      (Identifier.fold_any self () (Identifier.any parent))
       (classify (ident_class ident) name)
 end
 
 let id_of_ident_map ~pathloc = new id_of_ident_map ~pathloc
 
-let id_of_ident ~pathloc = map_ident (id_of_ident_map ~pathloc)
+let id_of_ident ~pathloc = Identifier.fold_any (id_of_ident_map ~pathloc) ()
 
-class href_of_ident_map ~pathloc : [Uri.t] Identifier.any_map = object (self)
-  inherit [Uri.t] Identifier.any_parent_map
+class href_of_ident_map ~pathloc :
+  [unit, root, Uri.t option] Identifier.any_fold =
+object (self)
+  inherit [unit, root, Uri.t option] Identifier.any_parent_fold
 
-  method root r = (* TODO: fixme with pathloc *)
-    Uri.of_string (OcamlaryDoc.path_of_root r)
-  method core_type name = Uri.of_string name (* TODO: fixme *)
-  method core_exception name = Uri.of_string name (* TODO: fixme *)
-  method argument parent i name =
-    self#parent
+  method root () r _name =
+    if r = pathloc.root
+    then Some self_uri
+    else pathloc.index r
+  method core_type () name = None (* TODO: fixme *)
+  method core_exception () name = None (* TODO: fixme *)
+  method argument () parent i name =
+    self#parent ()
       (Identifier.Argument (parent, i, name))
       (Identifier.parent_of_signature parent)
       (name_of_argument i name)
-  method private parent ident parent name = (* TODO: fixme with pathloc *)
-    Uri.(with_fragment (of_string "") (Some (id_of_ident ~pathloc ident)))
+  method private parent () ident parent name = (* TODO: projections *)
+    match Maps.root_of_ident (Identifier.any parent) with
+    | None -> None
+    | Some (root, name) -> match self#root () root name with
+      | None -> None
+      | Some base ->
+        Some Uri.(with_fragment base (Some (id_of_ident ~pathloc ident)))
 end
 
 let href_of_ident_map ~pathloc = new href_of_ident_map ~pathloc
 
-let href_of_ident ~pathloc : 'a Identifier.any -> Uri.t =
-  map_ident (href_of_ident_map ~pathloc)
+let href_of_ident ~pathloc : 'a Identifier.any -> Uri.t option =
+  Identifier.fold_any (href_of_ident_map ~pathloc) ()
 
-class link_ident_map ?text ~pathloc () : [Cow.Html.t] Identifier.any_map =
+class link_ident_map ?text ~pathloc () :
+  [unit, root, Cow.Html.t] Identifier.any_fold =
 object (self)
-  inherit [Cow.Html.t] Identifier.any_parent_map
+  inherit [unit, root, Cow.Html.t] Identifier.any_parent_fold
 
-  method root r =
-    let uri = Uri.of_string (OcamlaryDoc.path_of_root r) in
-    <:html<<a href=$uri:uri$>$str:OcamlaryDoc.name_of_root r$</a>&>>
-  method core_type name = <:html<$str:name$>> (* TODO: link *)
-  method core_exception name = <:html<$str:name$>> (* TODO: link *)
-  method argument parent i name =
-    self#parent
+  method root () r name =
+    match (new href_of_ident_map ~pathloc)#root () r name with
+    | None -> <:html<$str:name$>>
+    | Some uri -> <:html<<a href=$uri:uri$>$str:name$</a>&>>
+  method core_type () name = <:html<$str:name$>> (* TODO: link *)
+  method core_exception () name = <:html<$str:name$>> (* TODO: link *)
+  method argument () parent i name =
+    self#parent ()
       (Identifier.Argument (parent, i, name))
       (Identifier.parent_of_signature parent)
       (name_of_argument i name)
-  method private parent ident parent name =
-    let href = href_of_ident ~pathloc ident in
-    match text with
-    | Some html ->
-      <:html<<a href=$uri:href$>$html$</a>&>>
-    | None ->
-      let phtml = map_ident self (Identifier.any parent) in
+  method private parent () ident parent name =
+    match href_of_ident ~pathloc ident, text with
+    | None, None ->
+      let phtml = Identifier.fold_any self () (Identifier.any parent) in
+      <:html<$phtml$.$str:name$>>
+    | Some href, None ->
+      let phtml = Identifier.fold_any self () (Identifier.any parent) in
       <:html<$phtml$.<a href=$uri:href$>$str:name$</a>&>>
+    | None, Some html -> html
+    | Some href, Some html -> <:html<<a href=$uri:href$>$html$</a>&>>
 end
 
 let link_ident_map ?text ~pathloc () =
   new link_ident_map ?text ~pathloc ()
 
 let link_ident ?text ~pathloc () =
-  map_ident (link_ident_map ?text ~pathloc ())
+  Identifier.fold_any (link_ident_map ?text ~pathloc ()) ()
 
 class link_resolved_path_map ~pathloc link_path
-  : [Cow.Html.t, Path.kind] Path_resolved.any_map =
+  : [unit, root, Cow.Html.t, Path.kind] Path_resolved.any_fold =
 object (self)
-  inherit [Cow.Html.t] Path_resolved.any_parent_map
+  inherit [unit, root, Cow.Html.t] Path_resolved.any_parent_fold
 
-  method identifier ident =
+  method identifier () ident =
     let ident = Identifier.any ident in
-    let text = <:html<$str:name_of_ident ident$>> in
+    let text = <:html<$str:Identifier.name ident$>> in
     link_ident ~text ~pathloc () ident
-  method subst _rsub li =
-    map_resolved_path self (Path.Resolved.any li)
-  method subst_alias _rsub li =
-    map_resolved_path self (Path.Resolved.any li)
-  method apply func module_path = (* TODO: test *)
-    let html = map_resolved_path self (Path.Resolved.any func) in
+  method subst () _rsub li =
+    Path_resolved.(fold_any self () (any li))
+  method subst_alias () _rsub li =
+    Path_resolved.(fold_any self () (any li))
+  method apply () func module_path =
+    let html = Path_resolved.(fold_any self () (any func)) in
     <:html<$html$($link_path ~pathloc (Path.any module_path)$)>>
-  method private parent path parent _name = (* TODO: test *)
-    let phtml = map_resolved_path self (Path.Resolved.any parent) in
-    let link = self#identifier (Path.Resolved.identifier path) in
+  method private parent () path parent _name =
+    let phtml = Path_resolved.(fold_any self () (any parent)) in
+    let link = self#identifier () (Path.Resolved.identifier path) in
     <:html<$phtml$.$link$&>>
 end
 
@@ -677,7 +182,7 @@ let link_resolved_path_map ~pathloc link_path =
   new link_resolved_path_map ~pathloc link_path
 
 let link_resolved_path ~pathloc link_path =
-  map_resolved_path (link_resolved_path_map ~pathloc link_path)
+  Path_resolved.fold_any (link_resolved_path_map ~pathloc link_path) ()
 
 let rec link_path ~pathloc : ('a,'b) Path.t -> Cow.Html.t =
   Path.(function
@@ -690,15 +195,16 @@ let rec link_path ~pathloc : ('a,'b) Path.t -> Cow.Html.t =
   )
 
 class link_resolved_fragment_map ~pathloc base
-  : [Cow.Html.t, Fragment.Resolved.kind, [`Branch]] Fragment_resolved.any_map =
+  : [unit, root, Cow.Html.t, Fragment.Resolved.kind, [`Branch]]
+  Fragment_resolved.any_fold =
 object (self)
-  inherit [Cow.Html.t, Fragment.Resolved.kind, [`Branch]]
-    Fragment_resolved.any_parent_map
+  inherit [unit, root, Cow.Html.t, Fragment.Resolved.kind, [`Branch]]
+    Fragment_resolved.any_parent_fold
 
-  method subst _rsub li = map_resolved_fragment self li
-  method subst_alias _rsub li = map_resolved_fragment self li
+  method subst () _rsub li = Fragment_resolved.fold_any self () li
+  method subst_alias () _rsub li = Fragment_resolved.fold_any self () li
 
-  method private parent fragment parent name = Fragment_resolved.(
+  method private parent () fragment parent name = Fragment_resolved.(
     let text = <:html<$str:name$>> in
     let link = match base with
       | Some base ->
@@ -711,7 +217,7 @@ object (self)
       | Subst (_, li) -> render li
       | SubstAlias (_, li) -> render li
       | Module _ as parent -> (* need to capture GADT eq *)
-        let phtml = map_resolved_fragment self parent in
+        let phtml = fold_any self () parent in
         <:html<$phtml$.$link$>>
     in render parent
   )
@@ -721,7 +227,7 @@ let link_resolved_fragment_map ~pathloc base =
   new link_resolved_fragment_map ~pathloc base
 
 let link_resolved_fragment ~pathloc base =
-  map_resolved_fragment (link_resolved_fragment_map ~pathloc base)
+  Fragment_resolved.fold_any (link_resolved_fragment_map ~pathloc base) ()
 
 let rec link_fragment ~pathloc base
     : 'a Fragment.any -> Cow.Html.t =
@@ -737,22 +243,22 @@ let rec link_fragment ~pathloc base
   )
 
 class link_resolved_reference_map ?text ~pathloc ()
-  : [Cow.Html.t, Reference.kind] Reference_resolved.any_map =
+  : [unit, root, Cow.Html.t, Reference.kind] Reference_resolved.any_fold =
 object (self)
-  inherit [Cow.Html.t] Reference_resolved.any_parent_map
+  inherit [unit, root, Cow.Html.t] Reference_resolved.any_parent_fold
 
-  method identifier ident =
+  method identifier () ident =
     let ident = Identifier.any ident in
     let text = match text with
-      | None -> <:html<$str:name_of_ident ident$>>
+      | None -> <:html<$str:Identifier.name ident$>>
       | Some text -> text
     in
     link_ident ~text ~pathloc () ident
-  method private parent reference parent _name =
-    let link = self#identifier (Reference.Resolved.identifier reference) in
+  method private parent () reference parent _name =
+    let link = self#identifier () (Reference.Resolved.identifier reference) in
     match text with
     | None ->
-      let phtml = map_resolved_reference self (Reference.Resolved.any parent) in
+      let phtml = Reference_resolved.(fold_any self () (any parent)) in
       <:html<$phtml$.$link$&>>
     | Some _ -> link
 end
@@ -761,7 +267,7 @@ let link_resolved_reference_map ?text ~pathloc () =
   new link_resolved_reference_map ?text ~pathloc ()
 
 let link_resolved_reference ?text ~pathloc () =
-  map_resolved_reference (link_resolved_reference_map ?text ~pathloc ())
+  Reference_resolved.fold_any (link_resolved_reference_map ?text ~pathloc ()) ()
 
 let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Cow.Html.t =
   Reference.(function
@@ -775,19 +281,19 @@ let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Cow.Html.t =
   )
 
 class string_of_resolved_reference_map
-  : [string, Reference.kind] Reference_resolved.any_map =
+  : [unit, root, string, Reference.kind] Reference_resolved.any_fold =
 object (self)
-  inherit [string] Reference_resolved.any_parent_map
+  inherit [unit, root, string] Reference_resolved.any_parent_fold
 
-  method identifier ident = string_of_ident (Identifier.any ident)
-  method private parent _reference parent name =
-    (map_resolved_reference self (Reference.Resolved.any parent))^"."^name
+  method identifier () ident = Maps.string_of_ident (Identifier.any ident)
+  method private parent () _reference parent name =
+    Reference_resolved.(fold_any self () (any parent))^"."^name
 end
 
 let string_of_resolved_reference_map = new string_of_resolved_reference_map
 
 let string_of_resolved_reference =
-  map_resolved_reference string_of_resolved_reference_map
+  Reference_resolved.fold_any string_of_resolved_reference_map ()
 
 let rec string_of_reference : ('a,'b) Reference.t -> string =
   Reference.(function
@@ -797,9 +303,13 @@ let rec string_of_reference : ('a,'b) Reference.t -> string =
   )
 
 let anchor ~pathloc id html =
+  let a = match href_of_ident ~pathloc id with
+    | Some href -> <:html<<a href=$uri:href$ class="anchor">#</a>&>>
+    | None -> <:html<&>>
+  in
   <:html<
   <div class="region" id=$str:id_of_ident ~pathloc id$>
-  <a href=$uri:href_of_ident ~pathloc id$ class="anchor">#</a>
+  $a$
   $html$
   </div>
   >>
@@ -817,6 +327,7 @@ let rec of_text_element ~pathloc txt =
   let of_text_elements = of_text_elements ~pathloc in
   Reference.(Documentation.(match txt with
   | Raw s -> <:html<$str:s$>>
+  | Code "" -> <:html<&>> (* TODO: warn this isn't the empty list literal *)
   | Code s -> <:html<<code>$str:s$</code>&>>
   | PreCode s -> <:html<<pre><code>$str:s$</code></pre>&>>
   | Verbatim s -> <:html<<pre>$str:s$</pre>&>>
@@ -965,14 +476,14 @@ and of_text_elements ~pathloc els =
   let f = of_text_element ~pathloc in
   <:html<$list:List.map f els$>>
 and paragraphs_of_text ~pathloc els =
-  let paras = List.map OcamlaryDoc.(function
+  let paras = List.map (function
     | Para els ->
       <:html<
       <p>$of_text_elements ~pathloc els$</p>
       >>
     | Block els ->
       <:html<$of_text_elements ~pathloc els$>>
-  ) (OcamlaryDoc.paragraphize els) in
+  ) (paragraphize els) in
   <:html<$list:paras$>>
 
 let div_tag classes label html =
@@ -1157,7 +668,7 @@ and of_package_sub ~pathloc path (fragment, expr) =
 let of_value ~pathloc { Value.id; doc; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
   let ident = Identifier.any id in
-  let name = name_of_ident ident in
+  let name = Identifier.name ident in
   anchor ~pathloc ident
   <:html<
   <div class="val">
@@ -1169,7 +680,7 @@ let of_value ~pathloc { Value.id; doc; type_ } =
 let of_external ~pathloc { External.id; doc; type_; primitives } =
   let doc = maybe_div_doc ~pathloc doc in
   let ident = Identifier.any id in
-  let name = name_of_ident ident in
+  let name = Identifier.name ident in
   let primitives = List.map (fun p -> <:html<"$str:p$" >>) primitives in
   anchor ~pathloc ident
   <:html<
@@ -1202,7 +713,7 @@ let args_of_constructor ~pathloc args res =
 
 let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
   let id   = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let sig_ = args_of_constructor ~pathloc args res in
   let doc  = maybe_td_doc ~pathloc doc in
   let cons =
@@ -1213,7 +724,7 @@ let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
 
 let of_extension ~pathloc { Extension.Constructor.id; doc; args; res } =
   let id   = Identifier.any id in
-  let name = name_of_ident (Identifier.any id) in
+  let name = Identifier.name (Identifier.any id) in
   let sig_ = args_of_constructor ~pathloc args res in
   let doc  = maybe_td_doc ~pathloc doc in
   let cons =
@@ -1224,7 +735,7 @@ let of_extension ~pathloc { Extension.Constructor.id; doc; args; res } =
 
 let of_field ~pathloc { TypeDecl.Field.id; doc; type_; mutable_ } =
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let doc = maybe_td_doc ~pathloc doc in
   let thtml = of_type_expr ~pathloc type_ in
   let mutable_ =
@@ -1275,7 +786,7 @@ let of_type ~pathloc
   let of_rep = of_type_representation ~pathloc in
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let params = of_type_params params in
   let priv = if private_ then <:html<$keyword "private"$ >> else <:html<&>> in
   let constraints = fold_html_str "" <:html<&>>
@@ -1318,7 +829,7 @@ let of_type_ext ~pathloc
 let of_exception ~pathloc { Exception.id; doc; args; res } =
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let args = args_of_constructor ~pathloc args res in
   anchor ~pathloc id
   <:html<
@@ -1332,7 +843,7 @@ let of_instance_variable ~pathloc
     { InstanceVariable.id; doc; mutable_; virtual_; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let mutable_ =
     if mutable_ then <:html< $keyword "mutable"$>> else <:html<&>>
   in
@@ -1351,7 +862,7 @@ let of_instance_variable ~pathloc
 let of_method ~pathloc { Method.id; doc; private_; virtual_; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let private_ =
     if private_ then <:html< $keyword "private"$>> else <:html<&>>
   in
@@ -1434,7 +945,7 @@ let rec of_class_decl ~pathloc = Class.(function
 let of_class ~pathloc { Class.id; doc; virtual_; params; type_ } =
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let virtual_ =
     if virtual_ then <:html< $keyword "virtual"$>> else <:html<&>>
   in
@@ -1451,7 +962,7 @@ let of_class ~pathloc { Class.id; doc; virtual_; params; type_ } =
 let of_class_type ~pathloc { ClassType.id; doc; virtual_; params; expr } =
   let doc = maybe_div_doc ~pathloc doc in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let virtual_ =
     if virtual_ then <:html< $keyword "virtual"$>> else <:html<&>>
   in
@@ -1515,18 +1026,14 @@ let rec base_of_module_type_expr ~pathloc = ModuleType.(function
   | TypeOf (Module.Alias _)
   | Path _ -> None
   | Signature _ | Functor _ -> (* TODO: make sure anonymous paths are named *)
-    Some pathloc.internal_path
+    Some pathloc.path
   | TypeOf (Module.ModuleType expr)
   | With (expr, _) -> base_of_module_type_expr ~pathloc expr
 )
 
 let rec of_module ~pathloc { Module.id; doc; type_ } =
-  let pathloc = { pathloc with
-    unit_depth = pathloc.unit_depth + 1;
-    internal_path = Identifier.signature_of_module id;
-  } in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let rhs, rest = rhs_rest_of_decl ~pathloc type_ in
   let doc = maybe_div_doc ~pathloc doc in
   module_declaration ~id ~pathloc <:html<$str:name$>> rhs doc rest
@@ -1553,7 +1060,7 @@ and rhs_rest_of_sig ~pathloc = ModuleType.(function
   | Functor (Some (arg_ident, arg_sig), expr) ->
     let rhs_sig, rest_sig = rhs_rest_of_sig ~pathloc arg_sig in
     let rhs, rest = rhs_rest_of_sig ~pathloc expr in
-    let arg = name_of_ident (Identifier.any arg_ident) in (* TODO: more? *)
+    let arg = Identifier.name (Identifier.any arg_ident) in (* TODO: more? *)
     <:html<$keyword "functor"$ ($str:arg$ : $rhs_sig$$rest_sig$) &rarr; $rhs$>>,
     rest
   | With (With (expr, subs), subs') ->
@@ -1616,12 +1123,8 @@ and of_substitutions ~pathloc base acc = ModuleType.(function
 
 and of_module_type ~pathloc { ModuleType.id; doc; expr } =
   let doc = maybe_div_doc ~pathloc doc in
-  let pathloc = { pathloc with
-    unit_depth = pathloc.unit_depth + 1;
-    internal_path = Identifier.signature_of_module_type id;
-  } in
   let id = Identifier.any id in
-  let name = name_of_ident id in
+  let name = Identifier.name id in
   let rhs, rest = match expr with
     | None -> <:html<&>>, <:html<&>>
     | Some expr ->

@@ -15,44 +15,81 @@
  *
  *)
 
+open DocOckPaths
+open OcamlaryDocMaps
+
 type path = string
 
 type root =
 | Cmti of path * string
+(* TODO: use signature identifier when doc-ock-xml supports it *)
+| Proj of (*root DocOckPaths.Identifier.signature*) string * root
 | Xml of path * root
 | Html of path * root
 
-type text = root DocOckTypes.Documentation.text
+module Root = struct
+  type t = root
+
+  class virtual named = object (self : 'self)
+    constraint 'self = (unit, t, string) #Identifier.any_fold
+
+    method root_name () = function
+    | Cmti (_, name) -> name
+    | Proj (sig_, r) ->
+      (*(self#name r)^"["^(map_ident self (Identifier.any sig_))^"]"*)
+      (self#root_name () r)^"["^sig_^"]"
+    | Xml (_, r) | Html (_, r) -> self#root_name () r
+  end
+
+  let rec to_source = function
+    | Cmti _ as cmti -> cmti
+    | Proj (_, r) | Xml (_, r) | Html (_, r) -> to_source r
+
+  let rec to_path = function
+    | Cmti (path, _) | Xml (path, _) | Html (path, _) -> path
+    | Proj (_, root) -> to_path root
+end
+
+module Maps = OcamlaryDocMaps.Make(Root)
+open Maps
+
+type text = Root.t DocOckTypes.Documentation.text
 
 type t =
 | Para of text
 | Block of text
 
-let rec name_of_root = function
-  | Cmti (_, name) -> name
-  | Xml (_, r) -> name_of_root r
-  | Html (_, r) -> name_of_root r
-
-let path_of_root = function
-  | Cmti (path, _) | Xml (path, _) | Html (path, _) -> path
-
-let rec xml_of_root = function
+let rec xml_of_root = Root.(function
   | Cmti (cmti_path,name) ->
     <:xml<<cmti name=$str:name$ src=$str:cmti_path$ />&>>
+  | Proj (sig_,source) ->
+    (* TODO: serialize with doc-ock-xml vocab *)
+    (*let sig_ = Identifier.any sig_ in*)
+    <:xml<<proj path=$str:sig_$>$xml_of_root source$</proj>&>>
   | Xml (xml_path,source) ->
     <:xml<<xml src=$str:xml_path$>$xml_of_root source$</xml>&>>
   | Html (html_path,source) ->
     <:xml<<html src=$str:html_path$>$xml_of_root source$</html>&>>
+)
 
 let filter_children = List.fold_left (fun l -> function
   | None -> l
   | Some v -> v::l
 ) []
 
+(* TODO: handle exceptions (e.g. Not_found) *)
 let root_of_xml tag root_opt_list =
   match tag with
   | (("","cmti"),attrs) -> (* TODO: cmti can't have children *)
     Some List.(Cmti (assoc ("","src") attrs, assoc ("","name") attrs))
+  | (("","proj"),attrs) ->
+    let root = match filter_children root_opt_list with
+      | [] -> failwith "proj root must have a source" (* TODO: fixme *)
+      | [root] -> root
+      | _::_::_ -> failwith "proj root has too many children" (* TODO: fixme *)
+    in
+    (* TODO: deserialize with doc-ock-xml vocab *)
+    Some (Proj (List.assoc ("","path") attrs, root))
   | (("","xml"),attrs) ->
     let root = match filter_children root_opt_list with
       | [] -> failwith "xml root must have a source" (* TODO: fixme *)

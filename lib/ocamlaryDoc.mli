@@ -19,17 +19,25 @@ type path = string
 
 type root =
 | Cmti of path * string
+(* TODO: use signature identifier when doc-ock-xml supports it *)
+| Proj of (*root DocOckPaths.Identifier.signature*) string * root
 | Xml of path * root
 | Html of path * root
+
+module Root : sig
+  include OcamlaryDocMaps.ROOT with type t = root
+
+  val to_source : t -> t
+  val to_path : t -> path
+end
+
+module Maps : OcamlaryDocMaps.ROOTED_MAPS with type root = Root.t
 
 type text = root DocOckTypes.Documentation.text
 
 type t =
 | Para of text
 | Block of text
-
-val name_of_root : root -> string
-val path_of_root : root -> path
 
 val xml_of_root : root -> Cow.Xml.t
 

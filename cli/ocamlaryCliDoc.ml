@@ -17,6 +17,37 @@
 
 open OcamlaryCli
 
+module LinkIndex = struct (* TODO: use digest, too *)
+  open OcamlaryDoc
+  type t = {
+    root_by_name : (string, root) Hashtbl.t;
+    unit_by_root : (root, root DocOckTypes.Unit.t) Hashtbl.t;
+  }
+
+  let root_by_name idx name =
+    try Some (Hashtbl.find idx.root_by_name name)
+    with Not_found -> None
+
+  let unit_by_root idx root =
+    try Hashtbl.find idx.unit_by_root root
+    with Not_found ->
+      let name = OcamlaryDoc.Maps.name_of_root root in
+      failwith ("couldn't find unit for root "^name) (* TODO *)
+
+  let unit_by_name idx name = match root_by_name idx name with
+    | None -> failwith ("couldn't find unit for name "^name) (* TODO *)
+    | Some root -> unit_by_root idx root
+
+  let index idx name root unit =
+    Hashtbl.replace idx.root_by_name name root;
+    Hashtbl.replace idx.unit_by_root root unit
+
+  let create () = {
+    root_by_name = Hashtbl.create 10;
+    unit_by_root = Hashtbl.create 10;
+  }
+end
+
 let read_cmti root path = DocOck.(match read_cmti root path with
   | Not_an_interface -> failwith (path^" is not an interface") (* TODO *)
   | Wrong_version_interface ->
@@ -26,19 +57,28 @@ let read_cmti root path = DocOck.(match read_cmti root path with
   | Ok unit -> unit
 )
 
-let rec read = OcamlaryDoc.(function
-  | Cmti (path, name) as root -> read_cmti root path
-  | Xml (_path, root) -> read root
-  | Html (_path, root) -> read root
-)
+let read root = read_cmti root OcamlaryDoc.Root.(to_path (to_source root))
 
-let resolver = DocOckResolve.build_resolver
-  (fun s -> print_endline ("resolve "^s); None)
-  read
+let read_and_index index (root, output) =
+  let mod_name = OcamlaryDoc.Maps.name_of_root root in
+  let unit = read root in
+  LinkIndex.index index mod_name root unit;
+  (mod_name, output)
 
-let xml path xml_file =
-  let root = OcamlaryDoc.Cmti (path, FindlibUnits.unit_name_of_path path) in
-  let unit = DocOckResolve.resolve resolver (read_cmti root path) in
+let resolver failure_set index = DocOckResolve.build_resolver
+  (fun _req_unit mod_name -> match LinkIndex.root_by_name index mod_name with
+  | Some root -> Some root
+  | None -> Hashtbl.replace failure_set mod_name (); None (* TODO *)
+  )
+  (LinkIndex.unit_by_root index)
+
+let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
+  let unit = LinkIndex.unit_by_name index mod_name in
+  let failures = Hashtbl.create 10 in
+  let unit = DocOckResolve.resolve (resolver failures index) unit in
+  Hashtbl.iter (fun name () -> (* TODO *)
+    Printf.eprintf "%s failed to resolve %s\n%!" mod_name name;
+  ) failures;
   let out_file = open_out xml_file in
   let output = Xmlm.make_output (`Channel out_file) in
   let printer = DocOckXmlPrint.build (fun output root ->
@@ -74,9 +114,10 @@ let html xml_file html_file =
   | DocOckXmlParse.Ok unit ->
     close_in in_file;
     let pathloc = OcamlaryDocHtml.pathloc (* TODO: fixme *)
-      ~index_depth:0
-      ~doc_base:(Uri.of_string "SOME_DOC_BASE")
-      (DocOckPaths.Identifier.signature_of_module unit.DocOckTypes.Unit.id)
+      ~unit:unit
+      ~index:(fun root -> (* TODO: report failures *)
+        Some (Uri.of_string (OcamlaryDoc.Root.to_path root))
+      )
     in
     let html =
       OcamlaryDocHtml.of_unit ~pathloc unit
@@ -90,19 +131,49 @@ let html xml_file html_file =
     close_out out_file;
     false
 
-let only_cmti f path output =
-  if Filename.check_suffix path ".cmti"
+let only_cmti f file path output =
+  if Filename.check_suffix file ".cmti"
   then begin
     Printf.eprintf "%s\n%!" path;
-    f path output
+    f file path output
   end
   else false
 
 open Webmaster_cli
 
+let resolve_path base rel =
+  Uri.(to_string (resolve "" (of_string base) (of_string rel)))
+
+let depth path =
+  max 0 (List.length (Stringext.split path ~on:'/') - 1)
+
+let rec ascent_of_depth tl = function
+  | 0 -> tl
+  | n -> ascent_of_depth ("../" ^ tl) (n - 1)
+
+let rel_of_path depth path = (ascent_of_depth "" depth) ^ path
+
+let cmti_path path _output = path
+
+let xml_path output =
+  let base_name = Filename.(
+    if check_suffix output ".cmti"
+    then chop_suffix output ".cmti"
+    else output
+  ) in
+  rel_of_path (depth output) (base_name ^ ".xml")
+
+let html_path output =
+  let base_name = Filename.(
+    if check_suffix output ".cmti"
+    then chop_suffix output ".cmti"
+    else output
+  ) in
+  rel_of_path (depth output) (base_name ^ ".html")
+
 let generate ({ force }) formats (_output_links,output) (_path_links,path) =
-  let cmd = "interface" in
-  List.fold_left (fun _r -> function
+  let cmd = "doc" in
+(*  List.fold_left Format.(fun _r -> function
   | Xml  ->
     let process path output =
       let base_name =
@@ -114,16 +185,42 @@ let generate ({ force }) formats (_output_links,output) (_path_links,path) =
       xml path xml_file
     in
     Webmaster_file.output_of_input ~force ~cmd (only_cmti process) path output
-  | Html ->
-    let process path output =
-      let base_name =
-        if Filename.check_suffix output ".cmti"
-        then Filename.chop_suffix output ".cmti"
-        else output
-      in
-      let xml_file = base_name ^ ".xml" in
-      let html_file = base_name ^ ".html" in
-      xml path xml_file || html xml_file html_file
+  | Html ->*)
+  let index = LinkIndex.create () in
+  let process name output =
+    let base_name =
+      if Filename.check_suffix output ".cmti"
+      then Filename.chop_suffix output ".cmti"
+      else output
     in
-    Webmaster_file.output_of_input ~force ~cmd (only_cmti process) path output
-  ) (`Ok ()) formats
+    let xml_file = base_name ^ ".xml" in
+    let html_file = base_name ^ ".html" in
+    xml index name xml_file || html xml_file html_file
+  in
+  let roots = ref [] in
+  let record file path output =
+    let mod_name = FindlibUnits.unit_name_of_path path in
+    let root = OcamlaryDoc.(
+      Html (html_path file,
+            Xml (xml_path file,
+                 Cmti (cmti_path path output,
+                       mod_name)
+            )
+      )
+    ) in
+    roots := (root,output) :: !roots;
+    false
+  in
+  let ret =
+    Webmaster_file.output_of_input ~force ~cmd (only_cmti record) path output
+  in
+  match ret with
+  | `Ok () ->
+    let units = List.map (read_and_index index) !roots in
+    let warns =
+      List.fold_left (fun err (name, output) -> process name output) false units
+    in
+    `Ok (Webmaster_file.check ~cmd warns)
+  | ret -> ret
+
+(*  ) (`Ok ()) formats*)
