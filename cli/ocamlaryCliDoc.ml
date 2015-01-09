@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 David Sheets <sheets@alum.mit.edu>
+ * Copyright (c) 2014-2015 David Sheets <sheets@alum.mit.edu>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -60,11 +60,7 @@ module LinkIndex = struct (* TODO: use digest, too *)
     Hashtbl.replace idx.root_by_name name (Lazy.from_val root);
     Hashtbl.replace idx.unit_by_root root unit
 
-  let create path doc_index =
-    let idx = {
-      root_by_name = Hashtbl.create 10;
-      unit_by_root = Hashtbl.create 10;
-    } in
+  let rec index_units idx path doc_index =
     StringMap.iter (fun name doc ->
       Hashtbl.replace idx.root_by_name name
         (Lazy.from_fun (fun () ->
@@ -74,7 +70,7 @@ module LinkIndex = struct (* TODO: use digest, too *)
           match DocOckXmlParse.file doc_xml_parser input with
           | DocOckXmlParse.Error (start, pos, s) ->
             close_in ic;
-            (* TODO: fixme? *)
+            (* TODO: fixme? different/better error style? *)
             xml_error xml_file ?start pos s;
             exit 1
           | DocOckXmlParse.Ok unit ->
@@ -86,6 +82,19 @@ module LinkIndex = struct (* TODO: use digest, too *)
               | None -> (* TODO: fixme *) failwith "missing root"
          ))
     ) doc_index.OcamlaryIndex.units;
+    StringMap.iter (fun name pkg ->
+      let index_path = Filename.concat path pkg.OcamlaryIndex.index in
+      let path = Filename.concat path pkg.OcamlaryIndex.pkg_name in
+      let index = OcamlaryIndex.read index_path in
+      index_units idx path index
+    ) doc_index.OcamlaryIndex.pkgs
+
+  let create path doc_index =
+    let idx = {
+      root_by_name = Hashtbl.create 10;
+      unit_by_root = Hashtbl.create 10;
+    } in
+    index_units idx path doc_index;
     idx
 end
 
@@ -100,11 +109,11 @@ let read_cmti root path = DocOck.(match read_cmti root path with
 
 let read root = read_cmti root OcamlaryDoc.Root.(to_path (to_source root))
 
-let read_and_index index (root, file, output) =
+let read_and_index index (root, file) =
   let mod_name = OcamlaryDoc.Maps.name_of_root root in
   let unit = read root in
   LinkIndex.index index mod_name root unit;
-  (mod_name, file, output)
+  (mod_name, file)
 
 let resolver failure_set index = DocOckResolve.build_resolver
   (fun _req_unit mod_name -> match LinkIndex.root_by_name index mod_name with
@@ -194,37 +203,47 @@ let html_path output =
   let base_name = resource_of_cmti output in
   rel_of_path (depth output) (base_name ^ ".html")
 
-let generate ({ force }) formats (_output_links,output) (_path_links,path) =
+let generate ({ force }) formats (_output_links,output) (_path_links,path) pkg =
   let cmd = "doc" in
-  let doc_index_path, doc_index =
-    match Webmaster_file.output_type path output with
-    | Some (`Dir output) -> output, OcamlaryIndex.read output
+  let output_type = Webmaster_file.output_type path output in
+  let doc_index_path, doc_index = match output_type with
+    | Some (`Dir output) -> output, OcamlaryIndex.(read (index_file output))
     | Some (`File _) | None -> "", OcamlaryIndex.empty
+  in
+  let ((pkg_path, pkg_index_path), pkg_index), pkg_parents =
+    OcamlaryIndex.traverse doc_index_path pkg
   in
   let index = LinkIndex.create doc_index_path doc_index in
   let roots = ref [] in
   let record file path output =
     let mod_name = FindlibUnits.unit_name_of_path path in
+    let pkg_file = Filename.concat pkg file in
     let root = OcamlaryDoc.(
-      Html (html_path file,
-            Xml (xml_path file,
+      Html (html_path pkg_file,
+            Xml (xml_path pkg_file,
                  Cmti (cmti_path path output,
                        mod_name)
             )
       )
     ) in
-    roots := (root,file,output) :: !roots;
+    roots := (root,file) :: !roots;
     false
   in
   let ret =
-    Webmaster_file.output_of_input ~force ~cmd (only_cmti record) path output
+    Webmaster_file.output_of_input ~force ~cmd (only_cmti record) path
+      (match output, output_type with
+      | `Dir _, _ | `Missing _, Some (`Dir _) ->
+        Webmaster_file.ensure_directory_exists ~perm:0o700 pkg_path;
+        `Dir pkg_path
+      | `File _, _ | `Missing _, (Some (`File _) | None) -> output
+      )
   in
   match ret with
   | `Ok () ->
     let units = List.map (read_and_index index) !roots in
     let gunits =
-      List.fold_left (fun gunits (name, file, output) ->
-        let base_name = resource_of_cmti output in
+      List.fold_left (fun gunits (name, file) ->
+        let base_name = Filename.concat pkg_path (resource_of_cmti file) in
         let xml_file = base_name ^ ".xml" in
         let html_file = base_name ^ ".html" in
         let xml_issues = xml index name xml_file in
@@ -238,13 +257,18 @@ let generate ({ force }) formats (_output_links,output) (_path_links,path) =
       ) [] units
     in
 
-    begin match Webmaster_file.output_type path output with
+    begin match output_type with
     | Some (`Dir output) ->
       let open OcamlaryIndex in
       let unit_index = List.fold_left (fun map unit ->
         StringMap.add unit.mod_name unit map
-      ) doc_index.units gunits in
-      write output { doc_index with units = unit_index }
+      ) pkg_index.units gunits in
+      write (Filename.concat doc_index_path pkg_index_path)
+        { pkg_index with units = unit_index };
+
+      List.iter (fun ((_, index_path), index) ->
+        write index_path index
+      ) pkg_parents
     | Some (`File _) | None -> ()
     end;
 

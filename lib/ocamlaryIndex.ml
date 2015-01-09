@@ -1,3 +1,19 @@
+(*
+ * Copyright (c) 2015 David Sheets <sheets@alum.mit.edu>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ *)
 
 module StringMap = Map.Make(String)
 
@@ -54,7 +70,8 @@ let xml_of_generated_unit ({ mod_name; xml_file; html_file; issues }) =
   </unit>&>>
 
 let xml_of_pkg ({ pkg_name; index }) =
-  <:xml<<package name=$str:pkg_name$ href=$str:index$/>&>>
+  <:xml<
+  <package name=$str:pkg_name$ href=$str:index$/>&>>
 
 let to_xml ({ units; pkgs }) =
   <:xml<<doc-index>
@@ -154,21 +171,41 @@ let rec of_xml xml =
   | `El_end -> empty
   | `Data _ | `Dtd _ -> of_xml xml
 
-let read dir =
-  let file = index_file dir in
-  if Sys.file_exists file
+let read index_path =
+  if Sys.file_exists index_path
   then
-    let ic = open_in file in
+    let ic = open_in index_path in
     let input = Xmlm.make_input (`Channel ic) in
     let index = of_xml input in
     let () = close_in ic in
     index
   else empty
 
-let write dir index =
-  let file = index_file dir in
-  let oc = open_out file in
+let write index_path index =
+  let oc = open_out index_path in
   let output = Xmlm.make_output (`Channel oc) in
   Xmlm.output output (`Dtd None);
   Xmlm.output_tree (fun x -> x) output (List.hd (to_xml index));
   close_out oc
+
+let traverse dir pkg =
+  let rec descend acc dir path = match acc, path with
+    | _, [] -> acc
+    | [], path ->
+      descend [(dir, index_file dir), read (index_file dir)] dir path
+    | (parent_paths,parent_index)::ancs, sub::more ->
+      let dir = Filename.concat dir sub in
+      let pkg =
+        try StringMap.find sub parent_index.pkgs
+        with Not_found -> { pkg_name = sub; index = index_file sub }
+      in
+      let index = read pkg.index in
+      let parent_index = {
+        parent_index with pkgs = StringMap.add sub pkg parent_index.pkgs
+      } in
+      let acc = ((dir,pkg.index),index)::(parent_paths,parent_index)::ancs in
+      descend acc dir more
+  in
+  match descend [] dir (Stringext.split ~on:'/' pkg) with
+  | [] -> ((dir, index_file dir), read (index_file dir)), []
+  | pkg_index::parents -> pkg_index, parents

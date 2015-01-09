@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 David Sheets <sheets@alum.mit.edu>
+ * Copyright (c) 2014-2015 David Sheets <sheets@alum.mit.edu>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,6 +28,12 @@ let help_sections = [
   `P "<https://github.com/dsheets/ocamlary/issues>.";
 ]
 
+let package = Arg.(value (
+  let docv = "PACKAGE" in
+  let doc  = "the name of the package being generated" in
+  opt string "" & info ["package"] ~docv ~doc
+))
+
 let doc_cmd =
   let doc = "produce module interface documentation" in
   let man = [
@@ -36,7 +42,7 @@ let doc_cmd =
   in
   let path' = path ~doc:"the module, interface, or directory to document" 0 in
   Term.(ret (pure OcamlaryCliDoc.generate
-               $ common $ OcamlaryCli.format $ output $ path'),
+               $ common $ OcamlaryCli.format $ output $ path' $ package),
         info "doc" ~doc ~sdocs:global_option_section ~man)
 
 let default_cmd =
