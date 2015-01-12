@@ -63,6 +63,7 @@ let ocamlary_cli_doc = unit "ocamlaryCliDoc" ~deps:[
   findlib_units;
   webmaster_cli;
   webmaster;
+  doc_ock_lib;
   doc_ock_xml;
   ocamlary;
 ] cli
