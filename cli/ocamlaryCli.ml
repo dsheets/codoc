@@ -35,3 +35,18 @@ let format = Arg.(value (
   ] in
   opt (list formats) [Format.Html] & info ["t";"type"] ~docv ~doc
 ))
+
+let package = Arg.(value (
+  let docv = "PACKAGE" in
+  let doc  = "the name of the package being generated" in
+  opt string "" & info ["package"] ~docv ~doc
+))
+
+let scheme = Arg.(value (
+  let docv = "SCHEME" in
+  let doc  = "the scheme used to browse the documentation" in
+  let schemes = enum [
+    "file", "file"; "http", "http";
+  ] in
+  opt schemes "http" & info ["scheme"] ~docv ~doc
+))

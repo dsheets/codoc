@@ -28,12 +28,6 @@ let help_sections = [
   `P "<https://github.com/dsheets/ocamlary/issues>.";
 ]
 
-let package = Arg.(value (
-  let docv = "PACKAGE" in
-  let doc  = "the name of the package being generated" in
-  opt string "" & info ["package"] ~docv ~doc
-))
-
 let doc_cmd =
   let doc = "produce module interface documentation" in
   let man = [
@@ -41,8 +35,9 @@ let doc_cmd =
   ] @ help_sections
   in
   let path' = path ~doc:"the module, interface, or directory to document" 0 in
-  Term.(ret (pure OcamlaryCliDoc.generate
-               $ common $ OcamlaryCli.format $ output $ path' $ package),
+  Term.(ret OcamlaryCli.(pure OcamlaryCliDoc.generate
+                           $ common $ format $ output $ path'
+                           $ package $ scheme),
         info "doc" ~doc ~sdocs:global_option_section ~man)
 
 let default_cmd =

@@ -138,7 +138,7 @@ let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
   close_out out_file;
   issues
 
-let html xml_file html_file =
+let html ~scheme xml_file html_file =
   let in_file = open_in xml_file in
   let input = Xmlm.make_input (`Channel in_file) in
   match DocOckXmlParse.file doc_xml_parser input with
@@ -150,7 +150,11 @@ let html xml_file html_file =
     let pathloc = OcamlaryDocHtml.pathloc (* TODO: fixme *)
       ~unit:unit
       ~index:(fun root -> (* TODO: report failures *)
-        Some (Uri.of_string (OcamlaryDoc.Root.to_path root))
+        let r = OcamlaryDoc.Root.to_path root in
+        let r = if scheme <> "file" && Filename.check_suffix r "/index.html"
+          then Filename.chop_suffix r "index.html"
+          else r
+        in Some (Uri.of_string r)
       )
     in
     let html =
@@ -197,13 +201,13 @@ let resource_of_cmti output = Filename.(
 
 let xml_path output =
   let base_name = resource_of_cmti output in
-  rel_of_path (depth output) (base_name ^ ".xml")
+  rel_of_path (depth output + 1) (base_name ^ "/index.xml")
 
 let html_path output =
   let base_name = resource_of_cmti output in
-  rel_of_path (depth output) (base_name ^ ".html")
+  rel_of_path (depth output + 1) (base_name ^ "/index.html")
 
-let generate ({ force }) formats (_output_links,output) (_path_links,path) pkg =
+let generate ({ force }) formats (_olinks,output) (_plinks,path) pkg scheme =
   let cmd = "doc" in
   let output_type = Webmaster_file.output_type path output in
   let doc_index_path, doc_index = match output_type with
@@ -244,14 +248,15 @@ let generate ({ force }) formats (_output_links,output) (_path_links,path) pkg =
     let gunits =
       List.fold_left (fun gunits (name, file) ->
         let base_name = Filename.concat pkg_path (resource_of_cmti file) in
-        let xml_file = base_name ^ ".xml" in
-        let html_file = base_name ^ ".html" in
+        let xml_file = base_name ^ "/index.xml" in
+        let html_file = base_name ^ "/index.html" in
+        let () = Webmaster_file.ensure_directory_exists ~perm:0o700 base_name in
         let xml_issues = xml index name xml_file in
-        let html_issues = html xml_file html_file in
+        let html_issues = html ~scheme xml_file html_file in
         let local_resource = resource_of_cmti file in
         { OcamlaryIndex.mod_name = name;
-          xml_file = local_resource ^ ".xml";
-          html_file = Some (local_resource ^ ".html");
+          xml_file = local_resource ^ "/index.xml";
+          html_file = Some (local_resource ^ "/index.html");
           issues=html_issues @ xml_issues;
         } :: gunits
       ) [] units
