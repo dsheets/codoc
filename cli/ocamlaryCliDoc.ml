@@ -166,8 +166,7 @@ let html ~scheme ~depth ~css xml_file html_file =
     in
     let root = Uri.of_string (ascent_of_depth "" depth) in
     let css = Uri.resolve "" root css in
-    let html = <:html<
-<html>
+    let html = <:html<<html>
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href=$uri:css$ />
@@ -175,8 +174,7 @@ let html ~scheme ~depth ~css xml_file html_file =
   <body>
 $html$
   </body>
-</html>
->> in
+</html>&>> in
     let out_file = open_out html_file in
     output_string out_file "<!DOCTYPE html>\n";
     let output = Xmlm.make_output ~decl:false (`Channel out_file) in
