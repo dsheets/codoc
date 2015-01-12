@@ -977,7 +977,7 @@ let of_class_type ~pathloc { ClassType.id; doc; virtual_; params; expr } =
   >>
 
 let module_declaration
-    ?(extra_classes=[]) ?(title_fn=(fun x -> x)) ~id ~pathloc
+    ?(extra_classes=[]) ?(title_fn=(fun x -> x)) ?header ~id ~pathloc
     name rhs doc rest =
   let classes = String.concat " " ("module"::extra_classes) in
   let title = title_fn <:html<$keyword "module"$ $name$>> in
@@ -989,6 +989,7 @@ let module_declaration
   anchor
   <:html<
   <div class=$str:classes$>
+      $opt:header$
       <div class="intro">$title$ $rhs$</div>
       $doc$
       $rest$
@@ -1168,7 +1169,9 @@ let of_top_module ~pathloc { Module.id; doc; type_ } =
   let rhs, rest = rhs_rest_of_decl ~pathloc type_ in
   let extra_classes = ["ocamlary-doc"] in
   let title_fn x = <:html<<h1 class="title">$x$</h1>&>> in
-  module_declaration ~extra_classes ~title_fn ~id ~pathloc name rhs doc rest
+  let header = <:html<<a href="..">Up</a>&>> in
+  module_declaration ~extra_classes ~title_fn ~header ~id ~pathloc
+    name rhs doc rest
 
 let of_unit ~pathloc { Unit.id; doc; digest; imports; items } =
   (* TODO: more? *)
