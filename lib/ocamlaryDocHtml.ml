@@ -27,14 +27,16 @@ type pathloc = {
   root        : root;
   path        : root Identifier.signature;
   index       : root -> Uri.t option;
+  pkg_root    : string;
 }
 
-let pathloc ~unit ~index =
+let pathloc ~unit ~index ~pkg_root =
   let signature = Identifier.signature_of_module unit.Unit.id in
   {
     root = fst (Maps.root_of_ident_signature signature);
     path = signature;
     index;
+    pkg_root;
   }
 
 let self_uri = Uri.of_string ""
@@ -1169,7 +1171,7 @@ let of_top_module ~pathloc { Module.id; doc; type_ } =
   let rhs, rest = rhs_rest_of_decl ~pathloc type_ in
   let extra_classes = ["ocamlary-doc"] in
   let title_fn x = <:html<<h1 class="title">$x$</h1>&>> in
-  let header = <:html<<a href="..">Up</a>&>> in
+  let header = <:html<<a href=$str:pathloc.pkg_root$>Up</a>&>> in
   module_declaration ~extra_classes ~title_fn ~header ~id ~pathloc
     name rhs doc rest
 

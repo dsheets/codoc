@@ -142,7 +142,7 @@ let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
   close_out out_file;
   issues
 
-let html ~scheme ~depth ~css xml_file html_file =
+let html ~scheme ~doc_root_depth ~css ~pkg_root_depth xml_file html_file =
   let in_file = open_in xml_file in
   let input = Xmlm.make_input (`Channel in_file) in
   match DocOckXmlParse.file doc_xml_parser input with
@@ -160,11 +160,12 @@ let html ~scheme ~depth ~css xml_file html_file =
           else r
         in Some (Uri.of_string r)
       )
+      ~pkg_root:(ascent_of_depth "" pkg_root_depth)
     in
     let html =
       OcamlaryDocHtml.of_unit ~pathloc unit
     in
-    let root = Uri.of_string (ascent_of_depth "" depth) in
+    let root = Uri.of_string (ascent_of_depth "" doc_root_depth) in
     let css = Uri.resolve "" root css in
     let html = <:html<<html>
   <head>
@@ -271,10 +272,13 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
         let xml_file = base_name ^ "/index.xml" in
         let html_file = base_name ^ "/index.html" in
         let () = Webmaster_file.ensure_directory_exists ~perm:0o700 base_name in
-        let depth = depth pkg_name + 1 in
+        let doc_root_depth = depth pkg_name + 1 in
         let xml_issues = xml index name xml_file in
-        let html_issues = html ~scheme ~depth ~css xml_file html_file in
         let local_resource = resource_of_cmti file in
+        let pkg_root_depth = depth local_resource + 1 in
+        let html_issues =
+          html ~scheme ~doc_root_depth ~css ~pkg_root_depth xml_file html_file
+        in
         { OcamlaryIndex.mod_name = name;
           xml_file = local_resource ^ "/index.xml";
           html_file = Some (local_resource ^ "/index.html");

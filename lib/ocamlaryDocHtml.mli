@@ -19,7 +19,7 @@ type pathloc
 
 val pathloc :
   unit:OcamlaryDoc.root DocOckTypes.Unit.t ->
-  index:(OcamlaryDoc.root -> Uri.t option) -> pathloc
+  index:(OcamlaryDoc.root -> Uri.t option) -> pkg_root:string -> pathloc
 (** Create a path location value for relative linking. *)
 
 val of_top_module :
