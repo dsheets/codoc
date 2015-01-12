@@ -50,3 +50,17 @@ let scheme = Arg.(value (
   ] in
   opt schemes "http" & info ["scheme"] ~docv ~doc
 ))
+
+let uri_ref ~doc names = Term.(app (pure (function
+  | Some s -> Some (Uri.of_string s)
+  | None -> None
+)) Arg.(value (
+  let docv = "URI_REFERENCE" in
+  opt (some string) None & info names ~docv ~doc
+)))
+
+let share_dir = Arg.(value (
+  let docv = "SHARE_DIR" in
+  let doc  = "the shared resource directory" in
+  opt dir OcamlaryConfig.share_dir & info ~docv ~doc ["share"]
+))

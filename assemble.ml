@@ -2,6 +2,8 @@ open Assemblage
 
 let version = "0.1.0"
 
+let uri = pkg "uri"
+
 let doc_ock_lib = pkg "doc-ock-lib"
 let doc_ock_xml = pkg "doc-ock-xml"
 
@@ -46,7 +48,14 @@ let ocamlary = lib "ocamlary" (`Units [
   ocamlary_doc_html;
 ])
 
-let ocamlary_cli = unit "ocamlaryCli" ~deps:[cmdliner] cli
+let ocamlary_config = unit "ocamlaryConfig" ~deps:[] cli
+
+let ocamlary_cli = unit "ocamlaryCli" ~deps:[
+  uri;
+  cmdliner;
+  webmaster_cli;
+  ocamlary_config;
+] cli
 
 let ocamlary_cli_doc = unit "ocamlaryCliDoc" ~deps:[
   cow_pp;

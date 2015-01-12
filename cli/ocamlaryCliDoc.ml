@@ -122,6 +122,10 @@ let resolver failure_set index = DocOckResolve.build_resolver
   )
   (LinkIndex.unit_by_root index)
 
+let rec ascent_of_depth tl = function
+  | 0 -> tl
+  | n -> ascent_of_depth ("../" ^ tl) (n - 1)
+
 let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
   let unit = LinkIndex.unit_by_name index mod_name in
   let failures = Hashtbl.create 10 in
@@ -138,7 +142,7 @@ let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
   close_out out_file;
   issues
 
-let html ~scheme xml_file html_file =
+let html ~scheme ~depth ~css xml_file html_file =
   let in_file = open_in xml_file in
   let input = Xmlm.make_input (`Channel in_file) in
   match DocOckXmlParse.file doc_xml_parser input with
@@ -160,8 +164,19 @@ let html ~scheme xml_file html_file =
     let html =
       OcamlaryDocHtml.of_unit ~pathloc unit
     in
-  (* TODO: fixme *)
-    let html = <:html<<html><head><meta charset="utf-8"/><link rel="stylesheet" type="text/css" href="file:///home/dsheets/Code/ocamlary/share/ocamlary.css"/></head><body>$html$</body></html>&>> in
+    let root = Uri.of_string (ascent_of_depth "" depth) in
+    let css = Uri.resolve "" root css in
+    let html = <:html<
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href=$uri:css$ />
+  </head>
+  <body>
+$html$
+  </body>
+</html>
+>> in
     let out_file = open_out html_file in
     output_string out_file "<!DOCTYPE html>\n";
     let output = Xmlm.make_output ~decl:false (`Channel out_file) in
@@ -185,10 +200,6 @@ let resolve_path base rel =
 let depth path =
   max 0 (List.length (Stringext.split path ~on:'/') - 1)
 
-let rec ascent_of_depth tl = function
-  | 0 -> tl
-  | n -> ascent_of_depth ("../" ^ tl) (n - 1)
-
 let rel_of_path depth path = (ascent_of_depth "" depth) ^ path
 
 let cmti_path path _output = path
@@ -207,12 +218,21 @@ let html_path output =
   let base_name = resource_of_cmti output in
   rel_of_path (depth output + 1) (base_name ^ "/index.html")
 
-let generate ({ force }) formats (_olinks,output) (_plinks,path) pkg scheme =
+let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
   let cmd = "doc" in
   let output_type = Webmaster_file.output_type path output in
   let doc_index_path, doc_index = match output_type with
     | Some (`Dir output) -> output, OcamlaryIndex.(read (index_file output))
     | Some (`File _) | None -> "", OcamlaryIndex.empty
+  in
+  let css = match css with
+    | None ->
+      let css_name = "ocamlary.css" in
+      let shared_css = Filename.concat share css_name in
+      Webmaster_file.ensure_directory_exists ~perm:0o700 doc_index_path;
+      Webmaster_file.copy shared_css (Filename.concat doc_index_path css_name);
+      Uri.of_string css_name
+    | Some css -> css
   in
   let ((pkg_path, pkg_index_path), pkg_index), pkg_parents =
     OcamlaryIndex.traverse doc_index_path pkg
@@ -237,8 +257,9 @@ let generate ({ force }) formats (_olinks,output) (_plinks,path) pkg scheme =
     Webmaster_file.output_of_input ~force ~cmd (only_cmti record) path
       (match output, output_type with
       | `Dir _, _ | `Missing _, Some (`Dir _) ->
-        Webmaster_file.ensure_directory_exists ~perm:0o700 pkg_path;
-        `Dir pkg_path
+        let dir = Filename.concat doc_index_path pkg_path in
+        Webmaster_file.ensure_directory_exists ~perm:0o700 dir;
+        `Dir dir
       | `File _, _ | `Missing _, (Some (`File _) | None) -> output
       )
   in
@@ -247,12 +268,14 @@ let generate ({ force }) formats (_olinks,output) (_plinks,path) pkg scheme =
     let units = List.map (read_and_index index) !roots in
     let gunits =
       List.fold_left (fun gunits (name, file) ->
-        let base_name = Filename.concat pkg_path (resource_of_cmti file) in
+        let pkg_name = Filename.concat pkg_path (resource_of_cmti file) in
+        let base_name = Filename.concat doc_index_path pkg_name in
         let xml_file = base_name ^ "/index.xml" in
         let html_file = base_name ^ "/index.html" in
         let () = Webmaster_file.ensure_directory_exists ~perm:0o700 base_name in
+        let depth = depth pkg_name + 1 in
         let xml_issues = xml index name xml_file in
-        let html_issues = html ~scheme xml_file html_file in
+        let html_issues = html ~scheme ~depth ~css xml_file html_file in
         let local_resource = resource_of_cmti file in
         { OcamlaryIndex.mod_name = name;
           xml_file = local_resource ^ "/index.xml";
@@ -272,7 +295,7 @@ let generate ({ force }) formats (_olinks,output) (_plinks,path) pkg scheme =
         { pkg_index with units = unit_index };
 
       List.iter (fun ((_, index_path), index) ->
-        write index_path index
+        write (Filename.concat doc_index_path index_path) index
       ) pkg_parents
     | Some (`File _) | None -> ()
     end;

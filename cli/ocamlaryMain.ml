@@ -35,10 +35,12 @@ let doc_cmd =
   ] @ help_sections
   in
   let path' = path ~doc:"the module, interface, or directory to document" 0 in
+  let css_doc = "the URI reference of the CSS files to use" in
   Term.(ret OcamlaryCli.(pure OcamlaryCliDoc.generate
                            $ common $ format $ output $ path'
-                           $ package $ scheme),
-        info "doc" ~doc ~sdocs:global_option_section ~man)
+                           $ package $ scheme
+                           $ uri_ref ~doc:css_doc ["css"] $ share_dir),
+          info "doc" ~doc ~sdocs:global_option_section ~man)
 
 let default_cmd =
   let doc = "produce documentation of OCaml modules" in
