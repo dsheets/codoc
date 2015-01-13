@@ -59,7 +59,9 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
     | first::rest ->
       let ascent = OcamlaryUtil.ascent_of_depth "" (List.length rest + 1) in
       let root = normal_uri (Uri.of_string ascent) in
-      let first_href = normal_uri Uri.(resolve "" root (of_string first)) in
+      let first_href =
+        normal_uri Uri.(resolve "" root (of_string (first ^ "/")))
+      in
       let pieces = OcamlaryHtml.fold_html_str " / "
         (link_pkg_piece first_href first)
         (link_pkg_pieces ~normal_uri first_href first rest)
