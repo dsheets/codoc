@@ -346,7 +346,8 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
         in
         let pkg_dir = Filename.concat doc_index_path name in
         let doc_root_depth = if name = "" then 0 else depth name + 1 in
-        write_html ~doc_root_depth ~css ~title:name
+        let title = if name = "" then "~" else name in
+        write_html ~doc_root_depth ~css ~title
           (Filename.concat pkg_dir "index.html") html
       ) pkg_parents
     | Some (`File _) | None -> ()
