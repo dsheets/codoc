@@ -19,12 +19,12 @@ module StringMap = Map.Make(String)
 
 let link_pkg_piece href piece = <:html<<a href=$uri:href$>$str:piece$</a>&>>
 
-let rec link_pkg_pieces ~normal_uri href next = function
+let rec link_pkg_pieces ~normal_uri href = function
   | [] -> []
   | [last] -> [ <:html<$str:last$>> ]
   | h::t ->
-    let next_href = normal_uri Uri.(resolve "" href (of_string next)) in
-    (link_pkg_piece next_href next)::(link_pkg_pieces ~normal_uri next_href h t)
+    let next_href = normal_uri Uri.(resolve "" href (of_string (h^"/"))) in
+    (link_pkg_piece next_href h)::(link_pkg_pieces ~normal_uri next_href t)
 
 let root_name = "~"
 
@@ -64,7 +64,7 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
       in
       let pieces = OcamlaryHtml.fold_html_str " / "
         (link_pkg_piece first_href first)
-        (link_pkg_pieces ~normal_uri first_href first rest)
+        (link_pkg_pieces ~normal_uri first_href rest)
       in
       <:html<<a href=$uri:root$>$str:root_name$</a> / $pieces$>>
   in
