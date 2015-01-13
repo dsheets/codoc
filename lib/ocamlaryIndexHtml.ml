@@ -39,9 +39,9 @@ let of_issue = OcamlaryIndex.(function
 
 let sort_issues = List.sort OcamlaryIndex.(fun a b -> match a,b with
   | Module_resolution_failed x, Module_resolution_failed y -> compare x y
-  | Xml_error (_,_), _ | _, Xml_error (_,_) -> -1
   | Xml_error (xml_file,msg), Xml_error (xml_file',msg') ->
     compare (xml_file,msg) (xml_file',msg')
+  | Xml_error (_,_), _ | _, Xml_error (_,_) -> -1
 )
 
 let of_package ~name ~index ~normal_uri ~uri_of_path =
