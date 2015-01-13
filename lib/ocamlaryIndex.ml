@@ -195,17 +195,18 @@ let traverse dir pkg =
       let dir = Filename.concat dir rel in
       descend [(rel, index_file rel), read (index_file dir)] rel path
     | (parent_paths,parent_index)::ancs, sub::more ->
-      let rel = Filename.concat rel sub in
-      let dir = Filename.concat dir rel in
       let pkg =
         try StringMap.find sub parent_index.pkgs
         with Not_found -> { pkg_name = sub; index = index_file sub }
       in
+      let index_path = Filename.concat rel pkg.index in
+      let rel = Filename.concat rel sub in
+      let dir = Filename.concat dir rel in
       let index = read (Filename.concat dir pkg.index) in
       let parent_index = {
         parent_index with pkgs = StringMap.add sub pkg parent_index.pkgs
       } in
-      let acc = ((rel,pkg.index),index)::(parent_paths,parent_index)::ancs in
+      let acc = ((rel,index_path),index)::(parent_paths,parent_index)::ancs in
       descend acc rel more
   in
   match descend [] "" (Stringext.split ~on:'/' pkg) with
