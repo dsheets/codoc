@@ -555,12 +555,6 @@ let maybe_td_doc ~pathloc doc = Documentation.(match doc.text with
     <:html<<td>(*</td><td class="doc">$comment$$list:tags$</td><td>*)</td>&>>
 )
 
-let fold_html sep = List.fold_left (fun phtml ehtml ->
-  <:html<$phtml$$sep$$ehtml$>>
-)
-
-let fold_html_str sep = fold_html <:html<$str:sep$>>
-
 let rec of_type_expr ?(group=false) ~pathloc expr =
   let of_type_expr = of_type_expr ~pathloc in
   TypeExpr.(match expr with
@@ -582,7 +576,7 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Tuple (e::els) ->
     let e = of_type_expr ~group:true e in
     let els = List.map (of_type_expr ~group:true) els in
-    let html = fold_html_str " * " e els in
+    let html = OcamlaryHtml.fold_html_str " * " e els in
     if group then <:html<($html$)>> else html
   | Constr (path, argl) -> of_type_constr ~pathloc path argl
   | Variant { Variant.kind=Variant.Fixed; elements } ->
@@ -601,7 +595,7 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Object { Object.methods=[]; open_ } ->
     <:html<&lt; $str:if open_ then ".." else ""$ &gt;>>
   | Object { Object.methods=meth::meths; open_ } ->
-    let mhtml = fold_html_str "; "
+    let mhtml = OcamlaryHtml.fold_html_str "; "
       (of_object_method ~pathloc meth)
       (List.map (of_object_method ~pathloc) meths)
     in
@@ -618,7 +612,7 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Package { Package.path; substitutions=sub::subs } ->
     let sub = of_package_sub ~pathloc path sub in
     let subs = List.map (of_package_sub ~pathloc path) subs in
-    let subs = fold_html <:html< $keyword "and"$ >>
+    let subs = OcamlaryHtml.fold_html <:html< $keyword "and"$ >>
       <:html< $keyword "with"$ $sub$>> subs
     in
     <:html<($keyword "module"$ $link_path ~pathloc (Path.any path)$$subs$)>>
@@ -633,7 +627,7 @@ and of_type_constr ?(cons="") ~pathloc path = function
   | a::argl ->
     let a = of_type_expr ~pathloc a in
     let argl = List.map (of_type_expr ~pathloc) argl in
-    let args = fold_html_str ", " a argl in
+    let args = OcamlaryHtml.fold_html_str ", " a argl in
     <:html<($args$) $link_path ~pathloc (Path.any path)$>>
 and polyvar_element ~pathloc : 'a TypeExpr.Variant.element -> Cow.Html.t =
   TypeExpr.Variant.(function
@@ -642,7 +636,7 @@ and polyvar_element ~pathloc : 'a TypeExpr.Variant.element -> Cow.Html.t =
   | Constructor (name, empty, arg::args) ->
     let empty = if empty then <:html<&amp; >> else <:html<&>> in
     let args = List.map (of_type_expr ~pathloc) args in
-    let arghtml = fold_html_str " & "
+    let arghtml = OcamlaryHtml.fold_html_str " & "
       <:html<$empty$$of_type_expr ~pathloc arg$>>
       args
     in
@@ -704,13 +698,13 @@ let args_of_constructor ~pathloc args res =
   | a::args,  None    ->
     let a = of_type_expr ~group:true a in
     let args = List.map (of_type_expr ~group:true) args in
-    let arghtml = fold_html_str " * " a args in
+    let arghtml = OcamlaryHtml.fold_html_str " * " a args in
     <:html< $keyword "of"$ $arghtml$>>
   | [],       Some rt -> <:html< : $of_type_expr rt$>>
   | a::args,  Some rt ->
     let a = of_type_expr ~group:true a in
     let args = List.map (of_type_expr ~group:true) args in
-    let arghtml = fold_html_str " * " a args in
+    let arghtml = OcamlaryHtml.fold_html_str " * " a args in
     <:html< : $arghtml$ &rarr; $of_type_expr rt$>>
 
 let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
@@ -791,7 +785,7 @@ let of_type ~pathloc
   let name = Identifier.name id in
   let params = of_type_params params in
   let priv = if private_ then <:html<$keyword "private"$ >> else <:html<&>> in
-  let constraints = fold_html_str "" <:html<&>>
+  let constraints = OcamlaryHtml.fold_html_str "" <:html<&>>
     (List.map (fun (c,c') ->
       <:html< $keyword "constraint"$ $of_type_expr c$ = $of_type_expr c'$>>
      ) constraints)
@@ -921,7 +915,7 @@ and of_class_type_expr ~pathloc = ClassType.(function
   | Constr (path, arg::args) ->
     let arg_html = of_type_expr ~pathloc arg in
     let args_html = List.map (of_type_expr ~pathloc) args in
-    let args_html = fold_html_str ", " arg_html args_html in
+    let args_html = OcamlaryHtml.fold_html_str ", " arg_html args_html in
     <:html<[$args_html$] $link_path ~pathloc (Path.any path)$>>
   | Signature { ClassSignature.self; items } ->
     let self = match self with
@@ -1121,7 +1115,7 @@ and of_substitutions ~pathloc base acc = ModuleType.(function
   | [] -> match List.rev acc with
     | [] -> <:html<&>>
     | [one] -> one
-    | h::t -> fold_html <:html< $keyword "and"$ >> h t
+    | h::t -> OcamlaryHtml.fold_html <:html< $keyword "and"$ >> h t
 )
 
 and of_module_type ~pathloc { ModuleType.id; doc; expr } =

@@ -19,7 +19,9 @@ let webmaster = pkg "webmaster"
 let library = `Path ["lib"]
 let cli = `Path ["cli"]
 
-let ocamlary_index = unit "ocamlaryIndex" ~deps:[
+let ocamlary_util = unit "ocamlaryUtil" ~deps:[] library
+
+let ocamlary_html = unit "ocamlaryHtml" ~deps:[
   cow_pp;
   cow;
 ] library
@@ -40,10 +42,24 @@ let ocamlary_doc_html = unit "ocamlaryDocHtml" ~deps:[
   cow_pp;
   cow;
   ocamlary_doc;
+  ocamlary_html;
+] library
+
+let ocamlary_index = unit "ocamlaryIndex" ~deps:[
+  cow_pp;
+  cow;
+] library
+
+let ocamlary_index_html = unit "ocamlaryIndexHtml" ~deps:[
+  cow_pp;
+  cow;
+  ocamlary_util;
+  ocamlary_html;
 ] library
 
 let ocamlary = lib "ocamlary" (`Units [
   ocamlary_index;
+  ocamlary_index_html;
   ocamlary_doc;
   ocamlary_doc_html;
 ])

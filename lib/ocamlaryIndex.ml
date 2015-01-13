@@ -30,7 +30,7 @@ type generated_unit = {
 
 type pkg = {
   pkg_name : string;
-  index    : string;
+  index    : string; (* TODO: should have xml and html like unit? *)
 }
 
 type t = {

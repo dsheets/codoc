@@ -122,10 +122,6 @@ let resolver failure_set index = DocOckResolve.build_resolver
   )
   (LinkIndex.unit_by_root index)
 
-let rec ascent_of_depth tl = function
-  | 0 -> tl
-  | n -> ascent_of_depth ("../" ^ tl) (n - 1)
-
 let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
   let unit = LinkIndex.unit_by_name index mod_name in
   let failures = Hashtbl.create 10 in
@@ -142,6 +138,37 @@ let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
   close_out out_file;
   issues
 
+let uri_of_path ~scheme path =
+  Uri.of_string begin
+    if scheme <> "file" && Filename.check_suffix path "/index.html"
+    then Filename.chop_suffix path "index.html"
+    else path
+  end
+
+let normal_uri ~scheme uri =
+  if scheme <> "file"
+  then uri
+  else Uri.(resolve "file" uri (of_string "index.html"))
+
+let write_html ~doc_root_depth ~css ~title html_file html =
+  let root = Uri.of_string (OcamlaryUtil.ascent_of_depth "" doc_root_depth) in
+  let css = Uri.resolve "" root css in
+  let html = <:html<<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href=$uri:css$ />
+    <title>$str:title$</title>
+  </head>
+  <body>
+$html$
+  </body>
+</html>&>> in
+  let out_file = open_out html_file in
+  output_string out_file "<!DOCTYPE html>\n";
+  let output = Xmlm.make_output ~decl:false (`Channel out_file) in
+  Htmlm.Xhtmlm.output_doc_tree output (List.hd html);
+  close_out out_file
+
 let html ~scheme ~doc_root_depth ~css ~pkg ~pkg_root_depth xml_file html_file =
   let in_file = open_in xml_file in
   let input = Xmlm.make_input (`Channel in_file) in
@@ -155,37 +182,18 @@ let html ~scheme ~doc_root_depth ~css ~pkg ~pkg_root_depth xml_file html_file =
       ~unit:unit
       ~index:(fun root -> (* TODO: report failures *)
         let r = OcamlaryDoc.Root.to_path root in
-        let r = if scheme <> "file" && Filename.check_suffix r "/index.html"
-          then Filename.chop_suffix r "index.html"
-          else r
-        in Some (Uri.of_string r)
+        Some (uri_of_path ~scheme r)
       )
-      ~pkg_root:(ascent_of_depth "" pkg_root_depth)
+      ~pkg_root:(OcamlaryUtil.ascent_of_depth "" pkg_root_depth)
     in
     let html =
       OcamlaryDocHtml.of_unit ~pathloc unit
     in
-    let root = Uri.of_string (ascent_of_depth "" doc_root_depth) in
-    let css = Uri.resolve "" root css in
     let title = pkg ^ " / " ^ (
       OcamlaryDoc.Maps.string_of_ident
         (DocOckPaths.Identifier.any unit.DocOckTypes.Unit.id)
     ) in
-    let html = <:html<<html>
-  <head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" type="text/css" href=$uri:css$ />
-    <title>$str:title$</title>
-  </head>
-  <body>
-$html$
-  </body>
-</html>&>> in
-    let out_file = open_out html_file in
-    output_string out_file "<!DOCTYPE html>\n";
-    let output = Xmlm.make_output ~decl:false (`Channel out_file) in
-    Htmlm.Xhtmlm.output_doc_tree output (List.hd html);
-    close_out out_file;
+    write_html ~doc_root_depth ~css ~title html_file html;
     [] (* TODO: issues *)
 
 let only_cmti f file path output =
@@ -204,7 +212,7 @@ let resolve_path base rel =
 let depth path =
   max 0 (List.length (Stringext.split path ~on:'/') - 1)
 
-let rel_of_path depth path = (ascent_of_depth "" depth) ^ path
+let rel_of_path depth path = (OcamlaryUtil.ascent_of_depth "" depth) ^ path
 
 let cmti_path path _output = path
 
@@ -300,11 +308,28 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
       let unit_index = List.fold_left (fun map unit ->
         StringMap.add unit.mod_name unit map
       ) pkg_index.units gunits in
-      write (Filename.concat doc_index_path pkg_index_path)
-        { pkg_index with units = unit_index };
+      let index = { pkg_index with units = unit_index } in
+      write (Filename.concat doc_index_path pkg_index_path) index;
+      let normal_uri = normal_uri ~scheme in
+      let uri_of_path = uri_of_path ~scheme in
+      let html =
+        OcamlaryIndexHtml.of_package
+          ~name:pkg_path ~index ~normal_uri ~uri_of_path
+      in
+      let pkg_dir = Filename.concat doc_index_path pkg_path in
+      write_html ~doc_root_depth:(depth pkg_path + 1) ~css ~title:pkg_path
+        (Filename.concat pkg_dir "index.html") html;
 
-      List.iter (fun ((_, index_path), index) ->
-        write (Filename.concat doc_index_path index_path) index
+      List.iter (fun ((name, index_path), index) ->
+        write (Filename.concat doc_index_path index_path) index;
+        let html =
+          OcamlaryIndexHtml.of_package
+            ~name ~index ~normal_uri ~uri_of_path
+        in
+        let pkg_dir = Filename.concat doc_index_path name in
+        let doc_root_depth = if name = "" then 0 else depth name in
+        write_html ~doc_root_depth ~css ~title:name
+          (Filename.concat pkg_dir "index.html") html
       ) pkg_parents
     | Some (`File _) | None -> ()
     end;
