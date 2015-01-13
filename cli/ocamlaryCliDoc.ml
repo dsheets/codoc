@@ -106,7 +106,6 @@ module LinkIndex = struct (* TODO: use digest, too *)
     StringMap.iter (fun name pkg ->
       let index_path = Filename.concat path pkg.OcamlaryIndex.index in
       let path = Filename.concat path pkg.OcamlaryIndex.pkg_name in
-      print_endline ("index_path "^(Filename.concat idx.doc_root index_path));
       let index = OcamlaryIndex.read (Filename.concat idx.doc_root index_path) in
       index_units idx path index
     ) doc_index.OcamlaryIndex.pkgs
