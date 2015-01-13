@@ -200,9 +200,8 @@ let traverse dir pkg =
         with Not_found -> { pkg_name = sub; index = index_file sub }
       in
       let index_path = Filename.concat rel pkg.index in
+      let index = read Filename.(concat (concat dir rel) pkg.index) in
       let rel = Filename.concat rel sub in
-      let dir = Filename.concat dir rel in
-      let index = read (Filename.concat dir pkg.index) in
       let parent_index = {
         parent_index with pkgs = StringMap.add sub pkg parent_index.pkgs
       } in
