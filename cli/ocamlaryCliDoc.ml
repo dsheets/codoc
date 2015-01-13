@@ -185,6 +185,7 @@ let html ~scheme ~doc_root_depth ~css ~pkg ~pkg_root_depth xml_file html_file =
         Some (uri_of_path ~scheme r)
       )
       ~pkg_root:(OcamlaryUtil.ascent_of_depth "" pkg_root_depth)
+      ~normal_uri:(normal_uri ~scheme)
     in
     let html =
       OcamlaryDocHtml.of_unit ~pathloc unit

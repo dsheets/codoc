@@ -45,13 +45,20 @@ let sort_issues = List.sort OcamlaryIndex.(fun a b -> match a,b with
 )
 
 let of_package ~name ~index ~normal_uri ~uri_of_path =
-  let up = if name = "" then None else Some <:html<<a href="../">Up</a>&>> in
+  let up =
+    if name = ""
+    then None
+    else let href = normal_uri (Uri.of_string "../") in
+         Some <:html<<a href=$uri:href$>Up</a>&>>
+  in
   let pkg_path = match Stringext.split ~on:'/' name with
     | [] -> <:html<$str:root_name$>>
-    | [last] -> <:html<<a href="../">$str:root_name$</a> / $str:last$>>
+    | [last] ->
+      let href = normal_uri (Uri.of_string "../") in
+      <:html<<a href=$uri:href$>$str:root_name$</a> / $str:last$>>
     | first::rest ->
       let ascent = OcamlaryUtil.ascent_of_depth "" (List.length rest + 1) in
-      let root = Uri.of_string ascent in
+      let root = normal_uri (Uri.of_string ascent) in
       let first_href = normal_uri Uri.(resolve "" root (of_string first)) in
       let pieces = OcamlaryHtml.fold_html_str " / "
         (link_pkg_piece first_href first)
