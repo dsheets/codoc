@@ -148,7 +148,7 @@ let uri_of_path ~scheme path =
 let normal_uri ~scheme uri =
   if scheme <> "file"
   then uri
-  else Uri.(resolve "file" uri (of_string "index.html"))
+  else Uri.(resolve "" uri (of_string "index.html"))
 
 let write_html ~doc_root_depth ~css ~title html_file html =
   let root = Uri.of_string (OcamlaryUtil.ascent_of_depth "" doc_root_depth) in
