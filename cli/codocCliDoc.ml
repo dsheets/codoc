@@ -254,7 +254,8 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
     | None ->
       let css_name = "codoc.css" in
       let shared_css = Filename.concat share css_name in
-      Webmaster_file.ensure_directory_exists ~perm:0o700 doc_index_path;
+      if doc_index_path <> ""
+      then Webmaster_file.ensure_directory_exists ~perm:0o700 doc_index_path;
       Webmaster_file.copy shared_css (Filename.concat doc_index_path css_name);
       Uri.of_string css_name
     | Some css -> css
@@ -282,7 +283,8 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
       (match output, output_type with
       | `Dir _, _ | `Missing _, Some (`Dir _) ->
         let dir = Filename.concat doc_index_path pkg_path in
-        Webmaster_file.ensure_directory_exists ~perm:0o700 dir;
+        if dir <> ""
+        then Webmaster_file.ensure_directory_exists ~perm:0o700 dir;
         `Dir dir
       | `File _, _ | `Missing _, (Some (`File _) | None) -> output
       )
