@@ -28,7 +28,7 @@ let rec link_pkg_pieces ~normal_uri href = function
 
 let root_name = "~"
 
-let of_issue = OcamlaryIndex.(function
+let of_issue = CodocIndex.(function
   | Module_resolution_failed mod_name ->
     <:html<<li>Module <strong>$str:mod_name$</strong> not found</li>&>>
   | Xml_error (xml_file,msg) ->
@@ -37,7 +37,7 @@ let of_issue = OcamlaryIndex.(function
     >>
 )
 
-let sort_issues = List.sort OcamlaryIndex.(fun a b -> match a,b with
+let sort_issues = List.sort CodocIndex.(fun a b -> match a,b with
   | Module_resolution_failed x, Module_resolution_failed y -> compare x y
   | Xml_error (xml_file,msg), Xml_error (xml_file',msg') ->
     compare (xml_file,msg) (xml_file',msg')
@@ -57,40 +57,40 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
       let href = normal_uri (Uri.of_string "../") in
       <:html<<a href=$uri:href$>$str:root_name$</a> / $str:last$>>
     | first::rest ->
-      let ascent = OcamlaryUtil.ascent_of_depth "" (List.length rest + 1) in
+      let ascent = CodocUtil.ascent_of_depth "" (List.length rest + 1) in
       let root = normal_uri (Uri.of_string ascent) in
       let first_href =
         normal_uri Uri.(resolve "" root (of_string (first ^ "/")))
       in
-      let pieces = OcamlaryHtml.fold_html_str " / "
+      let pieces = CodocHtml.fold_html_str " / "
         (link_pkg_piece first_href first)
         (link_pkg_pieces ~normal_uri first_href rest)
       in
       <:html<<a href=$uri:root$>$str:root_name$</a> / $pieces$>>
   in
   let pkgs = StringMap.fold (fun name pkg lst -> (name,pkg)::lst)
-    index.OcamlaryIndex.pkgs []
+    index.CodocIndex.pkgs []
   in
   let pkgs = List.map (fun (name, _pkg) ->
     let href = normal_uri Uri.(of_string (name ^ "/")) in
     <:html<<li><a href=$uri:href$>$str:name$</a></li>&>>
   ) (List.sort compare pkgs) in
   let units = StringMap.fold (fun name unit lst -> (name,unit)::lst)
-    index.OcamlaryIndex.units []
+    index.CodocIndex.units []
   in
   let units = List.map (function
-    | (name, { OcamlaryIndex.html_file = None; issues = [] }) ->
+    | (name, { CodocIndex.html_file = None; issues = [] }) ->
       <:html<<li>$str:name$</li>&>>
-    | (name, { OcamlaryIndex.html_file = None; issues }) ->
+    | (name, { CodocIndex.html_file = None; issues }) ->
       <:html<<li>
         <details>
           <summary>$str:name$</summary>
           <ul>$list:List.map of_issue (sort_issues issues)$</ul>
         </details>
       </li>&>>
-    | (name, { OcamlaryIndex.html_file = Some html_file; issues = [] }) ->
+    | (name, { CodocIndex.html_file = Some html_file; issues = [] }) ->
       <:html<<li><a href=$uri:uri_of_path html_file$>$str:name$</a></li>&>>
-    | (name, { OcamlaryIndex.html_file = Some html_file; issues }) ->
+    | (name, { CodocIndex.html_file = Some html_file; issues }) ->
       <:html<<li>
         <details>
           <summary><a href=$uri:uri_of_path html_file$>$str:name$</a></summary>
@@ -117,7 +117,7 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
       </section>
     >> in
   <:html<
-  <div class="ocamlary-doc">
+  <div class="codoc-doc">
     $opt:up$
     <div class="package-index">
       <h1>Package $pkg_path$</h1>

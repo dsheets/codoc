@@ -25,7 +25,7 @@ let help_sections = [
   `P "David Sheets <sheets@alum.mit.edu>";
   `S "BUGS";
   `P "Browse and report new issues at"; `Noblank;
-  `P "<https://github.com/dsheets/ocamlary/issues>.";
+  `P "<https://github.com/dsheets/codoc/issues>.";
 ]
 
 let doc_cmd =
@@ -36,7 +36,7 @@ let doc_cmd =
   in
   let path' = path ~doc:"the module, interface, or directory to document" 0 in
   let css_doc = "the URI reference of the CSS files to use" in
-  Term.(ret OcamlaryCli.(pure OcamlaryCliDoc.generate
+  Term.(ret CodocCli.(pure CodocCliDoc.generate
                            $ common $ format $ output $ path'
                            $ package $ scheme
                            $ uri_ref ~doc:css_doc ["css"] $ share_dir),
@@ -46,7 +46,7 @@ let default_cmd =
   let doc = "produce documentation of OCaml modules" in
   let man = [
     `S "DESCRIPTION";
-    `P "$(b, ocamlary) produces documentation of OCaml modules.";
+    `P "$(b, codoc) produces documentation of OCaml modules.";
   ] @ help_sections
   in
   let exec_name = Filename.basename Sys.argv.(0) in

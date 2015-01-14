@@ -15,14 +15,14 @@
  *
  *)
 
-open OcamlaryCli
+open CodocCli
 
 module StringMap = Map.Make(String)
 
 let doc_xml_parser = DocOckXmlParse.build (fun input ->
   match Xmlm.input_tree
-    ~el:OcamlaryDoc.root_of_xml
-    ~data:OcamlaryDoc.data_of_xml
+    ~el:CodocDoc.root_of_xml
+    ~data:CodocDoc.data_of_xml
     input
   with None -> failwith "can't find root" (* TODO: fixme *)
   | Some root -> root
@@ -38,10 +38,10 @@ let xml_error xml_file ?start (line,col) s = match start with
 let depth path =
   max 0 (List.length (Stringext.split path ~on:'/') - 1)
 
-let rel_of_path depth path = (OcamlaryUtil.ascent_of_depth "" depth) ^ path
+let rel_of_path depth path = (CodocUtil.ascent_of_depth "" depth) ^ path
 
 module LinkIndex = struct (* TODO: use digest, too *)
-  open OcamlaryDoc
+  open CodocDoc
   type t = {
     root_by_name : (string, root Lazy.t) Hashtbl.t;
     unit_by_root : (root, root DocOckTypes.Unit.t) Hashtbl.t;
@@ -57,7 +57,7 @@ module LinkIndex = struct (* TODO: use digest, too *)
   let unit_by_root idx root =
     try Hashtbl.find idx.unit_by_root root
     with Not_found ->
-      let name = OcamlaryDoc.Maps.name_of_root root in
+      let name = CodocDoc.Maps.name_of_root root in
       failwith ("couldn't find unit for root "^name) (* TODO *)
 
   let unit_by_name idx name = match root_by_name idx name with
@@ -67,9 +67,9 @@ module LinkIndex = struct (* TODO: use digest, too *)
   let path_by_root idx root =
     try Filename.concat
           (Hashtbl.find idx.path_by_root root)
-          (OcamlaryDoc.Root.to_path root)
+          (CodocDoc.Root.to_path root)
     with Not_found ->
-      let name = OcamlaryDoc.Maps.name_of_root root in
+      let name = CodocDoc.Maps.name_of_root root in
       failwith ("couldn't find path for root "^name) (* TODO *)
 
   let index idx path name root unit =
@@ -78,7 +78,7 @@ module LinkIndex = struct (* TODO: use digest, too *)
     Hashtbl.replace idx.path_by_root root path
 
   let rec index_units idx path doc_index =
-    StringMap.iter (fun name ({ OcamlaryIndex.xml_file }) ->
+    StringMap.iter (fun name ({ CodocIndex.xml_file }) ->
       Hashtbl.replace idx.root_by_name name
         (Lazy.from_fun (fun () ->
           let unit_dir = Filename.(dirname (concat path xml_file)) in
@@ -93,7 +93,7 @@ module LinkIndex = struct (* TODO: use digest, too *)
             xml_error xml_file ?start pos s;
             exit 1
           | DocOckXmlParse.Ok unit ->
-            match OcamlaryDoc.Maps.root_of_ident
+            match CodocDoc.Maps.root_of_ident
               (DocOckPaths.Identifier.any unit.DocOckTypes.Unit.id) with
               | Some (root, mod_name) ->
                 Hashtbl.replace idx.unit_by_root root unit;
@@ -102,13 +102,13 @@ module LinkIndex = struct (* TODO: use digest, too *)
                 root
               | None -> (* TODO: fixme *) failwith "missing root"
          ))
-    ) doc_index.OcamlaryIndex.units;
+    ) doc_index.CodocIndex.units;
     StringMap.iter (fun name pkg ->
-      let index_path = Filename.concat path pkg.OcamlaryIndex.index in
-      let path = Filename.concat path pkg.OcamlaryIndex.pkg_name in
-      let index = OcamlaryIndex.read (Filename.concat idx.doc_root index_path) in
+      let index_path = Filename.concat path pkg.CodocIndex.index in
+      let path = Filename.concat path pkg.CodocIndex.pkg_name in
+      let index = CodocIndex.read (Filename.concat idx.doc_root index_path) in
       index_units idx path index
-    ) doc_index.OcamlaryIndex.pkgs
+    ) doc_index.CodocIndex.pkgs
 
   let create path doc_index focus =
     let idx = {
@@ -140,12 +140,12 @@ let read_cmti root path = DocOck.(match read_cmti root path with
 )
 
 let read focus root =
-  let cmti_path = OcamlaryDoc.Root.(to_path (to_source root)) in
+  let cmti_path = CodocDoc.Root.(to_path (to_source root)) in
   let cmti = Uri.(resolve "" (of_string focus) (of_string cmti_path)) in
   read_cmti root (Uri.to_string cmti)
 
 let read_and_index index (root, file) =
-  let mod_name = OcamlaryDoc.Maps.name_of_root root in
+  let mod_name = CodocDoc.Maps.name_of_root root in
   let index_path = Filename.concat (LinkIndex.focus_path index) file in
   let unit = read index_path root in
   LinkIndex.index index (resource_of_cmti file) mod_name root unit;
@@ -163,12 +163,12 @@ let xml index mod_name xml_file = (* TODO: mark the root for "this"? *)
   let failures = Hashtbl.create 10 in
   let unit = DocOckResolve.resolve (resolver failures index) unit in
   let issues = Hashtbl.fold (fun name () issues ->
-    (OcamlaryIndex.Module_resolution_failed name)::issues
+    (CodocIndex.Module_resolution_failed name)::issues
   ) failures [] in
   let out_file = open_out xml_file in
   let output = Xmlm.make_output (`Channel out_file) in
   let printer = DocOckXmlPrint.build (fun output root ->
-    Xmlm.output_tree (fun x -> x) output (List.hd (OcamlaryDoc.xml_of_root root))
+    Xmlm.output_tree (fun x -> x) output (List.hd (CodocDoc.xml_of_root root))
   ) in
   DocOckXmlPrint.file printer output unit;
   close_out out_file;
@@ -187,7 +187,7 @@ let normal_uri ~scheme uri =
   else Uri.(resolve "" uri (of_string "index.html"))
 
 let write_html ~doc_root_depth ~css ~title html_file html =
-  let root = Uri.of_string (OcamlaryUtil.ascent_of_depth "" doc_root_depth) in
+  let root = Uri.of_string (CodocUtil.ascent_of_depth "" doc_root_depth) in
   let css = Uri.resolve "" root css in
   let html = <:html<<html>
   <head>
@@ -211,15 +211,15 @@ let html ~pathloc ~doc_root_depth ~css ~pkg xml_file html_file =
   match DocOckXmlParse.file doc_xml_parser input with
   | DocOckXmlParse.Error (start, pos, s) ->
     close_in in_file;
-    [OcamlaryIndex.Xml_error (xml_file, s)]
+    [CodocIndex.Xml_error (xml_file, s)]
   | DocOckXmlParse.Ok unit ->
     close_in in_file;
     let pathloc = pathloc unit in
     let html =
-      OcamlaryDocHtml.of_unit ~pathloc unit
+      CodocDocHtml.of_unit ~pathloc unit
     in
     let title = pkg ^ " / " ^ (
-      OcamlaryDoc.Maps.string_of_ident
+      CodocDoc.Maps.string_of_ident
         (DocOckPaths.Identifier.any unit.DocOckTypes.Unit.id)
     ) in
     write_html ~doc_root_depth ~css ~title html_file html;
@@ -244,12 +244,12 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
   let cmd = "doc" in
   let output_type = Webmaster_file.output_type path output in
   let doc_index_path, doc_index = match output_type with
-    | Some (`Dir output) -> output, OcamlaryIndex.(read (index_file output))
-    | Some (`File _) | None -> "", OcamlaryIndex.empty
+    | Some (`Dir output) -> output, CodocIndex.(read (index_file output))
+    | Some (`File _) | None -> "", CodocIndex.empty
   in
   let css = match css with
     | None ->
-      let css_name = "ocamlary.css" in
+      let css_name = "codoc.css" in
       let shared_css = Filename.concat share css_name in
       Webmaster_file.ensure_directory_exists ~perm:0o700 doc_index_path;
       Webmaster_file.copy shared_css (Filename.concat doc_index_path css_name);
@@ -257,13 +257,13 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
     | Some css -> css
   in
   let ((pkg_path, pkg_index_path), pkg_index), pkg_parents =
-    OcamlaryIndex.traverse doc_index_path pkg
+    CodocIndex.traverse doc_index_path pkg
   in
   let index = LinkIndex.create doc_index_path doc_index pkg_path in
   let roots = ref [] in
   let record file path output =
     let mod_name = FindlibUnits.unit_name_of_path path in
-    let root = OcamlaryDoc.(
+    let root = CodocDoc.(
       Html ("index.html",
             Xml ("index.xml",
                  Cmti (cmti_path path output,
@@ -299,8 +299,8 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
         let local_resource = resource_of_cmti file in
         let pkg = pkg_path in
         let pkg_root_depth = depth local_resource + 1 in
-        let pkg_root = OcamlaryUtil.ascent_of_depth "" pkg_root_depth in
-        let pathloc unit = OcamlaryDocHtml.pathloc (* TODO: fixme *)
+        let pkg_root = CodocUtil.ascent_of_depth "" pkg_root_depth in
+        let pathloc unit = CodocDocHtml.pathloc (* TODO: fixme *)
           ~unit
           ~index:(fun root -> (* TODO: report failures *)
             let path = LinkIndex.path_by_root index root in
@@ -312,7 +312,7 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
         let html_issues =
           html ~pathloc ~doc_root_depth ~css ~pkg xml_file html_file
         in
-        { OcamlaryIndex.mod_name = name;
+        { CodocIndex.mod_name = name;
           xml_file = local_resource ^ "/index.xml";
           html_file = Some (local_resource ^ "/index.html");
           issues=html_issues @ xml_issues;
@@ -322,7 +322,7 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
 
     begin match output_type with
     | Some (`Dir output) ->
-      let open OcamlaryIndex in
+      let open CodocIndex in
       let unit_index = List.fold_left (fun map unit ->
         StringMap.add unit.mod_name unit map
       ) pkg_index.units gunits in
@@ -331,7 +331,7 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
       let normal_uri = normal_uri ~scheme in
       let uri_of_path = uri_of_path ~scheme in
       let html =
-        OcamlaryIndexHtml.of_package
+        CodocIndexHtml.of_package
           ~name:pkg_path ~index ~normal_uri ~uri_of_path
       in
       let pkg_dir = Filename.concat doc_index_path pkg_path in
@@ -341,7 +341,7 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
       List.iter (fun ((name, index_path), index) ->
         write (Filename.concat doc_index_path index_path) index;
         let html =
-          OcamlaryIndexHtml.of_package
+          CodocIndexHtml.of_package
             ~name ~index ~normal_uri ~uri_of_path
         in
         let pkg_dir = Filename.concat doc_index_path name in
@@ -354,7 +354,7 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
     end;
 
     let warns = List.fold_left (fun err gunit ->
-      (List.length gunit.OcamlaryIndex.issues <> 0) || err
+      (List.length gunit.CodocIndex.issues <> 0) || err
     ) false gunits in
     `Ok (Webmaster_file.check ~cmd warns)
   | ret -> ret

@@ -19,61 +19,61 @@ let webmaster = pkg "webmaster"
 let library = `Path ["lib"]
 let cli = `Path ["cli"]
 
-let ocamlary_util = unit "ocamlaryUtil" ~deps:[] library
+let codoc_util = unit "codocUtil" ~deps:[] library
 
-let ocamlary_html = unit "ocamlaryHtml" ~deps:[
+let codoc_html = unit "codocHtml" ~deps:[
   cow_pp;
   cow;
 ] library
 
-let ocamlary_doc_maps = unit "ocamlaryDocMaps" ~deps:[
+let codoc_doc_maps = unit "codocDocMaps" ~deps:[
   doc_ock_lib;
 ] library
 
-let ocamlary_doc = unit "ocamlaryDoc" ~deps:[
+let codoc_doc = unit "codocDoc" ~deps:[
   cow_pp;
   cow;
   doc_ock_lib;
-  ocamlary_doc_maps;
+  codoc_doc_maps;
 ] library
 
-let ocamlary_doc_html = unit "ocamlaryDocHtml" ~deps:[
+let codoc_doc_html = unit "codocDocHtml" ~deps:[
   doc_ock_lib;
   cow_pp;
   cow;
-  ocamlary_doc;
-  ocamlary_html;
+  codoc_doc;
+  codoc_html;
 ] library
 
-let ocamlary_index = unit "ocamlaryIndex" ~deps:[
+let codoc_index = unit "codocIndex" ~deps:[
   cow_pp;
   cow;
 ] library
 
-let ocamlary_index_html = unit "ocamlaryIndexHtml" ~deps:[
+let codoc_index_html = unit "codocIndexHtml" ~deps:[
   cow_pp;
   cow;
-  ocamlary_util;
-  ocamlary_html;
+  codoc_util;
+  codoc_html;
 ] library
 
-let ocamlary = lib "ocamlary" (`Units [
-  ocamlary_index;
-  ocamlary_index_html;
-  ocamlary_doc;
-  ocamlary_doc_html;
+let codoc = lib "codoc" (`Units [
+  codoc_index;
+  codoc_index_html;
+  codoc_doc;
+  codoc_doc_html;
 ])
 
-let ocamlary_config = unit "ocamlaryConfig" ~deps:[] cli
+let codoc_config = unit "codocConfig" ~deps:[] cli
 
-let ocamlary_cli = unit "ocamlaryCli" ~deps:[
+let codoc_cli = unit "codocCli" ~deps:[
   uri;
   cmdliner;
   webmaster_cli;
-  ocamlary_config;
+  codoc_config;
 ] cli
 
-let ocamlary_cli_doc = unit "ocamlaryCliDoc" ~deps:[
+let codoc_cli_doc = unit "codocCliDoc" ~deps:[
   cow_pp;
   cow;
   findlib_units;
@@ -81,22 +81,22 @@ let ocamlary_cli_doc = unit "ocamlaryCliDoc" ~deps:[
   webmaster;
   doc_ock_lib;
   doc_ock_xml;
-  ocamlary;
+  codoc;
 ] cli
 
-let ocamlary_cmd = unit "ocamlaryMain" ~deps:[
+let codoc_cmd = unit "codocMain" ~deps:[
   cmdliner;
   webmaster_cli;
-  ocamlary_cli_doc;
+  codoc_cli_doc;
 ] cli
 
-let bin = bin "ocamlary" (`Units [
-  ocamlary_cli; ocamlary_cli_doc; ocamlary_cmd;
+let bin = bin "codoc" (`Units [
+  codoc_cli; codoc_cli_doc; codoc_cmd;
 ])
 
 ;;
 
-assemble (project ~version "ocamlary" [
-  ocamlary;
+assemble (project ~version "codoc" [
+  codoc;
   bin;
 ])

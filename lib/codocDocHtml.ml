@@ -18,8 +18,8 @@
 open DocOckTypes
 open DocOckPaths
 
-open OcamlaryDocMaps
-open OcamlaryDoc
+open CodocDocMaps
+open CodocDoc
 
 type 'a href = 'a * Uri.t
 
@@ -578,7 +578,7 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Tuple (e::els) ->
     let e = of_type_expr ~group:true e in
     let els = List.map (of_type_expr ~group:true) els in
-    let html = OcamlaryHtml.fold_html_str " * " e els in
+    let html = CodocHtml.fold_html_str " * " e els in
     if group then <:html<($html$)>> else html
   | Constr (path, argl) -> of_type_constr ~pathloc path argl
   | Variant { Variant.kind=Variant.Fixed; elements } ->
@@ -597,7 +597,7 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Object { Object.methods=[]; open_ } ->
     <:html<&lt; $str:if open_ then ".." else ""$ &gt;>>
   | Object { Object.methods=meth::meths; open_ } ->
-    let mhtml = OcamlaryHtml.fold_html_str "; "
+    let mhtml = CodocHtml.fold_html_str "; "
       (of_object_method ~pathloc meth)
       (List.map (of_object_method ~pathloc) meths)
     in
@@ -614,7 +614,7 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Package { Package.path; substitutions=sub::subs } ->
     let sub = of_package_sub ~pathloc path sub in
     let subs = List.map (of_package_sub ~pathloc path) subs in
-    let subs = OcamlaryHtml.fold_html <:html< $keyword "and"$ >>
+    let subs = CodocHtml.fold_html <:html< $keyword "and"$ >>
       <:html< $keyword "with"$ $sub$>> subs
     in
     <:html<($keyword "module"$ $link_path ~pathloc (Path.any path)$$subs$)>>
@@ -629,7 +629,7 @@ and of_type_constr ?(cons="") ~pathloc path = function
   | a::argl ->
     let a = of_type_expr ~pathloc a in
     let argl = List.map (of_type_expr ~pathloc) argl in
-    let args = OcamlaryHtml.fold_html_str ", " a argl in
+    let args = CodocHtml.fold_html_str ", " a argl in
     <:html<($args$) $link_path ~pathloc (Path.any path)$>>
 and polyvar_element ~pathloc : 'a TypeExpr.Variant.element -> Cow.Html.t =
   TypeExpr.Variant.(function
@@ -638,7 +638,7 @@ and polyvar_element ~pathloc : 'a TypeExpr.Variant.element -> Cow.Html.t =
   | Constructor (name, empty, arg::args) ->
     let empty = if empty then <:html<&amp; >> else <:html<&>> in
     let args = List.map (of_type_expr ~pathloc) args in
-    let arghtml = OcamlaryHtml.fold_html_str " & "
+    let arghtml = CodocHtml.fold_html_str " & "
       <:html<$empty$$of_type_expr ~pathloc arg$>>
       args
     in
@@ -700,13 +700,13 @@ let args_of_constructor ~pathloc args res =
   | a::args,  None    ->
     let a = of_type_expr ~group:true a in
     let args = List.map (of_type_expr ~group:true) args in
-    let arghtml = OcamlaryHtml.fold_html_str " * " a args in
+    let arghtml = CodocHtml.fold_html_str " * " a args in
     <:html< $keyword "of"$ $arghtml$>>
   | [],       Some rt -> <:html< : $of_type_expr rt$>>
   | a::args,  Some rt ->
     let a = of_type_expr ~group:true a in
     let args = List.map (of_type_expr ~group:true) args in
-    let arghtml = OcamlaryHtml.fold_html_str " * " a args in
+    let arghtml = CodocHtml.fold_html_str " * " a args in
     <:html< : $arghtml$ &rarr; $of_type_expr rt$>>
 
 let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
@@ -787,7 +787,7 @@ let of_type ~pathloc
   let name = Identifier.name id in
   let params = of_type_params params in
   let priv = if private_ then <:html<$keyword "private"$ >> else <:html<&>> in
-  let constraints = OcamlaryHtml.fold_html_str "" <:html<&>>
+  let constraints = CodocHtml.fold_html_str "" <:html<&>>
     (List.map (fun (c,c') ->
       <:html< $keyword "constraint"$ $of_type_expr c$ = $of_type_expr c'$>>
      ) constraints)
@@ -917,7 +917,7 @@ and of_class_type_expr ~pathloc = ClassType.(function
   | Constr (path, arg::args) ->
     let arg_html = of_type_expr ~pathloc arg in
     let args_html = List.map (of_type_expr ~pathloc) args in
-    let args_html = OcamlaryHtml.fold_html_str ", " arg_html args_html in
+    let args_html = CodocHtml.fold_html_str ", " arg_html args_html in
     <:html<[$args_html$] $link_path ~pathloc (Path.any path)$>>
   | Signature { ClassSignature.self; items } ->
     let self = match self with
@@ -980,7 +980,7 @@ let module_declaration
   let classes = String.concat " " ("module"::extra_classes) in
   let title = title_fn <:html<$keyword "module"$ $name$>> in
   let id = Identifier.any id in
-  let anchor html = if List.mem "ocamlary-doc" extra_classes
+  let anchor html = if List.mem "codoc-doc" extra_classes
     then html
     else anchor ~pathloc id html
   in
@@ -1117,7 +1117,7 @@ and of_substitutions ~pathloc base acc = ModuleType.(function
   | [] -> match List.rev acc with
     | [] -> <:html<&>>
     | [one] -> one
-    | h::t -> OcamlaryHtml.fold_html <:html< $keyword "and"$ >> h t
+    | h::t -> CodocHtml.fold_html <:html< $keyword "and"$ >> h t
 )
 
 and of_module_type ~pathloc { ModuleType.id; doc; expr } =
@@ -1165,7 +1165,7 @@ let of_top_module ~pathloc { Module.id; doc; type_ } =
   let id = Identifier.any id in
   let name = link_ident ~pathloc () id in
   let rhs, rest = rhs_rest_of_decl ~pathloc type_ in
-  let extra_classes = ["ocamlary-doc"] in
+  let extra_classes = ["codoc-doc"] in
   let title_fn x = <:html<<h1 class="title">$x$</h1>&>> in
   let up_href = pathloc.normal_uri (Uri.of_string pathloc.pkg_root) in
   let header = <:html<<a href=$uri:up_href$>Up</a>&>> in

@@ -16,7 +16,7 @@
  *)
 
 open DocOckPaths
-open OcamlaryDocMaps
+open CodocDocMaps
 
 type path = string
 
@@ -50,7 +50,7 @@ module Root = struct
     | Proj (_, root) -> to_path root
 end
 
-module Maps = OcamlaryDocMaps.Make(Root)
+module Maps = CodocDocMaps.Make(Root)
 open Maps
 
 type text = Root.t DocOckTypes.Documentation.text

@@ -62,5 +62,5 @@ let uri_ref ~doc names = Term.(app (pure (function
 let share_dir = Arg.(value (
   let docv = "SHARE_DIR" in
   let doc  = "the shared resource directory" in
-  opt dir OcamlaryConfig.share_dir & info ~docv ~doc ["share"]
+  opt dir CodocConfig.share_dir & info ~docv ~doc ["share"]
 ))

@@ -18,15 +18,15 @@
 type pathloc
 
 val pathloc :
-  unit:OcamlaryDoc.root DocOckTypes.Unit.t ->
-  index:(OcamlaryDoc.root -> Uri.t option) -> pkg_root:string ->
+  unit:CodocDoc.root DocOckTypes.Unit.t ->
+  index:(CodocDoc.root -> Uri.t option) -> pkg_root:string ->
   normal_uri:(Uri.t -> Uri.t) -> pathloc
 (** Create a path location value for relative linking. *)
 
 val of_top_module :
-  pathloc:pathloc -> OcamlaryDoc.root DocOckTypes.Module.t -> Cow.Html.t
+  pathloc:pathloc -> CodocDoc.root DocOckTypes.Module.t -> Cow.Html.t
 (** Generate a documentation page from a module. *)
 
 val of_unit :
-  pathloc:pathloc -> OcamlaryDoc.root DocOckTypes.Unit.t -> Cow.Html.t
+  pathloc:pathloc -> CodocDoc.root DocOckTypes.Unit.t -> Cow.Html.t
 (** Generate a documentation page from a compilation unit. *)

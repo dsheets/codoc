@@ -25,13 +25,13 @@ type root =
 | Html of path * root
 
 module Root : sig
-  include OcamlaryDocMaps.ROOT with type t = root
+  include CodocDocMaps.ROOT with type t = root
 
   val to_source : t -> t
   val to_path : t -> path
 end
 
-module Maps : OcamlaryDocMaps.ROOTED_MAPS with type root = Root.t
+module Maps : CodocDocMaps.ROOTED_MAPS with type root = Root.t
 
 type text = root DocOckTypes.Documentation.text
 
