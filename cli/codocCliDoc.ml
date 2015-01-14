@@ -38,7 +38,10 @@ let xml_error xml_file ?start (line,col) s = match start with
 let depth path =
   max 0 (List.length (Stringext.split path ~on:'/') - 1)
 
-let rel_of_path depth path = (CodocUtil.ascent_of_depth "" depth) ^ path
+let rel_of_path depth path =
+  if path <> "" && path.[0] = '/'
+  then path
+  else (CodocUtil.ascent_of_depth "" depth) ^ path
 
 module LinkIndex = struct (* TODO: use digest, too *)
   open CodocDoc
