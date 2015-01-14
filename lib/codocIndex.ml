@@ -209,5 +209,5 @@ let traverse dir pkg =
       descend acc rel more
   in
   match descend [] "" (Stringext.split ~on:'/' pkg) with
-  | [] -> (("", index_file dir), read (index_file dir)), []
+  | [] -> (("", index_file ""), read (index_file dir)), []
   | pkg_index::parents -> pkg_index, parents
