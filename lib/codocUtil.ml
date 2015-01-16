@@ -15,6 +15,17 @@
  *
  *)
 
+let unit_name_of_path path =
+  let file = Filename.basename path in
+  let file = String.(sub file 0 (index file '.')) in
+  let first = String.sub file 0 1 in
+  let rest = String.(sub file 1 (length file - 1)) in
+  String.iteri (fun i -> function
+  | '-' -> Bytes.set rest i '_'
+  | _ -> ()) rest;
+  let name = String.uppercase first ^ rest in
+  name
+
 let rec ascent_of_depth tl = function
   | 0 -> tl
   | n -> ascent_of_depth ("../" ^ tl) (n - 1)

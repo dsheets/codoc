@@ -10,8 +10,6 @@ let doc_ock_xml = pkg "doc-ock-xml"
 let cow_pp = pkg_pp "cow.syntax"
 let cow = pkg "cow"
 
-let findlib_units = pkg "ocamlfind-units"
-
 let cmdliner = pkg "cmdliner"
 let webmaster_cli = pkg "webmaster.cli"
 let webmaster = pkg "webmaster"
@@ -76,7 +74,6 @@ let codoc_cli = unit "codocCli" ~deps:[
 let codoc_cli_doc = unit "codocCliDoc" ~deps:[
   cow_pp;
   cow;
-  findlib_units;
   webmaster_cli;
   webmaster;
   doc_ock_lib;

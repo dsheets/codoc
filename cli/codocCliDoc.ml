@@ -266,7 +266,7 @@ let generate ({ force }) formats (_os,output) (_ps,path) pkg scheme css share =
   let index = LinkIndex.create doc_index_path doc_index pkg_path in
   let roots = ref [] in
   let record file path output =
-    let mod_name = FindlibUnits.unit_name_of_path path in
+    let mod_name = CodocUtil.unit_name_of_path path in
     let root = CodocDoc.(
       Html ("index.html",
             Xml ("index.xml",
