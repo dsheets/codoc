@@ -60,8 +60,9 @@ module LinkIndex = struct (* TODO: use digest, too *)
   let unit_by_root idx root =
     try Hashtbl.find idx.unit_by_root root
     with Not_found ->
+      let cmti_path = CodocDoc.Root.(to_path (to_source root)) in
       let name = CodocDoc.Maps.name_of_root root in
-      failwith ("couldn't find unit for root "^name) (* TODO *)
+      failwith ("couldn't find unit for root "^name^"@"^cmti_path) (* TODO *)
 
   let unit_by_name idx name = match root_by_name idx name with
     | None -> failwith ("couldn't find unit for name "^name) (* TODO *)
@@ -72,8 +73,9 @@ module LinkIndex = struct (* TODO: use digest, too *)
           (Hashtbl.find idx.path_by_root root)
           (CodocDoc.Root.to_path root)
     with Not_found ->
+      let cmti_path = CodocDoc.Root.(to_path (to_source root)) in
       let name = CodocDoc.Maps.name_of_root root in
-      failwith ("couldn't find path for root "^name) (* TODO *)
+      failwith ("couldn't find path for root "^name^"@"^cmti_path) (* TODO *)
 
   let index idx path name root unit =
     Hashtbl.replace idx.root_by_name name (Lazy.from_val root);
