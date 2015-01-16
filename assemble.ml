@@ -2,6 +2,8 @@ open Assemblage
 
 let version = "0.1.0"
 
+let stringext = pkg "stringext"
+
 let uri = pkg "uri"
 
 let doc_ock_lib = pkg "doc-ock-lib"
@@ -17,7 +19,9 @@ let webmaster = pkg "webmaster"
 let library = `Path ["lib"]
 let cli = `Path ["cli"]
 
-let codoc_util = unit "codocUtil" ~deps:[] library
+let codoc_util = unit "codocUtil" ~deps:[
+  stringext;
+] library
 
 let codoc_html = unit "codocHtml" ~deps:[
   cow_pp;
