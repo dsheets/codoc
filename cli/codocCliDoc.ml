@@ -58,11 +58,20 @@ module LinkIndex = struct (* TODO: use digest, too *)
     with Not_found -> None
 
   let unit_by_root idx root =
+    let name = CodocDoc.Maps.name_of_root root in
     try Hashtbl.find idx.unit_by_root root
     with Not_found ->
-      let cmti_path = CodocDoc.Root.(to_path (to_source root)) in
-      let name = CodocDoc.Maps.name_of_root root in
-      failwith ("couldn't find unit for root "^name^"@"^cmti_path) (* TODO *)
+      match root_by_name idx name with
+      | None ->
+        failwith ("couldn't find unit for root or root by name "^name) (* TODO *)
+      | Some found_root ->
+        if found_root = root
+        then try Hashtbl.find idx.unit_by_root root
+          with Not_found ->
+            let cmti_path = CodocDoc.Root.(to_path (to_source root)) in
+            (* TODO *)
+            failwith ("couldn't find unit for root "^name^"@"^cmti_path)
+        else failwith ("unit_by_root: found_root <> root") (* TODO *)
 
   let unit_by_name idx name = match root_by_name idx name with
     | None -> failwith ("couldn't find unit for name "^name) (* TODO *)
