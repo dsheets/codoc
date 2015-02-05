@@ -55,8 +55,8 @@ ANY PACKAGES IN THE DOC SWITCH**.
 **codoc** supplies an **opam doc** script as well as the stand-alone
   **codoc** tool. This script uses **codoc**'s scriptable CLI and and
   also offers an easy-to-use **--serve** option for immediately starting
-  a web server for your opam installation's documentation. Using **opam
-  **doc** is as easy as:
+  a web server for your opam installation's documentation. Using **opam doc**
+  is as easy as:
 
 ```sh
 opam doc my-opam-docs/ --serve
