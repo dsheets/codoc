@@ -199,6 +199,7 @@ let render_dir ~force ?index in_index out_dir scheme css =
         | "." -> ""
         | dir -> dir
       in
+      let css = CodocUtil.(ascent_of_depth css (depth idx.path)) in
       let `Ok () = render_index name idx path scheme css in
       ()
     ) idxs;
