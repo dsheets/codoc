@@ -93,7 +93,6 @@ let rec index_units env index = CodocIndex.(
             exit 1
           | DocOckXmlParse.Ok unit ->
             let root, mod_name = CodocUtil.root_of_unit unit in
-            print_endline ("adding root of "^mod_name);
             RootTable.replace env.unit_by_root root unit;
             Hashtbl.replace env.path_by_root root (dir / xml_file);
             root
