@@ -1,39 +1,53 @@
+#!/usr/bin/env ocaml
+
 #use "topfind"
 #require "unix"
 
-let opam_root =
-  let root_ic = Unix.open_process_in "opam config var root" in
-  let root = input_line root_ic in
-  close_in root_ic;
-  root
+let (/) = Filename.concat
 
-let get_package_version pkg =
-  let v_ic = Unix.open_process_in ("opam show -f version "^pkg) in
-  let v = input_line v_ic in
-  close_in v_ic;
-  v
+let webserver = "cohttp-server-lwt"
+
+let get_line cmd =
+  let ic = Unix.open_process_in cmd in
+  let line = input_line ic in
+  close_in ic;
+  line
+
+let serve_flag = ref false
+let opam_root = get_line "opam config var root"
+let switch = get_line "opam switch show"
+let compiler = get_line "opam config var compiler"
+
+let get_package_version pkg = get_line ("opam show -f version "^pkg)
 
 let check_system cmd = Unix.(match system cmd with
   | WSIGNALED _ -> failwith ("'"^cmd^"' was killed by signal")
   | WSTOPPED _  -> failwith ("'"^cmd^"' was stopped by signal")
   | WEXITED 0 -> ()
   | WEXITED k ->
-    Printf.eprintf "'%s' exited with code %d\n%!" cmd k
+    Printf.printf "'%s' exited with code %d\n%!" cmd k
 )
 
-let build_pkg_doc doc_build output pkg =
+let extract_pkg_doc doc_build output pkg =
   try
     let pkgv = pkg^"."^(get_package_version pkg) in
-    let pkg_dir = Filename.concat doc_build pkgv in
+    let pkg_dir = doc_build / pkgv in
     (* TODO: If cmti only in _build, remove _build. *)
-    check_system ("codoc doc --package "^pkgv^" "^pkg_dir^" -o "^output)
+    check_system
+      ("codoc extract -f --index --package "^pkgv^" "^pkg_dir^" -o "^output)
   with Not_found ->
-    Printf.eprintf "%s: error no build directory\n%!" pkg
+    Printf.printf "%s: error no build directory\n%!" pkg
 
+let link_doc output = check_system ("codoc link --index -f "^output)
+
+let render_doc output = check_system ("codoc html "^output^" --index -f")
+
+let build_attempted = ref false
 let build_doc output =
-  let doc_build = Filename.concat opam_root "doc/build" in
+  build_attempted := true;
+  let doc_build = opam_root / switch / "build" in
   match Unix.system
-    ("codoc doc --package ocaml.4.02.1+doc "^doc_build^"/ocaml -o "^output)
+    ("codoc doc -f --package ocaml."^compiler^" "^doc_build^"/ocaml -o "^output)
   with
   | Unix.WSIGNALED _ -> failwith "building ocaml's docs was killed by signal"
   | Unix.WSTOPPED _ -> failwith "building ocaml's docs was stopped by signal"
@@ -41,12 +55,28 @@ let build_doc output =
     let topo_pkgs = Unix.open_process_in "opam list -S -s" in
     begin try while true do
         let pkg = input_line topo_pkgs in
-        build_pkg_doc doc_build output pkg
+        extract_pkg_doc doc_build output pkg
       done
       with End_of_file -> close_in topo_pkgs
+    end;
+    print_endline "\nExtraction complete. Linking...";
+    link_doc output;
+    print_endline "\nLinking complete. Rendering...";
+    render_doc output;
+    if !serve_flag then begin
+      Unix.chdir output;
+      print_endline
+        "\nStarting web server for documentation at http://localhost:8080/";
+      Unix.execvp webserver [|webserver|]
     end
   | Unix.WEXITED k ->
     failwith ("building ocaml's docs exited with "^(string_of_int k))
+
 ;;
 
-Arg.parse [] build_doc "opam doc [output_directory]"
+let cli_spec = [
+  "--serve", Arg.Set serve_flag, "exec "^webserver^" in doc dir when built";
+] in
+let usage = "opam doc <output_directory>" in
+Arg.parse cli_spec build_doc usage;
+if not !build_attempted then Arg.usage cli_spec usage
