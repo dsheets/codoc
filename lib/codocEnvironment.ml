@@ -29,6 +29,8 @@ type t = {
   resolver     : root DocOck.resolver;
 }
 
+let (/) = Filename.concat
+
 let xml_error xml_file ?start (line,col) s = match start with
   | Some (start_line, start_col) ->
     Printf.eprintf "\n%s line %d column %d - line %d column %d:\n%s\n\n"
@@ -104,14 +106,16 @@ let rec index_units env index = CodocIndex.(
 (* TODO: Recursively all the way down? *)
 let relativize_root env from_path root =
   let open CodocUtil in
+  let to_path = Filename.dirname (path_by_root env root) in
   let rec relativize = function
-    | Xml (to_path , parent) ->
-      Xml (rel_of_path (depth from_path) to_path, relativize parent)
-    | Html (to_path, parent) ->
-      Html (rel_of_path (depth from_path) to_path, relativize parent)
+    | Xml (path, parent) ->
+      Xml (rel_of_path (depth from_path) to_path / path, relativize parent)
+    | Html (path, parent) ->
+      Html (rel_of_path (depth from_path) to_path / path, relativize parent)
     | Cmti cmti -> Cmti cmti
     | Resolved ({ resolution_root }, parent) ->
-      let resolution_root = rel_of_path (depth from_path) resolution_root in
+      let path = rel_of_path (depth from_path) to_path in
+      let resolution_root = path / resolution_root in
       Resolved ({ resolution_root }, relativize parent)
     | Proj (spath, parent) -> Proj (spath, relativize parent)
   in
