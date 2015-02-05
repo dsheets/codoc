@@ -210,7 +210,12 @@ let maybe_copy ~force path target_dir =
   let file_name = Filename.basename path in
   let target = target_dir / file_name in
   if not force && Sys.file_exists target
-  then Error.use_force target
+  then
+    let path_digest = Digest.file path in
+    let target_digest = Digest.file target in
+    if path_digest <> target_digest
+    then Error.use_force target
+    else `Ok file_name
   else
     (* here, we rely on umask to set the perms correctly *)
     match Dir.make_exist ~perm:0o777 target_dir with
