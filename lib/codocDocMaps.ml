@@ -540,6 +540,9 @@ module type ROOTED_MAPS = sig
   val string_of_ident : root Identifier.any -> string
 
   val name_of_root : root -> string
+
+  val replace_ident_module_root
+    : root -> root Identifier.module_ -> root Identifier.module_
 end
 
 module Make(Root : ROOT) : ROOTED_MAPS with type root = Root.t = struct
@@ -587,6 +590,33 @@ module Make(Root : ROOT) : ROOTED_MAPS with type root = Root.t = struct
   let string_of_ident = Identifier.fold_any string_of_ident_map ()
 
   let name_of_root = string_of_ident_map#root_name ()
+
+  (* TODO: could be more parametric *)
+  class replace_ident_signature_root_map new_root :
+    [unit, root, root Identifier.signature] Identifier.signature_fold =
+  object (self)
+    method root () _r name = Identifier.Root (new_root, name)
+    method argument () p n arg_name =
+      Identifier.(Argument (fold_signature self () p, n, arg_name))
+    method module_ () p mod_name =
+      Identifier.(Module (fold_signature self () p, mod_name))
+    method module_type () p mod_type_name =
+      Identifier.(ModuleType (fold_signature self () p, mod_type_name))
+  end
+
+  let replace_ident_signature_root_map new_root =
+    new replace_ident_signature_root_map new_root
+  let replace_ident_signature_root new_root =
+    Identifier.fold_signature (replace_ident_signature_root_map new_root) ()
+  let replace_ident_module_root new_root module_ =
+    let signature = Identifier.signature_of_module module_ in
+    Identifier.(match replace_ident_signature_root new_root signature with
+    | Root (r,n) -> Root (r,n)
+    | Argument (p,k,n) -> Argument (p,k,n)
+    | Module (p,n) -> Module (p,n)
+    | ModuleType _ -> assert false (* TODO: investigate *)
+    )
+
 end
 
 (* Utilities *)

@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 David Sheets <sheets@alum.mit.edu>
+ * Copyright (c) 2015 David Sheets <sheets@alum.mit.edu>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,18 +15,18 @@
  *
  *)
 
-type pathloc
+exception ParseError of string * Xmlm.pos option * Xmlm.pos * string
 
-val pathloc :
-  unit:CodocDoc.root DocOckTypes.Unit.t ->
-  index:(CodocDoc.root -> Uri.t option) -> ?pkg_root:string ->
-  normal_uri:(Uri.t -> Uri.t) -> pathloc
-(** Create a path location value for relative linking. *)
+let doc_parser = DocOckXmlParse.build (fun input ->
+  match Xmlm.input_tree
+    ~el:CodocDoc.root_of_xml
+    ~data:CodocDoc.data_of_xml
+    input
+  with None -> failwith "can't find root" (* TODO: fixme *)
+  | Some root -> root
+)
 
-val of_top_module :
-  pathloc:pathloc -> CodocDoc.root DocOckTypes.Module.t -> Cow.Html.t
-(** Generate a documentation page from a module. *)
-
-val of_unit :
-  pathloc:pathloc -> CodocDoc.root DocOckTypes.Unit.t -> Cow.Html.t
-(** Generate a documentation page from a compilation unit. *)
+let doc_printer = DocOckXmlPrint.build (fun output root ->
+  let xml_tree = List.hd (CodocDoc.xml_of_root root) in
+  Xmlm.output_tree (fun x -> x) output xml_tree
+)

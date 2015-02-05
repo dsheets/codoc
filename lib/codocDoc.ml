@@ -20,8 +20,20 @@ open CodocDocMaps
 
 type path = string
 
+type cmti_root = {
+  cmti_path : path;
+  unit_name : string;
+  unit_digest : Digest.t;
+}
+
+(* TODO: time? *)
+type resolution = {
+  resolution_root : string;
+}
+
 type root =
-| Cmti of path * string
+| Cmti of cmti_root
+| Resolved of resolution * root
 (* TODO: use signature identifier when doc-ock-xml supports it *)
 | Proj of (*root DocOckPaths.Identifier.signature*) string * root
 | Xml of path * root
@@ -34,7 +46,8 @@ module Root = struct
     constraint 'self = (unit, t, string) #Identifier.any_fold
 
     method root_name () = function
-    | Cmti (_, name) -> name
+    | Cmti { unit_name } -> unit_name
+    | Resolved (_, r) -> self#root_name () r
     | Proj (sig_, r) ->
       (*(self#name r)^"["^(map_ident self (Identifier.any sig_))^"]"*)
       (self#root_name () r)^"["^sig_^"]"
@@ -43,11 +56,14 @@ module Root = struct
 
   let rec to_source = function
     | Cmti _ as cmti -> cmti
-    | Proj (_, r) | Xml (_, r) | Html (_, r) -> to_source r
+    | Resolved (_, r) | Proj (_, r) | Xml (_, r) | Html (_, r) -> to_source r
 
   let rec to_path = function
-    | Cmti (path, _) | Xml (path, _) | Html (path, _) -> path
-    | Proj (_, root) -> to_path root
+    | Cmti { cmti_path = path } | Xml (path, _) | Html (path, _) -> path
+    | Resolved (_, root) | Proj (_, root) -> to_path root
+
+  let equal root root' = (to_source root) = (to_source root')
+  let hash root = Hashtbl.hash (to_source root)
 end
 
 module Maps = CodocDocMaps.Make(Root)
@@ -60,8 +76,11 @@ type t =
 | Block of text
 
 let rec xml_of_root = Root.(function
-  | Cmti (cmti_path,name) ->
-    <:xml<<cmti name=$str:name$ src=$str:cmti_path$ />&>>
+  | Cmti { cmti_path; unit_name = name; unit_digest = digest } ->
+    let digest = Digest.to_hex digest in
+    <:xml<<cmti name=$str:name$ src=$str:cmti_path$ digest=$str:digest$ />&>>
+  | Resolved ({ resolution_root = root }, source) ->
+    <:xml<<resolved root=$str:root$>$xml_of_root source$</resolved>&>>
   | Proj (sig_,source) ->
     (* TODO: serialize with doc-ock-xml vocab *)
     (*let sig_ = Identifier.any sig_ in*)
@@ -81,7 +100,19 @@ let filter_children = List.fold_left (fun l -> function
 let root_of_xml tag root_opt_list =
   match tag with
   | (("","cmti"),attrs) -> (* TODO: cmti can't have children *)
-    Some List.(Cmti (assoc ("","src") attrs, assoc ("","name") attrs))
+    let cmti_path = List.assoc ("","src") attrs in
+    let unit_name = List.assoc ("","name") attrs in
+    let unit_digest = List.assoc ("","digest") attrs in
+    let unit_digest = Digest.from_hex unit_digest in
+    Some (Cmti { cmti_path; unit_name; unit_digest })
+  | (("","resolved"),attrs) ->
+    let root = match filter_children root_opt_list with
+      | [] -> failwith "resolved root must have a source" (* TODO: fixme *)
+      | [root] -> root
+      | _::_::_ -> failwith "resolved root has too many children"(* TODO: fixme *)
+    in
+    let resolution_root = List.assoc ("","root") attrs in
+    Some (Resolved ({ resolution_root }, root))
   | (("","proj"),attrs) ->
     let root = match filter_children root_opt_list with
       | [] -> failwith "proj root must have a source" (* TODO: fixme *)

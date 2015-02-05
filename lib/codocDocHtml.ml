@@ -27,11 +27,11 @@ type pathloc = {
   root        : root;
   path        : root Identifier.signature;
   index       : root -> Uri.t option;
-  pkg_root    : string;
+  pkg_root    : string option;
   normal_uri  : Uri.t -> Uri.t;
 }
 
-let pathloc ~unit ~index ~pkg_root ~normal_uri =
+let pathloc ~unit ~index ?pkg_root ~normal_uri =
   let signature = Identifier.signature_of_module unit.Unit.id in
   {
     root = fst (Maps.root_of_ident_signature signature);
@@ -1167,9 +1167,13 @@ let of_top_module ~pathloc { Module.id; doc; type_ } =
   let rhs, rest = rhs_rest_of_decl ~pathloc type_ in
   let extra_classes = ["codoc-doc"] in
   let title_fn x = <:html<<h1 class="title">$x$</h1>&>> in
-  let up_href = pathloc.normal_uri (Uri.of_string pathloc.pkg_root) in
-  let header = <:html<<a href=$uri:up_href$>Up</a>&>> in
-  module_declaration ~extra_classes ~title_fn ~header ~id ~pathloc
+  let header = match pathloc.pkg_root with
+    | Some pkg_root ->
+      let up_href = pathloc.normal_uri (Uri.of_string pkg_root) in
+      Some <:html<<a href=$uri:up_href$>Up</a>&>>
+    | None -> None
+  in
+  module_declaration ~extra_classes ~title_fn ?header ~id ~pathloc
     name rhs doc rest
 
 let of_unit ~pathloc { Unit.id; doc; digest; imports; items } =

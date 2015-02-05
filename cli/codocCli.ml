@@ -17,24 +17,73 @@
 
 open Cmdliner
 
-module Format = struct
-  type t = Html | Xml
+let map f = Term.(app (pure f))
+let ret_map f t = Term.ret (map f t)
+let map_ret f = function
+  | `Ok v -> `Ok (f v)
+  | `Error (help,msg) as err -> err
 
-  let start = [ Xml ]
-  let depends = function
-    | Xml -> []
-    | Html -> [ Xml ]
+let global_option_section = "COMMON OPTIONS"
+
+module Common = struct
+  type t = {
+    force : bool;
+    index : string option;
+  }
+
+  let create force index = { force; index; }
+
+  let force_arg = Arg.(value (
+    let docv = "FORCE" in
+    let doc = "force the execution of the command" in
+    flag & info ~docs:global_option_section ~docv ~doc ["f"]
+  ))
+
+  let index_arg = Arg.(value (
+    let docv = "INDEX" in
+    let doc =
+      "whether to update indexes and the relative path of the index file"
+    in
+    opt ~vopt:(Some CodocConfig.rel_index_xml) (some string) None
+    & info ~docs:global_option_section ~docv ~doc ["index"]
+  ))
+
+  let term = Term.(pure create $ force_arg $ index_arg)
 end
 
-let format = Arg.(value (
-  let docv = "FORMAT" in
-  let doc  = "the formats of documentation to generate" in
-  let formats = enum [
-    "text/html", Format.Html; "html", Format.Html;
-    (*"application/xml", Format.Xml; "xml", Format.Xml;*)
-  ] in
-  opt (list formats) [Format.Html] & info ["t";"type"] ~docv ~doc
-))
+type path = [
+| `File of string
+| `Dir of string
+| `Missing of string
+]
+
+let rec to_path path = Unix.(
+  try match (stat path).st_kind with
+  | S_DIR -> `Ok (`Dir path)
+  | S_REG -> `Ok (`File path)
+  | S_LNK | S_CHR | S_BLK | S_FIFO | S_SOCK ->
+    `Error (false, "unsupported file type")
+  with
+  | Unix_error (ENOENT,_,_) -> `Ok (`Missing path)
+  | Unix_error (e,_,_) -> `Error (false, path^": "^(error_message e))
+)
+
+let path ~doc arg =
+  Arg.(ret_map to_path (required (
+    let docv = "PATH" in
+    arg (some string) None & info ~docv ~doc []
+  )))
+
+let path_opt ~doc names =
+  Arg.(ret_map (function
+  | None -> `Ok None
+  | Some x -> map_ret (fun x -> Some x) (to_path x)
+  ) (value (
+    let docv = "PATH" in
+    Arg.opt (some string) None & info ~docv ~doc names
+  )))
+
+let output = path_opt ~doc:"the output path" ["o"]
 
 let package = Arg.(value (
   let docv = "PACKAGE" in
@@ -64,3 +113,47 @@ let share_dir = Arg.(value (
   let doc  = "the shared resource directory" in
   opt dir CodocConfig.share_dir & info ~docv ~doc ["share"]
 ))
+
+module Error = struct
+  let source_missing path =
+    `Error (false, "source "^path^" does not exist")
+
+  let source_not_found dir =
+    `Error (false, "couldn't find source in directory "^dir)
+
+  let use_force path =
+    `Error (false, "destination "^path^" exists; use -f to overwrite")
+
+  let dir_to_file dir file =
+    `Error (false, "can't process directory "^dir^" into file "^file)
+
+  let index_to_file index file =
+    `Error (false, "can't process index "^index^" into file "^file)
+
+  let unknown_file_type path =
+    `Error (false, "don't know how to handle file "^path)
+
+  let not_an_interface path =
+    `Error (false, path^" is not an interface")
+
+  let wrong_version_interface path =
+    `Error (false, path^" has the wrong format version")
+
+  let corrupted_interface path =
+    `Error (false, path^" is corrupted")
+
+  let not_a_typedtree path =
+    `Error (false, path^" is not a typed tree")
+
+  let no_file_package =
+    `Error (false, "cannot use package when targeting a file")
+
+  let no_file_index =
+    `Error (false, "cannot use index when targeting a file")
+end
+
+let combine_errors errs = `Error
+  begin List.fold_left (fun (show_help,str) -> function
+  | `Error (err_help,err_str) -> (err_help || show_help, str ^ "\n" ^ err_str)
+  ) (false,"") errs
+  end

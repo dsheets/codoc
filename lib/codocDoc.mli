@@ -17,8 +17,20 @@
 
 type path = string
 
+type cmti_root = {
+  cmti_path : path;
+  unit_name : string;
+  unit_digest : Digest.t;
+}
+
+(* TODO: time? *)
+type resolution = {
+  resolution_root : string;
+}
+
 type root =
-| Cmti of path * string
+| Cmti of cmti_root
+| Resolved of resolution * root
 (* TODO: use signature identifier when doc-ock-xml supports it *)
 | Proj of (*root DocOckPaths.Identifier.signature*) string * root
 | Xml of path * root
@@ -29,6 +41,8 @@ module Root : sig
 
   val to_source : t -> t
   val to_path : t -> path
+  val equal : t -> t -> bool
+  val hash : t -> int
 end
 
 module Maps : CodocDocMaps.ROOTED_MAPS with type root = Root.t

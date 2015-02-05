@@ -1,6 +1,10 @@
 open Assemblage
 
-let version = "0.1.0"
+let version = "0.2.0"
+
+let warnings = ["-w";"@f@p@u@y"]
+let flags =
+  Flags.(v (`Compile `Byte) warnings @@@ v (`Compile `Native) warnings)
 
 let stringext = pkg "stringext"
 
@@ -9,19 +13,15 @@ let uri = pkg "uri"
 let doc_ock_lib = pkg "doc-ock-lib"
 let doc_ock_xml = pkg "doc-ock-xml"
 
+let xmlm = pkg "xmlm"
+
 let cow_pp = pkg_pp "cow.syntax"
 let cow = pkg "cow"
 
 let cmdliner = pkg "cmdliner"
-let webmaster_cli = pkg "webmaster.cli"
-let webmaster = pkg "webmaster"
 
 let library = `Path ["lib"]
 let cli = `Path ["cli"]
-
-let codoc_util = unit "codocUtil" ~deps:[
-  stringext;
-] library
 
 let codoc_html = unit "codocHtml" ~deps:[
   cow_pp;
@@ -39,12 +39,24 @@ let codoc_doc = unit "codocDoc" ~deps:[
   codoc_doc_maps;
 ] library
 
+let codoc_util = unit "codocUtil" ~deps:[
+  stringext;
+  doc_ock_lib;
+  codoc_doc;
+] library
+
 let codoc_doc_html = unit "codocDocHtml" ~deps:[
   doc_ock_lib;
   cow_pp;
   cow;
   codoc_doc;
   codoc_html;
+] library
+
+let codoc_xml = unit "codocXml" ~deps:[
+  xmlm;
+  doc_ock_xml;
+  codoc_doc;
 ] library
 
 let codoc_index = unit "codocIndex" ~deps:[
@@ -59,40 +71,88 @@ let codoc_index_html = unit "codocIndexHtml" ~deps:[
   codoc_html;
 ] library
 
-let codoc = lib "codoc" (`Units [
+let codoc_env = unit "codocEnvironment" ~deps:[
+  doc_ock_xml;
+  codoc_doc;
+] library
+
+let codoc = lib ~flags "codoc" (`Units [
+  codoc_html;
+  codoc_doc_maps;
+  codoc_doc;
+  codoc_util;
+  codoc_doc_html;
+  codoc_xml;
   codoc_index;
   codoc_index_html;
-  codoc_doc;
-  codoc_doc_html;
+  codoc_env;
 ])
 
 let codoc_config = unit "codocConfig" ~deps:[] cli
 
+let codoc_sys_util = unit "codocSysUtil" ~deps:[
+  xmlm;
+] cli
+
 let codoc_cli = unit "codocCli" ~deps:[
   uri;
   cmdliner;
-  webmaster_cli;
   codoc_config;
+] cli
+
+let codoc_cli_extract = unit "codocCliExtract" ~deps:[
+  codoc;
+  codoc_sys_util;
+  codoc_cli;
+  doc_ock_lib;
+  doc_ock_xml;
+] cli
+
+let codoc_cli_link = unit "codocCliLink" ~deps:[
+  xmlm;
+  codoc;
+  codoc_sys_util;
+  codoc_cli;
+  doc_ock_lib;
+  doc_ock_xml;
+] cli
+
+let codoc_cli_html = unit "codocCliHtml" ~deps:[
+  xmlm;
+  cow_pp;
+  cow;
+  codoc;
+  codoc_sys_util;
+  codoc_cli;
 ] cli
 
 let codoc_cli_doc = unit "codocCliDoc" ~deps:[
   cow_pp;
   cow;
-  webmaster_cli;
-  webmaster;
   doc_ock_lib;
   doc_ock_xml;
   codoc;
+  codoc_cli_extract;
+  codoc_cli_link;
+  codoc_cli_html;
 ] cli
 
 let codoc_cmd = unit "codocMain" ~deps:[
   cmdliner;
-  webmaster_cli;
+  codoc_cli;
+  codoc_cli_extract;
+  codoc_cli_link;
+  codoc_cli_html;
   codoc_cli_doc;
 ] cli
 
-let bin = bin "codoc" (`Units [
-  codoc_cli; codoc_cli_doc; codoc_cmd;
+let bin = bin ~flags "codoc" (`Units [
+  codoc_cli;
+  codoc_cli_extract;
+  codoc_cli_link;
+  codoc_cli_html;
+  codoc_cli_doc;
+  codoc_cmd;
 ])
 
 ;;

@@ -15,17 +15,18 @@
  *
  *)
 
-let unit_name_of_path path =
-  let file = Filename.basename path in
-  let file = String.(sub file 0 (index file '.')) in
-  let first = String.sub file 0 1 in
-  let rest = String.(sub file 1 (length file - 1)) in
-  String.iteri (fun i -> function
-  | '-' -> Bytes.set rest i '_'
-  | _ -> ()) rest;
-  let name = String.uppercase first ^ rest in
-  name
+let root_of_unit ({ DocOckTypes.Unit.id = unit_id }) =
+  let unit_sig_id = DocOckPaths.Identifier.signature_of_module unit_id in
+  CodocDoc.Maps.root_of_ident_signature unit_sig_id
 
 let rec ascent_of_depth tl = function
   | 0 -> tl
   | n -> ascent_of_depth ("../" ^ tl) (n - 1)
+
+let depth path =
+  max 0 (List.length (Stringext.split path ~on:'/') - 1)
+
+let rel_of_path depth path =
+  if path <> "" && path.[0] = '/'
+  then path
+  else (ascent_of_depth "" depth) ^ path

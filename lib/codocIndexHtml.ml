@@ -28,20 +28,25 @@ let rec link_pkg_pieces ~normal_uri href = function
 
 let root_name = "~"
 
+let of_xml_location file l c =
+  (* TODO: link *)
+  <:html<
+  <strong>$str:file$</strong>:<strong>$int:l$</strong>:<strong>$int:c$</strong>
+  >>
+
 let of_issue = CodocIndex.(function
   | Module_resolution_failed mod_name ->
     <:html<<li>Module <strong>$str:mod_name$</strong> not found</li>&>>
-  | Xml_error (xml_file,msg) ->
-    <:html<
-    <li>XML error parsing <strong>$str:xml_file$</strong>: $str:msg$</li>
-    >>
+  | Xml_error (xml_file,(l,c),msg) ->
+    let xml_loc = of_xml_location xml_file l c in
+    <:html<<li>XML error parsing $xml_loc$: $str:msg$</li>&>>
 )
 
 let sort_issues = List.sort CodocIndex.(fun a b -> match a,b with
   | Module_resolution_failed x, Module_resolution_failed y -> compare x y
-  | Xml_error (xml_file,msg), Xml_error (xml_file',msg') ->
-    compare (xml_file,msg) (xml_file',msg')
-  | Xml_error (_,_), _ | _, Xml_error (_,_) -> -1
+  | Xml_error (xml_file,pos,msg), Xml_error (xml_file',pos',msg') ->
+    compare (xml_file,pos,msg) (xml_file',pos',msg')
+  | Xml_error (_,_,_), _ | _, Xml_error (_,_,_) -> -1
 )
 
 let of_package ~name ~index ~normal_uri ~uri_of_path =
