@@ -95,6 +95,8 @@ module Dir = struct
     List.fold_left (fun err_opt path ->
       match err_opt with None -> make_exist ~perm path | Some err -> Some err
     ) None
+
+  let name path = match Filename.dirname path with "." -> "" | p -> p
 end
 
 let deduce_file_type path =
