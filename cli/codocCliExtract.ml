@@ -123,6 +123,7 @@ let run_dir ~force ?index in_dir out_dir package =
       | `Error err -> (units, (`Error err)::errs)
     ) ([],[]) cmtis with
       | _, ((_::_) as errs) -> CodocCli.combine_errors errs
+      | [], [] -> `Ok (`Dir out_dir)
       | units, [] -> match index with
         | None -> `Ok (`Dir out_dir)
         | Some rel_index ->
