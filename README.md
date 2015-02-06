@@ -5,11 +5,48 @@
   workflow. **codoc** requires **OCaml** `4.02.1+doc` switch from the
   [OCaml Platform development repository](https://github.com/ocaml/platform-dev).
 
-If you'd like to generate cross-referenced documentation for all
-packages on an opam switch, see the [**opam doc** Script](#an-opam-doc-script)
-section of this README.
-
 ## Quick Start
+
+You first need to set-up an Opam switch with the right environment. We
+are working on making our tools and patches properly integrated
+upstream, so in the future these steps won't be necessary anymore.
+
+````sh
+opam repo add platform-dev https://github.com/ocaml/platform-dev -k git
+export OPAMKEEPBUILDDIR=1
+unset OCAMLPARAM
+opam switch doc -A 4.02.1+doc # Switch into an empty `4.02.1+doc` switch
+export OCAMLPARAM=_,doc=1,w=-50,bin-annot=1
+eval `opam config env`
+opam pin add cow https://github.com/mirage/ocaml-cow.git -n
+opam pin edit cow
+  <replace the "1.1.0" version by "1.2.0" and save the file>
+opam pin add codoc https://github.com/dsheets/codoc.git#release-0.2.0 -y
+```
+
+Once this is done, you can install your Opam packages as usual.
+
+```sh
+opam install ... # Install your package set.
+```
+
+**codoc** supplies an **opam doc** script to generate cross-referenced
+  documentation for all packages on an opam switch.  This script uses
+  **codoc**'s scriptable CLI and and also offers an easy-to-use
+  **--serve** option for immediately starting a web server for your
+  opam installation's documentation. Using **opam doc** is as easy as:
+
+```sh
+opam doc --serve my-opam-docs/
+```
+
+It is important for `--serve` to come first in this command. This issue
+is [tracked](https://github.com/dsheets/codoc/issues/46).
+
+The HTML documentation will be automatically build and installed in
+`my-opam-doc/` by **opam doc**.
+
+## The **codoc** tool
 
 To generate HTML documentation from a build directory, simply run:
 
@@ -49,29 +86,6 @@ and `--share`. It does not yet support `--package`, though, [support
 is planned](https://github.com/dsheets/codoc/issues/42). Of these,
 `--scheme file` is the most useful for browsing documentation in a web
 browser directly off of the disk.
-
-## An `opam doc` Script
-
-Before using `opam doc`:
-
-1. `export OPAMKEEPBUILDDIR=true`
-2. Switch into an empty `4.02.01+doc` switch with `opam switch
-4.02.1+doc` or `opam switch 4.02.1+doc -A doc`.
-3. `export OCAMLPARAM=_,doc=1,w=-50,bin-annot=1`
-4. Install your package set.
-
-**codoc** supplies an `opam doc` script as well as the stand-alone
-  **codoc** tool. This script uses **codoc**'s scriptable CLI and and
-  also offers an easy-to-use `--serve` option for immediately starting
-  a web server for your opam installation's documentation. Using `opam doc`
-  is as easy as:
-
-```sh
-opam doc --serve my-opam-docs/
-```
-
-It is important for `--serve` to come first in this command. This issue
-is [tracked](https://github.com/dsheets/codoc/issues/46).
 
 ## Interfaces
 
