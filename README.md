@@ -54,7 +54,7 @@ browser directly off of the disk.
 
 Before using `opam doc`:
 
-1. `export OPAMKEEPBUILDIR=1`
+1. `export OPAMKEEPBUILDDIR=true`
 2. Switch into an empty `4.02.01+doc` switch with `opam switch
 4.02.1+doc` or `opam switch 4.02.1+doc -A doc`.
 3. `export OCAMLPARAM=_,doc=1,w=-50,bin-annot=1`
