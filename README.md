@@ -9,18 +9,15 @@
 
 You first need to set-up an Opam switch with the right environment. We
 are working on making our tools and patches properly integrated
-upstream, so in the future these steps won't be necessary anymore.
+upstream, so in the future these steps won't be necessary.
 
-````sh
+```sh
 opam repo add platform-dev https://github.com/ocaml/platform-dev -k git
 export OPAMKEEPBUILDDIR=1
 unset OCAMLPARAM
 opam switch doc -A 4.02.1+doc # Switch into an empty `4.02.1+doc` switch
 export OCAMLPARAM=_,doc=1,w=-50,bin-annot=1
 eval `opam config env`
-opam pin add cow https://github.com/mirage/ocaml-cow.git -n
-opam pin edit cow
-  <replace the "1.1.0" version by "1.2.0" and save the file>
 opam pin add codoc https://github.com/dsheets/codoc.git#release-0.2.0 -y
 ```
 
@@ -33,7 +30,7 @@ opam install ... # Install your package set.
 **codoc** supplies an **opam doc** script to generate cross-referenced
   documentation for all packages on an opam switch.  This script uses
   **codoc**'s scriptable CLI and and also offers an easy-to-use
-  **--serve** option for immediately starting a web server for your
+  `--serve` option for immediately starting a web server for your
   opam installation's documentation. Using **opam doc** is as easy as:
 
 ```sh
@@ -43,12 +40,13 @@ opam doc --serve my-opam-docs/
 It is important for `--serve` to come first in this command. This issue
 is [tracked](https://github.com/dsheets/codoc/issues/46).
 
-The HTML documentation will be automatically build and installed in
-`my-opam-doc/` by **opam doc**.
+The HTML documentation for all packages on the current switch will be
+created in `my-opam-doc/` by **opam doc**.
 
 ## The **codoc** tool
 
-To generate HTML documentation from a build directory, simply run:
+To generate HTML documentation from a build directory containing files
+compiled with **OCaml** `4.02.1+doc`, simply run:
 
 ```sh
 codoc doc [CMTI_DIR] -o [OUTPUT_DIR]
