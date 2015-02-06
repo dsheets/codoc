@@ -7,7 +7,7 @@
 
 ## Quick Start
 
-You first need to set-up an Opam switch with the right environment. We
+You first need to set-up an opam switch with the right environment. We
 are working on making our tools and patches properly integrated
 upstream, so in the future these steps won't be necessary.
 
@@ -21,7 +21,7 @@ eval `opam config env`
 opam pin add codoc https://github.com/dsheets/codoc.git#release-0.2.0 -y
 ```
 
-Once this is done, you can install your Opam packages as usual.
+Once this is done, you can install your opam packages as usual.
 
 ```sh
 opam install ... # Install your package set.
@@ -43,7 +43,7 @@ is [tracked](https://github.com/dsheets/codoc/issues/46).
 The HTML documentation for all packages on the current switch will be
 created in `my-opam-doc/` by **opam doc**.
 
-## The **codoc** tool
+## The `codoc` Tool
 
 To generate HTML documentation from a build directory containing files
 compiled with **OCaml** `4.02.1+doc`, simply run:
@@ -68,7 +68,7 @@ codoc doc [CMTI_DIR] -o [OUTPUT_DIR]
 `codoc doc` has some other options that are described below in the
   section about the `html` subcommand.
 
-## Scriptable Command-line
+## Scriptable Command Line
 
 The `doc` subcommand of **codoc** is actually a composition of 3
 different subcommands: `extract`, `link`, and `html`. Each of
