@@ -40,14 +40,20 @@ let extract_pkg_doc doc_build output pkg =
 
 let link_doc output = check_system ("codoc link --index -f "^output)
 
-let render_doc output = check_system ("codoc html "^output^" --index -f")
+let render_doc output options =
+  check_system ("codoc html "^output^" "^options)
 
 let build_attempted = ref false
 let build_doc output =
   build_attempted := true;
   let doc_build = opam_root / switch / "build" in
+  let options = if !serve_flag
+    then "--index -f --scheme http"
+    else "--index -f --scheme file"
+  in
   match Unix.system
-    ("codoc doc -f --package ocaml."^compiler^" "^doc_build^"/ocaml -o "^output)
+    ("codoc doc "^options^" --package ocaml."^compiler^" "
+     ^doc_build^"/ocaml -o "^output)
   with
   | Unix.WSIGNALED _ -> failwith "building ocaml's docs was killed by signal"
   | Unix.WSTOPPED _ -> failwith "building ocaml's docs was stopped by signal"
@@ -62,13 +68,18 @@ let build_doc output =
     print_endline "\nExtraction complete. Linking...";
     link_doc output;
     print_endline "\nLinking complete. Rendering...";
-    render_doc output;
+    render_doc output options;
     if !serve_flag then begin
       Unix.chdir output;
       print_endline
         "\nStarting web server for documentation at http://localhost:8080/";
       Unix.execvp webserver [|webserver|]
     end
+    else
+      if output.[0] = '/'
+      then print_endline ("\nDone. file://"^output)
+      else print_endline
+        ("\nDone. file://"^((Unix.getcwd ()) / output / "index.html"))
   | Unix.WEXITED k ->
     failwith ("building ocaml's docs exited with "^(string_of_int k))
 
