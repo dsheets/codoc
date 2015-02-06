@@ -67,8 +67,11 @@ Before using `opam doc`:
   is as easy as:
 
 ```sh
-opam doc my-opam-docs/ --serve
+opam doc --serve my-opam-docs/
 ```
+
+It is important for `--serve` to come first in this command. This issue
+is [tracked](https://github.com/dsheets/codoc/issues/46).
 
 ## Interfaces
 
