@@ -6,8 +6,7 @@
   [OCaml Platform development repository](https://github.com/ocaml/platform-dev).
 
 If you'd like to generate cross-referenced documentation for all
-packages on an opam switch, see the [**opam doc**
-Script](https://github.com/dsheets/codoc/tree/release-0.2.0#an-opam-doc-script)
+packages on an opam switch, see the [**opam doc** Script](#an-opam-doc-script)
 section of this README.
 
 ## Quick Start
