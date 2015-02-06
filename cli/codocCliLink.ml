@@ -37,28 +37,27 @@ let inspect env in_file =
   )
 
 (* a bit boring... we don't have any collection of sources for linking *)
-let link_file ~force ?index in_file out_file package =
+let link_file ~force ~index in_file out_file package =
   if package = ""
-  then match index with
-  | Some _ -> Error.no_file_index
-  | None ->
-    if not force && Sys.file_exists out_file
-    then Error.use_force out_file
-    else begin
-      let out_dir = Filename.dirname out_file in
-      (* here, we rely on umask to set the perms correctly *)
-      match Dir.make_exist ~perm:0o777 out_dir with
-      | Some err -> err
-      | None ->
-        (* TODO: rewrite root *)
-        CodocSysUtil.copy in_file out_file;
-        `Ok ()
-    end
+  then if index then Error.no_file_index
+    else
+      if not force && Sys.file_exists out_file
+      then Error.use_force out_file
+      else begin
+        let out_dir = Filename.dirname out_file in
+        (* here, we rely on umask to set the perms correctly *)
+        match Dir.make_exist ~perm:0o777 out_dir with
+        | Some err -> err
+        | None ->
+          (* TODO: rewrite root *)
+          CodocSysUtil.copy in_file out_file;
+          `Ok ()
+      end
   else Error.no_file_package
 
 (* TODO: should read from out_dir's indexes *)
-let link_package ~force ?index in_dir rel_file out_dir package =
-  link_file ~force ?index (in_dir / rel_file) (out_dir / package / rel_file) ""
+let link_package ~force ~index in_dir rel_file out_dir package =
+  link_file ~force ~index (in_dir / rel_file) (out_dir / package / rel_file) ""
 
 let check_create_safe ~force index out_dir = CodocIndex.(
   fold_down_units
@@ -76,7 +75,7 @@ let check_create_safe ~force index out_dir = CodocIndex.(
 )
 
 (* TODO: should read from out_dir's indexes *)
-let run_index ~force ?index in_index out_dir package =
+let run_index ~force ~index in_index out_dir package =
   let index_root = Filename.dirname in_index in
   let idx = CodocIndex.read index_root (Filename.basename in_index) in
   let env = CodocEnvironment.create idx in
@@ -127,9 +126,7 @@ let run_index ~force ?index in_index out_dir package =
       ) units;
       let errs = List.fold_left
         (fun errs (path, _unit_opt, src_index, gunit, issues) ->
-          match index with
-          | Some _ ->
-            (* TODO: should use rel_index *)
+          if index then
             let in_index = read_cache pkg_index src_index in
             let out_index = read_cache
               { in_index with root = out_dir } src_index
@@ -138,13 +135,10 @@ let run_index ~force ?index in_index out_dir package =
             let index = add_packages in_index index in
             write_cache index;
             errs
-          | None -> (List.map (error_of_issue path) issues)@errs
+          else (List.map (error_of_issue path) issues)@errs
         ) [] units
       in
-      (match index with
-      | Some _ -> flush_cache pkg_index
-      | None -> ()
-      );
+      (if index then flush_cache pkg_index);
       match errs with
       | [] -> `Ok ()
       | errs ->
@@ -158,18 +152,18 @@ let run ({ CodocCli.Common.force; index }) output path package =
     | Interface -> `Ok () (* TODO: do something? rewrite root? *)
     | Index ->
       let out_dir = Filename.dirname in_file in
-      run_index ~force ?index in_file out_dir package
+      run_index ~force ~index in_file out_dir package
   end
   | `File in_file, Some (`Missing out_file) ->
     begin match CodocSysUtil.deduce_file_type in_file with
     | Unknown -> Error.unknown_file_type in_file
-    | Interface -> link_file ~force ?index in_file out_file package
-    | Index -> run_index ~force ?index in_file out_file package
+    | Interface -> link_file ~force ~index in_file out_file package
+    | Index -> run_index ~force ~index in_file out_file package
     end
   | `File in_file, Some (`File out_file) ->
     begin match CodocSysUtil.deduce_file_type in_file with
     | Unknown -> Error.unknown_file_type in_file
-    | Interface -> link_file ~force ?index in_file out_file package
+    | Interface -> link_file ~force ~index in_file out_file package
     | Index -> Error.index_to_file in_file out_file
     end
   | `File in_file, Some (`Dir out_dir) ->
@@ -179,35 +173,35 @@ let run ({ CodocCli.Common.force; index }) output path package =
       if package = ""
       then
         let basename = Filename.basename in_file in
-        link_file ~force ?index in_file (out_dir / basename) package
+        link_file ~force ~index in_file (out_dir / basename) package
       else
         let in_dir = Filename.dirname in_file in
         let rel_file = Filename.basename in_file in
-        link_package ~force ?index in_dir rel_file out_dir package
-    | Index -> run_index ~force ?index in_file out_dir package
+        link_package ~force ~index in_dir rel_file out_dir package
+    | Index -> run_index ~force ~index in_file out_dir package
     end
   | `Dir in_dir, None ->
-    begin match CodocSysUtil.search_for_source in_dir index with
+    begin match CodocSysUtil.search_for_source in_dir with
     | None -> Error.source_not_found in_dir
     | Some (source, Unknown) -> Error.unknown_file_type source
     | Some (source, Interface) -> `Ok () (* TODO: do something? rewrite root? *)
-    | Some (source, Index) -> run_index ~force ?index source in_dir package
+    | Some (source, Index) -> run_index ~force ~index source in_dir package
     end
   | `Dir in_dir, Some (`Missing out_dir | `Dir out_dir) ->
-    begin match CodocSysUtil.search_for_source in_dir index with
+    begin match CodocSysUtil.search_for_source in_dir with
     | None -> Error.source_not_found in_dir
     | Some (source, Unknown) -> Error.unknown_file_type source
     | Some (source, Interface) ->
       let file_name = Filename.basename source in
       (* TODO: package case could have meaning? *)
-      link_file ~force ?index source (out_dir / file_name) package
-    | Some (source, Index) -> run_index ~force ?index source out_dir package
+      link_file ~force ~index source (out_dir / file_name) package
+    | Some (source, Index) -> run_index ~force ~index source out_dir package
     end
   | `Dir in_dir, Some (`File out_file) ->
-    begin match CodocSysUtil.search_for_source in_dir index with
+    begin match CodocSysUtil.search_for_source in_dir with
     | None -> Error.source_not_found in_dir
     | Some (source, Unknown) -> Error.unknown_file_type source
     | Some (source, Interface) ->
-      link_file ~force ?index source out_file package
+      link_file ~force ~index source out_file package
     | Some (source, Index) -> Error.index_to_file source out_file
     end

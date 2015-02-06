@@ -16,10 +16,7 @@
  *)
 
 let generate common output path pkg scheme css share =
-  let common = CodocCli.Common.(match common.index with
-    | Some _ -> common
-    | None -> { common with index = Some CodocConfig.rel_index_xml }
-  ) in
+  let common = { common with CodocCli.Common.index = true } in
   let extract_ret = CodocCliExtract.run common output path pkg in
   match extract_ret with
   | `Error _ as err ->

@@ -121,11 +121,4 @@ let find_index_source in_dir rel_index =
 (* TODO: How related to CodocConfig? *)
 let default_index = "index.xml"
 
-let search_for_source in_dir index_opt =
-  match index_opt with
-  | Some rel_index when rel_index <> default_index ->
-    begin match find_index_source in_dir rel_index with
-    | None -> find_index_source in_dir default_index
-    | x -> x
-    end
-  | Some _ | None -> find_index_source in_dir default_index
+let search_for_source in_dir = find_index_source in_dir default_index

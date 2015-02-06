@@ -28,10 +28,11 @@ let global_option_section = "COMMON OPTIONS"
 module Common = struct
   type t = {
     force : bool;
-    index : string option;
+    index : bool;
   }
 
-  let create force index = { force; index; }
+  let create_t force index = { force; index; }
+  let create ~force ~index = create_t force index
 
   let force_arg = Arg.(value (
     let docv = "FORCE" in
@@ -44,11 +45,10 @@ module Common = struct
     let doc =
       "whether to update indexes and the relative path of the index file"
     in
-    opt ~vopt:(Some CodocConfig.rel_index_xml) (some string) None
-    & info ~docs:global_option_section ~docv ~doc ["index"]
+    flag & info ~docs:global_option_section ~docv ~doc ["index"]
   ))
 
-  let term = Term.(pure create $ force_arg $ index_arg)
+  let term = Term.(pure create_t $ force_arg $ index_arg)
 end
 
 type path = [

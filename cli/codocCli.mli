@@ -22,10 +22,10 @@ val map_ret :
   [> `Ok of 'b | `Error of bool * string ]
 
 module Common : sig
-  type t = { force : bool; index : string option; }
-  val create : bool -> string option -> t
+  type t = { force : bool; index : bool; }
+  val create : force:bool -> index:bool -> t
   val force_arg : bool Cmdliner.Term.t
-  val index_arg : string option Cmdliner.Term.t
+  val index_arg : bool Cmdliner.Term.t
   val term : t Cmdliner.Term.t
 end
 

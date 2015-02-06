@@ -71,13 +71,9 @@ codoc doc [CMTI_DIR] -o [OUTPUT_DIR]
 ## Scriptable Command Line
 
 The `doc` subcommand of **codoc** is actually a composition of 3
-different subcommands: `extract`, `link`, and `html`. Each of
-these commands can take the `-f` and `--index` arguments.
-
-Documentation indexes can be generated with the `--index`
-flag. `--index` can optionally take an argument but this is a bad idea
-and [will be removed](https://github.com/dsheets/codoc/issues/43) in the
-future. You should always put `--index` last on the command line.
+different subcommands: `extract`, `link`, and `html`. Each of these
+commands can take the `-f` and `--index` arguments. Documentation
+indexes can be generated with the `--index` flag.
 
 The `html` subcommand takes extra options, `--css`, `--scheme`,
 and `--share`. It does not yet support `--package`, though, [support

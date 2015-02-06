@@ -44,13 +44,13 @@ let exists_package dir package rel_file =
   let path = dir / package / rel_file in
   if Sys.file_exists path then Some path else None
 
-let extract ~force ?index cmti out_dir rel_xml =
+let extract ~force ~index cmti out_dir rel_xml =
   let xml = out_dir / rel_xml in
   if not force && Sys.file_exists xml
   then Error.use_force xml
   else
     let dirs = (Dir.name xml)::(
-      match index with None -> [] | Some rel_index -> [out_dir / rel_index]
+      if index then [out_dir / CodocConfig.rel_index_xml] else []
     ) in
     (* here, we rely on umask to set the perms correctly *)
     match Dir.make_dirs_exist ~perm:0o777 dirs with
@@ -83,25 +83,24 @@ let extract ~force ?index cmti out_dir rel_xml =
           mod_name; xml_file = rel_xml; html_file = None;
           issues = [];
         } in
-        match index with
-        | None -> `Ok unit
-        | Some rel_index ->
+        if not index then `Ok unit
+        else
           (* TODO: Use index caching? *)
           (* Creating *or* updating index so no need to check for force *)
           (* TODO: FIXME this can raise *)
-          let index = read out_dir rel_index in
+          let index = read out_dir CodocConfig.rel_index_xml in
           let units = StringMap.add mod_name unit index.units in
           let index = { index with units } in
           write index;
           `Ok unit
 
-let extract_package ~force ?index in_dir rel_cmti out_dir package =
+let extract_package ~force ~index in_dir rel_cmti out_dir package =
   let rel_dir = Dir.name rel_cmti in
   let xml_file = xml_index_of_cmti rel_cmti in
   let cmti = in_dir / rel_cmti in
-  extract ~force ?index cmti (out_dir / package) (rel_dir / xml_file)
+  extract ~force ~index cmti (out_dir / package) (rel_dir / xml_file)
 
-let run_dir ~force ?index in_dir out_dir package =
+let run_dir ~force ~index in_dir out_dir package =
   let cmtis = all_cmtis in_dir in
   match if force then [] else List.fold_left (fun errs rel_cmti ->
     let rel_dir = Dir.name rel_cmti in
@@ -114,23 +113,25 @@ let run_dir ~force ?index in_dir out_dir package =
     | [] -> match List.fold_left (fun (units,errs) rel_cmti ->
       let rel_dir = Dir.name rel_cmti in
       let xml_file = xml_index_of_cmti rel_cmti in
+      let index = false in
       match if package = ""
-        then extract ~force (in_dir / rel_cmti) out_dir (rel_dir / xml_file)
+        then
+          extract ~force ~index (in_dir / rel_cmti) out_dir (rel_dir / xml_file)
         else
-          extract_package ~force in_dir rel_cmti out_dir package
+          extract_package ~force ~index in_dir rel_cmti out_dir package
       with
       | `Ok unit -> (unit::units, errs)
       | `Error err -> (units, (`Error err)::errs)
     ) ([],[]) cmtis with
       | _, ((_::_) as errs) -> CodocCli.combine_errors errs
       | [], [] -> `Ok (`Dir out_dir)
-      | units, [] -> match index with
-        | None -> `Ok (`Dir out_dir)
-        | Some rel_index ->
+      | units, [] -> if not index then `Ok (`Dir out_dir)
+        else
           (* TODO: use index caching? *)
           let open CodocIndex in
           (* Creating *or* updating index so no need to check for force *)
           (* TODO: FIXME this can raise *)
+          let rel_index = CodocConfig.rel_index_xml in
           let (pkg_path, pkg_index), pkg_parents =
             traverse ~rel_index out_dir package
           in
@@ -142,12 +143,13 @@ let run_dir ~force ?index in_dir out_dir package =
           List.iter (fun (_name, index) -> write index) pkg_parents;
           `Ok (`Dir out_dir)
 
-let extract_file ~force ?index in_file out_dir xml_file package =
+let extract_file ~force ~index in_file out_dir xml_file package =
   if package = ""
-  then match index with
-  | Some _ -> Error.no_file_index
-  | None ->
-    CodocCli.map_ret (fun _ -> ()) (extract ~force in_file out_dir xml_file)
+  then if index
+    then Error.no_file_index
+    else
+      CodocCli.map_ret (fun _ -> ())
+        (extract ~force ~index in_file out_dir xml_file)
   else Error.no_file_package
 
 let run ({ CodocCli.Common.force; index }) output path package =
@@ -160,24 +162,24 @@ let run ({ CodocCli.Common.force; index }) output path package =
     let out_dir = Dir.name in_file in
     CodocCli.map_ret
       (fun () -> `File xml_file)
-      (extract_file ~force ?index in_file out_dir xml_file package)
+      (extract_file ~force ~index in_file out_dir xml_file package)
   | `File in_file, Some (`Missing out_file | `File out_file) ->
     (* simple doc gen *)
     let out_dir = Dir.name out_file in
     let rel_file = Filename.basename out_file in
     CodocCli.map_ret
       (fun () -> `File out_file)
-      (extract_file ~force ?index in_file out_dir rel_file package)
+      (extract_file ~force ~index in_file out_dir rel_file package)
   | `File in_file, Some (`Dir out_dir) ->
     if package = ""
     then CodocCli.map_ret (fun _ -> `Dir out_dir)
-      (extract ~force ?index in_file out_dir (xml_index_of_cmti in_file))
+      (extract ~force ~index in_file out_dir (xml_index_of_cmti in_file))
     else
       let in_dir = Dir.name in_file in
       let rel_file = Filename.basename in_file in
       CodocCli.map_ret (fun _ -> `Dir out_dir)
-        (extract_package ~force ?index in_dir rel_file out_dir package)
-  | `Dir in_dir, None -> run_dir ~force ?index in_dir in_dir package
+        (extract_package ~force ~index in_dir rel_file out_dir package)
+  | `Dir in_dir, None -> run_dir ~force ~index in_dir in_dir package
   | `Dir in_dir, Some (`Missing out_dir | `Dir out_dir) ->
-    run_dir ~force ?index in_dir out_dir package
+    run_dir ~force ~index in_dir out_dir package
   | `Dir in_dir, Some (`File out_file) -> Error.dir_to_file in_dir out_file

@@ -153,7 +153,7 @@ let check_create_safe ~force index out_dir = CodocIndex.(
     [] index
 )
 
-let render_dir ~force ?index in_index out_dir scheme css =
+let render_dir ~force ~index in_index out_dir scheme css =
   let root = Filename.dirname in_index in
   let path = Filename.basename in_index in
   let idx = CodocIndex.read root path in
@@ -173,22 +173,16 @@ let render_dir ~force ?index in_index out_dir scheme css =
       let css = CodocUtil.(ascent_of_depth css (depth html_path)) in
       let html_root = out_dir / html_path in
       let issues = render_interface ~pkg_root xml_file html_root scheme css in
-      match index with
-      | Some _ ->
-        (* TODO: should use rel_index *)
+      if index
+      then
         let out_index = read_cache { idx with root = out_dir } idx.path in
         let index = set_issues out_index gunit issues in
         let index = set_html_file index gunit (Some html_file) in
         write_cache index;
         idxs
-      | None -> print_issues xml_file issues; idxs
+      else (print_issues xml_file issues; idxs)
     in
-    let pkg_f rc idxs idx =
-      match index with
-      | None -> rc idxs
-      | Some _ ->
-        rc (idx::idxs)
-    in
+    let pkg_f rc idxs idx = if index then rc (idx::idxs) else rc idxs in
     (* TODO: errors? XML errors? *)
     let idxs = fold_down ~unit_f ~pkg_f [] idx in
     List.iter (fun idx ->
@@ -266,7 +260,7 @@ let run ({ CodocCli.Common.force; index }) output path scheme css share =
     let html_name = html_name_of (Filename.basename in_file) in
     render_file ~force in_file (out_dir / html_name) scheme css share
   | `Dir in_dir, None ->
-    begin match CodocSysUtil.search_for_source in_dir index with
+    begin match CodocSysUtil.search_for_source in_dir with
     | None -> Error.source_not_found in_dir
     | Some (source, Unknown) -> Error.unknown_file_type source
     | Some (source, Interface) ->
@@ -274,11 +268,11 @@ let run ({ CodocCli.Common.force; index }) output path scheme css share =
       let render_f = render_interface_ok ~force source html_name scheme in
       render_with_css ~force share in_dir render_f css
     | Some (source, Index) ->
-      let render_f = render_dir ~force ?index source in_dir scheme in
+      let render_f = render_dir ~force ~index source in_dir scheme in
       render_with_css ~force share in_dir render_f css
     end
   | `Dir in_dir, Some (`Missing out_dir | `Dir out_dir) ->
-    begin match CodocSysUtil.search_for_source in_dir index with
+    begin match CodocSysUtil.search_for_source in_dir with
     | None -> Error.source_not_found in_dir
     | Some (source, Unknown) -> Error.unknown_file_type source
     | Some (source, Interface) ->
@@ -286,11 +280,11 @@ let run ({ CodocCli.Common.force; index }) output path scheme css share =
       let render_f = render_interface_ok ~force source html_name scheme in
       render_with_css ~force share out_dir render_f css
     | Some (source, Index) ->
-      let render_f = render_dir ~force ?index source out_dir scheme in
+      let render_f = render_dir ~force ~index source out_dir scheme in
       render_with_css ~force share out_dir render_f css
     end
   | `Dir in_dir, Some (`File out_file) ->
-    begin match CodocSysUtil.search_for_source in_dir index with
+    begin match CodocSysUtil.search_for_source in_dir with
     | None -> Error.source_not_found in_dir
     | Some (source, Unknown) -> Error.unknown_file_type source
     | Some (source, Interface) ->
