@@ -44,6 +44,7 @@ let pathloc ~unit ~index ?pkg_root ~normal_uri =
 let self_uri = Uri.of_string ""
 
 let keyword text = <:html<<span class="keyword">$str:text$</span>&>>
+let rarr = <:html<<span class="rarr"><span>-&gt;</span></span>&>>
 
 let type_class = "type"
 let exn_class = "exn" (* exception *)
@@ -568,11 +569,11 @@ let rec of_type_expr ?(group=false) ~pathloc expr =
   | Arrow (label, (Arrow _ as t), t') ->
       (* Tuple binds more tightly *)
     let domain = of_labeled_type_expr ~group:true ~pathloc t label in
-    let html = <:html<$domain$ &rarr; $of_type_expr t'$>> in
+    let html = <:html<$domain$ $rarr$ $of_type_expr t'$>> in
     if group then <:html<($html$)>> else html
   | Arrow (label, t, t') ->
     let domain = of_labeled_type_expr ~pathloc t label in
-    let html = <:html<$domain$ &rarr; $of_type_expr t'$>> in
+    let html = <:html<$domain$ $rarr$ $of_type_expr t'$>> in
     if group then <:html<($html$)>> else html
   | Tuple []       -> <:html<()>>
   | Tuple (e::els) ->
@@ -707,7 +708,7 @@ let args_of_constructor ~pathloc args res =
     let a = of_type_expr ~group:true a in
     let args = List.map (of_type_expr ~group:true) args in
     let arghtml = CodocHtml.fold_html_str " * " a args in
-    <:html< : $arghtml$ &rarr; $of_type_expr rt$>>
+    <:html< : $arghtml$ $rarr$ $of_type_expr rt$>>
 
 let of_constructor ~pathloc { TypeDecl.Constructor.id; doc; args; res } =
   let id   = Identifier.any id in
@@ -935,7 +936,7 @@ let rec of_class_decl ~pathloc = Class.(function
   | Arrow (label, type_, decl) ->
     <:html<
     $of_labeled_type_expr ~pathloc type_ label$
-    &rarr;
+    $rarr$
     $of_class_decl ~pathloc decl$
     >>
 )
@@ -1055,12 +1056,12 @@ and rhs_rest_of_sig ~pathloc = ModuleType.(function
     >>
   | Functor (None, expr) -> (* TODO: test *)
     let rhs, rest = rhs_rest_of_sig ~pathloc expr in
-    <:html<$keyword "functor"$ () &rarr; $rhs$>>, rest
+    <:html<$keyword "functor"$ () $rarr$ $rhs$>>, rest
   | Functor (Some (arg_ident, arg_sig), expr) ->
     let rhs_sig, rest_sig = rhs_rest_of_sig ~pathloc arg_sig in
     let rhs, rest = rhs_rest_of_sig ~pathloc expr in
     let arg = Identifier.name (Identifier.any arg_ident) in (* TODO: more? *)
-    <:html<$keyword "functor"$ ($str:arg$ : $rhs_sig$$rest_sig$) &rarr; $rhs$>>,
+    <:html<$keyword "functor"$ ($str:arg$ : $rhs_sig$$rest_sig$) $rarr$ $rhs$>>,
     rest
   | With (With (expr, subs), subs') ->
     rhs_rest_of_sig ~pathloc (With (expr, subs @ subs'))
