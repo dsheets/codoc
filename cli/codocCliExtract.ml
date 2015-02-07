@@ -27,7 +27,6 @@ let cmti_path path output = CodocUtil.(rel_of_path (depth output) path)
 let only_cmti file path =
   if Filename.check_suffix file ".cmti"
   then begin
-    Printf.eprintf "%s\n%!" (path / file);
     true
   end
   else false
@@ -102,6 +101,9 @@ let extract_package ~force ~index in_dir rel_cmti out_dir package =
 
 let run_dir ~force ~index in_dir out_dir package =
   let cmtis = all_cmtis in_dir in
+  let cmti_count = List.length cmtis in
+  Printf.printf
+    "%4d cmti under %s\n" cmti_count in_dir;
   match if force then [] else List.fold_left (fun errs rel_cmti ->
     let rel_dir = Dir.name rel_cmti in
     let xml_file = xml_index_of_cmti rel_cmti in
