@@ -17,6 +17,8 @@
 
 val global_option_section : string
 
+val help_sections : Cmdliner.Manpage.block list
+
 val map_ret :
   ('a -> 'b) -> [< `Ok of 'a | `Error of bool * string ] ->
   [> `Ok of 'b | `Error of bool * string ]

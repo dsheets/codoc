@@ -37,9 +37,6 @@ opam install ... # Install your package set.
 opam doc --serve my-opam-docs/
 ```
 
-It is important for `--serve` to come first in this command. This issue
-is [tracked](https://github.com/dsheets/codoc/issues/46).
-
 The HTML documentation for all packages on the current switch will be
 created in `my-opam-doc/` by **opam doc**.
 

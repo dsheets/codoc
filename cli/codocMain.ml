@@ -18,15 +18,7 @@
 open Cmdliner
 open CodocCli
 
-let help_sections = [
-  `S global_option_section;
-  `P "These options are common to all commands.";
-  `S "AUTHORS";
-  `P "David Sheets <sheets@alum.mit.edu>";
-  `S "BUGS";
-  `P "Browse and report new issues at"; `Noblank;
-  `P "<https://github.com/dsheets/codoc/issues>.";
-]
+let version = CodocConfig.version
 
 let css_doc = "the URI reference of the CSS files to use"
 
@@ -100,7 +92,7 @@ let default_cmd =
   in
   let no_cmd_err _ = `Error (true, "No command specified.") in
   Term.(ret (pure no_cmd_err $ Common.term),
-        info exec_name ~version:"0.2.0" ~sdocs:global_option_section
+        info exec_name ~version ~sdocs:global_option_section
           ~doc ~man)
 
 ;;

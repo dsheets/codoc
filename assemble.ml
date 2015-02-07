@@ -6,6 +6,8 @@ let warnings = ["-w";"@f@p@u@y"]
 let flags =
   Flags.(v (`Compile `Byte) warnings @@@ v (`Compile `Native) warnings)
 
+let unix = pkg "unix"
+
 let stringext = pkg "stringext"
 
 let uri = pkg "uri"
@@ -22,6 +24,7 @@ let cmdliner = pkg "cmdliner"
 
 let library = `Path ["lib"]
 let cli = `Path ["cli"]
+let opam = `Path ["opam-doc"]
 
 let codoc_html = unit "codocHtml" ~deps:[
   cow_pp;
@@ -100,10 +103,14 @@ let codoc_cli = unit "codocCli" ~deps:[
   codoc_config;
 ] cli
 
+let cli_lib = lib ~flags "codoc.cli" (`Units [
+  codoc_cli;
+])
+
 let codoc_cli_extract = unit "codocCliExtract" ~deps:[
   codoc;
+  cli_lib;
   codoc_sys_util;
-  codoc_cli;
   doc_ock_lib;
   doc_ock_xml;
 ] cli
@@ -111,8 +118,8 @@ let codoc_cli_extract = unit "codocCliExtract" ~deps:[
 let codoc_cli_link = unit "codocCliLink" ~deps:[
   xmlm;
   codoc;
+  cli_lib;
   codoc_sys_util;
-  codoc_cli;
   doc_ock_lib;
   doc_ock_xml;
 ] cli
@@ -122,8 +129,8 @@ let codoc_cli_html = unit "codocCliHtml" ~deps:[
   cow_pp;
   cow;
   codoc;
+  cli_lib;
   codoc_sys_util;
-  codoc_cli;
 ] cli
 
 let codoc_cli_doc = unit "codocCliDoc" ~deps:[
@@ -139,15 +146,14 @@ let codoc_cli_doc = unit "codocCliDoc" ~deps:[
 
 let codoc_cmd = unit "codocMain" ~deps:[
   cmdliner;
-  codoc_cli;
+  cli_lib;
   codoc_cli_extract;
   codoc_cli_link;
   codoc_cli_html;
   codoc_cli_doc;
 ] cli
 
-let bin = bin ~flags "codoc" (`Units [
-  codoc_cli;
+let codoc_bin = bin ~flags "codoc" (`Units [
   codoc_cli_extract;
   codoc_cli_link;
   codoc_cli_html;
@@ -155,9 +161,21 @@ let bin = bin ~flags "codoc" (`Units [
   codoc_cmd;
 ])
 
+let opam_doc = unit "opamDoc" ~deps:[
+  unix;
+  cmdliner;
+  cli_lib;
+  codoc_config;
+] opam
+
+let opamdoc = bin ~flags "opam-doc" (`Units [
+  opam_doc;
+])
+
 ;;
 
 assemble (project ~version "codoc" [
   codoc;
-  bin;
+  codoc_bin;
+  opamdoc;
 ])

@@ -25,6 +25,16 @@ let map_ret f = function
 
 let global_option_section = "COMMON OPTIONS"
 
+let help_sections = [
+  `S global_option_section;
+  `P "These options are common to all commands.";
+  `S "AUTHORS";
+  `P "David Sheets <sheets@alum.mit.edu>";
+  `S "BUGS";
+  `P "Browse and report new issues at"; `Noblank;
+  `P "<https://github.com/dsheets/codoc/issues>.";
+]
+
 module Common = struct
   type t = {
     force : bool;
