@@ -29,7 +29,6 @@ let html_name_of path =
    with Not_found -> path
   )^ ".html"
 
-(* TODO: use CodocConfig.rel_index_html? *)
 let uri_of_path ~scheme path =
   Uri.of_string begin
     if scheme <> "file" && Filename.check_suffix path "/index.html"
@@ -37,7 +36,6 @@ let uri_of_path ~scheme path =
     else path
   end
 
-(* TODO: use CodocConfig.rel_index_html? *)
 let normal_uri ~scheme uri =
   if scheme <> "file"
   then uri
