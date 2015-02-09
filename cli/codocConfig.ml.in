@@ -1,3 +1,4 @@
+let version = "0.2.0"
 let share_dir = "share"
 let rel_index_xml = "index.xml"
 let rel_index_html = "index.html"
