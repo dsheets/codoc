@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Unixqueue</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Unixqueue</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Unixqueues are one of the two forms of system event loops provided
+by Ocamlnet. Besides Unixqueue, there is also pollset (see
+[root:Netsys_pollset]). The pollsets are much simpler (there is no
+queuing of events), and nowadays Unixqueue bases upon pollset,
+and extends its functionality. Historically, however, Unixqueue
+precede pollset, and there are still implementations of the former
+in Ocamlnet not using pollset as its base data structure.</p>
+      
+      <p>The common idea of both data structures is the generalization of
+watching for events, as it is also provided by the <code>Unix.select</code>
+function. Note, however, that recent implementations no longer
+use <code>Unix.select</code>, but better system interfaces for the same.</p>
+      
+      <p>When there is something to do for a file descriptor (reading,
+writing, accepting out-of-band data), this is called an <b>event</b>,
+and the task of Unixqueue is to check when events happen, and to
+tell some consumer about the events.</p>
+      
+      <p>There are three further types of events: Timeout events, signal
+events, and user-defined events.</p>
+      
+      <p>The events are queued up, and they are presented to event handlers
+that may process them.</p>
+      
+      <p>You can describe what types of event conditions are watched by adding
+<b>resources</b>. You can think a resource being a condition (bound to
+a real resource of the operating system) for which
+events are generated if the condition becomes true. Currently, only
+file descriptors and timers are supported as resources.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p><b>Relation to other modules.</b> This module is thought as the primary
+interface to Unixqueues. If there isn't any specialty one has to deal
+with, just use this module:</p>
+      <ul><li>It defines all required types like <code>group</code>, <code>wait_id</code>, etc. Note that
+these types are reexported from <code>Unixqueue_util</code>. Please consider
+this as implementation detail, and don't use it in your code.</li><li>It defines a standard implementation <code>standard_event_system</code>, which
+is a good default implementation, although it might not be the best
+available for all purposes.</li><li>It defines a set of access functions like <code>add_event</code> which
+simply call the methods of the event system object of the same name.
+Note that these functions work for all event system implementation,
+not only for <code>standard_event_system</code>.</li></ul>
+      <p>There are further modules that have to do with Unixqueue:</p>
+      <ul><li>[root:Unixqueue_pollset] is the implementation behind
+<code>standard_event_system</code>. If you want to use other pollsets than
+the standard one, it is possible to create Unixqueues on top of these
+by using this module directly.</li><li>[root:Unixqueue_select] is the historic default implementation. It
+calls directly <code>Unix.select</code>. It is still available because it
+serves as a reference implementation for now.</li><li><code>Unixqueue_util</code> is an internal module with implementation details.
+Please don't call it directly.</li><li>[root:Uq_gtk] is an implementation of Unixqueue mapping to the
+GTK event loop. Useful for multiplexing event-based I/O and
+GTK graphics operations.</li><li>[root:Uq_tcl] is an implementation of Unixqueue mapping to the
+TCL event loop. Useful for multiplexing event-based I/O and
+event-based code written in TCL (especially TK).</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Thread safety.</b> The default implementation of Unixqueue is
+thread-safe, and operations can be called from different threads.
+For other implementations, please look at the modules implementing
+them.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Types and exceptions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:group">
+  <a href="index.html#/type:group" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> group = Unixqueue_util.group
+    
+      <div class="doc">
+        
+      <p>A group is an abstract tag for a set of events, resources, and
+event handlers. Usually every event handler creates a new group,
+and all events and resources processed by the handler are
+members of this group.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Abort">
+  <a href="index.html#/exn:Abort" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Abort <span class="keyword">of</span> (<a href="index.html#/type:group">group</a> * exn)
+    
+      <div class="doc">
+        
+      <p>Event handlers can raise this exception to cancel a group
+of handlers, events, and resources. If an abort action
+is defined for the group, it will be executed. Next, all members
+of the group are removed from the event system.</p>
+      
+      <p>First argument is the group. The second argument
+is an arbitrary exception (must not be <code>Abort</code> again) which is
+passed to the abort action.</p>
+      
+      <p>Abort handlers are a questionable feature of Unixqueues. You
+can also call the <code>clear</code> operation, and raise the exception
+directly. <b>Do not use in new code!</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:wait_id">
+  <a href="index.html#/type:wait_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> wait_id = Unixqueue_util.wait_id
+    
+      <div class="doc">
+        
+      <p>A wait identifier is used to distinguish between several
+timers, see type <code>operation</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:operation">
+  <a href="index.html#/type:operation" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> operation = Unixqueue_util.operation = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:operation/cons:Wait_in">
+  <a href="index.html#/type:operation/cons:Wait_in" class="anchor">#</a>
+  | Wait_in <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">wait for input data</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:operation/cons:Wait_out">
+  <a href="index.html#/type:operation/cons:Wait_out" class="anchor">#</a>
+  | Wait_out <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">wait until output can be written</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:operation/cons:Wait_oob">
+  <a href="index.html#/type:operation/cons:Wait_oob" class="anchor">#</a>
+  | Wait_oob <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">wait for out-of-band data</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:operation/cons:Wait">
+  <a href="index.html#/type:operation/cons:Wait" class="anchor">#</a>
+  | Wait <span class="keyword">of</span> <a href="index.html#/type:wait_id">wait_id</a>
+  </div>
+  </td><td>(*</td><td class="doc">wait only for timeout</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>An <code>operation</code> specifies the condition to wait for. Every kind
+of operation may have an associated timer (not only <code>Wait</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:event">
+  <a href="index.html#/type:event" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> event = Unixqueue_util.event = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:event/cons:Input_arrived">
+  <a href="index.html#/type:event/cons:Input_arrived" class="anchor">#</a>
+  | Input_arrived <span class="keyword">of</span> (<a href="index.html#/type:group">group</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>)
+  </div>
+  </td><td>(*</td><td class="doc">Input data has arrived</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:event/cons:Output_readiness">
+  <a href="index.html#/type:event/cons:Output_readiness" class="anchor">#</a>
+  | Output_readiness <span class="keyword">of</span> (<a href="index.html#/type:group">group</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>)
+  </div>
+  </td><td>(*</td><td class="doc">Output is possible now</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:event/cons:Out_of_band">
+  <a href="index.html#/type:event/cons:Out_of_band" class="anchor">#</a>
+  | Out_of_band <span class="keyword">of</span> (<a href="index.html#/type:group">group</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>)
+  </div>
+  </td><td>(*</td><td class="doc">OOB data has arrived</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:event/cons:Timeout">
+  <a href="index.html#/type:event/cons:Timeout" class="anchor">#</a>
+  | Timeout <span class="keyword">of</span> (<a href="index.html#/type:group">group</a> * <a href="index.html#/type:operation">operation</a>)
+  </div>
+  </td><td>(*</td><td class="doc">A timer has expired</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:event/cons:Signal">
+  <a href="index.html#/type:event/cons:Signal" class="anchor">#</a>
+  | Signal
+  </div>
+  </td><td>(*</td><td class="doc">A signal has happened</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:event/cons:Extra">
+  <a href="index.html#/type:event/cons:Extra" class="anchor">#</a>
+  | Extra <span class="keyword">of</span> exn
+  </div>
+  </td><td>(*</td><td class="doc">User-generated event</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:event/cons:Immediate">
+  <a href="index.html#/type:event/cons:Immediate" class="anchor">#</a>
+  | Immediate <span class="keyword">of</span> (<a href="index.html#/type:group">group</a> * (unit <span class="rarr"><span>-&gt;</span></span> unit))
+  </div>
+  </td><td>(*</td><td class="doc">immediate event</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>An <code>event</code> is triggered when the condition of an <code>operation</code>
+becomes true, when a signal happens, or when the event is
+(artificially) added to the event queue (<code>add_event</code>, below).
+The events resulting from an <code>operation</code> carry the group of
+the resource with them.</p>
+      
+      <p>The event <code>Signal</code> is triggered when the <code>EINTR</code> condition is
+caught; this normally means that a signal has just been delivered.
+The generation of <code>Signal</code> events should be considered as
+unreliable, not every signal delivery can be detected. Reasons for
+the unrealiability are that user-supplied code happens to
+get the <code>EINTR</code> condition and not the <code>Unixqueue</code> event loop,
+and that there are known race conditions in the O'Caml signal
+handling routines that may cause signals to be lost. However,
+it can be expected that almost all signals will trigger <code>Signal</code>.</p>
+      
+      <p>The event <code>Extra</code> can only be artificially added to the queue,
+and the argument of <code>Extra</code> is an exception value that distinguishes
+between several kinds of user-generated events.</p>
+      
+      <p>The event <code>Immediate(g,f)</code> also can only be artificially added to
+the queue. In contrast to other events, it is not passed to handlers
+when the event is processed. Instead, an immediate event is processed
+by calling <code>f()</code>. This is a more direct way of notification, and
+it is not necessary to define a handler. Even an immediate event is
+member of a group <code>g</code>, and if the <code>clear</code> function is called for <code>g</code>,
+the callback function <code>f</code> will no longer be called.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system">
+  <a href="index.html#/classtype:event_system" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> event_system = 
+  <div class="region" id="/classtype:event_system/method:new_group">
+  <a href="index.html#/classtype:event_system/method:new_group" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> new_group : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:new_wait_id">
+  <a href="index.html#/classtype:event_system/method:new_wait_id" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> new_wait_id : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_id">wait_id</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:exists_resource">
+  <a href="index.html#/classtype:event_system/method:exists_resource" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> exists_resource : <a href="index.html#/type:operation">operation</a> <span class="rarr"><span>-&gt;</span></span> bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:add_resource">
+  <a href="index.html#/classtype:event_system/method:add_resource" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_resource : <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:operation">operation</a> * float <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:add_weak_resource">
+  <a href="index.html#/classtype:event_system/method:add_weak_resource" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_weak_resource : <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:operation">operation</a> * float <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:add_close_action">
+  <a href="index.html#/classtype:event_system/method:add_close_action" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_close_action : <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:add_abort_action">
+  <a href="index.html#/classtype:event_system/method:add_abort_action" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_abort_action : <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> exn <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:remove_resource">
+  <a href="index.html#/classtype:event_system/method:remove_resource" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> remove_resource : <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:operation">operation</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:add_handler">
+  <a href="index.html#/classtype:event_system/method:add_handler" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_handler : <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a> <a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/">Equeue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:add_event">
+  <a href="index.html#/classtype:event_system/method:add_event" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_event : <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:clear">
+  <a href="index.html#/classtype:event_system/method:clear" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> clear : <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:run">
+  <a href="index.html#/classtype:event_system/method:run" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> run : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:is_running">
+  <a href="index.html#/classtype:event_system/method:is_running" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> is_running : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:event_system/method:when_blocking">
+  <a href="index.html#/classtype:event_system/method:when_blocking" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> when_blocking : (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The <code>event_system</code> manages events, handlers, resources, groups,
+etc. It is now a class type, and you may invoke the operations directly
+for the class. The operations are still available as functions (below).</p>
+      
+      <p>A <b>resource</b> is an operation with an optional timer. The operation
+describes the condition to watch for, and the timer defines the
+maximum period of time for that. If the condition becomes true,
+an <code>Input_arrived</code>, <code>Output_readiness</code>, or <code>Out_of_band</code> event
+will be triggered. If the timer expires, a <code>Timeout</code> event will be
+generated. After the event the resource remains active, and the
+timeout period begins anew.</p>
+      
+      <p>A resource is usually bound to a file descriptor. It is allowed
+to watch the same descriptor for several different conditions,
+but it is forbidden to watch the same descriptor for the same kind
+of condition several times.</p>
+      
+      <p>As a special case, the operation <code>Wait</code> is not bound to a
+file descriptor, but simply starts a timer. The argument of <code>Wait</code>
+can be used to distinguish between several timers that are active
+at the same time.</p>
+      
+      <p><b>Event handlers</b> get the events one after the other, and
+process them. When a handler is called for an event, there are
+several possible reactions: (1) The handler can return normally,
+which means that the event has been accepted, and will not be
+passed to any other handler. (2) The handler can raise
+<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/">Equeue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/#/exn:Reject">Reject</a>, which means that the handler cannot process
+the event, and that another handler should get it. (3) The handler
+can raise <a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/">Equeue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/#/exn:Terminate">Terminate</a> which means that the event has been
+accepted, and that the handler is terminated (it will never be
+called again). (4) The handler can raise <code>Abort</code> which means that
+the event is deferred, and that a special abort mechanism is
+triggered (see the description for <code>Abort</code> above), this is also
+terminates the handler. The deferred event will again be processed
+in the future. (5) The handler can raise any other exception.
+This causes that the event is deferred, and the exception falls
+through to the caller of <code>run</code>.</p>
+      
+      <p><b>Groups</b> are used to simplify the association of events to
+handlers, and to simplify the termination of handlers (see <code>clear</code>).
+If an event is associated with a group, only handlers associated with
+the same group will get them.</p>
+      
+      <p>There is a special <b>Close handler</b> which is useful to close file
+descriptors no longer needed. It is called when all resources are
+removed from the event system dealing with the file descriptor.
+The close handler should close the descriptor. Note that close handlers
+are only useful under certain circumstances.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Creating event systems</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:standard_event_system">
+  <a href="index.html#/class:standard_event_system" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> standard_event_system : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:event_system">event_system</a>
+    
+    
+      <div class="doc">
+        
+      <p>The standard implementation of an event system. It uses
+<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue_pollset/">Unixqueue_pollset</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue_pollset/#/class:pollset_event_system">pollset_event_system</a> on top of
+<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_pollset_generic/">Netsys_pollset_generic</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_pollset_generic/#/val:standard_pollset">standard_pollset</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:standard_event_system">
+  <a href="index.html#/val:standard_event_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> standard_event_system : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:event_system">event_system</a>
+    
+      <div class="doc">
+        
+      <p>Create a new, empty, standard event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:unix_event_system">
+  <a href="index.html#/class:unix_event_system" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> unix_event_system : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:event_system">event_system</a>
+    
+    
+      <div class="doc">
+        
+      <p>An alternate name for <code>standard_event_system</code>, provided for
+backward compatibility.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_unix_event_system">
+  <a href="index.html#/val:create_unix_event_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_unix_event_system : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:event_system">event_system</a>
+    
+      <div class="doc">
+        
+      <p>An alternate name for <code>standard_event_system</code>, provided for
+backward compatibility.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:performance_event_system">
+  <a href="index.html#/class:performance_event_system" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> performance_event_system : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:event_system">event_system</a>
+    
+    
+      <div class="doc">
+        
+      <p>The implementation using <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_pollset_generic/">Netsys_pollset_generic</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_pollset_generic/#/val:performance_pollset">performance_pollset</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:performance_event_system">
+  <a href="index.html#/val:performance_event_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> performance_event_system : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:event_system">event_system</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Using event systems</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following functions work for all kinds of event systems, not
+only for the ones returned by <code>standard_event_system</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:new_group">
+  <a href="index.html#/val:new_group" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_group : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a>
+    
+      <div class="doc">
+        
+      <p>Create a new, empty group for the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:new_wait_id">
+  <a href="index.html#/val:new_wait_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_wait_id : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_id">wait_id</a>
+    
+      <div class="doc">
+        
+      <p>Create a new unique wait identifier</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:exists_resource">
+  <a href="index.html#/val:exists_resource" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> exists_resource : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:operation">operation</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Find out if a specific resource already exists (or better: is
+already watched by an operation).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_resource">
+  <a href="index.html#/val:add_resource" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_resource : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:operation">operation</a> * float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add a resource such that it is watched for conditions described
+by the <code>operation</code> for the period given by the <code>float</code> number.
+A negative number means that the resource is watched for an infinite
+period. The resource becomes a member of the <code>group</code>.</p>
+      
+      <p>You cannot add the same operation several times;
+if you try it the second operation is silently dropped.</p>
+      
+      <p>The resource remains even if it has generated an event. The timeout
+period starts again in this case.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_weak_resource">
+  <a href="index.html#/val:add_weak_resource" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_weak_resource : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:operation">operation</a> * float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Similar to <code>add_resource</code>, but the resource is weak. Such resources
+do not keep the event system running when only weak resources remain.
+Normally, <code>Unixqueue.run</code> returns to the caller not before
+all resources are removed and all events are processed. Weak
+resources do not count for this condition, i.e. <code>Unixqueue.run</code>
+also returns when there are only weak resources left.
+As an example, weak resources can be used to time out unused
+file descriptors.</p>
+      
+      <p>Weak resources can be removed with <code>remove_resource</code>.</p>
+      
+      <p><b>New in Ocamlnet 3.</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_close_action">
+  <a href="index.html#/val:add_close_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_close_action : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>A close action is added for the file descriptor. The action callback
+(which gets the descriptor as argument) is called when there is not
+any watched resource remaining for this descriptor.</p>
+      
+      <p>This may be useful if the descriptor can be closed in this case.</p>
+      
+      <p>The close action becomes member of the passed <code>group</code>. The only
+effect of this is that the action is removed when the <code>clear</code> function
+is called.</p>
+      
+      <p>You can only add (set) one close action for every descriptor.</p>
+      
+      <p>Of course, the idea is to do <code>add_close_action ... Unix.close</code>. Note
+that there is a problem with multi-threaded programs, and this construct
+must not be used there. In particular, the close action is called from
+<code>remove_resource</code> or <code>clear</code>, but it is possible that the event system
+is running, so a watched descriptor might be closed. This has undesired
+effects. What you should better do is to delay the closure of the
+descriptor to a sane moment, e.g. by calling
+</p>
+      <pre><code>Unixqueue.once esys g 0.0 (fun () -&gt; Unix.close fd)</code></pre>
+      <p>
+from the close action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_abort_action">
+  <a href="index.html#/val:add_abort_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_abort_action : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> exn <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>An abort action is added to the group. The action callback is
+called when an arbitrary handler raises <code>Abort(g,exn)</code> where
+<code>g</code> is the group the abort action is member of. In this case,
+the callback function is invoked with the group and <code>exn</code> as
+arguments. After that, the group is cleared.</p>
+      
+      <p>You can only add (set) one abort action for every group.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove_resource">
+  <a href="index.html#/val:remove_resource" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove_resource : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:operation">operation</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Removes the operation from the watch list of the group.
+It is an error if the operation is member of another group.
+If the operation cannot be found at all, the exception <code>Not_found</code>
+will be raised.</p>
+      
+      <p>The removal of resources may trigger close actions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_handler">
+  <a href="index.html#/val:add_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_handler : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a> <a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/">Equeue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add an event handler that is associated to the given group. There
+may be several handlers for a group.</p>
+      
+      <p>The handler callback function is invoked when there is an event
+that could be processeable by the handler. As outlined above, the
+callback function can accept or reject the event, it can terminate
+itself, and it can abort the whole group.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_event">
+  <a href="index.html#/val:add_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_event : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add an additional event. The event will be processed after the
+current list of events is done.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Terminate the whole group. This means that the handlers of the
+group are not called any longer, and that all resources and actions
+are removed. It is possible that there are pending events after
+termination, but these will be usually be dropped because there is
+no handler for them.</p>
+      
+      <p>When a group is terminated, it is not allowed to refer to the
+group any longer. Functions will raise <code>Invalid_argument</code> if this
+is tried nevertheless.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run">
+  <a href="index.html#/val:run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Starts the event loop. This means that the resources are watched,
+and that events are generated, and that handlers are called.</p>
+      
+      <p>The event loop returns normally when there are not any resources
+and not any events in the queue. The loop raises
+<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/">Equeue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/#/exn:Out_of_handlers">Out_of_handlers</a> if there are resources but no handlers
+to process their events. It is possible that exceptions raised
+from handlers fall through to the <code>run</code> call.</p>
+      
+      <p>After the exception is caught and processed, the event loop
+can be restarted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_running">
+  <a href="index.html#/val:is_running" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_running : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the event loop is running</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:once">
+  <a href="index.html#/val:once" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> once : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Arranges that the callback function is called once after the
+passed period of time (the <code>float</code> argument) has elapsed.</p>
+      
+      <p>The arrangement is member of the passed group. By clearing the
+group, the timer is deleted, too.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:weak_once">
+  <a href="index.html#/val:weak_once" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> weak_once : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>once</code>, but the timer does not keep the event system running
+if it is the only remaining resource.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:epsilon">
+  <a href="index.html#/val:epsilon" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> epsilon : <a href="index.html#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The execution of the function is pushed onto the event queue
+(minimal delay)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module controls debugging of all <code>Unixqueue_*</code> modules</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enable [root:Netlog] debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:set_debug_mode">
+  <a href="index.html#/module:Debug/val:set_debug_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_debug_mode : bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets <code>enable</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:set_debug_target">
+  <a href="index.html#/module:Debug/val:set_debug_target" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_debug_target : <a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/">Equeue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/#/module:Debug">Debug</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/equeue/#/module:Debug/type:debug_target">debug_target</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Restricts debugging to this target.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

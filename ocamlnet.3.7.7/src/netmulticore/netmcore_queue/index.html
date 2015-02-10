@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_queue</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_queue</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shared queues</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:squeue">
+  <a href="index.html#/type:squeue" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('e, 'h) squeue
+    
+      <div class="doc">
+        
+      <p>Queues where the elements have type <code>'e</code> and the header has
+type <code>'h</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:squeue_descr">
+  <a href="index.html#/type:squeue_descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('e, 'h) squeue_descr
+    
+      <div class="doc">
+        
+      <p>The marshallble descriptor of queues</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Empty">
+  <a href="index.html#/exn:Empty" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Empty
+    
+      <div class="doc">
+        
+      <p>Raised when the queue is empty and the operation cannot be done</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> 'h <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:squeue">squeue</a>
+    
+      <div class="doc">
+        
+      <p><code>create pool h</code>: Creates an empty queue in the <code>pool</code>, with header
+<code>h</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:push">
+  <a href="index.html#/val:push" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> push : 'e <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>push x q</code>: Pushes a copy of <code>x</code> to the end of the queue <code>q</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pop_p">
+  <a href="index.html#/val:pop_p" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pop_p : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> ('e <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>pop_p q f</code>: Takes the first element <code>x</code> from the queue, removes it
+there, and calls <code>f x</code>. During the execution of <code>f</code> the value <code>x</code>
+is pinned and cannot be garbage-collected.</p>
+      
+      <p>Raises <code>Empty</code> if the queue is empty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pop_c">
+  <a href="index.html#/val:pop_c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pop_c : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> 'e
+    
+      <div class="doc">
+        
+      <p><code>pop_c q</code>: Takes the first element <code>x</code> from the queue, removes it
+there, and returns a copy of <code>x</code> in normal memory.</p>
+      
+      <p>Raises <code>Empty</code> if the queue is empty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:top_p">
+  <a href="index.html#/val:top_p" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> top_p : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> ('e <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>pop_p q f</code>: Takes the first element <code>x</code> of the queue,
+and calls <code>f x</code>, without removing <code>x</code> from the queue.
+During the execution of <code>f</code> the value <code>x</code>
+is pinned and cannot be garbage-collected.</p>
+      
+      <p>Raises <code>Empty</code> if the queue is empty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:top_c">
+  <a href="index.html#/val:top_c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> top_c : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> 'e
+    
+      <div class="doc">
+        
+      <p><code>pop_p q f</code>: Takes the first element <code>x</code> of the queue,
+and calls <code>f x</code>, without removing <code>x</code> from the queue.
+Returns a copy of <code>x</code> in normal memory.</p>
+      
+      <p>Raises <code>Empty</code> if the queue is empty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Removes all elements from the queue</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_empty">
+  <a href="index.html#/val:is_empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_empty : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Tests whether the queue is empty</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the number of elements in the queue (O(1))</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('e <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter f q</code>: Iterates over the elements of the queue and calls <code>f x</code>
+for each element <code>x</code>. The function considers the list of elements
+at the time of calling <code>iter</code> as the list to iterate over. The
+queue is not locked during the iteration, and hence elements can be
+popped from the queue and pushed to the queue in parallel. The
+iteration does not take these modifications into account, though.</p>
+      
+      <p>The elements <code>x</code> are pinned during the execution of <code>f</code> and will
+not be garbage-collected, even if a parallel <code>pop</code> removes them from
+the queue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('a <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>fold f accu q</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:header">
+  <a href="index.html#/val:header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> header : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> 'h
+    
+      <div class="doc">
+        
+      <p>Returns the header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap">
+  <a href="index.html#/val:heap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap : (_, _) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:heap">heap</a>
+    
+      <div class="doc">
+        
+      <p>Returns the underlying heap</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:descr_of_squeue">
+  <a href="index.html#/val:descr_of_squeue" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> descr_of_squeue : ('e, 'h) <a href="index.html#/type:squeue">squeue</a> <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:squeue_descr">squeue_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:squeue_of_descr">
+  <a href="index.html#/val:squeue_of_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> squeue_of_descr : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:squeue_descr">squeue_descr</a> <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:squeue">squeue</a>
+    
+      <div class="doc">
+        
+      <p>Look up the queue for this descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

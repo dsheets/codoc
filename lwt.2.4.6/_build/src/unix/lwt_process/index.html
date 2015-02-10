@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_process</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_process</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Process management</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module allows you to spawn processes and communicate with them.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:command">
+  <a href="index.html#/type:command" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> command = string * string array
+    
+      <div class="doc">
+        
+      <p>A command. The first field is the name of the executable and
+the second is the list of arguments. For example:</p>
+      <pre><code>          (&quot;ls&quot;, [|&quot;ls&quot;; &quot;-l&quot;|])</code></pre>
+      <p>.</p>
+      
+      <p>Notes:</p>
+      <ul><li>if the name is the empty string, then the first argument
+will be used. You should specify a name only if you do not
+want the executable to be searched in the PATH. On Windows the
+only way to enable automatic seach in PATH is to pass an empty
+name.</li></ul><ul><li>it is possible to ``inline'' an argument, i.e. split it into
+multiple arguments. To do that prefix it with <code>&quot;\000&quot;</code>. For
+example:</li></ul><pre><code>          (&quot;&quot;, [|&quot;echo&quot;; &quot;\000foo bar&quot;|])</code></pre>
+      <p>is the same as:</p>
+      <pre><code>          (&quot;&quot;, [|&quot;echo&quot;; &quot;foo&quot;; &quot;bar&quot;|])</code></pre>
+      <p>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shell">
+  <a href="index.html#/val:shell" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shell : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a>
+    
+      <div class="doc">
+        
+      <p>A command executed with the shell. (with <code>&quot;/bin/sh -c &lt;cmd&gt;&quot;</code> on
+Unix and <code>&quot;cmd.exe /c &lt;cmd&gt;&quot;</code> on Windows).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>All the following functions take an optional argument
+<code>timeout</code>. If specified, after expiration, the process will be
+sent a <code>Unix.sigkill</code> signal and channels will be closed.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">High-level functions</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Redirections</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:redirection">
+  <a href="index.html#/type:redirection" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> redirection = [ <div class="cons">| `Keep</div><div class="cons">| `Dev_null</div><div class="cons">| `Close</div><div class="cons">| `FD_copy <span class="keyword">of</span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div><div class="cons">| `FD_move <span class="keyword">of</span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div> ]
+    
+      <div class="doc">
+        
+      <p>A file descriptor redirection. It describes how standard file
+descriptors are redirected in the child process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Note: all optional redirection arguments default to <code>`Keep</code></p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Executing</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:exec">
+  <a href="index.html#/val:exec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> exec : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Executes the given command and returns its exit status.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Receiving</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pread">
+  <a href="index.html#/val:pread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pread : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pread_chars">
+  <a href="index.html#/val:pread_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pread_chars : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pread_line">
+  <a href="index.html#/val:pread_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pread_line : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pread_lines">
+  <a href="index.html#/val:pread_lines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pread_lines : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Sending</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pwrite">
+  <a href="index.html#/val:pwrite" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pwrite : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pwrite_chars">
+  <a href="index.html#/val:pwrite_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pwrite_chars : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pwrite_line">
+  <a href="index.html#/val:pwrite_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pwrite_line : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pwrite_lines">
+  <a href="index.html#/val:pwrite_lines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pwrite_lines : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Mapping</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pmap">
+  <a href="index.html#/val:pmap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pmap : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pmap_chars">
+  <a href="index.html#/val:pmap_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pmap_chars : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pmap_line">
+  <a href="index.html#/val:pmap_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pmap_line : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pmap_lines">
+  <a href="index.html#/val:pmap_lines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pmap_lines : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Spawning processes</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:state">
+  <a href="index.html#/type:state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> state = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:state/cons:Running">
+  <a href="index.html#/type:state/cons:Running" class="anchor">#</a>
+  | Running
+  </div>
+  </td><td>(*</td><td class="doc">The process is still running</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:state/cons:Exited">
+  <a href="index.html#/type:state/cons:Exited" class="anchor">#</a>
+  | Exited <span class="keyword">of</span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a>
+  </div>
+  </td><td>(*</td><td class="doc">The process has exited</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>State of a sub-process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_none">
+  <a href="index.html#/class:process_none" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> process_none : 
+    ?timeout:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?env:string array option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stdin:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stdout:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stderr:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:command">command</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:process_none/method:pid">
+  <a href="index.html#/class:process_none/method:pid" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pid : int
+  
+      <div class="doc">
+        
+      <p>Pid of the sub-process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_none/method:state">
+  <a href="index.html#/class:process_none/method:state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> state : <a href="index.html#/type:state">state</a>
+  
+      <div class="doc">
+        
+      <p>Return the state of the process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_none/method:kill">
+  <a href="index.html#/class:process_none/method:kill" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> kill : int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>kill signum</code> sends <code>signum</code> to the process if it is still
+running.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_none/method:terminate">
+  <a href="index.html#/class:process_none/method:terminate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> terminate : unit
+  
+      <div class="doc">
+        
+      <p>Terminates the process. It is equivalent to <code>kill Sys.sigkill</code>
+on Unix but also works on Windows (unlike <a href="index.html#/class:process_none/method:kill">kill</a>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_none/method:status">
+  <a href="index.html#/class:process_none/method:status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> status : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Threads which wait for the sub-process to exit then returns its
+exit status</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_none/method:rusage">
+  <a href="index.html#/class:process_none/method:rusage" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rusage : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:resource_usage">resource_usage</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Threads which wait for the sub-process to exit then returns
+its resource usages</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_none/method:close">
+  <a href="index.html#/class:process_none/method:close" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Closes the process and returns its exit status. This closes all
+channels used to communicate with the process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_process_none">
+  <a href="index.html#/val:open_process_none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_process_none : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/class:process_none">process_none</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_process_none">
+  <a href="index.html#/val:with_process_none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_process_none : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/class:process_none">process_none</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_in">
+  <a href="index.html#/class:process_in" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> process_in : 
+    ?timeout:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?env:string array option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stdin:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stderr:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:command">command</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/class:process_none">process_none</a>
+    </div>
+    
+  <div class="region" id="/class:process_in/method:stdout">
+  <a href="index.html#/class:process_in/method:stdout" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stdout : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:input_channel">input_channel</a>
+  
+      <div class="doc">
+        
+      <p>The standard output of the process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_process_in">
+  <a href="index.html#/val:open_process_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_process_in : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/class:process_in">process_in</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_process_in">
+  <a href="index.html#/val:with_process_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_process_in : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/class:process_in">process_in</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_out">
+  <a href="index.html#/class:process_out" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> process_out : 
+    ?timeout:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?env:string array option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stdout:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stderr:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:command">command</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/class:process_none">process_none</a>
+    </div>
+    
+  <div class="region" id="/class:process_out/method:stdin">
+  <a href="index.html#/class:process_out/method:stdin" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stdin : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:output_channel">output_channel</a>
+  
+      <div class="doc">
+        
+      <p>The standard input of the process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_process_out">
+  <a href="index.html#/val:open_process_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_process_out : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/class:process_out">process_out</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_process_out">
+  <a href="index.html#/val:with_process_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_process_out : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/class:process_out">process_out</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process">
+  <a href="index.html#/class:process" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> process : 
+    ?timeout:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?env:string array option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?stderr:<a href="index.html#/type:redirection">redirection</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:command">command</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/class:process_none">process_none</a>
+    </div>
+    
+  <div class="region" id="/class:process/method:stdin">
+  <a href="index.html#/class:process/method:stdin" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stdin : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:output_channel">output_channel</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process/method:stdout">
+  <a href="index.html#/class:process/method:stdout" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stdout : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:input_channel">input_channel</a>
+  
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_process">
+  <a href="index.html#/val:open_process" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_process : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/class:process">process</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_process">
+  <a href="index.html#/val:with_process" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_process : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:redirection">redirection</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/class:process">process</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_full">
+  <a href="index.html#/class:process_full" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> process_full : 
+    ?timeout:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?env:string array option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:command">command</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/class:process_none">process_none</a>
+    </div>
+    
+  <div class="region" id="/class:process_full/method:stdin">
+  <a href="index.html#/class:process_full/method:stdin" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stdin : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:output_channel">output_channel</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_full/method:stdout">
+  <a href="index.html#/class:process_full/method:stdout" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stdout : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:input_channel">input_channel</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:process_full/method:stderr">
+  <a href="index.html#/class:process_full/method:stderr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stderr : <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:input_channel">input_channel</a>
+  
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_process_full">
+  <a href="index.html#/val:open_process_full" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_process_full : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/class:process_full">process_full</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_process_full">
+  <a href="index.html#/val:with_process_full" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_process_full : ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/class:process_full">process_full</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

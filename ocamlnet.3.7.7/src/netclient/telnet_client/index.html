@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Telnet_client</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Telnet_client</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Telnet client</p>
+      
+      <p>This is a Telnet client providing the basic Telnet services. It
+supports sending and receiving data (asynchronously), and the
+negotiation of Telnet options, but it does not implement any option.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:Telnet_protocol">
+  <a href="index.html#/exn:Telnet_protocol" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Telnet_protocol <span class="keyword">of</span> exn
+    
+      <div class="doc">
+        
+      <p>Wrapper for exceptions that already passed the exception handler.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:telnet_command">
+  <a href="index.html#/type:telnet_command" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> telnet_command = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_data">
+  <a href="index.html#/type:telnet_command/cons:Telnet_data" class="anchor">#</a>
+  | Telnet_data <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">User data</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_nop">
+  <a href="index.html#/type:telnet_command/cons:Telnet_nop" class="anchor">#</a>
+  | Telnet_nop
+  </div>
+  </td><td>(*</td><td class="doc">No operation</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_dm">
+  <a href="index.html#/type:telnet_command/cons:Telnet_dm" class="anchor">#</a>
+  | Telnet_dm
+  </div>
+  </td><td>(*</td><td class="doc">data mark</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_brk">
+  <a href="index.html#/type:telnet_command/cons:Telnet_brk" class="anchor">#</a>
+  | Telnet_brk
+  </div>
+  </td><td>(*</td><td class="doc">break</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_ip">
+  <a href="index.html#/type:telnet_command/cons:Telnet_ip" class="anchor">#</a>
+  | Telnet_ip
+  </div>
+  </td><td>(*</td><td class="doc">interrupt process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_ao">
+  <a href="index.html#/type:telnet_command/cons:Telnet_ao" class="anchor">#</a>
+  | Telnet_ao
+  </div>
+  </td><td>(*</td><td class="doc">abort output</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_ayt">
+  <a href="index.html#/type:telnet_command/cons:Telnet_ayt" class="anchor">#</a>
+  | Telnet_ayt
+  </div>
+  </td><td>(*</td><td class="doc">are you there?</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_ec">
+  <a href="index.html#/type:telnet_command/cons:Telnet_ec" class="anchor">#</a>
+  | Telnet_ec
+  </div>
+  </td><td>(*</td><td class="doc">erase character</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_el">
+  <a href="index.html#/type:telnet_command/cons:Telnet_el" class="anchor">#</a>
+  | Telnet_el
+  </div>
+  </td><td>(*</td><td class="doc">erase line</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_ga">
+  <a href="index.html#/type:telnet_command/cons:Telnet_ga" class="anchor">#</a>
+  | Telnet_ga
+  </div>
+  </td><td>(*</td><td class="doc">Go ahead</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_sb">
+  <a href="index.html#/type:telnet_command/cons:Telnet_sb" class="anchor">#</a>
+  | Telnet_sb <span class="keyword">of</span> char
+  </div>
+  </td><td>(*</td><td class="doc">Begin of subnegotiation</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_se">
+  <a href="index.html#/type:telnet_command/cons:Telnet_se" class="anchor">#</a>
+  | Telnet_se
+  </div>
+  </td><td>(*</td><td class="doc">End of subnegotation</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_will">
+  <a href="index.html#/type:telnet_command/cons:Telnet_will" class="anchor">#</a>
+  | Telnet_will <span class="keyword">of</span> char
+  </div>
+  </td><td>(*</td><td class="doc">Acknowledges that option is in effect</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_wont">
+  <a href="index.html#/type:telnet_command/cons:Telnet_wont" class="anchor">#</a>
+  | Telnet_wont <span class="keyword">of</span> char
+  </div>
+  </td><td>(*</td><td class="doc">Acknowledges that option is rejected</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_do">
+  <a href="index.html#/type:telnet_command/cons:Telnet_do" class="anchor">#</a>
+  | Telnet_do <span class="keyword">of</span> char
+  </div>
+  </td><td>(*</td><td class="doc">Requests to turn on an option</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_dont">
+  <a href="index.html#/type:telnet_command/cons:Telnet_dont" class="anchor">#</a>
+  | Telnet_dont <span class="keyword">of</span> char
+  </div>
+  </td><td>(*</td><td class="doc">Requests to turn off an option</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_unknown">
+  <a href="index.html#/type:telnet_command/cons:Telnet_unknown" class="anchor">#</a>
+  | Telnet_unknown <span class="keyword">of</span> char
+  </div>
+  </td><td>(*</td><td class="doc">Unknown command</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_eof">
+  <a href="index.html#/type:telnet_command/cons:Telnet_eof" class="anchor">#</a>
+  | Telnet_eof
+  </div>
+  </td><td>(*</td><td class="doc">End of file</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_command/cons:Telnet_timeout">
+  <a href="index.html#/type:telnet_command/cons:Telnet_timeout" class="anchor">#</a>
+  | Telnet_timeout
+  </div>
+  </td><td>(*</td><td class="doc">Timeout event</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>A <code>telnet_command</code> is the interpretation of the octets in a Telnet
+session, i.e. it is one level above the octet stream. See RFC 854
+for an explanation what the commands mean. <code>Telnet_data</code> represents
+the data chunks between the commands. Note that you do not need
+to double octets having value 255; this is done automatically.
+<code>Telnet_unknown</code> represents any command not covered by RFC 854, for
+example the End-of-record-mark (introduced in RFC 885) would be
+<code>Telnet_unknown '\239'</code>. <code>Telnet_eof</code> represents the end of the octet
+stream, useable in both directions. <code>Telnet_timeout</code> is added to the
+input queue if I/O has not been happened for the configured period
+of time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:telnet_options">
+  <a href="index.html#/type:telnet_options" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> telnet_options = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:telnet_options/field:connection_timeout">
+  <a href="index.html#/type:telnet_options/field:connection_timeout" class="anchor">#</a>
+  connection_timeout
+  </div>
+  </td><td>: float</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:telnet_options/field:verbose_input">
+  <a href="index.html#/type:telnet_options/field:verbose_input" class="anchor">#</a>
+  verbose_input
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:telnet_options/field:verbose_output">
+  <a href="index.html#/type:telnet_options/field:verbose_output" class="anchor">#</a>
+  verbose_output
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p><code>telnet_options</code>: modifies the behaviour of the client. Do not mix these
+options up with the options negotiated with the remote side.</p>
+      <ul><li><code>connection_timeout</code>: After this period of time (in seconds) a
+<code>Telnet_timeout</code> pseudo-command is added to
+the input queue, and the connection is
+aborted.</li><li><code>verbose_input</code>: Enables printing of input events to <a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/">Netlog</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/#/module:Debug">Debug</a>.</li><li><code>verbose_output</code>: Enables printing of output events to <a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/">Netlog</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/#/module:Debug">Debug</a></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:telnet_negotiated_option">
+  <a href="index.html#/type:telnet_negotiated_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> telnet_negotiated_option = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_binary">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_binary" class="anchor">#</a>
+  | Telnet_binary
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 856</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_echo">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_echo" class="anchor">#</a>
+  | Telnet_echo
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 857</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_suppress_GA">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_suppress_GA" class="anchor">#</a>
+  | Telnet_suppress_GA
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 858</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_status">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_status" class="anchor">#</a>
+  | Telnet_status
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 859</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_timing_mark">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_timing_mark" class="anchor">#</a>
+  | Telnet_timing_mark
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 860</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_ext_opt_list">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_ext_opt_list" class="anchor">#</a>
+  | Telnet_ext_opt_list
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 861</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_end_of_rec">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_end_of_rec" class="anchor">#</a>
+  | Telnet_end_of_rec
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 885</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_window_size">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_window_size" class="anchor">#</a>
+  | Telnet_window_size
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1073</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_term_speed">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_term_speed" class="anchor">#</a>
+  | Telnet_term_speed
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1079</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_term_type">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_term_type" class="anchor">#</a>
+  | Telnet_term_type
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1091</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_X_display">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_X_display" class="anchor">#</a>
+  | Telnet_X_display
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1096</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_linemode">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_linemode" class="anchor">#</a>
+  | Telnet_linemode
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1184</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_flow_ctrl">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_flow_ctrl" class="anchor">#</a>
+  | Telnet_flow_ctrl
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1372</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_auth">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_auth" class="anchor">#</a>
+  | Telnet_auth
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1416</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_new_environ">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_new_environ" class="anchor">#</a>
+  | Telnet_new_environ
+  </div>
+  </td><td>(*</td><td class="doc">see RFC 1572 and 1571</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_negotiated_option/cons:Telnet_option">
+  <a href="index.html#/type:telnet_negotiated_option/cons:Telnet_option" class="anchor">#</a>
+  | Telnet_option <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">all other options</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p><code>telnet_negotiated_option</code>: names for the most common options, and
+the generic name <code>Telnet_option</code> for other options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:telnet_option_state">
+  <a href="index.html#/type:telnet_option_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> telnet_option_state = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:telnet_option_state/cons:Not_negotiated">
+  <a href="index.html#/type:telnet_option_state/cons:Not_negotiated" class="anchor">#</a>
+  | Not_negotiated
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_option_state/cons:Accepted">
+  <a href="index.html#/type:telnet_option_state/cons:Accepted" class="anchor">#</a>
+  | Accepted
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_option_state/cons:Rejected">
+  <a href="index.html#/type:telnet_option_state/cons:Rejected" class="anchor">#</a>
+  | Rejected
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>An option has one of three states:</p>
+      <ul><li><code>Not_negotiated</code>: There was no negotiation about the option. This means
+that the option is turned off (but this client is allowed to reject
+it explicitly)</li><li><code>Accepted</code>: Both sides have accepted the option.</li><li><code>Rejected</code>: One side has rejected the option. This also means that the
+option is off, but the client refuses to send further acknoledgements
+that the option is off (to avoid endless negotiation loops).</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:char_of_option">
+  <a href="index.html#/val:char_of_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> char_of_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> char
+    
+      <div class="doc">
+        
+      <p>Converts the option name to the character representing it on the
+octet-stream level.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:option_of_char">
+  <a href="index.html#/val:option_of_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> option_of_char : char <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a>
+    
+      <div class="doc">
+        
+      <p>Converts a character representing an option to the internal option
+name.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:telnet_connector">
+  <a href="index.html#/type:telnet_connector" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> telnet_connector = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:telnet_connector/cons:Telnet_connect">
+  <a href="index.html#/type:telnet_connector/cons:Telnet_connect" class="anchor">#</a>
+  | Telnet_connect <span class="keyword">of</span> (string * int)
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:telnet_connector/cons:Telnet_socket">
+  <a href="index.html#/type:telnet_connector/cons:Telnet_socket" class="anchor">#</a>
+  | Telnet_socket <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Connectors:</p>
+      <ul><li><code>Telnet_connect(host,port)</code>: The client connects to this port.</li><li><code>Telnet_socket s</code>: The client uses an already connected socket.</li></ul>
+      <p>Why <code>Telnet_socket</code>? Telnet is a symmetrical protocol; client and servers
+implement the same protocol features (the only difference is the
+environment: a client is typically connected with a real terminal; a server
+is connected with a pseudo terminal). This simply means that this
+implementation of a client can also be used as a server implementation.
+You need only to add code which accepts new connections and which passes
+these connections over to a <code>telnet_session</code> object via <code>Telnet_socket</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session">
+  <a href="index.html#/class:telnet_session" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> telnet_session : 
+      <div class="doc">
+        
+      <p>Overwiew</p>
+      
+      <p>The <code>telnet_session</code> object has two queues, one for arriving data,
+one for data to send.
+Once the session object is attached to an event system, it connects
+to the remote peer, and processes the queues. Input is appended to
+the input queue; output found on the output queue is sent to the
+other side.
+If input arrives, a callback function is invoked.
+You may close the output side of the socket by putting <code>Telnet_eof</code>
+onto the output queue.
+Once the EOF marker has been received, a <code>Telnet_eof</code> is appended to
+the input queue, and the connection is closed (completely). The
+session object detaches from the event system automatically in this
+case.</p>
+      
+      <p><b>Hints</b></p>
+      
+      <p>Set an input handler as callback function in the session object.
+The input handler is called when new input data have been arrived.
+It should inspect the input queue, process the queue as much as
+possible, and it should remove the processed items from the queue.
+While processing, it may add new items to the output queue.</p>
+      
+      <p>If you are not within the callback function and add items to the
+output queue, the session object will not detect that there are
+new items to send - unless you invoke the <code>update</code> method.</p>
+      
+      <p>If you want option negotiation, it is the simplest way to use
+the special option negotiation methods. Configure the options
+as you want (invoking <code>enable</code>, <code>disable</code> etc), but do not forget
+to modify the way input is processed. Every <code>Telnet_will</code>, <code>_wont</code>,
+<code>_do</code>, and <code>_dont</code> command must be passed to <code>process_option_command</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:telnet_session/method:set_connection">
+  <a href="index.html#/class:telnet_session/method:set_connection" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_connection : <a href="index.html#/type:telnet_connector">telnet_connector</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the host name and the port of the remote server to contact.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:set_event_system">
+  <a href="index.html#/class:telnet_session/method:set_event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the event system to use. By default, a private event system
+is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:set_callback">
+  <a href="index.html#/class:telnet_session/method:set_callback" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_callback : (bool <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the callback function. This function is called after new
+commands have been put onto the input queue.
+The argument passed to the callback function indicates whether
+a 'Synch' sequence was received from the remote side or not.</p>
+      
+      <p><b>Note Synch:</b> If the client sees a data mark command it will assume
+that it is actually a Synch sequence. The client automatically
+discards any <code>Telnet_data</code> commands from the input queue (but not
+<code>Telnet_data</code>s inside subnegotiations). The data mark command
+itself remains on the queue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:set_exception_handler">
+  <a href="index.html#/class:telnet_session/method:set_exception_handler" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_exception_handler : (exn <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the exception handler. Every known error condition is
+caught and passed to the exception handler.
+The exception handler can do whatever it wants to do. If it
+raises again an exception, the new exception is always propagated
+up to the caller (whoever this is). Often the caller is the
+event system scheduler (i.e. <code>Unixqueue.run</code>); see the documention
+there.</p>
+      
+      <p>If you do not set the exception handler, a default handler is
+active. It first resets the session (see method <code>reset</code>), and
+then wraps the exception into the <code>Telnet_protocol</code> exception,
+and raises this exception again.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:output_queue">
+  <a href="index.html#/class:telnet_session/method:output_queue" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_queue : <a href="index.html#/type:telnet_command">telnet_command</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/queue/">Queue</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/queue/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>The queue of commands to send to the remote side. If you add new
+commands to this queue, do not forget to invoke the <code>update</code>
+method which indicates to the event system that new data to
+send is available.
+After commands have been sent, they are removed from the queue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:input_queue">
+  <a href="index.html#/class:telnet_session/method:input_queue" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_queue : <a href="index.html#/type:telnet_command">telnet_command</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/queue/">Queue</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/queue/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>The queue of commands received from the remote side. This class
+only adds commands to the queue (and invokes the callback
+function). The user of this class is responsible for removing
+commands from the queue which have been processed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:get_options">
+  <a href="index.html#/class:telnet_session/method:get_options" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_options : <a href="index.html#/type:telnet_options">telnet_options</a>
+  
+      <div class="doc">
+        
+      <p>Get the configuration options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:set_options">
+  <a href="index.html#/class:telnet_session/method:set_options" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_options : <a href="index.html#/type:telnet_options">telnet_options</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Set the configuration options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:reset">
+  <a href="index.html#/class:telnet_session/method:reset" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reset : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Closes the connection immediately and empties all queues.
+All negotiated options are reset, too.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Telnet options</p>
+      
+      <p>The following methods deal with Telnet protocol options. These
+are negotiated between local and remote side by the Will, Won't,
+Do and Don't commands.</p>
+      
+      <p>The &quot;local&quot; options describe the modification of the behaviour
+of the local side; the &quot;remote&quot; options describe the modifications
+of the remote side. Both set of options are independent.
+This object may track the set of accepted and rejected options
+if the following methods are used; but this works only if
+the <code>Telnet_will</code>, <code>_wont</code>, <code>_do</code>, and <code>_dont</code> commands received from
+the remote side are processed by <code>process_option_command</code>. So
+you need to invoke this method for the mentioned commands in
+your command interpretation loop.</p>
+      
+      <p>The idea is: If you <b>enable</b> an option, it is possible to
+switch it on. If the remote side requests the option to be enabled,
+the request will be acknowledged. If the remote side does not
+request the option, it remains off.</p>
+      
+      <p>You can also actively demand an option (<code>offer_local_option</code>,
+<code>request_remote_option</code>); this is of course only possible if
+the option is already enabled. In this case the client tries
+actively to switch it on.</p>
+      
+      <p>You can also <b>disable</b> an option. If the option is on, the
+client actively rejects the option; following the Telnet protocol
+this is always possible (rejections cannot be rejected).</p>
+      
+      <p>The <code>reset</code> methods are somewhat dangerous. They simply reset
+the internal state of the client, but do not negotiate. This
+possibility was added to allow the Timing Mark option to send
+again timing marks even if the previous timing marks have
+already been accepted. After <code>reset</code>, the client thinks the
+option was never negotiated; but nothing is done to tell
+the remote side about this.</p>
+      
+      <p><code>option_negotiation_is_over</code>: true if no option negotiation is
+pending (i.e. nothing has still to be acknowledged).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:telnet_session/method:enable_local_option">
+  <a href="index.html#/class:telnet_session/method:enable_local_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> enable_local_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:enable_remote_option">
+  <a href="index.html#/class:telnet_session/method:enable_remote_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> enable_remote_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:disable_local_option">
+  <a href="index.html#/class:telnet_session/method:disable_local_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> disable_local_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:disable_remote_option">
+  <a href="index.html#/class:telnet_session/method:disable_remote_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> disable_remote_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:offer_local_option">
+  <a href="index.html#/class:telnet_session/method:offer_local_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> offer_local_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:request_remote_option">
+  <a href="index.html#/class:telnet_session/method:request_remote_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_remote_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:reset_local_option">
+  <a href="index.html#/class:telnet_session/method:reset_local_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reset_local_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:reset_remote_option">
+  <a href="index.html#/class:telnet_session/method:reset_remote_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reset_remote_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:get_local_option">
+  <a href="index.html#/class:telnet_session/method:get_local_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_local_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:telnet_option_state">telnet_option_state</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:get_remote_option">
+  <a href="index.html#/class:telnet_session/method:get_remote_option" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_remote_option : <a href="index.html#/type:telnet_negotiated_option">telnet_negotiated_option</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:telnet_option_state">telnet_option_state</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:option_negotiation_is_over">
+  <a href="index.html#/class:telnet_session/method:option_negotiation_is_over" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> option_negotiation_is_over : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:process_option_command">
+  <a href="index.html#/class:telnet_session/method:process_option_command" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> process_option_command : <a href="index.html#/type:telnet_command">telnet_command</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:fetch_subnegotiation">
+  <a href="index.html#/class:telnet_session/method:fetch_subnegotiation" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> fetch_subnegotiation : string option
+  
+      <div class="doc">
+        
+      <p>This method should be called as follows:
+If you find a <code>Telnet_sb</code> at the beginning of the input queue,
+remove this command <code>Queue.take</code>, and invoke <code>fetch_subnegotiation</code>.
+This method scans the queue and looks for the associated
+<code>Telnet_se</code> command. If it does not find it, <code>None</code> is returned.
+If <code>Telnet_se</code> is found, the parameter enclosed by the two commands
+is returned as <code>Some s</code> where <code>s</code> is the parameter string. Furthermore,
+in the latter case the data items and the closing <code>Telnet_se</code> are
+removed from the queue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Running the session</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:telnet_session/method:attach">
+  <a href="index.html#/class:telnet_session/method:attach" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> attach : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Attach to the event system. After being attached, the client
+is ready to work.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:run">
+  <a href="index.html#/class:telnet_session/method:run" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> run : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Run the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:update">
+  <a href="index.html#/class:telnet_session/method:update" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> update : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>If there are commands in the output queue, the event system is
+signaled that this client wants to do network I/O.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:send_synch">
+  <a href="index.html#/class:telnet_session/method:send_synch" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> send_synch : <a href="index.html#/type:telnet_command">telnet_command</a> list <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>At the next output oppurtunity, a Synch sequence is sent to
+the remote peer. This means that the passed commands, extended
+by an additional Data Mark command, are sent to the peer as
+urgent data.</p>
+      
+      <p>Sending a Synch sequence has higher priority than the output
+queue; processing of the output queue is deferred until the
+Synch sequence has been completely sent.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:telnet_session/method:expect_input">
+  <a href="index.html#/class:telnet_session/method:expect_input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> expect_input : bool <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Set whether the timeout value is to be applied to the input side
+of the connection. This is <code>true</code> by default.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A telnet session</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module By default,
+the exchanged Telnet commands are logged. This can be extended
+by setting the <code>verbose_input</code> and <code>verbose_output</code> options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

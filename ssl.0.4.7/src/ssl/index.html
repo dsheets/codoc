@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>Ssl</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Ssl</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Functions for making encrypted communications using the Secure Socket Layer
+(SSL). These are mostly bindings to the openssl library.</p>
+      
+        
+  <div class="tag author">
+    <span class="label">Author</span> Samuel Mimram
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Exceptions and errors</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:ssl_error">
+  <a href="index.html#/type:ssl_error" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ssl_error = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_none">
+  <a href="index.html#/type:ssl_error/cons:Error_none" class="anchor">#</a>
+  | Error_none
+  </div>
+  </td><td>(*</td><td class="doc">No error happened. This is never raised and should disappear in future
+versions.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_ssl">
+  <a href="index.html#/type:ssl_error/cons:Error_ssl" class="anchor">#</a>
+  | Error_ssl
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_want_read">
+  <a href="index.html#/type:ssl_error/cons:Error_want_read" class="anchor">#</a>
+  | Error_want_read
+  </div>
+  </td><td>(*</td><td class="doc">The operation did not complete; the same TLS/SSL I/O function should be
+called again later.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_want_write">
+  <a href="index.html#/type:ssl_error/cons:Error_want_write" class="anchor">#</a>
+  | Error_want_write
+  </div>
+  </td><td>(*</td><td class="doc">The operation did not complete; the same TLS/SSL I/O function should be
+called again later.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_want_x509_lookup">
+  <a href="index.html#/type:ssl_error/cons:Error_want_x509_lookup" class="anchor">#</a>
+  | Error_want_x509_lookup
+  </div>
+  </td><td>(*</td><td class="doc">The operation did not complete because an application callback set by
+<code>set_client_cert_cb</code> has asked to be called again. The TLS/SSL I/O function
+should be called again later. Details depend on the application.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_syscall">
+  <a href="index.html#/type:ssl_error/cons:Error_syscall" class="anchor">#</a>
+  | Error_syscall
+  </div>
+  </td><td>(*</td><td class="doc">Some I/O error occurred. The OpenSSL error queue may contain more
+information on the error.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_zero_return">
+  <a href="index.html#/type:ssl_error/cons:Error_zero_return" class="anchor">#</a>
+  | Error_zero_return
+  </div>
+  </td><td>(*</td><td class="doc">The TLS/SSL connection has been closed. If the protocol version is SSL
+3.0 or TLS 1.0, this result code is returned only if a closure alert has
+occurred in the protocol, i.e. if the connection has been closed cleanly. Note
+that in this case <code>Error_zero_return</code> does not necessarily indicate that the
+underlying transport has been closed.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_want_connect">
+  <a href="index.html#/type:ssl_error/cons:Error_want_connect" class="anchor">#</a>
+  | Error_want_connect
+  </div>
+  </td><td>(*</td><td class="doc">The operation did not complete; the same TLS/SSL I/O function should be
+called again later.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ssl_error/cons:Error_want_accept">
+  <a href="index.html#/type:ssl_error/cons:Error_want_accept" class="anchor">#</a>
+  | Error_want_accept
+  </div>
+  </td><td>(*</td><td class="doc">The operation did not complete; the same TLS/SSL I/O function should be
+called again later.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>An ssl error has occured (see SSL_get_error(3ssl) for details).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Method_error">
+  <a href="index.html#/exn:Method_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Method_error
+    
+      <div class="doc">
+        
+      <p>The SSL method could not be initalized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Context_error">
+  <a href="index.html#/exn:Context_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Context_error
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Certificate_error">
+  <a href="index.html#/exn:Certificate_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Certificate_error
+    
+      <div class="doc">
+        
+      <p>The SSL server certificate could not be initialized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Private_key_error">
+  <a href="index.html#/exn:Private_key_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Private_key_error
+    
+      <div class="doc">
+        
+      <p>The SSL server private key could not be intialized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Unmatching_keys">
+  <a href="index.html#/exn:Unmatching_keys" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Unmatching_keys
+    
+      <div class="doc">
+        
+      <p>The SSL private key does not match the certificate public key.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Invalid_socket">
+  <a href="index.html#/exn:Invalid_socket" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Invalid_socket
+    
+      <div class="doc">
+        
+      <p>The given socket is invalid.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Handler_error">
+  <a href="index.html#/exn:Handler_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Handler_error
+    
+      <div class="doc">
+        
+      <p>The SSL handler could not be initialized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Connection_error">
+  <a href="index.html#/exn:Connection_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Connection_error <span class="keyword">of</span> <a href="index.html#/type:ssl_error">ssl_error</a>
+    
+      <div class="doc">
+        
+      <p>The connection could not be made with the SSL service.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Accept_error">
+  <a href="index.html#/exn:Accept_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Accept_error <span class="keyword">of</span> <a href="index.html#/type:ssl_error">ssl_error</a>
+    
+      <div class="doc">
+        
+      <p>Failed to accept an SSL connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Read_error">
+  <a href="index.html#/exn:Read_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Read_error <span class="keyword">of</span> <a href="index.html#/type:ssl_error">ssl_error</a>
+    
+      <div class="doc">
+        
+      <p>An error occured while reading data.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Write_error">
+  <a href="index.html#/exn:Write_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Write_error <span class="keyword">of</span> <a href="index.html#/type:ssl_error">ssl_error</a>
+    
+      <div class="doc">
+        
+      <p>An error occured while writing data.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:verify_error">
+  <a href="index.html#/type:verify_error" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> verify_error = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_unable_to_get_issuer_cert">
+  <a href="index.html#/type:verify_error/cons:Error_v_unable_to_get_issuer_cert" class="anchor">#</a>
+  | Error_v_unable_to_get_issuer_cert
+  </div>
+  </td><td>(*</td><td class="doc">The issuer certificate could not be found: this occurs if the issuer
+certificate of an untrusted certificate cannot be found.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_unable_to_get_ctl">
+  <a href="index.html#/type:verify_error/cons:Error_v_unable_to_get_ctl" class="anchor">#</a>
+  | Error_v_unable_to_get_ctl
+  </div>
+  </td><td>(*</td><td class="doc">The CRL of a certificate could not be found.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_unable_to_decrypt_cert_signature">
+  <a href="index.html#/type:verify_error/cons:Error_v_unable_to_decrypt_cert_signature" class="anchor">#</a>
+  | Error_v_unable_to_decrypt_cert_signature
+  </div>
+  </td><td>(*</td><td class="doc">The certificate signature could not be decrypted. This means that the
+actual signature value could not be determined rather than it not matching the
+expected value, this is only meaningful for RSA keys.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_unable_to_decrypt_CRL_signature">
+  <a href="index.html#/type:verify_error/cons:Error_v_unable_to_decrypt_CRL_signature" class="anchor">#</a>
+  | Error_v_unable_to_decrypt_CRL_signature
+  </div>
+  </td><td>(*</td><td class="doc">The CRL signature could not be decrypted: this means that the actual
+signature value could not be determined rather than it not matching the
+expected value. Unused.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_unable_to_decode_issuer_public_key">
+  <a href="index.html#/type:verify_error/cons:Error_v_unable_to_decode_issuer_public_key" class="anchor">#</a>
+  | Error_v_unable_to_decode_issuer_public_key
+  </div>
+  </td><td>(*</td><td class="doc">The public key in the certificate SubjectPublicKeyInfo could not be
+read.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_cert_signature_failure">
+  <a href="index.html#/type:verify_error/cons:Error_v_cert_signature_failure" class="anchor">#</a>
+  | Error_v_cert_signature_failure
+  </div>
+  </td><td>(*</td><td class="doc">The signature of the certificate is invalid.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_CRL_signature_failure">
+  <a href="index.html#/type:verify_error/cons:Error_v_CRL_signature_failure" class="anchor">#</a>
+  | Error_v_CRL_signature_failure
+  </div>
+  </td><td>(*</td><td class="doc">The signature of the certificate is invalid.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_cert_not_yet_valid">
+  <a href="index.html#/type:verify_error/cons:Error_v_cert_not_yet_valid" class="anchor">#</a>
+  | Error_v_cert_not_yet_valid
+  </div>
+  </td><td>(*</td><td class="doc">The certificate is not yet valid: the notBefore date is after the current
+time.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_cert_has_expired">
+  <a href="index.html#/type:verify_error/cons:Error_v_cert_has_expired" class="anchor">#</a>
+  | Error_v_cert_has_expired
+  </div>
+  </td><td>(*</td><td class="doc">The certificate has expired: that is the notAfter date is before the
+current time.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_CRL_not_yet_valid">
+  <a href="index.html#/type:verify_error/cons:Error_v_CRL_not_yet_valid" class="anchor">#</a>
+  | Error_v_CRL_not_yet_valid
+  </div>
+  </td><td>(*</td><td class="doc">The CRL is not yet valid.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_CRL_has_expired">
+  <a href="index.html#/type:verify_error/cons:Error_v_CRL_has_expired" class="anchor">#</a>
+  | Error_v_CRL_has_expired
+  </div>
+  </td><td>(*</td><td class="doc">The CRL has expired.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_error_in_cert_not_before_field">
+  <a href="index.html#/type:verify_error/cons:Error_v_error_in_cert_not_before_field" class="anchor">#</a>
+  | Error_v_error_in_cert_not_before_field
+  </div>
+  </td><td>(*</td><td class="doc">The certificate notBefore field contains an invalid time.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_error_in_cert_not_after_field">
+  <a href="index.html#/type:verify_error/cons:Error_v_error_in_cert_not_after_field" class="anchor">#</a>
+  | Error_v_error_in_cert_not_after_field
+  </div>
+  </td><td>(*</td><td class="doc">The certificate notAfter field contains an invalid time.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_error_in_CRL_last_update_field">
+  <a href="index.html#/type:verify_error/cons:Error_v_error_in_CRL_last_update_field" class="anchor">#</a>
+  | Error_v_error_in_CRL_last_update_field
+  </div>
+  </td><td>(*</td><td class="doc">The CRL lastUpdate field contains an invalid time.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_error_in_CRL_next_update_field">
+  <a href="index.html#/type:verify_error/cons:Error_v_error_in_CRL_next_update_field" class="anchor">#</a>
+  | Error_v_error_in_CRL_next_update_field
+  </div>
+  </td><td>(*</td><td class="doc">The CRL nextUpdate field contains an invalid time.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_out_of_mem">
+  <a href="index.html#/type:verify_error/cons:Error_v_out_of_mem" class="anchor">#</a>
+  | Error_v_out_of_mem
+  </div>
+  </td><td>(*</td><td class="doc">An error occurred trying to allocate memory. This should never happen.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_depth_zero_self_signed_cert">
+  <a href="index.html#/type:verify_error/cons:Error_v_depth_zero_self_signed_cert" class="anchor">#</a>
+  | Error_v_depth_zero_self_signed_cert
+  </div>
+  </td><td>(*</td><td class="doc">The passed certificate is self signed and the same certificate cannot be
+found in the list of trusted certificates.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_self_signed_cert_in_chain">
+  <a href="index.html#/type:verify_error/cons:Error_v_self_signed_cert_in_chain" class="anchor">#</a>
+  | Error_v_self_signed_cert_in_chain
+  </div>
+  </td><td>(*</td><td class="doc">The certificate chain could be built up using the untrusted certificates
+but the root could not be found locally.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_unable_to_get_issuer_cert_locally">
+  <a href="index.html#/type:verify_error/cons:Error_v_unable_to_get_issuer_cert_locally" class="anchor">#</a>
+  | Error_v_unable_to_get_issuer_cert_locally
+  </div>
+  </td><td>(*</td><td class="doc">The issuer certificate of a locally looked up certificate could not be
+found. This normally means the list of trusted certificates is not
+complete.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_unable_to_verify_leaf_signature">
+  <a href="index.html#/type:verify_error/cons:Error_v_unable_to_verify_leaf_signature" class="anchor">#</a>
+  | Error_v_unable_to_verify_leaf_signature
+  </div>
+  </td><td>(*</td><td class="doc">No signatures could be verified because the chain contains only one
+certificate and it is not self signed.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_cert_chain_too_long">
+  <a href="index.html#/type:verify_error/cons:Error_v_cert_chain_too_long" class="anchor">#</a>
+  | Error_v_cert_chain_too_long
+  </div>
+  </td><td>(*</td><td class="doc">The certificate chain length is greater than the supplied maximum
+depth. Unused.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_cert_revoked">
+  <a href="index.html#/type:verify_error/cons:Error_v_cert_revoked" class="anchor">#</a>
+  | Error_v_cert_revoked
+  </div>
+  </td><td>(*</td><td class="doc">The certificate has been revoked.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_invalid_CA">
+  <a href="index.html#/type:verify_error/cons:Error_v_invalid_CA" class="anchor">#</a>
+  | Error_v_invalid_CA
+  </div>
+  </td><td>(*</td><td class="doc">A CA certificate is invalid. Either it is not a CA or its extensions are
+not consistent with the supplied purpose.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_path_length_exceeded">
+  <a href="index.html#/type:verify_error/cons:Error_v_path_length_exceeded" class="anchor">#</a>
+  | Error_v_path_length_exceeded
+  </div>
+  </td><td>(*</td><td class="doc">The basicConstraints pathlength parameter has been exceeded.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_invalid_purpose">
+  <a href="index.html#/type:verify_error/cons:Error_v_invalid_purpose" class="anchor">#</a>
+  | Error_v_invalid_purpose
+  </div>
+  </td><td>(*</td><td class="doc">The supplied certificate cannot be used for the specified purpose.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_cert_untrusted">
+  <a href="index.html#/type:verify_error/cons:Error_v_cert_untrusted" class="anchor">#</a>
+  | Error_v_cert_untrusted
+  </div>
+  </td><td>(*</td><td class="doc">The root CA is not marked as trusted for the specified purpose.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_cert_rejected">
+  <a href="index.html#/type:verify_error/cons:Error_v_cert_rejected" class="anchor">#</a>
+  | Error_v_cert_rejected
+  </div>
+  </td><td>(*</td><td class="doc">The root CA is marked to reject the specified purpose.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_subject_issuer_mismatch">
+  <a href="index.html#/type:verify_error/cons:Error_v_subject_issuer_mismatch" class="anchor">#</a>
+  | Error_v_subject_issuer_mismatch
+  </div>
+  </td><td>(*</td><td class="doc">The current candidate issuer certificate was rejected because its subject
+name did not match the issuer name of the current certificate.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_akid_skid_mismatch">
+  <a href="index.html#/type:verify_error/cons:Error_v_akid_skid_mismatch" class="anchor">#</a>
+  | Error_v_akid_skid_mismatch
+  </div>
+  </td><td>(*</td><td class="doc">The current candidate issuer certificate was rejected because its subject
+key identifier was present and did not match the authority key identifier
+current certificate.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_akid_issuer_serial_mismatch">
+  <a href="index.html#/type:verify_error/cons:Error_v_akid_issuer_serial_mismatch" class="anchor">#</a>
+  | Error_v_akid_issuer_serial_mismatch
+  </div>
+  </td><td>(*</td><td class="doc">The current candidate issuer certificate was rejected because its issuer
+name and serial number was present and did not match the authority key
+identifier of the current certificate.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_keyusage_no_certsign">
+  <a href="index.html#/type:verify_error/cons:Error_v_keyusage_no_certsign" class="anchor">#</a>
+  | Error_v_keyusage_no_certsign
+  </div>
+  </td><td>(*</td><td class="doc">The current candidate issuer certificate was rejected because its keyUsage
+extension does not permit certificate signing.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_error/cons:Error_v_application_verification">
+  <a href="index.html#/type:verify_error/cons:Error_v_application_verification" class="anchor">#</a>
+  | Error_v_application_verification
+  </div>
+  </td><td>(*</td><td class="doc">An application specific error. Unused.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Why did the certificate verification fail?</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Verify_error">
+  <a href="index.html#/exn:Verify_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Verify_error <span class="keyword">of</span> <a href="index.html#/type:verify_error">verify_error</a>
+    
+      <div class="doc">
+        
+      <p>An error occured while verifying the certificate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Communication</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : ?thread_safe:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Initialize SSL functions. Should be called before calling any other
+function. The parameter <code>thread_safe</code> should be set to true if you use
+threads in you application (the same effect can achived by calling
+<code>Ssl_threads.init</code> first.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_error_string">
+  <a href="index.html#/val:get_error_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_error_string : unit <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Retrieve a human-readable message that corresponds to the last error that
+occurred.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:protocol">
+  <a href="index.html#/type:protocol" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:protocol/cons:SSLv23">
+  <a href="index.html#/type:protocol/cons:SSLv23" class="anchor">#</a>
+  | SSLv23
+  </div>
+  </td><td>(*</td><td class="doc">SSL v3 protocol but can rollback to v2</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:protocol/cons:SSLv3">
+  <a href="index.html#/type:protocol/cons:SSLv3" class="anchor">#</a>
+  | SSLv3
+  </div>
+  </td><td>(*</td><td class="doc">SSL v3 protocol</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:protocol/cons:TLSv1">
+  <a href="index.html#/type:protocol/cons:TLSv1" class="anchor">#</a>
+  | TLSv1
+  </div>
+  </td><td>(*</td><td class="doc">TLS v1 protocol</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:protocol/cons:TLSv1_1">
+  <a href="index.html#/type:protocol/cons:TLSv1_1" class="anchor">#</a>
+  | TLSv1_1
+  </div>
+  </td><td>(*</td><td class="doc">TLS v1.1 protocol</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:protocol/cons:TLSv1_2">
+  <a href="index.html#/type:protocol/cons:TLSv1_2" class="anchor">#</a>
+  | TLSv1_2
+  </div>
+  </td><td>(*</td><td class="doc">TLS v1.2 protocol</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Protocol used by SSL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:socket">
+  <a href="index.html#/type:socket" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> socket
+    
+      <div class="doc">
+        
+      <p>An SSL abstract socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Threads</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>You should not have to use those functions. They are only here for internal
+use (they are needed to make the openssl library thread-safe, see the
+<code>Ssl_threads</code> module).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:thread_safe">
+  <a href="index.html#/val:thread_safe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> thread_safe : bool <a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Contexts</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:context">
+  <a href="index.html#/type:context" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> context
+    
+      <div class="doc">
+        
+      <p>A context. A context should be created by a server or client once per
+program life-time and holds mainly default values for the SSL structures
+which are later created for the connections.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:context_type">
+  <a href="index.html#/type:context_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> context_type = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:context_type/cons:Client_context">
+  <a href="index.html#/type:context_type/cons:Client_context" class="anchor">#</a>
+  | Client_context
+  </div>
+  </td><td>(*</td><td class="doc">Client connections.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:context_type/cons:Server_context">
+  <a href="index.html#/type:context_type/cons:Server_context" class="anchor">#</a>
+  | Server_context
+  </div>
+  </td><td>(*</td><td class="doc">Server connections.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:context_type/cons:Both_context">
+  <a href="index.html#/type:context_type/cons:Both_context" class="anchor">#</a>
+  | Both_context
+  </div>
+  </td><td>(*</td><td class="doc">Client and server connections.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Type of the context to create.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_context">
+  <a href="index.html#/val:create_context" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_context : <a href="index.html#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:context_type">context_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:context">context</a>
+    
+      <div class="doc">
+        
+      <p>Create a context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:use_certificate">
+  <a href="index.html#/val:use_certificate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> use_certificate : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>use_certificate ctx cert privkey</code> makes the context <code>ctx</code> use <code>cert</code> as
+certificate's file name (in PEM format) and <code>privkey</code> as private key file
+name.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_password_callback">
+  <a href="index.html#/val:set_password_callback" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_password_callback : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> (bool <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the callback function called to get passwords for encrypted PEM files.
+The callback function takes a boolean argument which indicates if it's used
+for reading/decryption (<code>false</code>) or writing/encryption (<code>true</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_client_CA_list_from_file">
+  <a href="index.html#/val:set_client_CA_list_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_client_CA_list_from_file : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the list of CAs sent to the client when requesting a client certificate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:verify_mode">
+  <a href="index.html#/type:verify_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> verify_mode = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:verify_mode/cons:Verify_peer">
+  <a href="index.html#/type:verify_mode/cons:Verify_peer" class="anchor">#</a>
+  | Verify_peer
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_mode/cons:Verify_fail_if_no_peer_cert">
+  <a href="index.html#/type:verify_mode/cons:Verify_fail_if_no_peer_cert" class="anchor">#</a>
+  | Verify_fail_if_no_peer_cert
+  </div>
+  </td><td>(*</td><td class="doc">Implies <code>Verify_peer</code>.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:verify_mode/cons:Verify_client_once">
+  <a href="index.html#/type:verify_mode/cons:Verify_client_once" class="anchor">#</a>
+  | Verify_client_once
+  </div>
+  </td><td>(*</td><td class="doc">Implies <code>Verify_peer</code>.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Verification modes (see SSL_CTX_set_verify(3)).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:verify_callback">
+  <a href="index.html#/type:verify_callback" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> verify_callback
+    
+      <div class="doc">
+        
+      <p>A callback function for verification. Warning: this might change in the future.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:client_verify_callback">
+  <a href="index.html#/val:client_verify_callback" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> client_verify_callback : <a href="index.html#/type:verify_callback">verify_callback</a>
+    
+      <div class="doc">
+        
+      <p>Client's verification callback. Warning: this might change in the future.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_verify">
+  <a href="index.html#/val:set_verify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_verify : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:verify_mode">verify_mode</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:verify_callback">verify_callback</a> option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the verify mode and callback, see SSL_CTX_set_verify(3).
+Warning: this might change in the future.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_verify_depth">
+  <a href="index.html#/val:set_verify_depth" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_verify_depth : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the maximum depth for the certificate chain verification that shall be allowed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Ciphers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:cipher">
+  <a href="index.html#/type:cipher" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cipher
+    
+      <div class="doc">
+        
+      <p>A cipher. It holds the algorithm information for a particular cipher which
+are a core part of the SSL/TLS protocol.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_cipher_list">
+  <a href="index.html#/val:set_cipher_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_cipher_list : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the list of available ciphers for a context. See man ciphers(1) for the format of the string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init_dh_from_file">
+  <a href="index.html#/val:init_dh_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init_dh_from_file : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Init DH parameters from file</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init_ec_from_named_curve">
+  <a href="index.html#/val:init_ec_from_named_curve" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init_ec_from_named_curve : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Init EC curve from curve name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_cipher">
+  <a href="index.html#/val:get_cipher" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cipher : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cipher">cipher</a>
+    
+      <div class="doc">
+        
+      <p>Get the cipher used by a socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_cipher_description">
+  <a href="index.html#/val:get_cipher_description" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cipher_description : <a href="index.html#/type:cipher">cipher</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get a description of a cipher.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_cipher_name">
+  <a href="index.html#/val:get_cipher_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cipher_name : <a href="index.html#/type:cipher">cipher</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the name of a cipher.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_cipher_version">
+  <a href="index.html#/val:get_cipher_version" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cipher_version : <a href="index.html#/type:cipher">cipher</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the version of a cipher.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Certificates</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:certificate">
+  <a href="index.html#/type:certificate" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> certificate
+    
+      <div class="doc">
+        
+      <p>A certificate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_certificate">
+  <a href="index.html#/val:read_certificate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_certificate : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:certificate">certificate</a>
+    
+      <div class="doc">
+        
+      <p><code>read_certificate fname</code> reads the certificate in the file <code>fname</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_certificate">
+  <a href="index.html#/val:write_certificate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_certificate : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:certificate">certificate</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_certificate">
+  <a href="index.html#/val:get_certificate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_certificate : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:certificate">certificate</a>
+    
+      <div class="doc">
+        
+      <p>Get the certificate used by a socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_issuer">
+  <a href="index.html#/val:get_issuer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_issuer : <a href="index.html#/type:certificate">certificate</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the issuer of a certificate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_subject">
+  <a href="index.html#/val:get_subject" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_subject : <a href="index.html#/type:certificate">certificate</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the subject of a certificate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_verify_locations">
+  <a href="index.html#/val:load_verify_locations" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_verify_locations : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>load_verify_locations ctxt cafile capath</code> specifies the locations for the
+context <code>ctx</code>, at which CA certificates for verification purposes are
+located. <code>cafile</code> should be the name of a CA certificates file in PEM format
+and <code>capath</code> should be the name of a directory which contains CA certificates
+in PEM format. Empty strings can be used in order not to specify on of the
+parameters (but not both).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if both strings are empty or if one of the files
+given in arguments could not be found.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_verify_result">
+  <a href="index.html#/val:get_verify_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_verify_result : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Get the verification result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Creating, connecting and closing sockets</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:embed_socket">
+  <a href="index.html#/val:embed_socket" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> embed_socket : <a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket">socket</a>
+    
+      <div class="doc">
+        
+      <p>Embed a Unix socket into an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_connection">
+  <a href="index.html#/val:open_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_connection : <a href="index.html#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket">socket</a>
+    
+      <div class="doc">
+        
+      <p>Open an SSL connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_connection_with_context">
+  <a href="index.html#/val:open_connection_with_context" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_connection_with_context : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket">socket</a>
+    
+      <div class="doc">
+        
+      <p>Open an SSL connection with the specified context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shutdown_connection">
+  <a href="index.html#/val:shutdown_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shutdown_connection : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Close an SSL connection opened with <code>open_connection</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_client_SNI_hostname">
+  <a href="index.html#/val:set_client_SNI_hostname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_client_SNI_hostname : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the hostname the client is attempting to connect to using the Server
+Name Indication (SNI) TLS extension.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:connect">
+  <a href="index.html#/val:connect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connect : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Connect an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:accept">
+  <a href="index.html#/val:accept" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> accept : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Accept an SSL connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush">
+  <a href="index.html#/val:flush" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Flush an SSL connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shutdown">
+  <a href="index.html#/val:shutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shutdown : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Close an SSL connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">I/O on SSL sockets</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:verify">
+  <a href="index.html#/val:verify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> verify : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Check the result of the verification of the X509 certificate presented by
+the peer, if any. Raises a <code>verify_error</code> on failure.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_descr_of_socket">
+  <a href="index.html#/val:file_descr_of_socket" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_descr_of_socket : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Get the file descriptor associated with a socket. It is primarly useful for
+<code>select</code>ing on it; you should not write or read on it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read">
+  <a href="index.html#/val:read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>read sock buf off len</code> receives data from a connected SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write">
+  <a href="index.html#/val:write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>write sock buf off len</code> sends data over a connected SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">High-level communication functions</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:input_string">
+  <a href="index.html#/val:input_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_string : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Input a string on an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_string">
+  <a href="index.html#/val:output_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_string : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a string on an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_char">
+  <a href="index.html#/val:input_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_char : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> char
+    
+      <div class="doc">
+        
+      <p>Input a character on an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_char">
+  <a href="index.html#/val:output_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_char : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a char on an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_int">
+  <a href="index.html#/val:input_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_int : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Input an integer on an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_int">
+  <a href="index.html#/val:output_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_int : <a href="index.html#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write an integer on an SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

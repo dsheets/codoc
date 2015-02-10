@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Nethttpd_services</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Nethttpd_services</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Service Providers for HTTP daemon</h1>
+    </div>
+      <p>This module defines the basic service providers that handle requests and
+generate responses. The service providers can be used with both the
+reactive and the event-based daemon encapsulations.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:host">
+  <a href="index.html#/type:host" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> host = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:host/field:server_pref_name">
+  <a href="index.html#/type:host/field:server_pref_name" class="anchor">#</a>
+  server_pref_name
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">The preferred name of the host. This can be a DNS name or an IP address.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:host/field:server_pref_port">
+  <a href="index.html#/type:host/field:server_pref_port" class="anchor">#</a>
+  server_pref_port
+  </div>
+  </td><td>: int option</td><td>;</td><td>(*</td><td class="doc">The preferred port of the host</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:host/field:server_names">
+  <a href="index.html#/type:host/field:server_names" class="anchor">#</a>
+  server_names
+  </div>
+  </td><td>: (string * int) list</td><td>;</td><td>(*</td><td class="doc">Names and ports that match this host definition, for
+name-based virtual hosting. The name <code>&quot;*&quot;</code> matches any name, and the port
+0 matches any port.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:host/field:server_addresses">
+  <a href="index.html#/type:host/field:server_addresses" class="anchor">#</a>
+  server_addresses
+  </div>
+  </td><td>: (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> * int) list</td><td>;</td><td>(*</td><td class="doc">IP addresses and ports that also match this host definition, for
+IP-based virtual hosting. The address <code>Unix.inet_addr_any</code> matches any
+address, and the port 0 matches any port.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>For name- and IP-based virtual hosting this record describes the individual
+host. An incoming request matches this host if:</p>
+      <ul><li>The <code>Host</code> header is mentioned in <code>server_names</code>, or if</li><li>The request has been accepted on the port contained in <code>server_addresses</code></li></ul>
+      <p>If <code>server_pref_name</code> is set, the name of the host is set to this string for
+further processing (esp. <code>cgi_server_name</code>). If not set, the name of the
+host is set to the name corresponding to the matching entry of <code>server_names</code>
+or <code>server_addresses</code>, or if this does not succeed, to the real IP address.</p>
+      
+      <p>If <code>server_pref_port</code> is set, the port of the host is set to this string for
+further processing (esp. <code>cgi_server_port</code>). If not set, the port of the
+host is set to the port corresponding to the matching entry of <code>server_names</code>
+or <code>server_addresses</code>, or if this does not succeed, to the real port number.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:host_distributor">
+  <a href="index.html#/type:host_distributor" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a host_distributor = (<a href="index.html#/type:host">host</a> * 'a <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>) list
+    
+      <div class="doc">
+        
+      <p>Describes virtual hosting by pairs <code>(host,service)</code>: If <code>host</code> matches the
+incoming request, the corresponding <code>service</code> is performed to generate the
+response.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:host_distributor">
+  <a href="index.html#/val:host_distributor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> host_distributor : 'a <a href="index.html#/type:host_distributor">host_distributor</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Host_distributor <span class="keyword">of</span> 'a <a href="index.html#/type:host_distributor">host_distributor</a></div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>Configures virtual hosting</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_host">
+  <a href="index.html#/val:default_host" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_host : ?pref_name:string <span class="rarr"><span>-&gt;</span></span> ?pref_port:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:host">host</a>
+    
+      <div class="doc">
+        
+      <p>Creates a <code>host</code> record that matches any request. <code>pref_name</code> and <code>pref_port</code>
+can be used to specify preferred names.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:options_service">
+  <a href="index.html#/val:options_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> options_service : unit <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Options_service</div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>This service responds to &quot;OPTIONS *&quot; requests, and nothing else</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:uri_distributor">
+  <a href="index.html#/type:uri_distributor" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a uri_distributor = (string * 'a <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>) list
+    
+      <div class="doc">
+        
+      <p>Describes that services are bound to URI prefixes. The strings are URI paths
+(without URI escaping).
+For an incoming request URI, the longest matching prefix is selected, and
+the corresponding service is carried out.</p>
+      
+      <p>If the URI path in the list ends with a slash, it can only be selected if the
+incoming request URI also includes the slash.</p>
+      
+      <p>If the URI path in the list does not end with a slash, it can only be selected
+if the incoming request URI is exactly identical, or continues the path with
+a slash.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uri_distributor">
+  <a href="index.html#/val:uri_distributor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uri_distributor : 'a <a href="index.html#/type:uri_distributor">uri_distributor</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Uri_distributor <span class="keyword">of</span> 'a <a href="index.html#/type:uri_distributor">uri_distributor</a></div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>Configures URI distribution. The incoming request URI is normalized before
+being matched, and the request is rewritten to the normalized URI.</p>
+      
+      <p>Normalization includes:</p>
+      <ul><li>Removal of <code>.</code> path components</li><li>Resolution of <code>..</code> path components</li></ul>
+      <p>If the path starts with <code>..</code> after normalization, the request is rejected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:linear_distributor">
+  <a href="index.html#/type:linear_distributor" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a linear_distributor = ((<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a> <span class="rarr"><span>-&gt;</span></span> bool) * 'a <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>) list
+    
+      <div class="doc">
+        
+      <p>Services are selected by calling the selector function. The first service
+for which the function returns <code>true</code> is selected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:linear_distributor">
+  <a href="index.html#/val:linear_distributor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linear_distributor : 'a <a href="index.html#/type:linear_distributor">linear_distributor</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Linear_distributor <span class="keyword">of</span> 'a <a href="index.html#/type:linear_distributor">linear_distributor</a></div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>Configures linear distribution</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:method_filter">
+  <a href="index.html#/type:method_filter" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> method_filter = [ <div class="cons">| `Limit <span class="keyword">of</span> string list</div><div class="cons">| `Limit_except <span class="keyword">of</span> string list</div> ]
+    
+      <div class="doc">
+        
+      <p>The request is only accepted if listed (for <code>`Limit</code>), or if not listed
+(for <code>`Limit_except</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:method_distributor">
+  <a href="index.html#/type:method_distributor" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a method_distributor = (<a href="index.html#/type:method_filter">method_filter</a> * 'a <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>) list
+    
+      <div class="doc">
+        
+      <p>The first service is selected for which the method filter accepts the request</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:method_distributor">
+  <a href="index.html#/val:method_distributor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> method_distributor : 'a <a href="index.html#/type:method_distributor">method_distributor</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Method_distributor <span class="keyword">of</span> 'a <a href="index.html#/type:method_distributor">method_distributor</a></div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>Configures method distribution</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:file_option">
+  <a href="index.html#/type:file_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_option = [ <div class="cons">| `Enable_gzip</div><div class="cons">| `Enable_cooked_compression</div><div class="cons">| `Override_compression_suffixes <span class="keyword">of</span> (string * string) list</div><div class="cons">| `Enable_index_file <span class="keyword">of</span> string list</div><div class="cons">| `Enable_listings <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_activation">cgi_activation</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_service">file_service</a> <span class="rarr"><span>-&gt;</span></span> unit</div> ]
+    
+      <div class="doc">
+        
+      <p>Add-on features for file services:</p>
+      <ul><li><code>`Enable_gzip</code>: Deprecated. Same as <code>`Enable_cooked_compression</code>.</li><li><code>`Enable_cooked_compression</code>: Modifies the way compressed files
+are handled. Normally it is required that one accesses the compressed
+file (with suffix such as &quot;gz&quot;) directly to get it in compressed form.
+If this option is enabled, though, the server also compresses
+the base file (without suffix such as &quot;gz&quot;), but only if the
+base file is accompanied by a compressed version (with suffix).
+E.g. if there is &quot;foo&quot; and &quot;foo.gz&quot;, this enables that the accesses
+to &quot;foo&quot; can make use of compression.</li><li><code>`Enable_index_file</code>: If enabled, accesses to directories are redirected
+to index files. The possible file names are given in the string list.
+E.g. <code>`Enable_index_file [&quot;index.html&quot;; &quot;index.htm&quot;]</code>. It is redirected to
+these files, so these can be handled by different services if neccessary.</li><li><code>`Enable_listings</code>: If enabled, directory listings are generated by calling
+the argument function. The <code>PATH_TRANSLATED</code> property of the environment
+contains the absolute name of the directory to list. The <code>PATH_INFO</code> property
+is the corresponding URI path. <code>SCRIPT_NAME</code> is meaningless.</li><li><code>`Override_compression_suffixes l</code>: Tags the file suffixes in
+<code>l</code> as compression schemes. A pair <code>(suffix,ce)</code> sets that the
+<code>suffix</code> means the content encoding <code>ce</code>. Knowing this is important
+for determining the media type of the file.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:file_service">
+  <a href="index.html#/type:file_service" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_service = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:file_service/field:file_docroot">
+  <a href="index.html#/type:file_service/field:file_docroot" class="anchor">#</a>
+  file_docroot
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The document root for this file service</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:file_service/field:file_uri">
+  <a href="index.html#/type:file_service/field:file_uri" class="anchor">#</a>
+  file_uri
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The URI prefix corresponding to the document root. Escapes are not allowed</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:file_service/field:file_suffix_types">
+  <a href="index.html#/type:file_service/field:file_suffix_types" class="anchor">#</a>
+  file_suffix_types
+  </div>
+  </td><td>: (string * string) list</td><td>;</td><td>(*</td><td class="doc">Maps the file suffixes (after the dot) to media types</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:file_service/field:file_default_type">
+  <a href="index.html#/type:file_service/field:file_default_type" class="anchor">#</a>
+  file_default_type
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The media type to use if suffix mapping fails</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:file_service/field:file_options">
+  <a href="index.html#/type:file_service/field:file_options" class="anchor">#</a>
+  file_options
+  </div>
+  </td><td>: <a href="index.html#/type:file_option">file_option</a> list</td><td>;</td><td>(*</td><td class="doc">Further options for files</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Describes a file service</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_service">
+  <a href="index.html#/val:file_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_service : <a href="index.html#/type:file_service">file_service</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `File_service <span class="keyword">of</span> <a href="index.html#/type:file_service">file_service</a></div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>Configures a file service</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_translator">
+  <a href="index.html#/val:file_translator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_translator : <a href="index.html#/type:file_service">file_service</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Translates an URI path to a file name. Raises <code>Not_found</code> if not
+possible. It is not checked whether the resulting file exists.</p>
+      
+      <p>This function removes a trailing slash of the translated path, if any,
+and if resulting from appending the path info component.
+Trailing slashes must not be used to deduce that directories are
+accessed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:simple_listing">
+  <a href="index.html#/val:simple_listing" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> simple_listing : ?hide:string list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_activation">cgi_activation</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_service">file_service</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Simple listing generator for <code>`Enable_listings</code></p>
+      
+      <p><code>hide</code>: An optional list of Str regular expressions. File names matching one
+of the regexps are hidden in the listing. Defaults to hiding files starting with
+a dot, and files ending in a tilde character. (Changed in Ocamlnet-3.3:
+<code>hide</code> uses now Str regexps, and no longer PCRE regexps.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:std_activation_options">
+  <a href="index.html#/type:std_activation_options" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> std_activation_options = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:std_activation_options/field:stdactv_processing">
+  <a href="index.html#/type:std_activation_options/field:stdactv_processing" class="anchor">#</a>
+  stdactv_processing
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> option</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:std_activation_options/field:stdactv_operating_type">
+  <a href="index.html#/type:std_activation_options/field:stdactv_operating_type" class="anchor">#</a>
+  stdactv_operating_type
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>These are options for <code>`Std_activation</code>. For explanations, see the <code>Netcgi</code>
+module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:std_activation">
+  <a href="index.html#/type:std_activation" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> std_activation = [ <div class="cons">| `Std_activation <span class="keyword">of</span> <a href="index.html#/type:std_activation_options">std_activation_options</a></div><div class="cons">| `Std_activation_unbuffered</div><div class="cons">| `Std_activation_buffered</div><div class="cons">| `Std_activation_tempfile</div> ]
+    
+      <div class="doc">
+        
+      <p>The way the <code>Netcgi_types.cgi_activation</code> object is created. For typical
+usage, just take:</p>
+      <ul><li><code>`Std_activation_unbuffered</code>: Creates a <code>Netcgi.std_activation</code> without
+output buffer (type <code>`Direct &quot;&quot;</code>) and memory-based argument processing</li><li><code>`Std_activation_buffered</code>: Creates a <code>Netcgi.std_activation</code>
+with a transactions buffer in memory, and memory-based argument processing</li><li><code>`Std_activation_tempfile</code>: Creates a <code>Netcgi.std_activation</code>
+with a file as transactions buffer, and memory-based argument processing</li></ul>
+      <p>The following option is provided for detailed control:</p>
+      <ul><li><code>`Std_activation opt</code>: Creates a <code>Netcgi.std_activation</code> with the given
+options</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:dynamic_service">
+  <a href="index.html#/type:dynamic_service" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a dynamic_service = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:dynamic_service/field:dyn_handler">
+  <a href="index.html#/type:dynamic_service/field:dyn_handler" class="anchor">#</a>
+  dyn_handler
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">A dynamic service is carried out by calling this function with the environment
+and the CGI activation. The function can use all CGI features, including
+setting the <code>Location</code> handler to redirect responses.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:dynamic_service/field:dyn_activation">
+  <a href="index.html#/type:dynamic_service/field:dyn_activation" class="anchor">#</a>
+  dyn_activation
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a> <span class="rarr"><span>-&gt;</span></span> 'a</td><td>;</td><td>(*</td><td class="doc">The way the <code>Netcgi_types.cgi_activation</code> is created. Look below
+for <code>std_activation</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:dynamic_service/field:dyn_uri">
+  <a href="index.html#/type:dynamic_service/field:dyn_uri" class="anchor">#</a>
+  dyn_uri
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">The URI prefix corresponding to this service. This is only used to
+compute <code>cgi_path</code>. Leave it to <code>None</code> if not needed.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:dynamic_service/field:dyn_translator">
+  <a href="index.html#/type:dynamic_service/field:dyn_translator" class="anchor">#</a>
+  dyn_translator
+  </div>
+  </td><td>: string <span class="rarr"><span>-&gt;</span></span> string</td><td>;</td><td>(*</td><td class="doc">The function computing <code>cgi_path_translated</code> from <code>cgi_path</code>. Set it
+to <code>(fun _ -&gt; &quot;&quot;)</code> if not needed.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:dynamic_service/field:dyn_accept_all_conditionals">
+  <a href="index.html#/type:dynamic_service/field:dyn_accept_all_conditionals" class="anchor">#</a>
+  dyn_accept_all_conditionals
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether to pass requests with <code>If-Match</code> and <code>If-Unmodified-Since</code> headers
+to this service. If set to <code>true</code>, the service can optimize the caching
+behaviour by interpreting these fields. It is even obliged to interpret
+them. If <code>false</code>, requests containing these headers are rejected.<br/>The other condition fields <code>If-None-Match</code>, <code>If-Modified-Since</code>, and
+<code>If-Ranges</code> are not affected by this option. One can safely ignore these
+headers.</td><td>*)</td>
+  </tr>
+    </table>} <span class="keyword">constraint</span> 'a = Netcgi.#cgi_activation
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:std_activation">
+  <a href="index.html#/val:std_activation" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> std_activation : <a href="index.html#/type:std_activation">std_activation</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_activation">cgi_activation</a>
+    
+      <div class="doc">
+        
+      <p>Create the function for <code>dyn_activation</code> from a <code>std_activation</code> tag.
+Example:
+<code>let dyn_actv = std_activation `Std_activation_unbuffered</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dynamic_service">
+  <a href="index.html#/val:dynamic_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dynamic_service : 'a <a href="index.html#/type:dynamic_service">dynamic_service</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Dynamic_service <span class="keyword">of</span> 'a <a href="index.html#/type:dynamic_service">dynamic_service</a></div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>Configures the dynamic service.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ac_by_host_rule">
+  <a href="index.html#/type:ac_by_host_rule" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ac_by_host_rule = [ <div class="cons">| `Allow <span class="keyword">of</span> string list</div><div class="cons">| `Deny <span class="keyword">of</span> string list</div> ]
+    
+      <div class="doc">
+        
+      <p>Access control by host:</p>
+      <ul><li><code>`Allow</code>: Only the listed hosts are allowed; all other are denied</li><li><code>`Deny</code>: The listed hosts are denied; all other are allowed</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ac_by_host">
+  <a href="index.html#/type:ac_by_host" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a ac_by_host = <a href="index.html#/type:ac_by_host_rule">ac_by_host_rule</a> * 'a <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>The service is protected by the access control rule</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ac_by_host">
+  <a href="index.html#/val:ac_by_host" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ac_by_host : 'a <a href="index.html#/type:ac_by_host">ac_by_host</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Ac_by_host <span class="keyword">of</span> 'a <a href="index.html#/type:ac_by_host">ac_by_host</a></div> ] <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a>
+    
+      <div class="doc">
+        
+      <p>Configures host-based access control</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_media_types_file">
+  <a href="index.html#/val:read_media_types_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_media_types_file : string <span class="rarr"><span>-&gt;</span></span> (string * string) list
+    
+      <div class="doc">
+        
+      <p>Reads a text file with two columns where the left column is the
+media type and the right column the corresponding suffix.
+Returns the contents as pairs <code>(suffix, type)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

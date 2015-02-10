@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>LTerm</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">LTerm</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Terminal definitions</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Type of terminals.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Creation</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:No_such_encoding">
+  <a href="index.html#/exn:No_such_encoding" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_such_encoding <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Exception raised when an encoding does not exist.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?windows:bool <span class="rarr"><span>-&gt;</span></span> ?model:string <span class="rarr"><span>-&gt;</span></span> ?incoming_encoding:string <span class="rarr"><span>-&gt;</span></span> ?outgoing_encoding:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ?windows ?model ?incoming_encoding ?outgoing_encoding
+      input_fd input_channel outout_fd output_channel</code> creates a new
+terminal using <code>input_fd</code> and <code>input_channel</code> for inputs and
+<code>output_fd</code> and <code>output_channel</code> for outputs.</p>
+      <ul><li><code>windows</code> indicates whether the terminal is a windows console
+(not mintty, rxvt, ...). It defaults to <code>Sys.win32</code>.</li></ul><ul><li><code>model</code> is the type of the terminal, such as &quot;rxvt&quot; or
+&quot;xterm&quot;. It defaults to the contents of the &quot;TERM&quot; environment
+variable, or to &quot;dumb&quot; if this one is not found. It is used to
+determine capabilities of the terminal, such as the number of
+colors. This is not used if <code>windows</code> is <code>true</code>.</li></ul><ul><li><code>incoming_encoding</code> is the encoding used for incoming data. It
+defaults to <code>LTerm_windows.get_console_cp</code> if <code>windows</code> is <code>true</code>
+and <code>LTerm_unix.system_encoding</code> otherwise.</li></ul><ul><li><code>outgoing_encoding</code> is the encoding used for outgoing data. It
+defaults to <code>LTerm_windows.get_console_output_cp</code> if <code>windows</code> is
+<code>true</code> and <code>LTerm_unix.system_encoding</code> otherwise. Note that
+transliteration is used so printing unicode character on the
+terminal will never fail.</li></ul>
+      <p>If one of the two given encodings does not exist, it raises
+<code>No_such_encoding</code>.</p>
+      
+      <p>Note about terminal resize: in the windows console resizes are
+not automatically detected. Lambda-term will only check for
+resize only when something happens. If you want it to poll just
+write somewhere in your program:</p>
+      <pre><code>      Lwt_engine.on_timer 1.0 true ignore</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Informations</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:model">
+  <a href="index.html#/val:model" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> model : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the model of the terminal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:colors">
+  <a href="index.html#/val:colors" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> colors : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Number of colors of the terminal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:windows">
+  <a href="index.html#/val:windows" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> windows : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the terminal is a windows console or not.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_a_tty">
+  <a href="index.html#/val:is_a_tty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_a_tty : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>is_a_tty term</code> whether the intput and output of the given
+terminal are connected to a tty device.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:incoming_is_a_tty">
+  <a href="index.html#/val:incoming_is_a_tty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> incoming_is_a_tty : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>incoming_is_a_tty term</code> whether the input of <code>term</code> is a tty
+device.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:outgoing_is_a_tty">
+  <a href="index.html#/val:outgoing_is_a_tty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> outgoing_is_a_tty : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>incoming_is_a_tty term</code> whether the output of <code>term</code> is a tty
+device.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:escape_time">
+  <a href="index.html#/val:escape_time" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> escape_time : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Time waited before returning the escape key. This is not used on
+windows.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_escape_time">
+  <a href="index.html#/val:set_escape_time" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_escape_time : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the time waited before returning the escape key.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Not_a_tty">
+  <a href="index.html#/exn:Not_a_tty" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Not_a_tty
+    
+      <div class="doc">
+        
+      <p>Exception raised when trying to use a function that can only be
+used on terminals.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:size">
+  <a href="index.html#/val:size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> size : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/">LTerm_geom</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/#/type:size">size</a>
+    
+      <div class="doc">
+        
+      <p>Returns the curent size of the terminal.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Modes</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:mode">
+  <a href="index.html#/type:mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mode
+    
+      <div class="doc">
+        
+      <p>Type of terminal modes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enter_raw_mode">
+  <a href="index.html#/val:enter_raw_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enter_raw_mode : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:mode">mode</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>enter_raw_mode term</code> puts the terminal in ``raw mode''. In this
+mode keyboard events are returned as they happen. In normal mode
+only complete line are returned. It returns the current terminal
+mode that can be restored using <a href="index.html#/val:leave_raw_mode">leave_raw_mode</a>.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the input of the given terminal is not
+tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:leave_raw_mode">
+  <a href="index.html#/val:leave_raw_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> leave_raw_mode : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>leave_raw_mode term mode</code> leaves the raw mode by restoring the
+given mode.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the input of the given terminal is not
+tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enable_mouse">
+  <a href="index.html#/val:enable_mouse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable_mouse : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Enable mouse events reporting.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:disable_mouse">
+  <a href="index.html#/val:disable_mouse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> disable_mouse : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Disable mouse events reporting.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Cursor</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:show_cursor">
+  <a href="index.html#/val:show_cursor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> show_cursor : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Make the cursor visible.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hide_cursor">
+  <a href="index.html#/val:hide_cursor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hide_cursor : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Make the cursor invisible.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:goto">
+  <a href="index.html#/val:goto" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> goto : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/">LTerm_geom</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/#/type:coord">coord</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>goto term coord</code> moves the cursor to the given coordinates.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move">
+  <a href="index.html#/val:move" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>move term rows columns</code> moves the cursor by the given number of
+lines and columns. Both <code>rows</code> and <code>columns</code> may be negavite.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Erasing text</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:clear_screen">
+  <a href="index.html#/val:clear_screen" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_screen : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>clear_screen term</code> clears the entire screen.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_screen_next">
+  <a href="index.html#/val:clear_screen_next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_screen_next : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>clear_screen_next term</code> clears the screen from the cursor to
+the bottom of the screen.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_screen_prev">
+  <a href="index.html#/val:clear_screen_prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_screen_prev : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>clear_screen_prev term</code> clears the screen from the cursor to
+the top of the screen.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_line">
+  <a href="index.html#/val:clear_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_line : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>clear_line term</code> erases the current line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_line_next">
+  <a href="index.html#/val:clear_line_next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_line_next : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>clear_line_next term</code> erases the current line from the cursor
+to the end of the line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_line_prev">
+  <a href="index.html#/val:clear_line_prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_line_prev : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>clear_line_prev term</code> erases the current line from the cursor
+to the beginning of the line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">State</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:save_state">
+  <a href="index.html#/val:save_state" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> save_state : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Save the current state of the terminal so it can be restored
+latter.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_state">
+  <a href="index.html#/val:load_state" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_state : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Load the previously saved state of the terminal.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Events</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:read_event">
+  <a href="index.html#/val:read_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_event : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_event/">LTerm_event</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_event/#/type:t">t</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Reads and returns one event. The terminal should be in raw mode
+before calling this function, otherwise event will not be
+reported as they happen. It does not fail if the terminal is not
+a tty.</p>
+      
+      <p>Note: you must not call <a href="index.html#/val:read_event">read_event</a> from multiple thread at
+the same time, it will raise Failure if you try to do so.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Printing</h6>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>All these functions accept only valid UTF-8 strings (or unicode
+styled text). Strings are recoded on the fly using the terminal
+output encoding (except if the terminal output encoding is already
+UTF-8, in which case the string is just printed as-it).</p>
+      
+      <p>The general name of a printing function is <code>&lt;prefix&gt;print&lt;suffixes&gt;</code>.</p>
+      
+      <p>Where <code>&lt;prefix&gt;</code> is one of:</p>
+      <ul><li><code>'f'</code>, which means that the function takes as argument a terminal</li><li>nothing, which means that the function prints on <a href="index.html#/val:stdout">stdout</a></li><li><code>'e'</code>, which means that the function prints on <a href="index.html#/val:stderr">stderr</a></li></ul>
+      <p>and <code>&lt;suffixes&gt;</code> is a combination of:</p>
+      <ul><li><code>'l'</code> which means that a new-line character is printed after the message</li><li><code>'f'</code> which means that the function takes as argument a <b>format</b> instead
+of a string</li><li><code>'s'</code> which means that the function takes as argument a styled
+string instead of a string</li></ul>
+      <p>Note that if the terminal is not a tty, styles are stripped.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:fprint">
+  <a href="index.html#/val:fprint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprint : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintl">
+  <a href="index.html#/val:fprintl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintl : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintf">
+  <a href="index.html#/val:fprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintf : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>, unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprints">
+  <a href="index.html#/val:fprints" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprints : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintlf">
+  <a href="index.html#/val:fprintlf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintlf : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>, unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintls">
+  <a href="index.html#/val:fprintls" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintls : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print">
+  <a href="index.html#/val:print" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printl">
+  <a href="index.html#/val:printl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printl : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printf">
+  <a href="index.html#/val:printf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printf : ('a, unit, <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>, unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prints">
+  <a href="index.html#/val:prints" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prints : <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printlf">
+  <a href="index.html#/val:printlf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printlf : ('a, unit, <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>, unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printls">
+  <a href="index.html#/val:printls" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printls : <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprint">
+  <a href="index.html#/val:eprint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprint : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintl">
+  <a href="index.html#/val:eprintl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintl : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintf">
+  <a href="index.html#/val:eprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintf : ('a, unit, <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>, unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprints">
+  <a href="index.html#/val:eprints" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprints : <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintlf">
+  <a href="index.html#/val:eprintlf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintlf : ('a, unit, <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>, unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintls">
+  <a href="index.html#/val:eprintls" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintls : <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_8">Printing contexts</h6>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>You shoud use these functions when you to print a lot of styled
+text that does not entirely fit in a single <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a>
+value.</p>
+      
+      <p>This is more efficient than calling manually <a href="index.html#/val:set_style">set_style</a> since
+styles will be modified only when needed.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:context">
+  <a href="index.html#/type:context" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> context
+    
+      <div class="doc">
+        
+      <p>A context for styled printing.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_context">
+  <a href="index.html#/val:with_context" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_context : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>with_context term f</code> creates a new printing context and pass it
+to <code>f</code>. Note that calls to <code>with_context</code> are serialized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:update_style">
+  <a href="index.html#/val:update_style" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> update_style : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_style/">LTerm_style</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_style/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>update_style ctx style</code> updates the style of the context with
+<code>style</code>. If needed styles of the terminal are modified.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:context_term">
+  <a href="index.html#/val:context_term" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> context_term : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the terminal used by the given context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:context_oc">
+  <a href="index.html#/val:context_oc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> context_oc : <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:output_channel">output_channel</a>
+    
+      <div class="doc">
+        
+      <p>Returns the output channel used by the given context. Note that
+this channel cannot be used after <a href="index.html#/val:with_context">with_context</a> has
+terminated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode_string">
+  <a href="index.html#/val:encode_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>encode_string term str</code> encodes an UTF-8 string using the
+terminal encoding.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode_char">
+  <a href="index.html#/val:encode_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_char : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>encode_char term ch</code> encodes an unicode character using the
+terminal encoding.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Styles</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:set_style">
+  <a href="index.html#/val:set_style" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_style : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_style/">LTerm_style</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_style/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Change the style of the termina for subsequent unstyled
+output. It does nothing if the output is not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Rendering</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:render">
+  <a href="index.html#/val:render" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> render : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/">LTerm_draw</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/#/type:matrix">matrix</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Render an offscreen array to the given terminal.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:render_update">
+  <a href="index.html#/val:render_update" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> render_update : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/">LTerm_draw</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/#/type:matrix">matrix</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/">LTerm_draw</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/#/type:matrix">matrix</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>render_update displayed to_display</code> does the same as <code>render
+      to_display</code> but assumes that <code>displayed</code> contains the current
+displayed text. This reduces the amount of text sent to the
+terminal.</p>
+      
+      <p>It raises <a href="index.html#/exn:Not_a_tty">Not_a_tty</a> if the output of the given terminal is
+not a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_box">
+  <a href="index.html#/val:print_box" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_box : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/">LTerm_draw</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/#/type:matrix">matrix</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>print_box term matrix</code> prints the contents of <code>matrix</code> starting
+at current cursor row. Note that when you have the choice
+between using <a href="index.html#/val:fprints">fprints</a> and <a href="index.html#/val:print_box">print_box</a> you should use
+<a href="index.html#/val:print_box">print_box</a> because it works better under windows and is more
+efficient.</p>
+      
+      <p>The cursor is moved to the beginning of the last displayed
+line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_box_with_newlines">
+  <a href="index.html#/val:print_box_with_newlines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_box_with_newlines : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/">LTerm_draw</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_draw/#/type:matrix">matrix</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>print_box term matrix</code> Same as <a href="index.html#/val:print_box">print_box</a> but <code>matrix</code>
+may contains newline characters. It must contain one more column
+that the terminal (in case a line of the length of the terminal
+ends with a newline).</p>
+      
+      <p>The difference between <a href="index.html#/val:print_box">print_box</a> and
+<a href="index.html#/val:print_box_with_newlines">print_box_with_newlines</a> is that when the text is selected in
+the terminal, with <a href="index.html#/val:print_box">print_box</a> it will always be a box with the
+dimensions of <code>matrix</code>. With <a href="index.html#/val:print_box_with_newlines">print_box_with_newlines</a> it may
+contains lines longer than the width of the terminal.</p>
+      
+      <p>The contents of a line after the first newline character (if
+any) in a row of <code>matrix</code> is ignored. The rest of the line get
+the style of the newline character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Misc</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:flush">
+  <a href="index.html#/val:flush" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Flushes the underlying output channel used by the terminal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Well known instances</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:stdout">
+  <a href="index.html#/val:stdout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stdout : <a href="index.html#/type:t">t</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Terminal using <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:stdin">stdin</a> as input and <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:stdout">stdout</a>
+as output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stderr">
+  <a href="index.html#/val:stderr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stderr : <a href="index.html#/type:t">t</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Terminal using <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:stdin">stdin</a> as input and <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:stderr">stderr</a>
+as output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Low-level functions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:get_size_from_fd">
+  <a href="index.html#/val:get_size_from_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_size_from_fd : <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/">LTerm_geom</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/#/type:size">size</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>get_size_from_fd fd</code> returns the size of the terminal accessible via
+the given file descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_size_from_fd">
+  <a href="index.html#/val:set_size_from_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_size_from_fd : <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/">LTerm_geom</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/#/type:size">size</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>set_size_from_fd fd size</code> tries to set the size of the terminal
+accessible via the given file descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Modification</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:set_io">
+  <a href="index.html#/val:set_io" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_io : ?incoming_fd:<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?incoming_channel:<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> ?outgoing_fd:<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?outgoing_channel:<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Modifies file descriptors/channels of a terminal. Unspecified
+arguments are kept unchanged.</p>
+      
+      <p>Note: before modifying a terminal you should ensure that no
+operation is pending on it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

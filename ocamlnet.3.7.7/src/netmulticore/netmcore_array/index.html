@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_array</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_array</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shared arrays</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This type of array is to some degree comparable with <code>Array</code>, but
+there are a few extensions:</p>
+      <ul><li>There is a so-called header. The header can have any type, and
+is typically used for managing concurrent access (e.g. mutexes).
+The header also lives in shared memory.</li><li>The arrays can be grown in size</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/type:sarray">
+  <a href="index.html#/type:sarray" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('e, 'h) sarray
+    
+      <div class="doc">
+        
+      <p>Arrays where the elements have type <code>'e</code> and the header has
+type <code>'h</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sarray_descr">
+  <a href="index.html#/type:sarray_descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('e, 'h) sarray_descr
+    
+      <div class="doc">
+        
+      <p>The marshallable descriptor of a shared array</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> 'e array <span class="rarr"><span>-&gt;</span></span> 'h <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:sarray">sarray</a>
+    
+      <div class="doc">
+        
+      <p><code>create pool_id a h</code>:
+Creates a shared array by deeply copying a normal array <code>a</code>
+and using the copy of <code>h</code> as header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make">
+  <a href="index.html#/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'h <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:sarray">sarray</a>
+    
+      <div class="doc">
+        
+      <p><code>make pool_id n x h</code>:
+Creates a shared array of the passed number of elements,
+copies the element <code>x</code>, and initializes each element of the new array
+with the single copy of <code>x</code>. The value <code>h</code> is copied and used
+as header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> 'e) <span class="rarr"><span>-&gt;</span></span> 'h <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:sarray">sarray</a>
+    
+      <div class="doc">
+        
+      <p><code>init pool_id n f h</code>:
+Creates a shared array of the passed number of elements,
+and for getting the element at position <code>k</code> the function
+<code>f k</code> is run, and the copy of the result is written to the
+position. The header is set to the copy of <code>h</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:grow">
+  <a href="index.html#/val:grow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> grow : ('e, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>grow sa n x</code>: Grows the array to <code>n</code> elements. The new elements
+are initialized to a (single) copy of <code>x</code>.</p>
+      
+      <p>If <code>n</code> is smaller than the current length, the function will do
+nothing, and keep the length.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : ('e, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set sa k x</code>: Sets the <code>k-th</code> element of the array <code>sa</code> to a
+deep copy of <code>x</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_ro">
+  <a href="index.html#/val:get_ro" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_ro : ('e, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'e
+    
+      <div class="doc">
+        
+      <p><code>get_ro sa k</code>: Gets the <code>k</code>-th element of the shared array <code>sa</code>.
+Note that there is no guarantee that this value still exists if
+it is returned, and a parallely running <code>set</code> changes this element.
+If such values are accessed the program may crash!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_p">
+  <a href="index.html#/val:get_p" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_p : ('e, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ('e <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>get_p sa k f</code>: Gets the <code>k</code>-th element of the shared array <code>sa</code>
+and call <code>f</code> with this element, and returns the result of <code>f</code>.
+During the execution of <code>f</code> the requested element cannot be
+garbage collected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_c">
+  <a href="index.html#/val:get_c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_c : ('e, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'e
+    
+      <div class="doc">
+        
+      <p><code>get_c sa k</code>: Gets a copy of the <code>k</code>-th element of the shared array
+<code>sæ</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : (_, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:header">
+  <a href="index.html#/val:header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> header : (_, 'h) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> 'h
+    
+      <div class="doc">
+        
+      <p>Returns the header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:deref">
+  <a href="index.html#/val:deref" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> deref : ('e, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> 'e array
+    
+      <div class="doc">
+        
+      <p>Returns the raw array in shared memory for unprotected access</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap">
+  <a href="index.html#/val:heap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap : (_, _) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:heap">heap</a>
+    
+      <div class="doc">
+        
+      <p>Return the backing heap structure</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:descr_of_sarray">
+  <a href="index.html#/val:descr_of_sarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> descr_of_sarray : ('e, 'h) <a href="index.html#/type:sarray">sarray</a> <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:sarray_descr">sarray_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sarray_of_descr">
+  <a href="index.html#/val:sarray_of_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sarray_of_descr : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:sarray_descr">sarray_descr</a> <span class="rarr"><span>-&gt;</span></span> ('e, 'h) <a href="index.html#/type:sarray">sarray</a>
+    
+      <div class="doc">
+        
+      <p>Look up the buffer for this descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Mutating header fields</h3>
+    </div>
+      <p>Special care has to be taken when mutating header fields. The header
+must completely live in the same heap. For adding new values, one
+has to use <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/val:modify">modify</a>. Example for a header of type:</p>
+      <pre><code>    type header =
+      { mutable n : int;
+        mutable name : string
+      }</code></pre>
+      <p>Here, the field <code>n</code> can be directly assigned because an <code>int</code>
+is always an unboxed value. So,</p>
+      <pre><code>    h.n &lt;- new_value</code></pre>
+      <p>is legal. However, strings are heap-allocated. For an assignment
+to <code>name</code> we need to use <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/val:modify">modify</a>, as in</p>
+      <pre><code>    Netmcore_heap.modify
+      (Netmcore_array.heap sa)
+      (fun mutator -&gt;
+        h.name &lt;- Netmcore_heap.add mutator new_value
+      )</code></pre>
+      <p>The function <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/val:add">add</a> pushes a copy of the <code>new_value</code>
+to the heap, and this allows us to do the assignment.</p>
+      
+      <p>During [root:Netcore_heap].modify certain operations are prohibited
+because they would cause a deadlock:</p>
+      <ul><li><code>grow</code></li><li><code>set</code></li><li><code>get_p</code></li><li><code>get_c</code></li></ul>
+      <p>(This may be relaxed in a future version.)</p>
+      
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Zed_edit</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Zed_edit</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Edition engines</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+      <div class="doc">
+        
+      <p>Type of edition engines. <code>'a</code> is the type of custom data
+attached to the engine in order to extend it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:clipboard">
+  <a href="index.html#/type:clipboard" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> clipboard = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:clipboard/field:clipboard_get">
+  <a href="index.html#/type:clipboard/field:clipboard_get" class="anchor">#</a>
+  clipboard_get
+  </div>
+  </td><td>: unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a></td><td>;</td><td>(*</td><td class="doc">Returns the current contents of the clipboard.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:clipboard/field:clipboard_set">
+  <a href="index.html#/type:clipboard/field:clipboard_set" class="anchor">#</a>
+  clipboard_set
+  </div>
+  </td><td>: <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">Sets the contents of the clipboard.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Type of clipboards.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:new_clipboard">
+  <a href="index.html#/val:new_clipboard" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_clipboard : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:clipboard">clipboard</a>
+    
+      <div class="doc">
+        
+      <p><code>new_clipboard ()</code> creates a new clipboard using a reference.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?editable:(int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ?move:(int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> ?clipboard:<a href="index.html#/type:clipboard">clipboard</a> <span class="rarr"><span>-&gt;</span></span> ?match_word:(<a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int option) <span class="rarr"><span>-&gt;</span></span> ?locale:string option <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> ?undo_size:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ?editable ?move ?clipboard ()</code> creates a new edition
+engine in the initial state.</p>
+      
+      <p><code>editable</code> is used to determine whether the text at given
+position is editable or not. It takes as argument the position
+and the length of the text to remove.</p>
+      
+      <p><code>move</code> is unused.</p>
+      
+      <p><code>clipboard</code> is the clipboard to use for this engine. If none is
+defined, a new one using a reference is created.</p>
+      
+      <p><code>match_word</code> is used to recognize words. It must returns the end
+of the matched word if any.</p>
+      
+      <p><code>locale</code> is the locale of this buffer. It is used for case
+mapping.</p>
+      
+      <p><code>undo_size</code> is the size of the undo buffer. It is the number of
+state zed will remember. It defaults to <code>1000</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:match_by_regexp">
+  <a href="index.html#/val:match_by_regexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> match_by_regexp : <a href="../../../../zed.1.4/_build/src/zed_re/">Zed_re</a>.<a href="../../../../zed.1.4/_build/src/zed_re/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int option
+    
+      <div class="doc">
+        
+      <p><code>match_by_regexp re</code> creates a word-matching function using a
+regular expression.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">State</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:get_data">
+  <a href="index.html#/val:get_data" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_data : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>get_data edit</code> returns the custom data attached to the
+engine. It raises <code>Not_found</code> if no data is attached to the
+engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_data">
+  <a href="index.html#/val:set_data" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_data : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_data edit data</code> attach <code>data</code> to the engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_data">
+  <a href="index.html#/val:clear_data" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_data : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>clear_data edit</code> removes the custom data of engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:text">
+  <a href="index.html#/val:text" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> text : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>text edit</code> returns the signal holding the current contents of
+the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lines">
+  <a href="index.html#/val:lines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lines : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_lines/">Zed_lines</a>.<a href="../../../../zed.1.4/_build/src/zed_lines/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>lines edit</code> returns the set of line position of <code>text edit</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_line">
+  <a href="index.html#/val:get_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_line : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>get_line edit n</code> returns the rope corresponding to the <code>n</code>th line
+without the newline character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:changes">
+  <a href="index.html#/val:changes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> changes : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (int * int * int) <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>changes edit</code> returns an event which occurs with values of the
+form <code>(start, added, removed)</code> when the contents of the engine
+changes. <code>start</code> is the start of modifications, <code>added</code> is the
+number of characters added and <code>removed</code> is the number of
+characters removed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:update">
+  <a href="index.html#/val:update" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> update : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_cursor/">Zed_cursor</a>.<a href="../../../../zed.1.4/_build/src/zed_cursor/#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>update edit cursors</code> returns an event which occurs each the
+rendering of the engine should be updated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:erase_mode">
+  <a href="index.html#/val:erase_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> erase_mode : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>erase_mode edit</code> returns the ``erase'' mode of the buffer. In
+this mode character inserted in the buffer erase existing
+ones.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_erase_mode">
+  <a href="index.html#/val:get_erase_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_erase_mode : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>erase_mode edit</code> returns the current erase mode of the
+buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_erase_mode">
+  <a href="index.html#/val:set_erase_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_erase_mode : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_erase_mode edit state</code> sets the status of the erase mode
+for the given engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mark">
+  <a href="index.html#/val:mark" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mark : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_cursor/">Zed_cursor</a>.<a href="../../../../zed.1.4/_build/src/zed_cursor/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>mark edit</code> returns the cursor used to for the mark in the given
+engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:selection">
+  <a href="index.html#/val:selection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> selection : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>selection edit</code> returns the signal holding the current
+selection state. If <code>true</code>, text is being selectionned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_selection">
+  <a href="index.html#/val:get_selection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_selection : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>selection edit</code> returns the current selection state.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_selection">
+  <a href="index.html#/val:set_selection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_selection : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_selection edit state</code> sets the selection state.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Cursors</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:new_cursor">
+  <a href="index.html#/val:new_cursor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_cursor : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_cursor/">Zed_cursor</a>.<a href="../../../../zed.1.4/_build/src/zed_cursor/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>new_cursor edit</code> creates a new cursor for the given edition
+engine. The cursor initially points to the beginning of the
+buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Actions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Cannot_edit">
+  <a href="index.html#/exn:Cannot_edit" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Cannot_edit
+    
+      <div class="doc">
+        
+      <p>Exception raised when trying to edit a non-editable portion of a
+buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:context">
+  <a href="index.html#/type:context" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a context
+    
+      <div class="doc">
+        
+      <p>Type of contexts. Contexts are used to modify an edition
+buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:context">
+  <a href="index.html#/val:context" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> context : ?check:bool <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_cursor/">Zed_cursor</a>.<a href="../../../../zed.1.4/_build/src/zed_cursor/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:context">context</a>
+    
+      <div class="doc">
+        
+      <p><code>context ?check edit cursor</code> creates a new context with given
+parameters. <code>cursor</code> is the cursor that will be used for all
+modification of the text. If <code>check</code> is <code>true</code> (the default)
+then all modification of the text will be checked with the
+<code>editable</code> function of the engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:edit">
+  <a href="index.html#/val:edit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> edit : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>edit ctx</code> returns the edition engine used by the given
+context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor">
+  <a href="index.html#/val:cursor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_cursor/">Zed_cursor</a>.<a href="../../../../zed.1.4/_build/src/zed_cursor/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>cursor ctx</code> returns the cursor used by this context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:check">
+  <a href="index.html#/val:check" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>check ctx</code> returns whether the context has been created with
+the <code>check</code> flag.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_check">
+  <a href="index.html#/val:with_check" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_check : bool <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:context">context</a>
+    
+      <div class="doc">
+        
+      <p><code>with_check check ctx</code> retuns <code>ctx</code> with the check flag set to
+<code>check</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:goto">
+  <a href="index.html#/val:goto" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> goto : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> ?set_wanted_column:bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>goto ctx ?set_column position</code> moves the cursor to the given
+position. It raises <a href="../../../../zed.1.4/_build/src/zed_cursor/">Zed_cursor</a>.<a href="../../../../zed.1.4/_build/src/zed_cursor/#/exn:Out_of_bounds">Out_of_bounds</a> if the position
+is outside the bounds of the text. If <code>set_wanted_column</code> is
+<code>true</code>, the wanted column of the cursor is set to the new
+column.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move">
+  <a href="index.html#/val:move" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> ?set_wanted_column:bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>move ctx ?set_wanted_column delta</code> moves the cursor by the
+given number of characters. It raises
+<a href="../../../../zed.1.4/_build/src/zed_cursor/">Zed_cursor</a>.<a href="../../../../zed.1.4/_build/src/zed_cursor/#/exn:Out_of_bounds">Out_of_bounds</a> if the current plus <code>delta</code> is
+outside the bounds of the text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move_line">
+  <a href="index.html#/val:move_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move_line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>move_line ctx ?set_wanted_column delta</code> moves the cursor by the
+given number of lines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:position">
+  <a href="index.html#/val:position" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> position : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>position ctx</code> returns the position of the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:line">
+  <a href="index.html#/val:line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>line ctx</code> returns the line of the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:column">
+  <a href="index.html#/val:column" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> column : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>column ctx</code> returns the column of the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:at_bol">
+  <a href="index.html#/val:at_bol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> at_bol : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>at_bol ctx</code> returns <code>true</code> iff the cursor is at the beginning
+of the current line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:at_eol">
+  <a href="index.html#/val:at_eol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> at_eol : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>at_eol ctx</code> returns <code>true</code> iff the cursor is at the end of the
+current line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:at_bot">
+  <a href="index.html#/val:at_bot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> at_bot : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>at_bot ctx</code> returns <code>true</code> iff the cursor is at the beginning
+of the text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:at_eot">
+  <a href="index.html#/val:at_eot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> at_eot : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>at_eot ctx</code> returns <code>true</code> iff the cursor is at the end of the
+text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert">
+  <a href="index.html#/val:insert" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>insert ctx rope</code> inserts the given rope at current position.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert_no_erase">
+  <a href="index.html#/val:insert_no_erase" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert_no_erase : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>insert ctx rope</code> inserts the given rope at current position but
+do not erase text if the buffer is currently in erase mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove_next">
+  <a href="index.html#/val:remove_next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove_next : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>remove_next ctx n</code> removes <code>n</code> characters at current
+position. If there is less than <code>n</code> characters at current
+position, it removes everything until the end of the text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove_prev">
+  <a href="index.html#/val:remove_prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove_prev : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>remove_prev ctx n</code> removes <code>n</code> characters before current
+position. If there is less than <code>n</code> characters before current
+position, it removes everything until the beginning of the
+text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Alias for <a href="index.html#/val:remove_next">remove_next</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace">
+  <a href="index.html#/val:replace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>replace ctx n rope</code> does the same as:</p>
+      <pre><code>        remove ctx n;
+        insert_no_erase ctx rope</code></pre>
+      <p>but in one atomic operation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:newline">
+  <a href="index.html#/val:newline" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> newline : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Insert a newline character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:next_char">
+  <a href="index.html#/val:next_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next_char : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>next_char ctx</code> moves the cursor to the next character. It does
+nothing if the cursor is at the end of the text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prev_char">
+  <a href="index.html#/val:prev_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prev_char : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>prev_char ctx</code> moves the cursor to the previous character. It
+does nothing if the cursor is at the beginning of the text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:next_line">
+  <a href="index.html#/val:next_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next_line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>next_line ctx</code> moves the cursor to the next line. If the cursor
+is on the last line, it is moved to the end of the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prev_line">
+  <a href="index.html#/val:prev_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prev_line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>prev_line ctx</code> moves the cursor to the previous line. If the
+cursor is on the first line, it is moved to the beginning of the
+buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:goto_bol">
+  <a href="index.html#/val:goto_bol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> goto_bol : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>goto_bol ctx</code> moves the cursor to the beginning of the current
+line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:goto_eol">
+  <a href="index.html#/val:goto_eol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> goto_eol : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>goto_eol ctx</code> moves the cursor to the end of the current
+line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:goto_bot">
+  <a href="index.html#/val:goto_bot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> goto_bot : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>goto_bot ctx</code> moves the cursor to the beginning of the text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:goto_eot">
+  <a href="index.html#/val:goto_eot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> goto_eot : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>goto_eot ctx</code> moves the cursor to the end of the text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_next_char">
+  <a href="index.html#/val:delete_next_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_next_char : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_next_char ctx</code> deletes the character after the cursor,
+if any.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_prev_char">
+  <a href="index.html#/val:delete_prev_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_prev_char : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_prev_char ctx</code> delete the character before the
+cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_next_line">
+  <a href="index.html#/val:delete_next_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_next_line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_next_line ctx</code> delete everything until the end of the
+current line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_prev_line">
+  <a href="index.html#/val:delete_prev_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_prev_line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_next_line ctx</code> delete everything until the beginning of
+the current line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_next_line">
+  <a href="index.html#/val:kill_next_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_next_line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>kill_next_line ctx</code> delete everything until the end of the
+current line and save it to the clipboard.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_prev_line">
+  <a href="index.html#/val:kill_prev_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_prev_line : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>kill_next_line ctx</code> delete everything until the beginning of
+the current line and save it to the clipboard.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:switch_erase_mode">
+  <a href="index.html#/val:switch_erase_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> switch_erase_mode : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>switch_erase_mode ctx</code> switch the current erase mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_mark">
+  <a href="index.html#/val:set_mark" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_mark : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_mark ctx</code> sets the mark at current position.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:goto_mark">
+  <a href="index.html#/val:goto_mark" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> goto_mark : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>goto_mark ctx</code> moves the cursor to the mark.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy">
+  <a href="index.html#/val:copy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>copy ctx</code> copies the current selectionned region to the
+clipboard.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill">
+  <a href="index.html#/val:kill" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>kill ctx</code> copies the current selectionned region to the
+clipboard and remove it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:yank">
+  <a href="index.html#/val:yank" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> yank : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>yank ctx</code> inserts the contents of the clipboard at current
+position.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:capitalize_word">
+  <a href="index.html#/val:capitalize_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> capitalize_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>capitalize_word ctx</code> capitalizes the first word after the
+cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lowercase_word">
+  <a href="index.html#/val:lowercase_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lowercase_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>lowercase_word ctx</code> converts the first word after the cursor to
+lowercase.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uppercase_word">
+  <a href="index.html#/val:uppercase_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uppercase_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>uppercase_word ctx</code> converts the first word after the cursor to
+uppercase.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:next_word">
+  <a href="index.html#/val:next_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>next_word ctx</code> moves the cursor to the end of the next word.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prev_word">
+  <a href="index.html#/val:prev_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prev_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>prev_word ctx</code> moves the cursor to the beginning of the
+previous word.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_next_word">
+  <a href="index.html#/val:delete_next_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_next_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_next_word ctx</code> deletes the word after the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_prev_word">
+  <a href="index.html#/val:delete_prev_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_prev_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_prev_word ctx</code> deletes the word before the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_next_word">
+  <a href="index.html#/val:kill_next_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_next_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>kill_next_word ctx</code> deletes the word after the cursor and save
+it to the clipboard.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_prev_word">
+  <a href="index.html#/val:kill_prev_word" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_prev_word : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>kill_prev_word ctx</code> deletes the word before the cursor and save
+it to the clipboard.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:undo">
+  <a href="index.html#/val:undo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> undo : 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>undo ctx</code> reverts the last performed action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Action by names</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:action">
+  <a href="index.html#/type:action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> action = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Insert">
+  <a href="index.html#/type:action/cons:Insert" class="anchor">#</a>
+  | Insert <span class="keyword">of</span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Newline">
+  <a href="index.html#/type:action/cons:Newline" class="anchor">#</a>
+  | Newline
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Next_char">
+  <a href="index.html#/type:action/cons:Next_char" class="anchor">#</a>
+  | Next_char
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Prev_char">
+  <a href="index.html#/type:action/cons:Prev_char" class="anchor">#</a>
+  | Prev_char
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Next_line">
+  <a href="index.html#/type:action/cons:Next_line" class="anchor">#</a>
+  | Next_line
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Prev_line">
+  <a href="index.html#/type:action/cons:Prev_line" class="anchor">#</a>
+  | Prev_line
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Goto_bol">
+  <a href="index.html#/type:action/cons:Goto_bol" class="anchor">#</a>
+  | Goto_bol
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Goto_eol">
+  <a href="index.html#/type:action/cons:Goto_eol" class="anchor">#</a>
+  | Goto_eol
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Goto_bot">
+  <a href="index.html#/type:action/cons:Goto_bot" class="anchor">#</a>
+  | Goto_bot
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Goto_eot">
+  <a href="index.html#/type:action/cons:Goto_eot" class="anchor">#</a>
+  | Goto_eot
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Delete_next_char">
+  <a href="index.html#/type:action/cons:Delete_next_char" class="anchor">#</a>
+  | Delete_next_char
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Delete_prev_char">
+  <a href="index.html#/type:action/cons:Delete_prev_char" class="anchor">#</a>
+  | Delete_prev_char
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Delete_next_line">
+  <a href="index.html#/type:action/cons:Delete_next_line" class="anchor">#</a>
+  | Delete_next_line
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Delete_prev_line">
+  <a href="index.html#/type:action/cons:Delete_prev_line" class="anchor">#</a>
+  | Delete_prev_line
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Kill_next_line">
+  <a href="index.html#/type:action/cons:Kill_next_line" class="anchor">#</a>
+  | Kill_next_line
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Kill_prev_line">
+  <a href="index.html#/type:action/cons:Kill_prev_line" class="anchor">#</a>
+  | Kill_prev_line
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Switch_erase_mode">
+  <a href="index.html#/type:action/cons:Switch_erase_mode" class="anchor">#</a>
+  | Switch_erase_mode
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Set_mark">
+  <a href="index.html#/type:action/cons:Set_mark" class="anchor">#</a>
+  | Set_mark
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Goto_mark">
+  <a href="index.html#/type:action/cons:Goto_mark" class="anchor">#</a>
+  | Goto_mark
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Copy">
+  <a href="index.html#/type:action/cons:Copy" class="anchor">#</a>
+  | Copy
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Kill">
+  <a href="index.html#/type:action/cons:Kill" class="anchor">#</a>
+  | Kill
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Yank">
+  <a href="index.html#/type:action/cons:Yank" class="anchor">#</a>
+  | Yank
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Capitalize_word">
+  <a href="index.html#/type:action/cons:Capitalize_word" class="anchor">#</a>
+  | Capitalize_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Lowercase_word">
+  <a href="index.html#/type:action/cons:Lowercase_word" class="anchor">#</a>
+  | Lowercase_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Uppercase_word">
+  <a href="index.html#/type:action/cons:Uppercase_word" class="anchor">#</a>
+  | Uppercase_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Next_word">
+  <a href="index.html#/type:action/cons:Next_word" class="anchor">#</a>
+  | Next_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Prev_word">
+  <a href="index.html#/type:action/cons:Prev_word" class="anchor">#</a>
+  | Prev_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Delete_next_word">
+  <a href="index.html#/type:action/cons:Delete_next_word" class="anchor">#</a>
+  | Delete_next_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Delete_prev_word">
+  <a href="index.html#/type:action/cons:Delete_prev_word" class="anchor">#</a>
+  | Delete_prev_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Kill_next_word">
+  <a href="index.html#/type:action/cons:Kill_next_word" class="anchor">#</a>
+  | Kill_next_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Kill_prev_word">
+  <a href="index.html#/type:action/cons:Kill_prev_word" class="anchor">#</a>
+  | Kill_prev_word
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Undo">
+  <a href="index.html#/type:action/cons:Undo" class="anchor">#</a>
+  | Undo
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Type of actions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_action">
+  <a href="index.html#/val:get_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_action : <a href="index.html#/type:action">action</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>get_action action</code> returns the function associated to the given
+action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:actions">
+  <a href="index.html#/val:actions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> actions : (<a href="index.html#/type:action">action</a> * string) list
+    
+      <div class="doc">
+        
+      <p>List of actions with their names, except <a href="index.html#/type:action/cons:Insert">Insert</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:doc_of_action">
+  <a href="index.html#/val:doc_of_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc_of_action : <a href="index.html#/type:action">action</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>doc_of_action action</code> returns a short description of the
+action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:action_of_name">
+  <a href="index.html#/val:action_of_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> action_of_name : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:action">action</a>
+    
+      <div class="doc">
+        
+      <p><code>action_of_name str</code> converts the given action name into an
+action. Action name are the same as function name but with '_'
+replaced by '-'. It raises <code>Not_found</code> if the name does not
+correspond to an action.</p>
+      
+      <p><code>Insert ch</code> is represented by &quot;insert(&lt;char&gt;)&quot; where <code>&lt;char&gt;</code> is:</p>
+      <ul><li>a literal ascii character, such as &quot;a&quot;, &quot;b&quot;, ...</li><li>a unicode character, written &quot;U+&lt; code &gt;&quot;, such as &quot;U+0041&quot;</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:name_of_action">
+  <a href="index.html#/val:name_of_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name_of_action : <a href="index.html#/type:action">action</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>name_of_action act</code> returns the name of the given action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Driver</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Driver</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Manages the process of downloading feeds during a solve.
+We use the solver to get the current best solution and the set of feeds it queried.
+We download any missing feeds and update any out-of-date ones, resolving each time
+we have more information.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:quick_solve">
+  <a href="index.html#/val:quick_solve" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> quick_solve : &lt; config : General.config; distro : <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/">Distro</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/#/class:distribution">distribution</a>; .. &gt; <span class="rarr"><span>-&gt;</span></span> Requirements.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/">Selections</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/#/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p>Find the best selections for these requirements and return them if available without downloading.
+Returns None if we need to refresh feeds or download any implementations.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:solve_with_downloads">
+  <a href="index.html#/val:solve_with_downloads" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> solve_with_downloads : General.config <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/">Distro</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/#/class:distribution">distribution</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/fetch/">Fetch</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/fetch/#/classtype:fetcher">fetcher</a> <span class="rarr"><span>-&gt;</span></span> watcher:<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/progress/">Progress</a>.#watcher <span class="rarr"><span>-&gt;</span></span> Requirements.t <span class="rarr"><span>-&gt;</span></span> force:bool <span class="rarr"><span>-&gt;</span></span> update_local:bool <span class="rarr"><span>-&gt;</span></span> (bool * <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/solver/">Solver</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/solver/#/module:Model">Model</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/solver/#/module:Model/type:t">t</a> * <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/feed_provider/">Feed_provider</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/feed_provider/#/classtype:feed_provider">feed_provider</a>) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Run the solver, then download any feeds that are missing or that need to be
+updated. Each time a new feed is imported into the cache, the solver is run
+again, possibly adding new downloads.</p>
+      
+      <p>Note: if we find we need to download anything, we will refresh everything.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">watcher</span> notify of each partial solve (used by the GUI to show the current state)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">force</span> re-download all feeds, even if we're ready to run (implies update_local)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">update_local</span> fetch PackageKit feeds even if we're ready to run
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> whether a valid solution was found, the solution itself, and the feed
+provider used (which will have cached all the feeds used in the solve).
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:download_and_import_feed">
+  <a href="index.html#/val:download_and_import_feed" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> download_and_import_feed : <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/fetch/">Fetch</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/fetch/#/classtype:fetcher">fetcher</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/feed_url/">Feed_url</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/feed_url/#/type:remote_feed">remote_feed</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `aborted_by_user</div><div class="cons">| `no_update</div><div class="cons">| `success <span class="keyword">of</span> [ <div class="cons">| `feed</div> ] <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/element/">Element</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/element/#/type:t">t</a></div> ] <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convenience wrapper for <code>fetcher#download_and_import_feed</code> that just gives the final result.
+If the mirror replies first, but the primary succeeds, we return the primary.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:download_selections">
+  <a href="index.html#/val:download_selections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> download_selections : General.config <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/">Distro</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/#/class:distribution">distribution</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/fetch/">Fetch</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/fetch/#/classtype:fetcher">fetcher</a> <a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> include_packages:bool <span class="rarr"><span>-&gt;</span></span> feed_provider:<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/feed_provider/">Feed_provider</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/feed_provider/#/classtype:feed_provider">feed_provider</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/">Selections</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `aborted_by_user</div><div class="cons">| `success</div> ] <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Download any missing implementations needed for a set of selections.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">include_packages</span> whether to include distribution packages
+  </div>
+  
+  <div class="tag param">
+    <span class="label">feed_provider</span> it's more efficient to reuse the provider returned by <code>solve_with_downloads</code>, if possible
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_unavailable_selections">
+  <a href="index.html#/val:get_unavailable_selections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_unavailable_selections : General.config <span class="rarr"><span>-&gt;</span></span> ?distro:<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/">Distro</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/distro/#/class:distribution">distribution</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/">Selections</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/">Selections</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/selections/#/type:selection">selection</a> list
+    
+      <div class="doc">
+        
+      <p>If <code>distro</code> is set then &lt;package-implementation&gt;s are included. Otherwise, they are ignored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

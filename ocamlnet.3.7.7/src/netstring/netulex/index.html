@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netulex</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netulex</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Support module for Alain Frisch's <code>ulex</code> lexer generator</p>
+      
+      <p>The sub module <code>ULB</code> is a Unicode-based lexing buffer that
+reads encoded strings and makes them available to the lexer
+as both Unicode arrays and UTF-8 strings.</p>
+      
+      <p>The sub module <code>Ulexing</code> is a replacement for the module
+in <code>ulex</code> with the same name. It uses <code>ULB</code> to represent
+the main lexing buffer. It is much faster than the original
+<code>Ulexing</code> implementation when the scanned text is UTF-8
+encoded and <code>Ulexing.utf8_lexeme</code> is frequently called to
+get the lexeme strings. Furthermore, it can process input
+data of all encodings available to <code>Netconversion</code>. It is,
+however, no drop-in replacement as it has a different
+signature.</p>
+      
+      <p>To enable this version of <code>Ulexing</code>, simply put an
+<code>open Netulex</code> before using the <code>ulex</code> lexers.</p>
+      
+      <p>Note that the tutorial has been moved to [root:Netulex_tut].</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:modules">
+  <a href="index.html#/label:modules" class="anchor">#</a>
+  
+    <h1 class="section level_1">Modules</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:ULB">
+  <a href="index.html#/module:ULB" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> ULB : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module provides the <code>unicode_lexbuf</code> record with
+access functions. In this record, the data is available
+in two forms: As an array of Unicode code points
+<code>ulb_chars</code>, and as string of encoded chars <code>ulb_rawbuf</code>.
+Both buffers are synchronised by <code>ulb_chars_pos</code>. This
+array stores where every character of <code>ulb_chars</code> can be
+found in <code>ulb_rawbuf</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:ULB/type:unicode_lexbuf">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> unicode_lexbuf = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_encoding">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_encoding" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_encoding
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a></td><td>;</td><td>(*</td><td class="doc">The character encoding of <code>ulb_rawbuf</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_encoding_start">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_encoding_start" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_encoding_start
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The first character position to which <code>ulb_encoding</code>
+applies (the encoding of earlier positions is
+lost)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_rawbuf
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The encoded string to analyse</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf_len">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf_len" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_rawbuf_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The filled part of <code>ulb_rawbuf</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf_end">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf_end" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_rawbuf_end
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The analysed part of <code>ulb_rawbuf</code>. We have always
+<code>ulb_rawbuf_end &lt;= ulb_rawbuf_len</code>. The analysed part
+may be shorter than the filled part because there is
+not enough space in <code>ulb_chars</code>, or because the filled
+part ends with an incomplete multi-byte character</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf_const">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_rawbuf_const" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_rawbuf_const
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether <code>ulb_rawbuf</code> is considered as a constant. If
+<code>true</code>, it is never blitted.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_chars">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_chars" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_chars
+  </div>
+  </td><td>: int array</td><td>;</td><td>(*</td><td class="doc">The analysed part of <code>ulb_rawbuf</code> as array of Unicode
+code points. Only the positions 0 to <code>ulb_chars_len-1</code>
+of the array are filled.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_chars_pos">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_chars_pos" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_chars_pos
+  </div>
+  </td><td>: int array</td><td>;</td><td>(*</td><td class="doc">For every analysed character this array stores the
+byte position where the character begins in <code>ulb_rawbuf</code>.
+In addition, the array contains at <code>ulb_chars_len</code> the
+value of <code>ulb_rawbuf_end</code>.<br/>This array is one element longer than <code>ulb_chars</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_chars_len">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_chars_len" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_chars_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The filled part of <code>ulb_chars</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_eof">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_eof" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_eof
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether EOF has been seen</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_refill">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_refill" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_refill
+  </div>
+  </td><td>: string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int</td><td>;</td><td>(*</td><td class="doc">The refill function</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_enc_change_hook">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_enc_change_hook" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_enc_change_hook
+  </div>
+  </td><td>: <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">This function is called when the encoding changes</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ULB/type:unicode_lexbuf/field:ulb_cursor">
+  <a href="index.html#/module:ULB/type:unicode_lexbuf/field:ulb_cursor" class="anchor">#</a>
+  <span class="keyword">mutable</span> ulb_cursor
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:cursor">cursor</a></td><td>;</td><td>(*</td><td class="doc">Internally used by the implementation</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:from_function">
+  <a href="index.html#/module:ULB/val:from_function" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_function : ?raw_size:int <span class="rarr"><span>-&gt;</span></span> ?char_size:int <span class="rarr"><span>-&gt;</span></span> ?enc_change_hook:(<a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> refill:(string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a>
+    
+      <div class="doc">
+        
+      <p>Creates a <code>unicode_lexbuf</code> to analyse strings of the
+passed <code>encoding</code> coming from the <code>refill</code> function.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">raw_size</span> The initial size for <code>ulb_rawbuf</code>. Defaults to 512
+  </div>
+  
+  <div class="tag param">
+    <span class="label">char_size</span> The initial size for <code>ulb_chars</code>. Defaults to 256
+  </div>
+  
+  <div class="tag param">
+    <span class="label">enc_change_hook</span> This function is called when the encoding
+is changed, either by this module, or by the user calling
+<code>set_encoding</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">refill</span> This function is called with arguments <code>ulb_rawbuf</code>,
+<code>ulb_rawbuf_len</code>, and <code>l</code>, where
+<code>l = String.length ulb_rawbuf - ulb_rawbuf_len</code> is the free
+space in the buffer. The function should fill new bytes into
+this substring, and return the number of added bytes. The
+return value 0 signals EOF.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:from_in_obj_channel">
+  <a href="index.html#/module:ULB/val:from_in_obj_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_in_obj_channel : ?raw_size:int <span class="rarr"><span>-&gt;</span></span> ?char_size:int <span class="rarr"><span>-&gt;</span></span> ?enc_change_hook:(<a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a>
+    
+      <div class="doc">
+        
+      <p>Creates a <code>unicode_lexbuf</code> to analyse strings of the
+passed <code>encoding</code> coming from the object channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">raw_size</span> The initial size for <code>ulb_rawbuf</code>. Defaults to 512
+  </div>
+  
+  <div class="tag param">
+    <span class="label">char_size</span> The initial size for <code>ulb_chars</code>. Defaults to 256
+  </div>
+  
+  <div class="tag param">
+    <span class="label">enc_change_hook</span> This function is called when the encoding
+is changed, either by this module, or by the user calling
+<code>set_encoding</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:from_string">
+  <a href="index.html#/module:ULB/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : ?enc_change_hook:(<a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a>
+    
+      <div class="doc">
+        
+      <p>Creates a <code>unicode_lexbuf</code> analysing the passed string encoded in
+the passed encoding. This function copies the input string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">enc_change_hook</span> This function is called when the encoding
+is changed, either by this module, or by the user calling
+<code>set_encoding</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:from_string_inplace">
+  <a href="index.html#/module:ULB/val:from_string_inplace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string_inplace : ?enc_change_hook:(<a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a>
+    
+      <div class="doc">
+        
+      <p>Creates a <code>unicode_lexbuf</code> analysing the passed string encoded in
+the passed encoding. This function does not copy the input string,
+but uses it directly as <code>ulb_rawbuf</code>. The string is not modified by <code>ULB</code>,
+but the caller must ensure that other program parts do not
+modify it either.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">enc_change_hook</span> This function is called when the encoding
+is changed, either by this module, or by the user calling
+<code>set_encoding</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:delete">
+  <a href="index.html#/module:ULB/val:delete" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Deletes the number of characters from <code>unicode_lexbuf</code>.
+These characters
+are removed from the beginning of the buffer, i.e.
+<code>ulb_chars.(n)</code> becomes the new first character of the
+buffer. All three buffers <code>ulb_rawbuf</code>, <code>ulb_chars</code>, and
+<code>ulb_chars_pos</code> are blitted as necessary.</p>
+      
+      <p>When the buffer is already at EOF, the function fails.</p>
+      
+      <p>For efficiency, it should be tried to call <code>delete</code> as seldom as
+possible. Its speed is linear to the number of characters to move.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:refill">
+  <a href="index.html#/module:ULB/val:refill" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> refill : <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Tries to add characters to the <code>unicode_lexbuf</code> by calling the
+<code>ulb_refill</code> function. When the buffer is already at EOF, the
+exception <code>End_of_file</code> is raised, and the buffer is not modified.
+Otherwise, the <code>ulb_refill</code> function is called to
+add new characters. If necessary, <code>ulb_rawbuf</code>, <code>ulb_chars</code>, and
+<code>ulb_chars_pos</code> are enlarged such that it is ensured that either
+at least one new character is added, or that EOF is found for
+the first time
+In the latter case, <code>ulb_eof</code> is set to <code>true</code> (and the next call
+of <code>refill_unicode_lexbuf</code> will raise <code>End_of_file</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:set_encoding">
+  <a href="index.html#/module:ULB/val:set_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_encoding : <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>encoding</code> to the passed value. This only affects future
+<code>refill</code> calls. The hook <code>enc_change_hook</code> is invoked when defined.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:close">
+  <a href="index.html#/module:ULB/val:close" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close : <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets <code>ulb_eof</code> of the <code>unicode_lexbuf</code>. The rest of the buffer
+is not modified</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:utf8_sub_string">
+  <a href="index.html#/module:ULB/val:utf8_sub_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> utf8_sub_string : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The two <code>int</code> arguments are the position and length of a sub
+string of the lexbuf that is returned as UTF8 string. Position
+and length are given as character multiples, not byte multiples.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ULB/val:utf8_sub_string_length">
+  <a href="index.html#/module:ULB/val:utf8_sub_string_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> utf8_sub_string_length : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns <code>String.length(utf8_sub_string args)</code>. Tries not to
+allocate the UTF-8 string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing">
+  <a href="index.html#/module:Ulexing" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Ulexing : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This is a lexing buffer for <code>ulex</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Ulexing/type:lexbuf">
+  <a href="index.html#/module:Ulexing/type:lexbuf" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lexbuf
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/exn:Error">
+  <a href="index.html#/module:Ulexing/exn:Error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Error
+    
+      <div class="doc">
+        
+      <p>Lexical error</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:from_ulb_lexbuf">
+  <a href="index.html#/module:Ulexing/val:from_ulb_lexbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_ulb_lexbuf : <a href="index.html#/module:ULB">ULB</a>.<a href="index.html#/module:ULB/type:unicode_lexbuf">unicode_lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new <code>lexbuf</code> from the <code>unicode_lexbuf</code>. After that,
+the <code>unicode_lexbuf</code> must no longer be modified.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:lexeme_start">
+  <a href="index.html#/module:Ulexing/val:lexeme_start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lexeme_start : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>The character position of the start of the lexeme</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:lexeme_end">
+  <a href="index.html#/module:Ulexing/val:lexeme_end" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lexeme_end : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>The character position of the end of the lexeme</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:lexeme_length">
+  <a href="index.html#/module:Ulexing/val:lexeme_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lexeme_length : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>The length of the lexeme in characters</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:lexeme">
+  <a href="index.html#/module:Ulexing/val:lexeme" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lexeme : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int array
+    
+      <div class="doc">
+        
+      <p>Returns the lexeme as array of Unicode code points</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:lexeme_char">
+  <a href="index.html#/module:Ulexing/val:lexeme_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lexeme_char : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the code point of a certain character of the
+lexeme</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:sub_lexeme">
+  <a href="index.html#/module:Ulexing/val:sub_lexeme" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sub_lexeme : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int array
+    
+      <div class="doc">
+        
+      <p>Returns a substring of the lexeme as array of Unicode
+code points. The first <code>int</code> is the characater position
+where to start, the second <code>int</code> is the number of
+characters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:utf8_lexeme">
+  <a href="index.html#/module:Ulexing/val:utf8_lexeme" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> utf8_lexeme : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the lexeme as UTF-8 encoded string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:utf8_sub_lexeme">
+  <a href="index.html#/module:Ulexing/val:utf8_sub_lexeme" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> utf8_sub_lexeme : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a substring of the lexeme as UTF-8 encoded
+string. The first <code>int</code> is the characater position
+where to start, the second <code>int</code> is the number of
+characters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Ulexing/val:utf8_sub_lexeme_length">
+  <a href="index.html#/module:Ulexing/val:utf8_sub_lexeme_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> utf8_sub_lexeme_length : <a href="index.html#/module:Ulexing/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Same as
+String.length(utf8_sub_lexeme args), i.e. returns
+the number of bytes a certain sub lexeme will have
+when encoded as UTF-8 string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

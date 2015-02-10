@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>OpamHeuristic</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">OpamHeuristic</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Solver heuristics.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module tries to turn an efficient solution checker (such as
+the one provided by the dose3 library, writen by J. Vouillon) into
+a relatively good solution finder.</p>
+      
+      <p>The method we are using is the following:</p>
+      <ul><li>We ultimately rely on a brute-force exploration loop, where we
+iterate over the state-space implicitely, using a monotonous
+successor function which encodes the optimization criteria we
+are interested in;</li></ul><ul><li>As brute-force exploration is costly, the goal is to provide the
+exploration function a state-space as small as possible. To do
+so, we use different kind of constraints that we deduce from the
+request;</li></ul><ul><li>We remove from the state-space every packages and versions that
+are not needed: we are only considering (i) the installed root
+packages (with no specific version constraint); (ii) the new
+packages that the user might have asking to install or upgrade
+(with some eventual version constraints); and (iii) the
+transitive closure of (i) and (ii) (with the corresponding
+version constraints);</li></ul>
+      <p>Finally, we run all this in a loop, until we reach a fix point. We
+use a timeout to interrupt too long explorations.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">High-level API</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:resolve">
+  <a href="index.html#/val:resolve" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resolve : ?verbose:bool <span class="rarr"><span>-&gt;</span></span> version_map:int <a href="../../../../opam-lib.1.2.0/src/core/opamPackage/">OpamPackage</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamPackage/#/module:Map">Map</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamPackage/#/module:Map/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkg">vpkg</a> <a href="../../../../opam-lib.1.2.0/src/core/opamTypes/">OpamTypes</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamTypes/#/type:request">request</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <a href="../../../../opam-lib.1.2.0/src/core/opamTypes/">OpamTypes</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamTypes/#/type:action">action</a> list, <a href="../../../../opam-lib.1.2.0/src/solver/opamCudf/">OpamCudf</a>.<a href="../../../../opam-lib.1.2.0/src/solver/opamCudf/#/type:conflict">conflict</a>) <a href="../../../../opam-lib.1.2.0/src/core/opamTypes/">OpamTypes</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamTypes/#/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p>Optimized resolution</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Internal API</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These functions can be used independently of OPAM, so we document
+them here. It is not expected than any other file in OPAM use them,
+though.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:state">
+  <a href="index.html#/type:state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a state = 'a list
+    
+      <div class="doc">
+        
+      <p>A state. In our case, it is a list package we would like to see
+installed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:state_space">
+  <a href="index.html#/type:state_space" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a state_space = 'a array list
+    
+      <div class="doc">
+        
+      <p>A state space. In our case, it is a collection of available
+packages: each cell contains all the versions available for one
+package, ordered by version.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">Integer space</h4>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The hearth of the brute-force algorithm lies here. Wwe want to
+iterate on the state-space (which can be hudge) and stop the
+first time we hit a consistant state. This means two things:
+(i) we don't want to build the full universe before iterating
+on it; (ii) we need to enumerate the states in a meaningful
+order, eg. an order which should reflect the optimization
+criteria we are intersted in.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>To overcome this difficulties, we use a monotonous successor
+function to compute the next state to test from a given valid
+non-consistent state, see <code>succ</code> for more details.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:zero">
+  <a href="index.html#/val:zero" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> zero : int <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:state">state</a>
+    
+      <div class="doc">
+        
+      <p><code>zero n</code> returns the tuple with <code>n</code> zeros, which is the first
+state to explore.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:succ">
+  <a href="index.html#/val:succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> succ : bounds:int list <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:state">state</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:state">state</a> option
+    
+      <div class="doc">
+        
+      <p>Given a list of bounds and a tuple, return the next tuple which
+satisfies the bounds (each component will be stricly lesser than
+the bounds). The enumeration respect the following invariant:</p>
+      <ul><li>it is complete, eg. all the state are enumerated until <code>None</code> is
+returned.</li></ul><ul><li>it it monotonous: the sum of components always increase, eg.
+<code>|succ x| &gt;= |x|</code>, where <code>|None|</code> is <code>max_int</code>, <code>|Some x| = |x|</code>
+and <code>|(x_1,...,x_n) = x_1 + ... + x_n|</code>.</li></ul>
+      <p>That enumeration encodes the heuristic we are trying to implement,
+which is: we first try to install the 'ideal' state, where all
+packages are installed with their most recent versions; if this
+does not work, we try to minimize the distance between the ideal
+state and the solution we are proposing.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">Polymorphic space</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:brute_force">
+  <a href="index.html#/val:brute_force" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> brute_force : ?verbose:bool <span class="rarr"><span>-&gt;</span></span> dump:('a <a href="index.html#/type:state">state</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:state">state</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:state_space">state_space</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:state">state</a> option
+    
+      <div class="doc">
+        
+      <p><code>explore is_constent state_space</code> explore a state space by
+implicitely enumerating all the state in a sensitive order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">Package space</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:state_space">
+  <a href="index.html#/val:state_space" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> state_space : ?filters:(<a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:pkgname">pkgname</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:constr">constr</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkglist">vpkglist</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:pkgname">pkgname</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <a href="index.html#/type:state_space">state_space</a>
+    
+      <div class="doc">
+        
+      <p>Build a state space from a list of package names. The <code>filter</code>
+option helps to reduce the size of the state-space, which is
+useful to deal with both user-defined constraints (added on the
+command line for instance) and refined requests (see below).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:explore">
+  <a href="index.html#/val:explore" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> explore : ?verbose:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <a href="index.html#/type:state_space">state_space</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <a href="index.html#/type:state">state</a> option
+    
+      <div class="doc">
+        
+      <p>Explore the given package state-space using the <code>brute_force</code> strategy.
+We assume that all the packages belong to the given universe.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:state_of_request">
+  <a href="index.html#/val:state_of_request" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> state_of_request : ?verbose:bool <span class="rarr"><span>-&gt;</span></span> version_map:int <a href="../../../../opam-lib.1.2.0/src/core/opamPackage/">OpamPackage</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamPackage/#/module:Map">Map</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamPackage/#/module:Map/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkg">vpkg</a> <a href="../../../../opam-lib.1.2.0/src/core/opamTypes/">OpamTypes</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamTypes/#/type:request">request</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <a href="index.html#/type:state">state</a> option
+    
+      <div class="doc">
+        
+      <p>Find a possible good state which satisfies a request. The idea is
+call iteratively this function while refining the constraints in
+the request until reaching a fix-point. This function tries to
+minimize the state to explore, based on the request constraints:
+the more constrained request you have, the smaller the state-space
+to explore is. Once the state-space is computed using
+<code>state_space</code>, it calls <code>explore</code> (which will use <code>brute_force</code>)
+to get an approximate solution to the request.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:actions_of_state">
+  <a href="index.html#/val:actions_of_state" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> actions_of_state : version_map:int <a href="../../../../opam-lib.1.2.0/src/core/opamPackage/">OpamPackage</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamPackage/#/module:Map">Map</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamPackage/#/module:Map/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:universe">universe</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkg">vpkg</a> <a href="../../../../opam-lib.1.2.0/src/core/opamTypes/">OpamTypes</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamTypes/#/type:request">request</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <a href="index.html#/type:state">state</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <a href="../../../../opam-lib.1.2.0/src/core/opamTypes/">OpamTypes</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamTypes/#/type:action">action</a> list
+    
+      <div class="doc">
+        
+      <p>Convert a state into a series of action (withour the full closure
+of reinstallations). Raise <code>Not_reachable</code> is the state is not
+reachable. This function is called once we get a consistent state
+to build a solution than we can propose to the user.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

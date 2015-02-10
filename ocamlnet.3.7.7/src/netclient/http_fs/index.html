@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Http_fs</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Http_fs</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>HTTP filesystem</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Examples</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Read an HTTP directory:</p>
+      <pre><code>       let fs = new http_fs ~streaming:true &quot;http://localhost/~gerd&quot;
+       let files = fs # readdir [] &quot;/&quot;</code></pre>
+      <p>Download a file into a string:</p>
+      <pre><code>       let ch = fs # read [] &quot;/file&quot;
+       let s = Netchannels.string_of_in_obj_channels ch</code></pre>
+      <p>Copy a file hierarchy to the local disk:</p>
+      <pre><code>       let lfs = Netfs.local_fs()
+       Netfs.copy_into (fs :&gt; Netfs.stream_fs) &quot;/tree&quot; lfs &quot;/tmp&quot;</code></pre>
+      <p>Use globbing:</p>
+      <pre><code>       let fsys = Netglob.of_stream_fs (fs :&gt; Netfs.stream_fs)
+       let files = Netglob.glob ~fsys (`String &quot;/*.gif&quot;)</code></pre>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Extended <code>stream_fs</code> type</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>There is the new flag <code>`Header</code> for <code>read</code> and <code>write</code>, and the
+new method <code>last_response_header</code> for getting the response
+header of the most recently executed operation.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:read_flag">
+  <a href="index.html#/type:read_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> read_flag = [ <div class="cons">| <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:read_flag">read_flag</a></div><div class="cons">| `Header <span class="keyword">of</span> (string * string) list</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:read_file_flag">
+  <a href="index.html#/type:read_file_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> read_file_flag = [ <div class="cons">| <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:read_file_flag">read_file_flag</a></div><div class="cons">| `Header <span class="keyword">of</span> (string * string) list</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:write_flag">
+  <a href="index.html#/type:write_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> write_flag = [ <div class="cons">| <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:write_flag">write_flag</a></div><div class="cons">| `Header <span class="keyword">of</span> (string * string) list</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:write_file_flag">
+  <a href="index.html#/type:write_file_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> write_file_flag = [ <div class="cons">| <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:write_file_flag">write_file_flag</a></div><div class="cons">| `Header <span class="keyword">of</span> (string * string) list</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs">
+  <a href="index.html#/classtype:http_stream_fs" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_stream_fs = 
+  <div class="region" id="/classtype:http_stream_fs/method:read">
+  <a href="index.html#/classtype:http_stream_fs/method:read" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read : <a href="index.html#/type:read_flag">read_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Additional flag:</p>
+      <ul><li><code>`Header h</code>: Set these headers in the submitted GET request</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:read_file">
+  <a href="index.html#/classtype:http_stream_fs/method:read_file" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read_file : <a href="index.html#/type:read_file_flag">read_file_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:local_file">local_file</a>
+  
+      <div class="doc">
+        
+      <p>Additional flag:</p>
+      <ul><li><code>`Header h</code>: Set these headers in the submitted GET request</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:write">
+  <a href="index.html#/classtype:http_stream_fs/method:write" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> write : <a href="index.html#/type:write_flag">write_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Additional flag:</p>
+      <ul><li><code>`Header h</code>: Set these headers in the submitted PUT request</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:write_file">
+  <a href="index.html#/classtype:http_stream_fs/method:write_file" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> write_file : <a href="index.html#/type:write_file_flag">write_file_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:local_file">local_file</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Additional flag:</p>
+      <ul><li><code>`Header h</code>: Set these headers in the submitted PUT request</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:last_response_header">
+  <a href="index.html#/classtype:http_stream_fs/method:last_response_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> last_response_header : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_header">http_header</a>
+  
+      <div class="doc">
+        
+      <p>Returns the header of the HTTP response of the last operation.
+Generally, the
+header is set when the last operation returns normally (no
+exception was raised). In case of <code>write</code>, the header is first set when
+the stream is closed.</p>
+      
+      <p>Raises <code>Not_found</code> if the last operation did not receive a header
+(or not fully).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:last_response_status">
+  <a href="index.html#/classtype:http_stream_fs/method:last_response_status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> last_response_status : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a> * int * string
+  
+      <div class="doc">
+        
+      <p>Return the response status of the last operation, as triple
+<code>(symbolic_code,numeric_code,text)</code>. This triple is set in the
+same way as the response header. Raises <code>Not_found</code> if unavailable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:pipeline">
+  <a href="index.html#/classtype:http_stream_fs/method:pipeline" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pipeline : <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/class:pipeline">pipeline</a>
+  
+      <div class="doc">
+        
+      <p>The HTTP pipeline backing this file system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following methods are the same as in <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:stream_fs">stream_fs</a>.
+(For formal reasons we cannot inherit from this class type.)</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_stream_fs/method:translate">
+  <a href="index.html#/classtype:http_stream_fs/method:translate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> translate : string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Translates a path into a URL</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:path_encoding">
+  <a href="index.html#/classtype:http_stream_fs/method:path_encoding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> path_encoding : <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> option
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:path_exclusions">
+  <a href="index.html#/classtype:http_stream_fs/method:path_exclusions" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> path_exclusions : (int * int) list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:nominal_dot_dot">
+  <a href="index.html#/classtype:http_stream_fs/method:nominal_dot_dot" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> nominal_dot_dot : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:size">
+  <a href="index.html#/classtype:http_stream_fs/method:size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> size : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:size_flag">size_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int64
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:test">
+  <a href="index.html#/classtype:http_stream_fs/method:test" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> test : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:test_flag">test_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:test_type">test_type</a> <span class="rarr"><span>-&gt;</span></span> bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:test_list">
+  <a href="index.html#/classtype:http_stream_fs/method:test_list" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> test_list : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:test_flag">test_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:test_type">test_type</a> list <span class="rarr"><span>-&gt;</span></span> bool list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:remove">
+  <a href="index.html#/classtype:http_stream_fs/method:remove" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> remove : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:remove_flag">remove_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:rename">
+  <a href="index.html#/classtype:http_stream_fs/method:rename" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rename : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:rename_flag">rename_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:symlink">
+  <a href="index.html#/classtype:http_stream_fs/method:symlink" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> symlink : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:symlink_flag">symlink_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:readdir">
+  <a href="index.html#/classtype:http_stream_fs/method:readdir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> readdir : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:readdir_flag">readdir_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:readlink">
+  <a href="index.html#/classtype:http_stream_fs/method:readlink" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> readlink : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:readlink_flag">readlink_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:mkdir">
+  <a href="index.html#/classtype:http_stream_fs/method:mkdir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> mkdir : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:mkdir_flag">mkdir_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:rmdir">
+  <a href="index.html#/classtype:http_stream_fs/method:rmdir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rmdir : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:rmdir_flag">rmdir_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:copy">
+  <a href="index.html#/classtype:http_stream_fs/method:copy" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> copy : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/type:copy_flag">copy_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_stream_fs/method:cancel">
+  <a href="index.html#/classtype:http_stream_fs/method:cancel" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cancel : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">The class</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:http_fs">
+  <a href="index.html#/class:http_fs" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> http_fs : 
+    ?config_pipeline:(<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/class:pipeline">pipeline</a> <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?streaming:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?tmp_directory:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?tmp_prefix:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?path_encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?enable_read_for_directories:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?enable_ftp:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_stream_fs">http_stream_fs</a>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p><code>http_fs base_url</code>: Accesses the HTTP file system rooted at
+<code>base_url</code>.</p>
+      
+      <p>The following access methods are supported (compare with
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:stream_fs">stream_fs</a>):</p>
+      <ul><li><code>path_encoding</code>: Returns the passed <code>path_encoding</code>. Paths
+are always encoded.</li><li><code>path_exclusions</code>: is just <code>0,0; 47,47</code></li><li><code>nominal_dot_dot</code> is true</li><li><code>read</code>: is supported. All files are considered as binary.
+The <code>`Skip</code> flag works, and is translated to a <code>Range</code> header.</li><li><code>write</code>: is supported and translated to <code>PUT</code>. It is assumed
+that <code>PUT</code> truncates existing files, and creates new files.
+Note that errors are often first reported when the returned
+channel is closed!</li><li><code>size</code>: this works only if the server includes the <code>Content-length</code>
+header in responses to <code>HEAD</code> requests.</li><li><code>test</code> and <code>test_list</code>: The tests <code>`N</code>, <code>`E</code>, <code>`D</code>, <code>`F</code>, and <code>`S</code>
+should work. Files are never symlinks. <code>`R</code> is handled like <code>`E</code>,
+and <code>`X</code> is handled like <code>`X</code> (i.e. it is assumed that all
+files are readable, and all directories can be entered). The
+<code>`W</code> test is never successful.</li><li><code>remove</code>: is translated to a <code>DELETE</code> request.</li><li><code>readdir</code>: works if index pages are generated (see above)</li></ul>
+      <p>There is no support for <code>rename</code>, <code>symlink</code>, <code>mkdir</code>, <code>rmdir</code>, and
+<code>copy</code>.</p>
+      
+      <p>Options:</p>
+      <ul><li><code>config_pipeline</code>: one can enable further features on the pipeline
+object (e.g. authentication, proxies)</li><li><code>streaming</code>: if true, the <code>read</code> method only reads as much data
+from the HTTP connection as requested by the user. This assumes
+that the user does not pause stream accesses for longer periods
+as this would risk a server timeout. Also, there is no way for
+the client to automatically reconnect to the HTTP server after crashes.
+If false (the default),
+files are first downloaded to a temporary file before they are
+made accessible as <code>in_obj_channel</code>. Streaming can also be
+enabled for each <code>read</code> or <code>write</code> by including <code>`Streaming</code>
+in the list of flags.</li><li><code>tmp_directory</code>: directory for temporary files</li><li><code>tmp_prefix</code>: file prefix for temporary files (w/o directory)</li><li><code>path_encoding</code>: The encoding that is used for the file names.
+This must match the encoding the server assumes for translating
+file names to hyperlinks. Unfortunately, there is no way to
+query the server for this. The default, <code>`Enc_utf8</code>, seems to be the
+de-facto standard on the web (e.g. browsers use UTF-8 when
+non-ASCII characters are entered in the address line).</li><li><code>enable_ftp</code>: This enables anonymous FTP via web proxies. In
+this case the <code>base_url</code> is of the form <code>ftp://host:port/path</code>.
+This works only if the pipeline is configured to contact a
+web proxy understanding FTP URLs.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:http_fs">
+  <a href="index.html#/val:http_fs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_fs : ?config_pipeline:(<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/class:pipeline">pipeline</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?streaming:bool <span class="rarr"><span>-&gt;</span></span> ?tmp_directory:string <span class="rarr"><span>-&gt;</span></span> ?tmp_prefix:string <span class="rarr"><span>-&gt;</span></span> ?path_encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?enable_read_for_directories:bool <span class="rarr"><span>-&gt;</span></span> ?enable_ftp:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_stream_fs">http_stream_fs</a>
+    
+      <div class="doc">
+        
+      <p>Same as normal function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netcgi_ajp</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netcgi_ajp</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Apache JServ Protocol (AJP) 1.3 connector.</p>
+      
+      <p>See the <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_ajp/">Netcgi_ajp</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_ajp/#/label:setup">setup</a> section at the end of this file to know
+how to configure your web server.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:arg_parse">
+  <a href="index.html#/val:arg_parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> arg_parse : (<a href="../../../../ocaml.4.02.1+doc/stdlib/arg/">Arg</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/arg/#/type:key">key</a> * <a href="../../../../ocaml.4.02.1+doc/stdlib/arg/">Arg</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/arg/#/type:spec">spec</a> * <a href="../../../../ocaml.4.02.1+doc/stdlib/arg/">Arg</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/arg/#/type:doc">doc</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/arg/">Arg</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/arg/#/type:anon_fun">anon_fun</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/arg/">Arg</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/arg/#/type:usage_msg">usage_msg</a> <span class="rarr"><span>-&gt;</span></span> (string * string) list
+    
+      <div class="doc">
+        
+      <p><code>arg_parse speclist anon_fun usage_msg</code> parses the command line
+and return an associative list describing the content of the
+property file (see <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_ajp/">Netcgi_ajp</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_ajp/#/val:props_of_file">props_of_file</a>). This function
+allows to fakes the &quot;java&quot; command (JVM startup):</p>
+      <ul><li>the option <code>-classpath &lt;path&gt;</code> is ignored;</li><li>the first anonymous argument (Java class name) is ignored;</li><li>the second anonymous argument is the name of the property file;</li><li>other options are interpreted according to the <code>speclist</code>.</li></ul>
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> and prints a usage message if the property file
+cannot be read.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:props_of_file">
+  <a href="index.html#/val:props_of_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> props_of_file : string <span class="rarr"><span>-&gt;</span></span> (string * string) list
+    
+      <div class="doc">
+        
+      <p><code>props_of_file fname</code> parses the property file <code>fname</code> and
+returns it as an associative list. The following properties are
+used:</p>
+      <ul><li>&quot;bindaddress&quot;: The address the server socket is bound to. Can be
+specified as IP address or hostname or &quot;*&quot; (default: &quot;localhost&quot;).</li><li>&quot;port&quot;: The port number the server socket is bound to. Defaults to
+8007.</li><li>&quot;security.authentication&quot;: If &quot;true&quot;, the server expects that the
+web server authenticates itself. Defaults to &quot;true&quot;.</li><li>&quot;security.challengeSize&quot;: The length of the challenge string.
+Defaults to 5.</li><li>&quot;security.secretKey&quot;: The file containing the secret key used for
+authentication.</li><li>&quot;security.allowHost&quot;: Only the web server with this IP address is
+allowed to connect (this option can occur several times).
+DNS names are resolved at startup time.</li><li>&quot;jakarta.servletSubString&quot;: The substring that is used as indicator
+for the servlet name (for mod_jk only). Defaults to &quot;/servlets/&quot;.</li><li>&quot;ocamlnet.https&quot;: Whether HTTPS is assumed as basic protocol or not.
+Defaults to &quot;false&quot;.</li></ul>
+      <p>Other properties are ignored.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the file does not exist or is not readable.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run">
+  <a href="index.html#/val:run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run : ?props:(string * string) list <span class="rarr"><span>-&gt;</span></span> ?config:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> ?script_name:string <span class="rarr"><span>-&gt;</span></span> ?allow:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ?output_type:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> ?arg_store:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> ?exn_handler:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> ?sockaddr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> ?port:int <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>run f</code> executes <code>f cgi</code> for each AJP request.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">config</span> Default: [root:Netcgi].default_config
+  </div>
+  
+  <div class="tag param">
+    <span class="label">allow</span> Tells whether a connection from the socket is allowed.
+Default: allow from all.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">output_type</span> Default: <code>`Direct &quot;&quot;</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">arg_store</span> Default: <code>`Automatic</code> for all arguments.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">port</span> The port used by the web server to send the requests
+(Default: 8009).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">sockaddr</span> The sockaddress (overrides <code>port</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">exn_handler</span> See [root:Netcgi].exn_handler. Default: delegate
+all exceptions to the default handler.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:handle_request">
+  <a href="index.html#/val:handle_request" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> handle_request : ?script_name:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> log:(string <span class="rarr"><span>-&gt;</span></span> unit) option <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:connection_directive">connection_directive</a>
+    
+      <div class="doc">
+        
+      <p><code>handle_request config output_type arg_store eh f ~log fd</code>: This
+is a lower-level interface that processes exactly one request
+arriving on the existing connection <code>fd</code>.</p>
+      
+      <p><code>log</code> is the error logger function or <code>None</code>, in which case
+errors are passed through to the FCGI client.</p>
+      
+      <p>The other arguments are just like for <code>run</code>.</p>
+      
+      <p>The return value indicates whether the connection can be kept
+open or must be closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:setup">
+  <a href="index.html#/label:setup" class="anchor">#</a>
+  
+    <h2 class="section level_2">Setup</h2>
+    
+  </div>
+  <div class="region">
+    <h3 class="section level_3">Apache</h3>
+    </div>
+      <p>You need to use mod_jk to have support for AJP/1.3. To install
+it, please see
+<a href="http://tomcat.apache.org/tomcat-3.3-doc/mod_jk-howto.html">Working
+with mod_jk</a>.</p>
+      
+      <p>In httpd.conf or in a file, say mod_jk.conf, in
+/etc/apache2/conf.d/ (or /etc/apache2/conf.d/ for Apache 1.x), add
+the following:
+</p>
+      <pre>    # Shared memory file name (Unix only).  The parent dir must exist.
+    JkShmFile  /var/tmp/jk-runtime-status
+    LoadModule jk_module mod_jk.so
+    # Declare the module for &lt;IfModule&gt; (remove this line on Apache 2.x)
+    AddModule  mod_jk.c
+
+    &lt;IfModule mod_jk.c&gt;
+      # Configure mod_jk
+      # Apache 1.x
+      #JkWorkersFile /etc/libapache-mod-jk/workers.properties
+      #JkLogFile     /var/log/apache/mod_jk.log
+      # Apache 2.x
+      JkWorkersFile /etc/libapache2-mod-jk/workers.properties
+      JkLogFile     /var/log/apache2/mod_jk.log
+      JkLogLevel    info
+
+      # JkMount [URL prefix] [Worker name]
+      JkMount /*.jsp ajp13_worker
+      JkMount /servlet/* ajp13_worker
+    &lt;/IfModule&gt;</pre><div class="region">
+    <h3 class="section level_3">Other web severs</h3>
+    </div>
+      <p>Please go to this
+<a href="http://tomcat.apache.org/connectors-doc/index.html">configuration
+page</a>. Mail us specific instructions or tips for other web
+servers so we can include them here.</p>
+      <div class="region">
+    <h3 class="section level_3">Workers.properties</h3>
+    </div>
+      <p>Here is an example of workers.properties:
+</p>
+      <pre>    # Comma separated list of worker names:
+    worker.list=ajp13_worker
+    # Set properties for ajp13_worker
+    worker.ajp13_worker.type=ajp13
+    worker.ajp13_worker.host=localhost
+    worker.ajp13_worker.port=8009
+    worker.ajp13_worker.cachesize=1</pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

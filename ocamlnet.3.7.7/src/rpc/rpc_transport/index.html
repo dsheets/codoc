@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_transport</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_transport</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Low-level RPC transporters</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:result">
+  <a href="index.html#/type:result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 't result = [ <div class="cons">| `Ok <span class="keyword">of</span> 't</div><div class="cons">| `Error <span class="keyword">of</span> exn</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:result_eof">
+  <a href="index.html#/type:result_eof" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 't result_eof = [ <div class="cons">| 't <a href="index.html#/type:result">result</a></div><div class="cons">| `End_of_file</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sockaddr">
+  <a href="index.html#/type:sockaddr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sockaddr = [ <div class="cons">| `Implied</div><div class="cons">| `Sockaddr <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_sockaddr">
+  <a href="index.html#/val:string_of_sockaddr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_sockaddr : <a href="index.html#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert to string, for debugging purposes</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Error">
+  <a href="index.html#/exn:Error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Error <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Passed back as <code>`Error</code>. Such errors are fatal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Note errors on stream connections: These are normally not recoverable.
+One should close the connection and open a new one.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:in_rule">
+  <a href="index.html#/type:in_rule" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> in_rule = [ <div class="cons">| `Deny</div><div class="cons">| `Drop</div><div class="cons">| `Reject</div><div class="cons">| `Reject_with <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:server_error">server_error</a></div><div class="cons">| `Accept</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:in_record">
+  <a href="index.html#/type:in_record" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> in_record = [ <div class="cons">| `Deny</div><div class="cons">| `Drop</div><div class="cons">| `Reject <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/">Rpc_packer</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/#/type:packed_value">packed_value</a></div><div class="cons">| `Reject_with <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/">Rpc_packer</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/#/type:packed_value">packed_value</a> * <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:server_error">server_error</a></div><div class="cons">| `Accept <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/">Rpc_packer</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/#/type:packed_value">packed_value</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller">
+  <a href="index.html#/classtype:rpc_multiplex_controller" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> rpc_multiplex_controller = 
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:alive">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:alive" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> alive : bool
+  
+      <div class="doc">
+        
+      <p>If the controller is alive, the socket is not yet completely down.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:event_system">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+  
+      <div class="doc">
+        
+      <p>Returns the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:getsockname">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:getsockname" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> getsockname : <a href="index.html#/type:sockaddr">sockaddr</a>
+  
+      <div class="doc">
+        
+      <p>The address of this socket</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:getpeername">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:getpeername" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> getpeername : <a href="index.html#/type:sockaddr">sockaddr</a>
+  
+      <div class="doc">
+        
+      <p>The address of the peer's socket. Only available if the socket
+is connected. (Fails otherwise.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:protocol">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> protocol : <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a>
+  
+      <div class="doc">
+        
+      <p>The protocol encapsulation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:peer_user_name">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:peer_user_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> peer_user_name : string option
+  
+      <div class="doc">
+        
+      <p>If the transport mechanism provides a way to authenticate the
+peer, it can return the name here.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:file_descr">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:file_descr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> file_descr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> option
+  
+      <div class="doc">
+        
+      <p>If the transport mechanism is on top of a file descriptor, this
+is returned here. This can be useful for getting more information
+about the descriptor (e.g. credentials associated with it).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:reading">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:reading" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reading : bool
+  
+      <div class="doc">
+        
+      <p>True iff there is a reader</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:read_eof">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:read_eof" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read_eof : bool
+  
+      <div class="doc">
+        
+      <p>Whether the EOF marker has been read</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:start_reading">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:start_reading" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_reading : ?peek:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?before_record:(int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:in_rule">in_rule</a>) <span class="rarr"><span>-&gt;</span></span> when_done:((<a href="index.html#/type:in_record">in_record</a> * <a href="index.html#/type:sockaddr">sockaddr</a>) <a href="index.html#/type:result_eof">result_eof</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Start reading from the connection. When a whole message has been
+received, the <code>when_done</code> callback is invoked. The <code>in_record</code>
+passed to <code>when_done</code> is usually <code>`Accept m</code> when <code>m</code> is the
+undecoded message string. For other types of <code>in_record</code> see
+the comments to <code>before_record</code> below.</p>
+      
+      <p>This starts one-time read job only, i.e. it is not restarted
+after <code>when_done</code> has been invoked.</p>
+      
+      <p>It is an error to start reading several times at once.</p>
+      
+      <p><code>peek</code>: This function is called immediately before a data chunk is
+read from the underlying data connection.</p>
+      
+      <p><code>before_record</code>: If passed, this function is called back whenever
+a fragment of data is started. The integer is the so-far known
+size of the
+message in bytes. It is guaranteed that the function is
+invoked once for every message fragment as long as the previous
+fragments were accepted, and in total at least once
+before <code>when_done</code>. The result of the last <code>before_record</code> call
+determines what is returned as <code>in_record</code>, e.g. a <code>`Deny</code> rule
+causes that a <code>`Deny</code> result is passed to <code>when_done</code>.
+Also, for <code>`Deny</code> and <code>`Drop</code> no message buffer is
+allocated (i.e. no memory consumption). For <code>`Reject</code>, only
+a very small buffer is allocated that only provides space for
+the session identifier (xid).
+When there is no <code>before_record</code> function, <code>`Accept</code> is passed
+to <code>when_done</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:writing">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:writing" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> writing : bool
+  
+      <div class="doc">
+        
+      <p>True iff there is a writer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:start_writing">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:start_writing" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_writing : when_done:(unit <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/">Rpc_packer</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/#/type:packed_value">packed_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Starts writing the message. Invoked <code>when_done</code> when it is written,
+or an error condition is reached.</p>
+      
+      <p>This starts one-time write job only, i.e. it is not restarted
+after <code>when_done</code> has been invoked.</p>
+      
+      <p>It is an error to start writing several times at once.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:cancel_rd_polling">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:cancel_rd_polling" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cancel_rd_polling : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Cancels polling for the next input message. This method must not be
+called from the <code>before_record</code> callback function. Polling can be
+resumed by calling <code>start_reading</code> again.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:abort_rw">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:abort_rw" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> abort_rw : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Aborts the current reader and/or writer forever. Note that there is no
+clean way of resuming reading and/or writing. The readers/writers
+are not notified about cancellation.</p>
+      
+      <p>This method also deallocates buffers, so far possible.</p>
+      
+      <p>It is allowed to go on with the shutdown, and to inactivate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:start_shutting_down">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:start_shutting_down" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_shutting_down : when_done:(unit <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Start shutting down the connection. After going through the shutdown
+procedure, the <code>when_done</code> callback is invoked reporting the success
+or failure.</p>
+      
+      <p>The underlying file descriptor (if any) is not closed. A shutdown
+is only a protocol handshake. After a shutdown,<code>read_eof</code>
+is true. Call <code>inactivate</code> to close the descriptor.</p>
+      
+      <p>This method also deallocates buffers, so far possible.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:cancel_shutting_down">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:cancel_shutting_down" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cancel_shutting_down : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Cancels the shutdown procedure. After that, the state of the
+connection is undefined. The <code>when_done</code> callback is invoked with
+the <code>`Cancelled</code>.</p>
+      
+      <p>It is no error if no shutdown is in progress.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:set_timeout">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:set_timeout" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_timeout : notify:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>If there is no read or write activity for the passed number of
+seconds, the <code>notify</code> callback is invoked.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rpc_multiplex_controller/method:inactivate">
+  <a href="index.html#/classtype:rpc_multiplex_controller/method:inactivate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inactivate : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Inactivates the connection immediately, and releases any resources
+the controller is responsible for (e.g. closes file descriptors).
+Note that this is more than
+cancelling all pending operations and shutting the connection down.
+However, the details of this method are implementation-defined.
+Callbacks are not invoked.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stream_rpc_multiplex_controller">
+  <a href="index.html#/val:stream_rpc_multiplex_controller" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_rpc_multiplex_controller : ?close_inactive_descr:bool <span class="rarr"><span>-&gt;</span></span> ?preclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:rpc_multiplex_controller">rpc_multiplex_controller</a>
+    
+      <div class="doc">
+        
+      <p>The multiplex controller for stream encapsulation</p>
+      <ul><li><code>close_inactive_descr</code>: If true, the descriptor is closed when
+inactivated</li><li><code>preclose</code>: This function is called just before the descriptor
+is closed.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:datagram_rpc_multiplex_controller">
+  <a href="index.html#/val:datagram_rpc_multiplex_controller" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> datagram_rpc_multiplex_controller : ?close_inactive_descr:bool <span class="rarr"><span>-&gt;</span></span> ?preclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:rpc_multiplex_controller">rpc_multiplex_controller</a>
+    
+      <div class="doc">
+        
+      <p>The multiplex controller for datagrams</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:stream_rpc_multiplex_controller">
+  <a href="index.html#/class:stream_rpc_multiplex_controller" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> stream_rpc_multiplex_controller : 
+    <a href="index.html#/type:sockaddr">sockaddr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:sockaddr">sockaddr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:multiplex_controller">multiplex_controller</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:rpc_multiplex_controller">rpc_multiplex_controller</a>
+    
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>The class is exported for the SSL transporter</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

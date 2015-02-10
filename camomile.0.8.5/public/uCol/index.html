@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>UCol</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">UCol</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Unicode collation algorithm</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>String comparison by collation as described in UTR #10</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:variable_option">
+  <a href="index.html#/type:variable_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> variable_option = [ <div class="cons">| `Blanked</div><div class="cons">| `Non_ignorable</div><div class="cons">| `Shifted</div><div class="cons">| `Shift_Trimmed</div> ]
+    
+      <div class="doc">
+        
+      <p>How variables are handled</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:precision">
+  <a href="index.html#/type:precision" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> precision = [ <div class="cons">| `Primary</div><div class="cons">| `Secondary</div><div class="cons">| `Tertiary</div><div class="cons">| `Quaternary</div> ]
+    
+      <div class="doc">
+        
+      <p>Strength of comparison. For European languages, each strength
+roughly means as
+`Primary : Ignore accents and case
+`Secondary : Ignore case but accents are counted in.
+`Tertiary : Accents and case are counted in.
+For the case of `Shifted, `Shift_Trimmed, there is the fourth strength.
+`Quaternary : Variables such as - (hyphen) are counted in.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Type">
+  <a href="index.html#/modtype:Type" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Type = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Type/type:text">
+  <a href="index.html#/modtype:Type/type:text" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> text
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Type/type:index">
+  <a href="index.html#/modtype:Type/type:index" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> index
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Type/val:compare">
+  <a href="index.html#/modtype:Type/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : ?locale:string <span class="rarr"><span>-&gt;</span></span> ?prec:<a href="index.html#/type:precision">precision</a> <span class="rarr"><span>-&gt;</span></span> ?variable:<a href="index.html#/type:variable_option">variable_option</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:text">text</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:text">text</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>For locale, see [root:Locale].
+If <code>locale</code> is omitted, the standard UCA order is used.
+If <code>prec</code> is omitted, the maximum possible strength is used.
+If <code>variable</code> is omitted, the default of the locale
+(usually <code>`Shifted</code>) is used.
+The meaning of the returned value is similar to Pervasives.compare</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Type/val:sort_key">
+  <a href="index.html#/modtype:Type/val:sort_key" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sort_key : ?locale:string <span class="rarr"><span>-&gt;</span></span> ?prec:<a href="index.html#/type:precision">precision</a> <span class="rarr"><span>-&gt;</span></span> ?variable:<a href="index.html#/type:variable_option">variable_option</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:text">text</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Binary comparison of sort_key gives the same result as <code>compare</code>.
+i.e.
+<code>compare t1 t2 = Pervasives.compare (sort_key t1) (sort_key t2)</code>
+If the same texts are repeatedly compared,
+pre-computation of sort_key gives better performance.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Type/val:compare_with_key">
+  <a href="index.html#/modtype:Type/val:compare_with_key" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare_with_key : ?locale:string <span class="rarr"><span>-&gt;</span></span> ?prec:<a href="index.html#/type:precision">precision</a> <span class="rarr"><span>-&gt;</span></span> ?variable:<a href="index.html#/type:variable_option">variable_option</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:text">text</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Comparison with the sort key.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Type/val:search_with_key">
+  <a href="index.html#/modtype:Type/val:search_with_key" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> search_with_key : ?locale:string <span class="rarr"><span>-&gt;</span></span> ?prec:<a href="index.html#/type:precision">precision</a> <span class="rarr"><span>-&gt;</span></span> ?variable:<a href="index.html#/type:variable_option">variable_option</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:text">text</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:index">index</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:index">index</a> * <a href="index.html#/modtype:Type/type:index">index</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Type/val:search">
+  <a href="index.html#/modtype:Type/val:search" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> search : ?locale:string <span class="rarr"><span>-&gt;</span></span> ?prec:<a href="index.html#/type:precision">precision</a> <span class="rarr"><span>-&gt;</span></span> ?variable:<a href="index.html#/type:variable_option">variable_option</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:text">text</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:text">text</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:index">index</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type/type:index">index</a> * <a href="index.html#/modtype:Type/type:index">index</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (Config : <a href="../../../camomile.0.8.5/configInt/">ConfigInt</a>.<a href="../../../camomile.0.8.5/configInt/#/modtype:Type">Type</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Text : <a href="../../../camomile.0.8.5/public/unicodeString/">UnicodeString</a>.<a href="../../../camomile.0.8.5/public/unicodeString/#/modtype:Type">Type</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Type">Type</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:Type/type:text">text</a> = <a href="index.html#/module:Make/modarg:2:Text">Text</a>.<a href="index.html#/module:Make/modarg:2:Text/type:t">t</a> <span class="keyword">and</span> <span class="keyword">type</span> <a href="index.html#/modtype:Type/type:index">index</a> = <a href="index.html#/module:Make/modarg:2:Text">Text</a>.<a href="index.html#/module:Make/modarg:2:Text/type:index">index</a></div>
+      
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

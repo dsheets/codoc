@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netcgi</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netcgi</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Common data-structures for CGI-like connectors.</p>
+      
+      <p>This library tries to minimize the use of unsafe practices. It
+cannot be bullet proof however and you should read about
+<a href="http://www.w3.org/Security/Faq/wwwsf4.html">security</a>.</p>
+      
+      <p>REMARK: It happens frequently that hard to predict random numbers
+are needed in Web applications. The previous version of this
+library used to include some facilities for that (in the
+<code>Netcgi_jserv</code> module). They have been dropped in favor of
+<a href="http://pauillac.inria.fr/~xleroy/software.html#cryptokit">Cryptokit</a>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Arguments</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi_argument">
+  <a href="index.html#/classtype:cgi_argument" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi_argument = 
+  <div class="region" id="/classtype:cgi_argument/method:name">
+  <a href="index.html#/classtype:cgi_argument/method:name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> name : string
+  
+      <div class="doc">
+        
+      <p>The name of the argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:value">
+  <a href="index.html#/classtype:cgi_argument/method:value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> value : string
+  
+      <div class="doc">
+        
+      <p>The value of the argument, after all transfer encodings have
+been removed. If the value is stored in a file, the file will
+be loaded.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Argument.Oversized</code> if the argument was discarded.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if the object has been finalized.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:open_value_rd">
+  <a href="index.html#/classtype:cgi_argument/method:open_value_rd" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> open_value_rd : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Open the contents of the value as an input channel. This
+works for all kinds of arguments, regardless of their
+<code>#storage</code> and <code>#representation</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Argument.Oversized</code> if the argument was discarded.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if the object has been finalized.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:store">
+  <a href="index.html#/classtype:cgi_argument/method:store" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> store : [ <div class="cons">| `Memory</div><div class="cons">| `File <span class="keyword">of</span> string</div> ]
+  
+      <div class="doc">
+        
+      <p>Tells whether the argument is stored in memory (as a string)
+or as a file (the argument of <code>`File</code> being the filename).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:content_type">
+  <a href="index.html#/classtype:cgi_argument/method:content_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> content_type : unit <span class="rarr"><span>-&gt;</span></span> string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list
+  
+      <div class="doc">
+        
+      <p>Returns the content type of the header and its parameters as a
+couple <code>(hdr, params)</code>. When the header is missing, the
+result is <code>(&quot;text/plain&quot;, [])</code>. Below you will find access
+method for frequently used parameters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:charset">
+  <a href="index.html#/classtype:cgi_argument/method:charset" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> charset : string
+  
+      <div class="doc">
+        
+      <p>The <code>charset</code> parameter of the content type of the header, or
+<code>&quot;&quot;</code> when there is no such parameter, or no header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:filename">
+  <a href="index.html#/classtype:cgi_argument/method:filename" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> filename : string option
+  
+      <div class="doc">
+        
+      <p>The <code>filename</code> parameter found in the header of file uploads.
+When present, <code>Some name</code> is returned, and <code>None</code> otherwise.
+(This is not to be confused with the possible local file
+holding the data.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:representation">
+  <a href="index.html#/classtype:cgi_argument/method:representation" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> representation : [ <div class="cons">| `Simple <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_body">mime_body</a></div><div class="cons">| `MIME <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:mime_message">mime_message</a></div> ]
+  
+      <div class="doc">
+        
+      <p>The representation of the argument.</p>
+      <ul><li><code>`Simple</code> the value of the CGI argument is an unstructured
+string value.</li><li><code>`MIME</code> The argument has a MIME header in addition to the
+value. The MIME message is read-only.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_argument/method:finalize">
+  <a href="index.html#/classtype:cgi_argument/method:finalize" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> finalize : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Arguments stored in temp files must be deleted when the
+argument is no longer used. You can call <code>finalize</code> to delete
+such files. The method does not have any effect when <code>store =
+        `Memory</code>. The method never raises any exceptions. If the
+file no longer exists (e.g. because it was moved away) or if
+there are any problems deleting the file, the error will be
+ignored.</p>
+      
+      <p>The <code>finalize</code> method is not registered in the garbage
+collector. You can do that, but it is usually better to call
+this method manually.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Represent a key-value pair of data passed to the script (including
+file uploads).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Argument">
+  <a href="index.html#/module:Argument" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Argument : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Operations on arguments and lists of thereof.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Argument/exn:Oversized">
+  <a href="index.html#/module:Argument/exn:Oversized" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Oversized
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Argument/val:simple">
+  <a href="index.html#/module:Argument/val:simple" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> simple : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a>
+    
+      <div class="doc">
+        
+      <p><code>simple_arg name value</code> creates an unstructured CGI argument
+called <code>name</code> with contents <code>value</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Argument/val:mime">
+  <a href="index.html#/module:Argument/val:mime" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mime : ?work_around_backslash_bug:bool <span class="rarr"><span>-&gt;</span></span> ?name:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:mime_message">mime_message</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a>
+    
+      <div class="doc">
+        
+      <p><code>mime_arg ?name msg</code> creates a MIME-structured CGI argument
+called <code>name</code> with contents <code>msg</code>. You can create <code>msg</code> by
+either <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.memory_mime_message or
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.file_mime_message.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">name</span> set the name of the argument. If it is not given,
+the name is extracted from the &quot;Content-Disposition&quot; field of
+the <code>msg</code> header or it <code>&quot;&quot;</code> if this field is not found.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">work_around_backslash_bug</span> Whether to work around a bug
+found in almost all browsers regarding the treatment of
+backslashes. The browsers do not quote backslashes in file
+names. This breaks RFC standards, however. This argument is
+<code>true</code> by default.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>It is easy to manipulate lists of arguments with the <code>List</code>
+module. For example, <code>List.filter (fun a -&gt; a#name &lt;&gt; n) args</code>
+will remove from <code>args</code> all occurrences of the argument with
+name <code>n</code>. The following functions are helpers for operations
+specific to arguments.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Argument/val:clone">
+  <a href="index.html#/module:Argument/val:clone" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clone : ?name:string <span class="rarr"><span>-&gt;</span></span> ?value:string <span class="rarr"><span>-&gt;</span></span> ?msg:<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:mime_message">mime_message</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Argument/val:set">
+  <a href="index.html#/module:Argument/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : <a href="index.html#/classtype:cgi_argument">cgi_argument</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a> list
+    
+      <div class="doc">
+        
+      <p><code>set new_args args</code> creates a list of argument from <code>args</code>
+deleting the arguments whose name appears in <code>new_args</code> and
+adding the <code>new_args</code> arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rw_cgi_argument">
+  <a href="index.html#/classtype:rw_cgi_argument" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> rw_cgi_argument = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a>
+    </div>
+    
+  <div class="region" id="/classtype:rw_cgi_argument/method:ro">
+  <a href="index.html#/classtype:rw_cgi_argument/method:ro" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ro : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rw_cgi_argument/method:set_value">
+  <a href="index.html#/classtype:rw_cgi_argument/method:set_value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_value : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rw_cgi_argument/method:open_value_wr">
+  <a href="index.html#/classtype:rw_cgi_argument/method:open_value_wr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> open_value_wr : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Old deprecated writable argument type.</p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Arguments are read-only.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:simple_argument">
+  <a href="index.html#/class:simple_argument" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> simple_argument : 
+    ?ro:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:rw_cgi_argument">rw_cgi_argument</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Old deprecated simple argument class.</p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Use [root:Netcgi].Argument.simple instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:mime_argument">
+  <a href="index.html#/class:mime_argument" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> mime_argument : 
+    ?work_around_backslash_bug:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:mime_message">mime_message</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:rw_cgi_argument">rw_cgi_argument</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Old deprecated MIME argument class.</p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Use [root:Netcgi].Argument.mime instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Cookies</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Cookie">
+  <a href="index.html#/module:Cookie" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Cookie : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Functions to manipulate cookies.</p>
+      
+      <p>You should know that besides the <code>name</code> and <code>value</code> attribute,
+user agents will send at most the <code>path</code>, <code>domain</code> and <code>port</code> and
+usually will not send them at all.</p>
+      
+      <p>For interoperability, cookies are set using version 0 (by
+Netscape) unless version 1 (RFC 2965 and the older RFC 2109)
+fields are set. While version 0 is well supported by browsers,
+RFC 2109 requires a recent browser and RFC 2965 is usually not
+supported. You do not have to worry however, cookies are always
+sent in such a way older browsers understand them -- albeit not
+all attributes of course -- so your application can be ready for
+the time RFC 2965 will be the norm.</p>
+      
+      <p>N.B. This module appears also as <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Cookie">Cookie</a>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Cookie/type:t">
+  <a href="index.html#/module:Cookie/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Cookie">Cookie</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Cookie/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Mutable cookie type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:make">
+  <a href="index.html#/module:Cookie/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : ?max_age:int <span class="rarr"><span>-&gt;</span></span> ?domain:string <span class="rarr"><span>-&gt;</span></span> ?path:string <span class="rarr"><span>-&gt;</span></span> ?secure:bool <span class="rarr"><span>-&gt;</span></span> ?comment:string <span class="rarr"><span>-&gt;</span></span> ?comment_url:string <span class="rarr"><span>-&gt;</span></span> ?ports:int list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Cookie/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>make ?expires ?domain ?path ?secure name value</code> creates a new
+cookie with name <code>name</code> holding <code>value</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">max_age</span> see [root:Netcgi].Cookie.set_max_age.
+Default: when user agent exits.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">domain</span> see [root:Netcgi].Cookie.set_domain.
+Default: hostname of the server.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">path</span> see [root:Netcgi].Cookie.set_path.
+Default: script name + path_info.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">secure</span> see [root:Netcgi].Cookie.set_secure. Default: <code>false</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">comment</span> see [root:Netcgi].Cookie.set_comment. Default: <code>&quot;&quot;</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">comment_url</span> see [root:Netcgi].Cookie.set_comment_url.
+Default: <code>&quot;&quot;</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">ports</span> see [root:Netcgi].Cookie.set_ports.
+Default: same port the cookie was sent.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:name">
+  <a href="index.html#/module:Cookie/val:name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The name of the cookie.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:value">
+  <a href="index.html#/module:Cookie/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The value of the cookie.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:domain">
+  <a href="index.html#/module:Cookie/val:domain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> domain : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>The domain of the cookie, if set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:path">
+  <a href="index.html#/module:Cookie/val:path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> path : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>The path of the cookie, if set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:ports">
+  <a href="index.html#/module:Cookie/val:ports" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ports : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int list option
+    
+      <div class="doc">
+        
+      <p><code>port c</code> the ports to which the cookie may be returned or <code>[]</code> if
+not set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:max_age">
+  <a href="index.html#/module:Cookie/val:max_age" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_age : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option
+    
+      <div class="doc">
+        
+      <p>The expiration time of the cookie, in seconds. <code>None</code> means
+that the cookie will be discarded when the browser exits.
+This information is not returned by the browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:secure">
+  <a href="index.html#/module:Cookie/val:secure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> secure : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Tells whether the cookie is secure.
+This information is not returned by the browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:comment">
+  <a href="index.html#/module:Cookie/val:comment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the comment associated to the cookie or <code>&quot;&quot;</code> if it
+does not exists. This information is not returned by the
+browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:comment_url">
+  <a href="index.html#/module:Cookie/val:comment_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_url : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the comment URL associated to the cookie or <code>&quot;&quot;</code> if it
+does not exists. This information is not returned by the
+browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_value">
+  <a href="index.html#/module:Cookie/val:set_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_value : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_value c v</code> sets the value of the cookie <code>c</code> to <code>v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_max_age">
+  <a href="index.html#/module:Cookie/val:set_max_age" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_max_age : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_max_age c (Some t)</code> sets the lifetime of the cookie <code>c</code>
+to <code>t</code> seconds. If <code>t &lt;= 0</code>, it means that the cookie should
+be discarded immediately. <code>set_expires c None</code> tells the
+cookie to be discarded when the user agent exits. (Despite
+the fact that the name is borrowed from the version 1 of the
+specification, it works transparently with version 0.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_domain">
+  <a href="index.html#/module:Cookie/val:set_domain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_domain : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cookies are bound to a certain domain, i.e. the browser sends
+them only when web pages of the domain are requested:</p>
+      <ul><li><code>None</code>: the domain is the hostname of the server.</li><li><code>Some domain</code>: the domain is <code>domain</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_path">
+  <a href="index.html#/module:Cookie/val:set_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_path : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cookies are also bound to certain path prefixes, i.e. the
+browser sends them only when web pages at the path or below are
+requested.</p>
+      <ul><li><code>None</code>: the path is script name + path_info</li><li><code>Some p</code>: the path is <code>p</code>. With <code>Some &quot;/&quot;</code> you can disable the
+path restriction completely.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_secure">
+  <a href="index.html#/module:Cookie/val:set_secure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_secure : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cookies are also bound to the type of the web server:
+<code>set_secure false</code> means servers without SSL, <code>set_secure
+        true</code> means servers with activated SSL (&quot;https&quot;).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_comment">
+  <a href="index.html#/module:Cookie/val:set_comment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_comment : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_comment c s</code> sets the comment of the cookie <code>c</code> to <code>s</code>
+which must be UTF-8 encoded (RFC 2279). Because cookies can
+store personal information, the comment should describe how
+the cookie will be used so the client can decide whether to
+allow the cookie or not. To cancel a comment, set it to <code>&quot;&quot;</code>.</p>
+      
+      <p>Cookie version 1 (RFC 2109).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_comment_url">
+  <a href="index.html#/module:Cookie/val:set_comment_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_comment_url : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_comment_url c url</code> same as <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/module:Cookie">Cookie</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/module:Cookie/val:set_comment">set_comment</a>
+except that the cookie comment is available on the page
+pointed by <code>url</code>. To cancel, set it to <code>&quot;&quot;</code>.</p>
+      
+      <p>Cookie version 1 (RFC 2965).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_ports">
+  <a href="index.html#/module:Cookie/val:set_ports" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_ports : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int list option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set ports c (Some p)</code> says that the cookie <code>c</code> must only be
+returned if the server request comes from one of the listed
+ports. If <code>p = []</code>, the cookie will only be sent to the
+request-port it was received from. <code>set_ports c None</code> says
+that the cookie may be sent to any port.</p>
+      
+      <p>Cookie version 1 (RFC 2965).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:of_netscape_cookie">
+  <a href="index.html#/module:Cookie/val:of_netscape_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_netscape_cookie : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:netscape_cookie">netscape_cookie</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Cookie/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convert a Netscape cookie to the new representation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:to_netscape_cookie">
+  <a href="index.html#/module:Cookie/val:to_netscape_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_netscape_cookie : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:netscape_cookie">netscape_cookie</a>
+    
+      <div class="doc">
+        
+      <p>Convert to Netscape cookie (with information loss)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">The environment of a request</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:http_method">
+  <a href="index.html#/type:http_method" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> http_method = [ <div class="cons">| `GET</div><div class="cons">| `HEAD</div><div class="cons">| `POST</div><div class="cons">| `DELETE</div><div class="cons">| `PUT</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:config">
+  <a href="index.html#/type:config" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> config = <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_common/">Netcgi_common</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_common/#/type:config">config</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:tmp_directory">
+  <a href="index.html#/type:config/field:tmp_directory" class="anchor">#</a>
+  tmp_directory
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The directory where to create temporary files. This should be
+an absolute path name.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:tmp_prefix">
+  <a href="index.html#/type:config/field:tmp_prefix" class="anchor">#</a>
+  tmp_prefix
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The name prefix for temporary files. This must be a non-empty
+string. It must not contain '/'.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:permitted_http_methods">
+  <a href="index.html#/type:config/field:permitted_http_methods" class="anchor">#</a>
+  permitted_http_methods
+  </div>
+  </td><td>: <a href="index.html#/type:http_method">http_method</a> list</td><td>;</td><td>(*</td><td class="doc">The list of accepted HTTP methods</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:permitted_input_content_types">
+  <a href="index.html#/type:config/field:permitted_input_content_types" class="anchor">#</a>
+  permitted_input_content_types
+  </div>
+  </td><td>: string list</td><td>;</td><td>(*</td><td class="doc">The list of accepted content types in requests.
+Content type parameters (like &quot;charset&quot;) are ignored.
+If the list is empty, all content types are allowed.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:input_content_length_limit">
+  <a href="index.html#/type:config/field:input_content_length_limit" class="anchor">#</a>
+  input_content_length_limit
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The maximum size of the request, in bytes.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:max_arguments">
+  <a href="index.html#/type:config/field:max_arguments" class="anchor">#</a>
+  max_arguments
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The maximum number of CGI arguments</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:workarounds">
+  <a href="index.html#/type:config/field:workarounds" class="anchor">#</a>
+  workarounds
+  </div>
+  </td><td>: [ <div class="cons">| `MSIE_Content_type_bug</div><div class="cons">| `Backslash_bug</div><div class="cons">| `Work_around_MSIE_Content_type_bug</div><div class="cons">| `Work_around_backslash_bug</div> ] list</td><td>;</td><td>(*</td><td class="doc">The list of enabled workarounds.<br/><ul><li><code>`MSIE_Content_type_bug</code></li></ul><ul><li><code>`Backslash_bug</code> A common error in MIME implementations is not
+to escape backslashes in quoted string and comments. This
+workaround mandates that backslashes are handled as normal
+characters. This is important for e.g. DOS filenames because,
+in the absence of this, the wrongly encoded &quot;C:\dir\file&quot; will
+be decoded as &quot;C:dirfile&quot;.</li></ul>Remark: <code>`Work_around_MSIE_Content_type_bug</code> and
+<code>`Work_around_backslash_bug</code> are deprecated versions of,
+respectively, <code>`MSIE_Content_type_bug</code> and <code>`Backslash_bug</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:config/field:default_exn_handler">
+  <a href="index.html#/type:config/field:default_exn_handler" class="anchor">#</a>
+  default_exn_handler
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether to catch exceptions raised by the script and display an
+error page. This will keep the connector running even if your
+program has bugs in some of its components. This will however
+also prevent a stack trace to be printed; if you want this turn
+this option off.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_config">
+  <a href="index.html#/val:default_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_config : <a href="index.html#/type:config">config</a>
+    
+      <div class="doc">
+        
+      <p>The default configuration is:</p>
+      <ul><li><code>tmp_directory</code>: <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_tmp/">Netsys_tmp</a>.tmp_directory()</li><li><code>tmp_prefix</code>: &quot;netcgi&quot;</li><li><code>permitted_http_methods</code>: <code>`GET</code>, <code>`HEAD</code>, <code>`POST</code>.</li><li><code>permitted_input_content_types</code>: <code>&quot;multipart/form-data&quot;</code>,
+<code>&quot;application/x-www-form-urlencoded&quot;</code>.</li><li><code>input_content_length_limit</code>: <code>maxint</code> (i.e., no limit).</li><li><code>max_arguments = 10000</code> (for security reasons)</li><li><code>workarounds</code>: all of them.</li><li><code>default_exn_handler</code>: set to <code>true</code>.</li></ul>
+      <p>To create a custom configuration, it is recommended to use this syntax:
+</p>
+      <pre><code>      let custom_config = { default_config with tmp_prefix = &quot;my_prefix&quot; }</code></pre>
+      <p>
+(This syntax is also robust w.r.t. the possible addition of new
+config flields.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment">
+  <a href="index.html#/classtype:cgi_environment" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi_environment = 
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">CGI properties</h3>
+    </div>
+      <p>The following properties are standardised by CGI. The methods
+return <code>&quot;&quot;</code> (or <code>None</code> in the case of the port number) when the
+property is not available.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi_environment/method:cgi_gateway_interface">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_gateway_interface" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_gateway_interface : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_server_name">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_server_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_name : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_server_port">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_server_port" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_port : int option
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_server_protocol">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_server_protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_protocol : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_server_software">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_server_software" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_software : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_request_method">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_request_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_request_method : string
+  
+      <div class="doc">
+        
+      <p>We recommend you to use the method <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi/method:request_method">request_method</a>
+which is more type-safe and informative.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_script_name">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_script_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_script_name : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_path_info">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_path_info" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_path_info : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_path_translated">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_path_translated" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_path_translated : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_auth_type">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_auth_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_auth_type : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_remote_addr">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_remote_addr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_addr : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_remote_host">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_remote_host" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_host : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_remote_user">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_remote_user" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_user : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_remote_ident">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_remote_ident" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_ident : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_query_string">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_query_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_query_string : string
+  
+      <div class="doc">
+        
+      <p>This is the row query string. The <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> class gives
+you an easy access to the arguments through the <code>#arg...</code>
+methods.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:protocol">
+  <a href="index.html#/classtype:cgi_environment/method:protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> protocol : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol">protocol</a>
+  
+      <div class="doc">
+        
+      <p>The server protocol in a decoded form. It can be either</p>
+      <ul><li><code>`Http((major,minor),attributes)</code> or</li><li><code>`Other</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_property">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_property" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_property : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Returns a (possibly non-standard) CGI environment property.
+If the property is not set, <code>Not_found</code> is be raised unless
+the <code>default</code> argument is passed. The <code>default</code> argument
+determines the result of the function in this case.</p>
+      
+      <p>The method takes the case-sensitive name and returns the value
+of the property. Usually, these properties have uppercase
+names.</p>
+      
+      <p>For example, <code>cgi_gateway_interface</code> returns the same as </p>
+      <pre><code>        cgi_property ~default:&quot;&quot; &quot;GATEWAY_INTERFACE&quot;</code></pre>
+      <p>You cannot access the fields coming from the HTTP header. Use
+the method <code>input_header_field</code> instead.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_properties">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_properties" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_properties : (string * string) list
+  
+      <div class="doc">
+        
+      <p>Return all properties as an associative list.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cgi_https">
+  <a href="index.html#/classtype:cgi_environment/method:cgi_https" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_https : bool
+  
+      <div class="doc">
+        
+      <p>A well-known extension is the HTTPS property. It indicates
+whether a secure connection is used (SSL/TLS). This method
+interprets this property and returns true if the connection is
+secure. This method fails if there is a HTTPS property with
+an unknown value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Header of the incoming HTTP request.</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi_environment/method:input_header">
+  <a href="index.html#/classtype:cgi_environment/method:input_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_header : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+  
+      <div class="doc">
+        
+      <p>The whole HTTP header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:input_header_field">
+  <a href="index.html#/classtype:cgi_environment/method:input_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_header_field : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p><code>#input_header_field ?default f</code> returns the value of a field
+<code>f</code> of the HTTP request header. The field name <code>f</code> is
+case-insensitive; if the name is a compound name, the parts
+are separated by &quot;-&quot;, e.g. <code>&quot;content-length&quot;</code>. If there are
+several fields with the same name only the first field will be
+returned.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if the field does not exist, unless the
+<code>default</code> argument is passed. The <code>default</code> argument is the
+result of the function in this case.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:multiple_input_header_field">
+  <a href="index.html#/classtype:cgi_environment/method:multiple_input_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_input_header_field : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Returns the values of all fields with the passed name of the
+request header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:input_header_fields">
+  <a href="index.html#/classtype:cgi_environment/method:input_header_fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_header_fields : (string * string) list
+  
+      <div class="doc">
+        
+      <p>Returns the input header as (name,value) pairs. The names may
+consist of lowercase or uppercase letters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cookie">
+  <a href="index.html#/classtype:cgi_environment/method:cookie" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cookie : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Cookie">Cookie</a>.<a href="index.html#/module:Cookie/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p><code>#cookie cn</code> returns the cookie with name <code>cn</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if such a cookie does not exists.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:cookies">
+  <a href="index.html#/classtype:cgi_environment/method:cookies" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cookies : <a href="index.html#/module:Cookie">Cookie</a>.<a href="index.html#/module:Cookie/type:t">t</a> list
+  
+      <div class="doc">
+        
+      <p>Returns the list of valid cookies found in the request header.
+Here &quot;valid&quot; means that the decode function does not raise an
+exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:user_agent">
+  <a href="index.html#/classtype:cgi_environment/method:user_agent" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> user_agent : string
+  
+      <div class="doc">
+        
+      <p>This is a convenience method that returns the <code>&quot;User-agent&quot;</code>
+field of the HTTP request header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:input_content_length">
+  <a href="index.html#/classtype:cgi_environment/method:input_content_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_content_length : int
+  
+      <div class="doc">
+        
+      <p>Returns the <code>&quot;Content-length&quot;</code> request header field.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if it is not set.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:input_content_type_string">
+  <a href="index.html#/classtype:cgi_environment/method:input_content_type_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_content_type_string : string
+  
+      <div class="doc">
+        
+      <p>Returns the <code>&quot;Content-type&quot;</code> request header field as a plain
+string or <code>&quot;&quot;</code> if it is not set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:input_content_type">
+  <a href="index.html#/classtype:cgi_environment/method:input_content_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_content_type : unit <span class="rarr"><span>-&gt;</span></span> string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list
+  
+      <div class="doc">
+        
+      <p>Returns the parsed <code>&quot;Content-type&quot;</code> request header field.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if it is not set.
+See also [root:Mimestring].scan_mime_type_ep.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Response header</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi_environment/method:output_header">
+  <a href="index.html#/classtype:cgi_environment/method:output_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_header : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+  
+      <div class="doc">
+        
+      <p>The whole HTTP response header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:output_header_field">
+  <a href="index.html#/classtype:cgi_environment/method:output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_header_field : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Returns the value of a field of the response header. If the
+field does not exist, <code>Not_found</code> will be raised unless the
+<code>default</code> argument is passed. The <code>default</code> argument determines
+the result of the function in this case.</p>
+      
+      <p>If there are several fields with the same name only the first
+field will be returned.</p>
+      
+      <p>The anonymous string is the name of the field. The name is
+case-insensitive, and it does not matter whether it consists
+of lowercase or uppercase letters. If the name is a compound
+name, the parts are separated by &quot;-&quot;, e.g. <code>&quot;content-length&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:multiple_output_header_field">
+  <a href="index.html#/classtype:cgi_environment/method:multiple_output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_output_header_field : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Returns the values of all fields with the passed name of the
+repsonse header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:output_header_fields">
+  <a href="index.html#/classtype:cgi_environment/method:output_header_fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_header_fields : (string * string) list
+  
+      <div class="doc">
+        
+      <p>Returns the output header as (name,value) pairs. The names may
+consist of lowercase or uppercase letters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:set_output_header_field">
+  <a href="index.html#/classtype:cgi_environment/method:set_output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_output_header_field : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the value of a field of the response header. The
+previous value, if any, is overwritten. If there have been
+multiple values, all values will be removed and replaced by
+the single new value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:set_multiple_output_header_field">
+  <a href="index.html#/classtype:cgi_environment/method:set_multiple_output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_multiple_output_header_field : string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets multiple values of a field of the response header. Any
+previous values are removed and replaced by the new values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:set_output_header_fields">
+  <a href="index.html#/classtype:cgi_environment/method:set_output_header_fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_output_header_fields : (string * string) list <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the complete response header at once.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:set_status">
+  <a href="index.html#/classtype:cgi_environment/method:set_status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_status : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the response status. This is by definition the same as
+setting the <code>Status</code> output header field.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:send_output_header">
+  <a href="index.html#/classtype:cgi_environment/method:send_output_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> send_output_header : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>This method will encode and send the output header to the
+output channel. Note that of the output_channel is
+<code>`Transactionnal</code> (as opposed to <code>`Direct</code>), no output will
+actually take place before you issue <code>#commit_work()</code> -- thus
+a <code>#rollback_work()</code> will also rollback the headers as
+expected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">The output channel transferring the response</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi_environment/method:output_ch">
+  <a href="index.html#/classtype:cgi_environment/method:output_ch" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_ch : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Use <code>#out_channel</code> instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_environment/method:out_channel">
+  <a href="index.html#/classtype:cgi_environment/method:out_channel" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> out_channel : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>The &quot;raw&quot; output channel. In general you should use instead
+<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a><code>#out_channnel</code> which supports transactions (if you
+choose to). Access to the &quot;raw&quot; channel is useful however,
+for example for sending images or download of files (for which
+transactions are not interesting but merely more work).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Logging</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi_environment/method:log_error">
+  <a href="index.html#/classtype:cgi_environment/method:log_error" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> log_error : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>#log_error msg</code> appends <code>msg</code> to the webserver log.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Miscellaneous</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi_environment/method:config">
+  <a href="index.html#/classtype:cgi_environment/method:config" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config : <a href="index.html#/type:config">config</a>
+  
+      <div class="doc">
+        
+      <p>The configuration of the request.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The environment of a request consists of the information available
+besides the data sent by the user (as key-value pairs).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">CGI object</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:other_url_spec">
+  <a href="index.html#/type:other_url_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> other_url_spec = [ <div class="cons">| `Env</div><div class="cons">| `This <span class="keyword">of</span> string</div><div class="cons">| `None</div> ]
+    
+      <div class="doc">
+        
+      <p>Determines how an URL part is generated:</p>
+      <ul><li><code>`Env</code>: Take the value from the environment.</li><li><code>`This v</code>: Use this value <code>v</code>. It must already be URL-encoded.</li><li><code>`None</code>: Do not include this part into the URL.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:query_string_spec">
+  <a href="index.html#/type:query_string_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> query_string_spec = [ <div class="cons">| `Env</div><div class="cons">| `This <span class="keyword">of</span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a> list</div><div class="cons">| `None</div><div class="cons">| `Args <span class="keyword">of</span> <a href="index.html#/classtype:rw_cgi_argument">rw_cgi_argument</a> list</div> ]
+    
+      <div class="doc">
+        
+      <p>Determines how the query part of URLs is generated:</p>
+      <ul><li><code>`Env</code>: The query string of the current request.</li><li><code>`This l</code>: The query string is created from the specified
+argument list <code>l</code>.</li><li><code>`None</code>: The query string is omitted.</li><li><code>`Args</code>: <i>deprecated</i>, use <code>`This</code>
+(left for backward compatibility).</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:cache_control">
+  <a href="index.html#/type:cache_control" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cache_control = [ <div class="cons">| `No_cache</div><div class="cons">| `Max_age <span class="keyword">of</span> int</div><div class="cons">| `Unspecified</div> ]
+    
+      <div class="doc">
+        
+      <p>This is only a small subset of the HTTP 1.1 cache control
+features, but they are usually sufficient, and they work for
+HTTP/1.0 as well. The directives mean:</p>
+      <ul><li><code>`No_cache</code>: Caches are disabled. The following headers are
+sent: <code>Cache-control: no-cache</code>, <code>Pragma: no-cache</code>, <code>Expires:</code>
+(now - 1 second). Note that many versions of Internet Explorer
+have problems to process non-cached contents when TLS/SSL is
+used to transfer the file. Use <code>`Max_age</code> in such cases (see
+http://support.microsoft.com/kb/316431).</li></ul><ul><li><code>`Max_age n</code>: Caches are allowed to store a copy of the
+response for <code>n</code> seconds. After that, the response must be
+revalidated. The following headers are sent: <code>Cache-control:
+      max-age n</code>, <code>Cache-control: must-revalidate</code>, <code>Expires:</code> (now +
+<code>n</code> seconds)</li></ul><ul><li><code>`Unspecified</code>: No cache control header is added to the
+response.</li></ul>
+      <p>Notes:</p>
+      <ul><li>Cache control directives only apply to GET requests; POST
+requests are never cached.</li><li>Not only proxies are considered as cache, but also the local
+disk cache of the browser.</li><li>HTTP/1.0 did not specify cache behaviour as strictly as
+HTTP/1.1 does. Because of this the <code>Pragma</code> and <code>Expires</code>
+headers are sent, too. These fields are not interpreted by
+HTTP/1.1 clients because <code>Cache-control</code> has higher precedence.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi">
+  <a href="index.html#/classtype:cgi" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi = 
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Arguments -- data sent to the script</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi/method:argument">
+  <a href="index.html#/classtype:cgi/method:argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> argument : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a>
+  
+      <div class="doc">
+        
+      <p><code>#argument name</code> returns the value of the argument named <code>name</code>.
+If the argument appears several times, only one of its
+instances is used.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if no such argument exists.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:argument_value">
+  <a href="index.html#/classtype:cgi/method:argument_value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> argument_value : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p><code>#argument_value</code> returns the value of the argument as a
+string. If the argument does not exist, the <code>default</code> is
+returned.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">default</span> defaults to <code>&quot;&quot;</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:argument_exists">
+  <a href="index.html#/classtype:cgi/method:argument_exists" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> argument_exists : string <span class="rarr"><span>-&gt;</span></span> bool
+  
+      <div class="doc">
+        
+      <p><code>#argument_exists</code> returns <code>false</code> if the named parameter is
+missing and <code>true</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:multiple_argument">
+  <a href="index.html#/classtype:cgi/method:multiple_argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_argument : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a> list
+  
+      <div class="doc">
+        
+      <p><code>#multiple_argument name</code> returns all the values of the
+argument named <code>name</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:arguments">
+  <a href="index.html#/classtype:cgi/method:arguments" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> arguments : <a href="index.html#/classtype:cgi_argument">cgi_argument</a> list
+  
+      <div class="doc">
+        
+      <p>The complete list of arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:environment">
+  <a href="index.html#/classtype:cgi/method:environment" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> environment : <a href="index.html#/classtype:cgi_environment">cgi_environment</a>
+  
+      <div class="doc">
+        
+      <p>The environment object. This object is the &quot;outer layer&quot; of the
+activation object that connects it with real I/O channels.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:request_method">
+  <a href="index.html#/classtype:cgi/method:request_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_method : [ <div class="cons">| `GET</div><div class="cons">| `HEAD</div><div class="cons">| `POST</div><div class="cons">| `DELETE</div><div class="cons">| `PUT <span class="keyword">of</span> <a href="index.html#/classtype:cgi_argument">cgi_argument</a></div> ]
+  
+      <div class="doc">
+        
+      <p>The HTTP method used to make the request.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:finalize">
+  <a href="index.html#/classtype:cgi/method:finalize" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> finalize : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>This method calls <code>#finalize</code> for every CGI argument
+(including the possible one of PUT) to ensure that all files
+are deleted. It also executes all functions registered with
+<code>#at_exit</code>. It does not close the in/out channels, however.
+This method is not registered in the garbage collector, and it
+is a bad idea to do so. However, all connectors offered in
+Netcgi automatically call <code>#finalize</code> at the end of the
+request cycle (even when its terminated by an uncaught exception
+when <code>#config.default_exn_handler</code> is true) so you do not have
+to worry much about calling it yourself.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Self-referencing URL</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi/method:url">
+  <a href="index.html#/classtype:cgi/method:url" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> url : ?protocol:<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> ?with_authority:<a href="index.html#/type:other_url_spec">other_url_spec</a> <span class="rarr"><span>-&gt;</span></span> ?with_script_name:<a href="index.html#/type:other_url_spec">other_url_spec</a> <span class="rarr"><span>-&gt;</span></span> ?with_path_info:<a href="index.html#/type:other_url_spec">other_url_spec</a> <span class="rarr"><span>-&gt;</span></span> ?with_query_string:<a href="index.html#/type:query_string_spec">query_string_spec</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Returns the URL of the current CGI-like script. (Note that it
+may differ from the actual URL that requested the script if,
+for example, rewriting rules were specified in the web server
+configuration.)</p>
+      
+        
+  <div class="tag param">
+    <span class="label">protocol</span> The URL scheme. By default, the URL scheme is
+used that is described in the environment
+  </div>
+  
+  <div class="tag param">
+    <span class="label">with_authority</span> Whether to include authority part
+(e.g. http or https) of the URL, and if yes, from which
+source. Default: <code>`Env</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">with_script_name</span> Whether to include the part of the URL
+path identifying the CGI script, and if yes, from which
+source. Default: <code>`Env</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">with_path_info</span> Whether to include the rest of the URL
+path exceeding the script name, and if yes, from which source.
+Default: <code>`Env</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">with_query_string</span> Whether to include a query string,
+and if yes, which one. Only arguments with <code>#store</code> being
+<code>`Memory</code> will be added. Default: <code>`None</code>, i.e. no query
+string.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Outputting</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:cgi/method:set_header">
+  <a href="index.html#/classtype:cgi/method:set_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_header : ?status:<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a> <span class="rarr"><span>-&gt;</span></span> ?content_type:string <span class="rarr"><span>-&gt;</span></span> ?content_length:int <span class="rarr"><span>-&gt;</span></span> ?set_cookie:<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:cookie">cookie</a> list <span class="rarr"><span>-&gt;</span></span> ?set_cookies:<a href="index.html#/module:Cookie">Cookie</a>.<a href="index.html#/module:Cookie/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> ?cache:<a href="index.html#/type:cache_control">cache_control</a> <span class="rarr"><span>-&gt;</span></span> ?filename:string <span class="rarr"><span>-&gt;</span></span> ?language:string <span class="rarr"><span>-&gt;</span></span> ?script_type:string <span class="rarr"><span>-&gt;</span></span> ?style_type:string <span class="rarr"><span>-&gt;</span></span> ?fields:(string * string list) list <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the header (removing any previous one). When the output
+channel supports transactions, it is possible to set the
+header (possibly several times) until the <code>#out_channel</code> is
+commited for the first time or <code>#env#send_output_header()</code> is
+called. When there is no support for transactions, the header
+must be set before the first byte of output is written.</p>
+      
+      <p>If <code>#set_header</code> is called a second time, it will overwrite
+<i>all</i> the header fields.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">status</span> Sets the HTTP status of the reply according to
+<a href="http://www.w3.org/Protocols/rfc2616">RFC 2616</a>. Defaults to
+&quot;no status&quot;, but the server normally complements an <code>`Ok</code>
+status in this case.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_type</span> Sets the content type.
+Defaults to <code>&quot;text/html&quot;</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_length</span> Sets the content length (in bytes).
+Default: No such field.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">set_cookie</span> Deprecated, use <code>set_cookies</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">set_cookies</span> Sets a number of cookies. Default: <code>[]</code>.
+Remember that the browser may not support more than 20 cookies
+per web server. You can query the cookies using <code>env#cookies</code>
+and <code>env#cookie</code>. If you set cookies, you want to think about
+an appropriate <code>cache</code> setting. You may also want to add a
+<a href="http://www.w3.org/P3P/">P3P</a> header (Platform for Privacy
+Preferences) -- otherwise your cookies may be discarded by
+some browsers.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">cache</span> Sets the cache behavior for replies to GET
+requests. The default is <code>`Unspecified</code>. <b>It is strongly
+recommended to specify the caching behaviour!!!</b> You are on
+the safe side with <code>`No_cache</code>, forcing every page to be
+regenerated. If your data do not change frequently, <code>`Max_age
+        n</code> tells the caches to store the data at most <code>n</code> seconds.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">filename</span> Sets the filename associated with the page.
+This filename is taken for the &quot;save as...&quot; dialog. Default:
+<code>&quot;&quot;</code>, i.e. no filename. Note: It is bad practice if the
+filename contains problematic characters (backslash, double
+quote, space), or the names of directories. It is recommended
+that you set <code>content_type</code> to &quot;application/octet-stream&quot; for
+this feture to work with most browsers and, if possible, to
+set <code>content_length</code> because that usually improves the
+download dialog.)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">script_type</span> Sets the language of the script tag (for
+HTML replies). It is recommended to use this field if there
+are <code>ONXXX</code> attributes containing scripts before the first
+<code>&lt;SCRIPT&gt;</code> element, because you cannot specify the script
+language for the <code>ONXXX</code> attributes otherwise. <code>script_type</code>
+must be a media type, e.g. &quot;text/javascript&quot;. Default: no
+language is specified.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">style_type</span> Sets the language of the style tag (for
+HTML replies). It is recommended to use this field if there
+are <code>STYLE</code> attributes containing scripts before the first
+<code>&lt;STYLE&gt;</code> element, because you cannot specify the style
+language for the <code>STYLE</code> attributes otherwise. <code>style_type</code>
+must be a media type, e.g. &quot;text/css&quot;. Default: no language
+is specified.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">fields</span> Sets additional fields of the header. Default: <code>[]</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:set_redirection_header">
+  <a href="index.html#/classtype:cgi/method:set_redirection_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_redirection_header : ?set_cookies:<a href="index.html#/module:Cookie">Cookie</a>.<a href="index.html#/module:Cookie/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> ?fields:(string * string list) list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the header such that a redirection to the specified URL
+is performed. If the URL begins with &quot;http:&quot; the redirection
+directive is passed back to the client, and the client will
+repeat the request for the new location (with a GET method).
+If the URL begins with &quot;/&quot;, the server performs the
+redirection, and it is invisible for the client.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:output">
+  <a href="index.html#/classtype:cgi/method:output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:trans_out_obj_channel">trans_out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Use <code>#out_channel</code> instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:out_channel">
+  <a href="index.html#/classtype:cgi/method:out_channel" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> out_channel : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:trans_out_obj_channel">trans_out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>The output channel to which the generated content is intended
+to be written. The header is not stored in this channel, so
+<code>#pos_out</code> returns the size of the DATA in bytes (useful to
+set Content-Length). Note that HEAD requests must not send
+back a message body so, in this case, all data sent to this
+channel is discarded. This allows your scripts to work
+unmodified for GET, POST and HEAD requests.</p>
+      
+      <p>The output channel may have transactional semantics, and
+because of this, it is an <code>trans_out_obj_channel</code>.
+Implementations are free to support transactions or not.</p>
+      
+      <p>After all data have been written, the method <code>#commit_work()</code>
+<b>must</b> be called, even if there is no support for
+transactions.</p>
+      
+      <p>Simple Example:
+</p>
+      <pre><code>        cgi # out_channel # output_string &quot;Hello world!\n&quot;;
+        cgi # out_channel # commit_work()</code></pre>
+      <p>Example for an error handler and a transaction buffer: If an
+error happens, it is possible to roll the channel back, and to
+write the error message.
+</p>
+      <pre><code>        try
+          cgi # set_header ... ();
+          cgi # out_channel # output_string &quot;Hello World!&quot;; ...
+          cgi # out_channel # commit_work();
+        with err -&gt;
+          cgi # out_channel # rollback_work();
+          cgi # set_header ... ();
+          cgi # out_channel # output_string &quot;Software error!&quot;; ...
+          cgi # out_channel # commit_work();</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:at_exit">
+  <a href="index.html#/classtype:cgi/method:at_exit" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> at_exit : (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>#at_exit f</code> registers the function <code>f</code> to be executed when
+<code>#finalize</code> is called (which is done automatically when the
+request finishes). The functions are executed in the reverse
+order in which they were registered.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Object symbolizing a CGI-like request/response cycle.</p>
+      
+      <p>This is the minimal set of services a connector must provide.
+Additional methods may be defined for specific connectors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi_activation">
+  <a href="index.html#/classtype:cgi_activation" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi_activation = <a href="index.html#/classtype:cgi">cgi</a>
+    
+      <div class="doc">
+        
+      <p>Alternate, more descriptive name for <code>cgi</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Connectors</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:output_type">
+  <a href="index.html#/type:output_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> output_type = [ <div class="cons">| `Direct <span class="keyword">of</span> string</div><div class="cons">| `Transactional <span class="keyword">of</span> <a href="index.html#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:trans_out_obj_channel">trans_out_obj_channel</a></div> ]
+    
+      <div class="doc">
+        
+      <p>The ouput type determines how generated data is buffered.</p>
+      <ul><li><code>`Direct sep</code>: Data written to the output channel of the
+activation object is not collected in a transaction buffer, but
+directly sent to the browser (the normal I/O buffering is still
+active, however, so call <code>#flush</code> to ensure that data is really
+sent). The method <code>#commit_work</code> of the output channel is the
+same as <code>#flush</code>. The method <code>#rollback_work</code> causes that the
+string <code>sep</code> is sent, meant as a separator between the already
+generated output, and the now following error message.</li></ul><ul><li><code>`Transactional f</code>: A transactional channel <code>tc</code> is created
+from the real output channel <code>ch</code> by calling <code>f cfg ch</code> (here,
+<code>cfg</code> is the CGI configuration). The channel <code>tc</code> is propagated
+as the output channel of the activation object. This means that
+the methods <code>commit_work</code> and <code>rollback_work</code> are implemented by
+<code>tc</code>, and the intended behaviour is that data is buffered in a
+special transaction buffer until <code>commit_work</code> is called. This
+invocation forces the buffered data to be sent to the
+browser. If, however, <code>rollback_work</code> is called, the buffer is
+cleared.</li></ul>
+      <p>Two important examples for <code>`Transactional</code> are:</p>
+      <ul><li>The transaction buffer is implemented in memory:
+<pre><code>      let buffered _ ch = new Netchannels.buffered_trans_channel ch in
+      `Transactional buffered</code></pre></li><li>The transaction buffer is implemented as an external file:
+<pre><code>      `Transactional(fun _ ch -&gt; new Netchannels.tempfile_output_channel ch)</code></pre></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:buffered_transactional_outtype">
+  <a href="index.html#/val:buffered_transactional_outtype" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffered_transactional_outtype : <a href="index.html#/type:output_type">output_type</a>
+    
+      <div class="doc">
+        
+      <p>The <code>output_type</code> implementing transactions with a RAM-based buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:buffered_transactional_optype">
+  <a href="index.html#/val:buffered_transactional_optype" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffered_transactional_optype : <a href="index.html#/type:output_type">output_type</a>
+    
+      <div class="doc">
+        
+      <p><b>Deprecated</b> name for <code>buffered_transactional_outtype</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tempfile_transactional_outtype">
+  <a href="index.html#/val:tempfile_transactional_outtype" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tempfile_transactional_outtype : <a href="index.html#/type:output_type">output_type</a>
+    
+      <div class="doc">
+        
+      <p>The <code>output_type</code> implementing transactions with a tempfile-based
+buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tempfile_transactional_optype">
+  <a href="index.html#/val:tempfile_transactional_optype" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tempfile_transactional_optype : <a href="index.html#/type:output_type">output_type</a>
+    
+      <div class="doc">
+        
+      <p><b>Deprecated</b> name for <code>tempfile_transactional_outtype</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:arg_store">
+  <a href="index.html#/type:arg_store" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> arg_store = <a href="index.html#/classtype:cgi_environment">cgi_environment</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header_ro">mime_header_ro</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Memory</div><div class="cons">| `File</div><div class="cons">| `Automatic</div><div class="cons">| `Discard</div><div class="cons">| `Memory_max <span class="keyword">of</span> float</div><div class="cons">| `File_max <span class="keyword">of</span> float</div><div class="cons">| `Automatic_max <span class="keyword">of</span> float</div> ]
+    
+      <div class="doc">
+        
+      <p>This is the type of functions <code>arg_store</code> so that <code>arg_store env
+        name header</code> tells whether to <code>`Discard</code> the argument or to
+store it into a <code>`File</code> or in <code>`Memory</code>. The parameters passed
+to <code>arg_store</code> are as follows:</p>
+      <ul><li><code>env</code> is the CGI environment. Thus, for example, you can have
+different policies for different <code>cgi_path_info</code>.</li></ul><ul><li><code>name</code> is the name of the argument.</li></ul><ul><li><code>header</code> is the MIME header of the argument (if any).</li></ul>
+      <p>Any exception raised by <code>arg_store</code> will be treated like if it
+returned <code>`Discard</code>. Note that the <code>`File</code> will be treated
+like <code>`Memory</code> except for <code>`POST</code> &quot;multipart/form-data&quot; and
+<code>`PUT</code> queries.</p>
+      
+      <p><code>`Automatic</code> means to store it into a file if the header
+contains a file name and otherwise in memory (strictly
+speaking <code>`Automatic</code> is not necessary since <code>arg_store</code> can
+check the header but is provided for your convenience).</p>
+      
+      <p><code>`Memory_max</code> (resp. <code>`File_max</code>, resp. <code>`Automatic_max</code>) is
+the same as <code>`Memory</code> (resp. <code>`File</code>, resp. <code>`Automatic</code>)
+except that the parameter indicates the maximum size in kB of
+the argument value. If the size is bigger, the
+<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_argument">cgi_argument</a> methods <code>#value</code> and <code>#open_value_rd</code>
+methods will raise <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/module:Argument">Argument</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/module:Argument/exn:Oversized">Oversized</a>.</p>
+      
+      <p>Remark: this allows for fine grained size constraints while
+<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a><code>.input_content_length_limit</code> option is a
+limit on the size of the entire request.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:exn_handler">
+  <a href="index.html#/type:exn_handler" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> exn_handler = <a href="index.html#/classtype:cgi_environment">cgi_environment</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>A function of type <code>exn_handler</code> allows to define a custom
+handler of uncaught exceptions raised by the <code>unit -&gt; unit</code>
+parameter. A typical example of <code>exn_handler</code> is as follows:
+</p>
+      <pre><code>      let exn_handler env f =
+        try f()
+        with
+        | Exn1 -&gt; (* generate error page *)
+            env#set_output_header_fields [...];
+            env#send_output_header();
+            env#out_channel#output_string &quot;...&quot;;
+            env#out_channel#close_out()
+        | ...</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:connection_directive">
+  <a href="index.html#/type:connection_directive" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> connection_directive = [ <div class="cons">| `Conn_close</div><div class="cons">| `Conn_close_linger</div><div class="cons">| `Conn_keep_alive</div><div class="cons">| `Conn_error <span class="keyword">of</span> exn</div> ]
+    
+      <div class="doc">
+        
+      <p>Directive how to go on with the current connection:</p>
+      <ul><li><code>`Conn_close</code>: Just shut down and close descriptor</li><li><code>`Conn_close_linger</code>: Linger, shut down, and close descriptor</li><li><code>`Conn_keep_alive</code>: Check for another request on the same connection</li><li><code>`Conn_error e</code>: Shut down and close descriptor, and handle the
+exception <code>e</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Specific connectors can be found in separate modules. For example:</p>
+      <ul><li>[root:Netcgi_cgi]: classical CGI.</li><li>[root:Netcgi_fcgi]: FastCGI protocol.</li><li>[root:Netcgi_ajp]: AJP 1.3 connector (JSERV protocol).</li><li>[root:Netcgi_mod]: connector binding to Apache API.</li><li>[root:Netcgi_scgi]: SCGI connector.</li><li>[root:Netcgi_test]: special &quot;connector&quot; to test your code.</li></ul>
+      <p>A typical use is as follows:
+</p>
+      <pre><code>    open Netcgi
+
+    let main (cgi:cgi) =
+       let arg = cgi#argument_value &quot;name&quot; in
+       ...
+       cgi#out_channel#commit_work()
+
+    let () =
+      let buffered _ ch = new Netchannels.buffered_trans_channel ch in
+      Netcgi_cgi.run ~output_type:(`Transactional buffered) main</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

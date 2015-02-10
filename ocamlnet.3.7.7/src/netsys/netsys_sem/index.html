@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netsys_sem</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netsys_sem</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Generic anonymous semaphores</h1>
+    </div>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module purely exists to also support &quot;kind of anonymous&quot;
+sempahores on MacOS X (which only has named semaphores). On
+other OS, it is just a wrapper for the functions in
+[root:Netsys_posix].</p>
+      
+      <p>Note that on OS X named semaphores have a max name length of
+31 characters (including the / at the beginning), and that
+<code>Netsys_sem</code> uses 9 characters for its own purposes, leaving
+22 characters for the prefix. (On other OS this is less restricted.)</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:have_anon_semaphores">
+  <a href="index.html#/val:have_anon_semaphores" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_anon_semaphores : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns <code>true</code> if anonymous semaphores are supported on this
+system, either natively or emulated via named semaphores.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Constants.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:sem_value_max">
+  <a href="index.html#/val:sem_value_max" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_value_max : int
+    
+      <div class="doc">
+        
+      <p>The maximum value of a semaphore, but at most <code>max_int</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_size">
+  <a href="index.html#/val:sem_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_size : int
+    
+      <div class="doc">
+        
+      <p>The size of an anonymous semaphore in bytes (<code>sizeof(sem_t)</code>)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Types.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:container">
+  <a href="index.html#/type:container" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> container
+    
+      <div class="doc">
+        
+      <p>The container of the semaphore is the shared memory object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:prefix">
+  <a href="index.html#/type:prefix" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> prefix = string
+    
+      <div class="doc">
+        
+      <p>A name starting with a slash. Must not contain further slashes</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:anon_semaphore">
+  <a href="index.html#/type:anon_semaphore" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> anon_semaphore
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sem_open_flag">
+  <a href="index.html#/type:sem_open_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sem_open_flag = <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:sem_open_flag">sem_open_flag</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:sem_open_flag/cons:SEM_O_CREAT">
+  <a href="index.html#/type:sem_open_flag/cons:SEM_O_CREAT" class="anchor">#</a>
+  | SEM_O_CREAT
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:sem_open_flag/cons:SEM_O_EXCL">
+  <a href="index.html#/type:sem_open_flag/cons:SEM_O_EXCL" class="anchor">#</a>
+  | SEM_O_EXCL
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Container functions.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:container">
+  <a href="index.html#/val:container" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> container : <a href="index.html#/type:prefix">prefix</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:container">container</a>
+    
+      <div class="doc">
+        
+      <p><code>container prefix</code>: The prefix shall identify the container uniquely.
+Once can e.g. use the path of the shared memory object. The prefix
+is used to construct names for persistent objects.</p>
+      
+      <p><b>Note that containers have kernel persistence! They are not
+automatically deleted when the process finishes. Call <code>drop</code>
+to delete containers, or <code>create_container</code> to force their
+creation as fresh objects.</b></p>
+      
+      <p>If the container does not exist yet, it is created. Otherwise the
+container is just opened.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_container">
+  <a href="index.html#/val:create_container" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_container : <a href="index.html#/type:prefix">prefix</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:container">container</a>
+    
+      <div class="doc">
+        
+      <p><code>create_container prefix</code>: Like <code>container</code>, but the container is
+always created. A previous instance is first deleted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prefix">
+  <a href="index.html#/val:prefix" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prefix : <a href="index.html#/type:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:prefix">prefix</a>
+    
+      <div class="doc">
+        
+      <p>Return the prefix</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drop">
+  <a href="index.html#/val:drop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop : <a href="index.html#/type:container">container</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Drop the semaphores in this container, and delete the container.</p>
+      
+      <p>This function is a no-op if the OS supports anonymous semaphores
+directly (because in this case the deletion of the container will
+automatically destroy the semaphores).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Note that there is a general problem when a container is deleted
+or dropped by a process while it is still being used by another one.
+This will generally not generate errors, but can cause a lot of
+confusion, because the processes will partly access the same
+semaphores, and partly different semaphores.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:unlink">
+  <a href="index.html#/val:unlink" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlink : <a href="index.html#/type:prefix">prefix</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Unlinks the identified container if it exists, and unlinks all
+possible named semaphores.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Semaphore functions.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:sem_init">
+  <a href="index.html#/val:sem_init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_init : <a href="index.html#/type:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/">Netsys_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:anon_semaphore">anon_semaphore</a>
+    
+      <div class="doc">
+        
+      <p><code>sem_init cont mem pos pshared init_value</code>: Initializes the memory
+at position <code>pos</code> to <code>pos + sem_size() - 1</code> as anonymous semaphore.
+If <code>pshared</code> the semaphore is shared between processes.
+<code>init_value</code> is the initial non-negative value (max is
+<code>sem_value_max</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_destroy">
+  <a href="index.html#/val:sem_destroy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_destroy : <a href="index.html#/type:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:anon_semaphore">anon_semaphore</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys the anonymous semaphore</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:as_sem">
+  <a href="index.html#/val:as_sem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> as_sem : <a href="index.html#/type:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/">Netsys_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:anon_semaphore">anon_semaphore</a>
+    
+      <div class="doc">
+        
+      <p><code>as_sem mem pos</code>: Interprets the memory at position <code>pos</code>
+to <code>pos + sem_size() - 1</code> as anonymous semaphore.
+The memory region must already have been initialized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_getvalue">
+  <a href="index.html#/val:sem_getvalue" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_getvalue : <a href="index.html#/type:anon_semaphore">anon_semaphore</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the value of the semaphore. If the value is bigger than
+what can be represented as <code>int</code>, an <code>EINVAL</code> error is returned.</p>
+      
+      <p>The returned value is non-negative - if the underlying POSIX
+function reports a negative value zero is returned instead.</p>
+      
+      <p><b>Unavailable on MacOS.</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_post">
+  <a href="index.html#/val:sem_post" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_post : <a href="index.html#/type:anon_semaphore">anon_semaphore</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Unlocks the semaphore (increases the value by 1)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sem_wait_behavior">
+  <a href="index.html#/type:sem_wait_behavior" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sem_wait_behavior = <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:sem_wait_behavior">sem_wait_behavior</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:sem_wait_behavior/cons:SEM_WAIT_BLOCK">
+  <a href="index.html#/type:sem_wait_behavior/cons:SEM_WAIT_BLOCK" class="anchor">#</a>
+  | SEM_WAIT_BLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:sem_wait_behavior/cons:SEM_WAIT_NONBLOCK">
+  <a href="index.html#/type:sem_wait_behavior/cons:SEM_WAIT_NONBLOCK" class="anchor">#</a>
+  | SEM_WAIT_NONBLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_wait">
+  <a href="index.html#/val:sem_wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_wait : <a href="index.html#/type:anon_semaphore">anon_semaphore</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sem_wait_behavior">sem_wait_behavior</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Locks the semaphore (decreases the value by 1). If the semaphore
+value is already zero, and <code>SEM_WAIT_BLOCK</code> is given, the function
+waits until another process or thread posts. If <code>SEM_WAIT_NONBLOCK</code>
+the error <code>EAGAIN</code> is returned.</p>
+      
+      <p><code>sem_wait</code> may be interrupted by signals.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

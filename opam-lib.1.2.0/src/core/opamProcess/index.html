@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>OpamProcess</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">OpamProcess</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Process handling</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_name">
+  <a href="index.html#/type:t/field:p_name" class="anchor">#</a>
+  p_name
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Command name</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_args">
+  <a href="index.html#/type:t/field:p_args" class="anchor">#</a>
+  p_args
+  </div>
+  </td><td>: string list</td><td>;</td><td>(*</td><td class="doc">Command args</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_pid">
+  <a href="index.html#/type:t/field:p_pid" class="anchor">#</a>
+  p_pid
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Process PID</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_cwd">
+  <a href="index.html#/type:t/field:p_cwd" class="anchor">#</a>
+  p_cwd
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Process initial working directory</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_time">
+  <a href="index.html#/type:t/field:p_time" class="anchor">#</a>
+  p_time
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">Process start time</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_stdout">
+  <a href="index.html#/type:t/field:p_stdout" class="anchor">#</a>
+  p_stdout
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">stdout dump file</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_stderr">
+  <a href="index.html#/type:t/field:p_stderr" class="anchor">#</a>
+  p_stderr
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">stderr dump file</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_env">
+  <a href="index.html#/type:t/field:p_env" class="anchor">#</a>
+  p_env
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">dump environment variables</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_info">
+  <a href="index.html#/type:t/field:p_info" class="anchor">#</a>
+  p_info
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">dump process info</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:p_metadata">
+  <a href="index.html#/type:t/field:p_metadata" class="anchor">#</a>
+  p_metadata
+  </div>
+  </td><td>: (string * string) list</td><td>;</td><td>(*</td><td class="doc">Metadata associated to the process</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>The type for processes</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?info_file:string <span class="rarr"><span>-&gt;</span></span> ?env_file:string <span class="rarr"><span>-&gt;</span></span> ?allow_stdin:bool <span class="rarr"><span>-&gt;</span></span> ?stdout_file:string <span class="rarr"><span>-&gt;</span></span> ?stderr_file:string <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?metadata:(string * string) list <span class="rarr"><span>-&gt;</span></span> verbose:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create cmd args</code> create a new process to execute the command
+<code>cmd</code> with arguments <code>args</code>. If <code>stdout_file</code> or <code>stderr_file</code> are
+set, the channels are redirected to the corresponding files. The
+outputs are discarded is <code>verbose</code> is set to false. The current
+environment can also be overriden if <code>env</code> is set. The environment
+which is used to run the process is recorded into <code>env_file</code> (if
+set).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:result">
+  <a href="index.html#/type:result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> result = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:result/field:r_code">
+  <a href="index.html#/type:result/field:r_code" class="anchor">#</a>
+  r_code
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Process exit code</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:result/field:r_duration">
+  <a href="index.html#/type:result/field:r_duration" class="anchor">#</a>
+  r_duration
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">Process duration</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:result/field:r_info">
+  <a href="index.html#/type:result/field:r_info" class="anchor">#</a>
+  r_info
+  </div>
+  </td><td>: (string * string) list</td><td>;</td><td>(*</td><td class="doc">Process info</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:result/field:r_stdout">
+  <a href="index.html#/type:result/field:r_stdout" class="anchor">#</a>
+  r_stdout
+  </div>
+  </td><td>: string list</td><td>;</td><td>(*</td><td class="doc">Content of stdout dump file</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:result/field:r_stderr">
+  <a href="index.html#/type:result/field:r_stderr" class="anchor">#</a>
+  r_stderr
+  </div>
+  </td><td>: string list</td><td>;</td><td>(*</td><td class="doc">Content of stderr dump file</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:result/field:r_cleanup">
+  <a href="index.html#/type:result/field:r_cleanup" class="anchor">#</a>
+  r_cleanup
+  </div>
+  </td><td>: string list</td><td>;</td><td>(*</td><td class="doc">List of files to clean-up</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Process results</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait">
+  <a href="index.html#/val:wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p><code>wait p</code> waits for the processus <code>p</code> to end and returns its results.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run">
+  <a href="index.html#/val:run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run : ?env:string array <span class="rarr"><span>-&gt;</span></span> ?verbose:bool <span class="rarr"><span>-&gt;</span></span> ?name:string <span class="rarr"><span>-&gt;</span></span> ?metadata:(string * string) list <span class="rarr"><span>-&gt;</span></span> ?allow_stdin:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p><code>run ~name cmd args</code> synchronously call the command <code>cmd</code> with
+arguments <code>args</code>. It waits until the process is finished. The file
+<code>name.info</code>, <code>name.env</code>, <code>name.out</code> and <code>name.err</code> and are
+created, and contains the process main description, the environment
+variables, the standard output and the standard error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_success">
+  <a href="index.html#/val:is_success" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_success : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Is the process result a success ?</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_failure">
+  <a href="index.html#/val:is_failure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_failure : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Is the process result a failure ?</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clean_files">
+  <a href="index.html#/val:clean_files" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clean_files : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Clean-up process result files</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_lines">
+  <a href="index.html#/val:read_lines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_lines : string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Misc</h2>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_result">
+  <a href="index.html#/val:string_of_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_result : ?color:<a href="../../../../opam-lib.1.2.0/src/core/opamGlobals/">OpamGlobals</a>.<a href="../../../../opam-lib.1.2.0/src/core/opamGlobals/#/type:text_style">text_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Pretty printing of process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

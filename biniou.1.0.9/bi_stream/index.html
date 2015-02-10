@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Bi_stream</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Bi_stream</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Streaming utilities (experimental)</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module offers a streaming interface for representing long lists
+of elements that cannot fit in memory.
+Stream items are serialized as chunks of configurable length.</p>
+      
+      <p>Stream format (independent from the biniou serialization format):</p>
+      <pre>  ( ONE INT64 BYTE* )* ZERO</pre>
+      <p>where <code>INT64</code> is the length of a chunk (unsigned big-endian 64-bit int),
+i.e. the number of following <code>BYTE</code>s.
+<code>ONE</code> and <code>ZERO</code> are the single-byte representations of 1 and 0 and are used
+to indicate whether the end of the stream is reached.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:read_stream">
+  <a href="index.html#/val:read_stream" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_stream : (string <span class="rarr"><span>-&gt;</span></span> 'a array) <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_stream of_string ic</code> creates an OCaml stream from
+an input channel <code>ic</code>. The data come in chunks and each chunk
+is converted from a string to an array by calling <code>of_string</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_stream">
+  <a href="index.html#/val:write_stream" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_stream : ?chunk_len:int <span class="rarr"><span>-&gt;</span></span> ('a array <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>write_stream to_string oc st</code> writes an OCaml stream to the
+output channel <code>oc</code>. It creates chunks of <code>chunk_len</code>,
+except for the last chunk which is usually smaller.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">chunk_len</span> has a default value of 1024. The limit
+supported by this OCaml implementation on 32-bit
+platforms is 16777215.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netsys_signal</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netsys_signal</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Signal handler framework</p>
+      
+      <p>This module defines a simple framework for setting signal handlers.
+When two modules want to set the handler for the same signal, the framework
+decides in which order the handlers are executed.</p>
+      
+      <p>The module also defines an empty handler list for <code>Sys.sigpipe</code>, so these
+signals are ignored by the program. This empty list can be extended,
+however.</p>
+      
+      <p>Win32: Only <code>Sys.sigint</code> handlers can effectively be registered.
+Registrations for other signal types are accepted but ignored.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:register_handler">
+  <a href="index.html#/val:register_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> register_handler : ?library:string <span class="rarr"><span>-&gt;</span></span> ?priority:int <span class="rarr"><span>-&gt;</span></span> ?keep_default:bool <span class="rarr"><span>-&gt;</span></span> name:string <span class="rarr"><span>-&gt;</span></span> signal:int <span class="rarr"><span>-&gt;</span></span> callback:(int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>This function registers a handler called <code>name</code> for signal number
+<code>signal</code>. The handler function is <code>callback</code>. The int argument of
+the callback is the signal number.</p>
+      
+      <p>By default, the handler is an application handler. If <code>library</code> is set,
+the handler is for this library. The name passed as <code>library</code> is the
+findlib name of the library.</p>
+      
+      <p>By registering another handler for the same <code>library</code>, <code>name</code>, and
+<code>signal</code>, the old handler is overridden.</p>
+      
+      <p>When several handlers are defined for the same signal, all handlers
+are executed that are defined for the signal (when the signal happens).
+The order of execution is given by <code>priority</code>. The handler functions
+are executed in ascending priority order. If the priority number is
+equal for two handlers, the order is undefined.</p>
+      
+      <p>The priority defaults to 0 for library handlers, and to 100 for
+application handlers. Libraries should only use values from 0 to 99,
+and applications only from 100 to 199.</p>
+      
+      <p>If all handlers for a certain signal set <code>keep_default</code>, then there
+will be a special action after all signal handlers have been executed.
+The special action emulates the default behavior for the signal.
+For now, there is only a simple emulation: If the signal terminates
+the process, the process is immediately exited with code 126.
+If the default behaviour is &quot;no-op&quot;, nothing happens. We don't try
+(yet) to do better (emulate core-dumps, emulate the right process
+status) because this is difficult in the general case.</p>
+      
+      <p>The handler definition takes place immediately.</p>
+      
+      <p>Any exceptions occuring during the execution of a handler are caught
+and ignored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:register_exclusive_handler">
+  <a href="index.html#/val:register_exclusive_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> register_exclusive_handler : name:string <span class="rarr"><span>-&gt;</span></span> signal:int <span class="rarr"><span>-&gt;</span></span> install:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>An exclusive handler for a signal is the only handler for the signal.
+If it is tried to register another handler when there is already
+an exclusive handler, the second registration fails. Also, an
+exclusive handler cannot be registered when there is already a normal
+handler for the signal. It is, however, possible to replace the
+registered exclusive handler by another exclusive handler for the
+same signal.</p>
+      
+      <p>An exclusive handler is installed by running the <code>install</code> function,
+which can e.g. call <code>Sys.set_signal</code> to define the handler. Other
+methods (e.g. use some C wrapper) are also possible. It is assumed
+that <code>install</code> overrides any existing handler.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:restore_management">
+  <a href="index.html#/val:restore_management" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> restore_management : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>restore_management signo</code>: Restores signal handling management for
+<code>signo</code> as defined by
+the handler list for this signal. Calling <code>restore_management</code> makes
+sense when
+the signal handler has been overridden with <code>Sys.set_signal</code>, but at
+some point this module is again responsible for managing the signal
+handling for this signal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keep_away_from">
+  <a href="index.html#/val:keep_away_from" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keep_away_from : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>keep_away_from signo</code>: This signal <code>signo</code> is added to the
+&quot;keep away list&quot;. This means that this module will never try to
+change the signal behavior again for <code>signo</code>. Even <code>restore_management</code>
+will not restore the signal handling again. This function should only
+by called by applications wishing to do the signal handling all
+themselves.</p>
+      
+      <p>This function does not have any effect on the already installed
+handlers. It is nevertheless useful for applications calling
+<code>Sys.set_signal</code> directly to ensure that <code>Netsys_signal</code> will never
+again try to override the handler.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:action">
+  <a href="index.html#/type:action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> action = [ <div class="cons">| `Callback <span class="keyword">of</span> int <span class="rarr"><span>-&gt;</span></span> unit</div><div class="cons">| `Install <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> unit</div> ]
+    
+      <div class="doc">
+        
+      <p><code>`Callback</code> is used for normal handlers, and <code>`Install</code> for exclusive
+handlers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:entry">
+  <a href="index.html#/type:entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> entry = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:sig_number">
+  <a href="index.html#/type:entry/field:sig_number" class="anchor">#</a>
+  sig_number
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:sig_library">
+  <a href="index.html#/type:entry/field:sig_library" class="anchor">#</a>
+  sig_library
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:sig_priority">
+  <a href="index.html#/type:entry/field:sig_priority" class="anchor">#</a>
+  sig_priority
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:sig_keep_default">
+  <a href="index.html#/type:entry/field:sig_keep_default" class="anchor">#</a>
+  sig_keep_default
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:sig_name">
+  <a href="index.html#/type:entry/field:sig_name" class="anchor">#</a>
+  sig_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:sig_action">
+  <a href="index.html#/type:entry/field:sig_action" class="anchor">#</a>
+  sig_action
+  </div>
+  </td><td>: <a href="index.html#/type:action">action</a></td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:list">
+  <a href="index.html#/val:list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:entry">entry</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the list of signal handlers</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keep_away_list">
+  <a href="index.html#/val:keep_away_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keep_away_list : unit <span class="rarr"><span>-&gt;</span></span> int list
+    
+      <div class="doc">
+        
+      <p>Returns the &quot;keep away list&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Call this function to ensure that this module is initialized. It is
+also possible to call any other function. After initialization the
+Sigpipe handler is set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

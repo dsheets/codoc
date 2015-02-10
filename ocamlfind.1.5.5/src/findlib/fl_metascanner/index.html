@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Fl_metascanner</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Fl_metascanner</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Parses META files</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:formal_pred">
+  <a href="index.html#/type:formal_pred" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> formal_pred = [ <div class="cons">| `Pred <span class="keyword">of</span> string</div><div class="cons">| `NegPred <span class="keyword">of</span> string</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:flavour">
+  <a href="index.html#/type:flavour" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> flavour = [ <div class="cons">| `BaseDef</div><div class="cons">| `Appendix</div> ]
+    
+      <div class="doc">
+        
+      <p><code>`BaseDef</code> refers to META definitions using the &quot;=&quot; operator,
+and <code>`Appendix</code> refers to definitions using the &quot;+=&quot; operator.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:pkg_definition">
+  <a href="index.html#/type:pkg_definition" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> pkg_definition = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:pkg_definition/field:def_var">
+  <a href="index.html#/type:pkg_definition/field:def_var" class="anchor">#</a>
+  def_var
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The name of the defined variable</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:pkg_definition/field:def_flav">
+  <a href="index.html#/type:pkg_definition/field:def_flav" class="anchor">#</a>
+  def_flav
+  </div>
+  </td><td>: <a href="index.html#/type:flavour">flavour</a></td><td>;</td><td>(*</td><td class="doc">The flavour of the definition</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:pkg_definition/field:def_preds">
+  <a href="index.html#/type:pkg_definition/field:def_preds" class="anchor">#</a>
+  def_preds
+  </div>
+  </td><td>: <a href="index.html#/type:formal_pred">formal_pred</a> list</td><td>;</td><td>(*</td><td class="doc">The formal predicates of the def</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:pkg_definition/field:def_value">
+  <a href="index.html#/type:pkg_definition/field:def_value" class="anchor">#</a>
+  def_value
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The value assigned to the variable</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>A <code>pkg_definition</code> is expressed by the syntax
+</p>
+      <pre><code>var(p1,p2,...) = &quot;value&quot;</code></pre>
+      <p> (flavour `BaseDef),
+or the syntax
+</p>
+      <pre><code>var(p1,p2,...) += &quot;value&quot;</code></pre>
+      <p> (flavour `Appendix)
+in the META file. The list of predicates may be omitted. Predicates
+may be negated by using &quot;-&quot;, e.g. &quot;-x&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:pkg_expr">
+  <a href="index.html#/type:pkg_expr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> pkg_expr = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:pkg_expr/field:pkg_defs">
+  <a href="index.html#/type:pkg_expr/field:pkg_defs" class="anchor">#</a>
+  pkg_defs
+  </div>
+  </td><td>: <a href="index.html#/type:pkg_definition">pkg_definition</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:pkg_expr/field:pkg_children">
+  <a href="index.html#/type:pkg_expr/field:pkg_children" class="anchor">#</a>
+  pkg_children
+  </div>
+  </td><td>: (string * <a href="index.html#/type:pkg_expr">pkg_expr</a>) list</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>A value of type <code>pkg_expr</code> denotes the contents of a META file.
+The component <code>pkg_defs</code> are the variable definitions.
+The component <code>pkg_children</code> contains
+the definitions of the subpackages.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse">
+  <a href="index.html#/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pkg_expr">pkg_expr</a>
+    
+      <div class="doc">
+        
+      <p><code>parse ch:</code>
+scans and parses the file connected with channel <code>ch</code>. The file must
+have a syntax compatible with the META format. The return value
+contains the found definitions for the package and all subpackages.</p>
+      
+      <p><code>exception Stream.Error of string:</code> is
+raised on syntax errors. The string explains the error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse2">
+  <a href="index.html#/val:parse2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse2 : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pkg_expr">pkg_expr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse2_lexing">
+  <a href="index.html#/val:parse2_lexing" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse2_lexing : <a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pkg_expr">pkg_expr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_lexing">
+  <a href="index.html#/val:parse_lexing" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_lexing : <a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pkg_expr">pkg_expr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print">
+  <a href="index.html#/val:print" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pkg_expr">pkg_expr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>print ch expr</code>:
+Outputs the package expression to a channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup">
+  <a href="index.html#/val:lookup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup : string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pkg_definition">pkg_definition</a> list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>lookup variable_name predicate_list def</code>:</p>
+      
+      <p>Returns the value of <code>variable_name</code> in <code>def</code> under the assumption
+that the predicates in <code>predicate_list</code> hold, but no other predicates.</p>
+      
+      <p>The rules are as follows: In the step (A), only the <code>`BaseDef</code>
+definitions are considered. The first base definition is determined where
+all predicates are satisfied and that has the longest predicate list.
+In the step (B) only the <code>`Appendix</code> definitions are considered.
+All definitions are determined where all predicates are satisfied.
+The final result is the concatenation of the single result of (A)
+and all results of (B) (in the order they are defined). A space
+character is inserted between two concatenated strings.</p>
+      
+      <p>When step (A) does not find any matching definition, the exception
+<code>Not_found</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:predicate_exists">
+  <a href="index.html#/val:predicate_exists" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> predicate_exists : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pkg_definition">pkg_definition</a> list <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>predicate_exists variable_name def</code>:</p>
+      
+      <p>Whether <code>variable_name</code> is explicitly mentioned in <code>def</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netcgi_fcgi</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netcgi_fcgi</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>FastCGI connector.</p>
+      
+      <p><b>Remark:</b> This connector does not allow requests to be multiplexed
+(and let it know to the web server via FCGI_MPXS_CONNS=0).
+Multiplexing requests is seldom done by
+<a href="http://www.fastcgi.com">FastCGI modules</a> and is even sometimes
+impossible because of bugs in them. Moreover, multiplexing is
+mostly useful if concurrent requests are handled by different
+threads while this library use a single thread to process all
+requests coming on a given connection. If the need is felt (speak
+out!), a multithreaded connector can be built on the side of this
+one.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/classtype:cgi">
+  <a href="index.html#/classtype:cgi" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a>
+    </div>
+    
+  <div class="region" id="/classtype:cgi/method:role">
+  <a href="index.html#/classtype:cgi/method:role" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> role : [ <div class="cons">| `Responder</div><div class="cons">| `Authorizer</div><div class="cons">| `Filter</div> ]
+  
+      <div class="doc">
+        
+      <p>A FastCGI application can fulfill each of the following three
+roles:</p>
+      <ul><li><code>`Responder</code>: This is the usual role. In this case the
+application is expected to act like a CGI program: It receives
+all the information associated with an HTTP request and
+generates an HTTP response.</li></ul><ul><li><code>`Authorizer</code>: An Authorizer FastCGI application receives
+all the information associated with an HTTP request and
+generates an authorized/unauthorized decision.</li></ul><ul><li><code>`Filter</code>: A Filter FastCGI application receives all the
+information associated with an HTTP request, plus an extra
+stream of data from a file stored on the Web server, and
+generates a &quot;filtered&quot; version of the data stream as an HTTP
+response.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:data">
+  <a href="index.html#/classtype:cgi/method:data" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> data : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>This the the channel on which the filter data is available.
+All methods of the object raise <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/exn:Closed_channel">Closed_channel</a>
+if the role is not <code>`Filter</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:data_length">
+  <a href="index.html#/classtype:cgi/method:data_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> data_length : int
+  
+      <div class="doc">
+        
+      <p>How many bytes of the data are available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cgi/method:data_mtime">
+  <a href="index.html#/classtype:cgi/method:data_mtime" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> data_mtime : float
+  
+      <div class="doc">
+        
+      <p>The data last modification time, expressed as an integer
+number of seconds since the epoch (January 1, 1970 UTC).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The usual <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> class with FCGI specific methods.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run">
+  <a href="index.html#/val:run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run : ?config:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> ?allow:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ?output_type:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> ?arg_store:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> ?exn_handler:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> ?sockaddr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> ?port:int <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>run f</code> register the function <code>f</code> as a main function of the
+script. Each call to the script will execute <code>f cgi</code>. The code
+outside <code>f</code> will be executed only once (when the script is
+loaded into memory) which allows to cache database connections,
+etc.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">config</span> Default: [root:Netcgi].default_config
+  </div>
+  
+  <div class="tag param">
+    <span class="label">allow</span> Tells whether a connection from the socket is allowed.
+Default: Use the comma separated list given in the
+environment variable FCGI_WEB_SERVER_ADDRS or allow all
+if it does not exist.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">output_type</span> Default: <code>`Direct &quot;&quot;</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">arg_store</span> Default: <code>`Automatic</code> for all arguments.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">exn_handler</span> See [root:Netcgi].exn_handler. Default: delegate
+all exceptions to the default handler.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">sockaddr</span> tells on what socket to contact the script. If
+not specified, the script expects to be launched by the web
+server and to communicate with it through stdin. For external
+scripts (launched independently of the web server and possibly
+on a different machine), set <code>sockaddr</code> to the address the web
+server needs to connect to to talk to the script (this address
+must also be specified in the wen server config file).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">port</span> alternative way to specify <code>sockaddr</code> listening to
+localhost <b>only</b>. If you would like your FastCGI program to
+be accessed from a different machine, use <code>sockaddr</code> instead.<br/>Your application should be ready handle SIGUSR1, used to
+resquest a &quot;graceful&quot; process shutdown, and SIGTERM to request a
+quick shutdown.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:handle_request">
+  <a href="index.html#/val:handle_request" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> handle_request : <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> max_conns:int <span class="rarr"><span>-&gt;</span></span> log:(string <span class="rarr"><span>-&gt;</span></span> unit) option <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:connection_directive">connection_directive</a>
+    
+      <div class="doc">
+        
+      <p><code>handle_request config output_type arg_store eh f ~max_conns
+        ~log fd</code>: This is a lower-level interface that processes
+exactly one request arriving on the existing connection <code>fd</code>.</p>
+      
+      <p><code>max_conns</code> is passed to the FCGI client and indicates how many
+connections this server can process in parallel.</p>
+      
+      <p><code>log</code> is the error logger function or <code>None</code>, in which case
+errors are passed through to the FCGI client.</p>
+      
+      <p>The other arguments are just like for <code>run</code>.</p>
+      
+      <p>The return value indicates whether the connection can be kept
+open or must be closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

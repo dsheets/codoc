@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_io</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_io</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Buffered byte channels</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>A <b>channel</b> is a high-level object for performing input/output
+(IO). It allows to read/write from/to the outside world in an
+efficient way, by minimising the number of system calls.</p>
+      
+      <p>An <b>output channel</b> is used to send data and an <b>input
+channel</b> is used to receive data.</p>
+      
+      <p>If you are familiar with buffered channels you may be familiar too
+with the <b>flush</b> operation. Note that byte channels of this
+module are automatically flushed when there is nothing else to do
+(i.e. before the program becomes idle), so this means that you no
+longer have to write:</p>
+      <pre><code>      eprintf &quot;log message\n&quot;;
+      flush stderr;</code></pre>
+      <p>to have your messages displayed.</p>
+      
+      <p>Note about errors: input functions of this module raise
+<code>End_of_file</code> when the end-of-file is reached (i.e. when the read
+function returns <code>0</code>). Other exceptions are ones caused by the
+backend read/write functions, such as <code>Unix.Unix_error</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Channel_closed">
+  <a href="index.html#/exn:Channel_closed" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Channel_closed <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Exception raised when a channel is closed. The parameter is a
+description of the channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Types</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:channel">
+  <a href="index.html#/type:channel" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'mode channel
+    
+      <div class="doc">
+        
+      <p>Type of buffered byte channels</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:input">
+  <a href="index.html#/type:input" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> input
+    
+      <div class="doc">
+        
+      <p>Input mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:output">
+  <a href="index.html#/type:output" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> output
+    
+      <div class="doc">
+        
+      <p>Output mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mode">
+  <a href="index.html#/type:mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a mode = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:mode/cons:Input">
+  <a href="index.html#/type:mode/cons:Input" class="anchor">#</a>
+  | Input : <a href="index.html#/type:input">input</a> <a href="index.html#/type:mode">mode</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:mode/cons:Output">
+  <a href="index.html#/type:mode/cons:Output" class="anchor">#</a>
+  | Output : <a href="index.html#/type:output">output</a> <a href="index.html#/type:mode">mode</a>
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Channel mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input">
+  <a href="index.html#/val:input" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input : <a href="index.html#/type:input">input</a> <a href="index.html#/type:mode">mode</a>
+    
+      <div class="doc">
+        
+      <p><code>input</code> input mode representation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output">
+  <a href="index.html#/val:output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output : <a href="index.html#/type:output">output</a> <a href="index.html#/type:mode">mode</a>
+    
+      <div class="doc">
+        
+      <p><code>output</code> output mode representation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:input_channel">
+  <a href="index.html#/type:input_channel" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> input_channel = <a href="index.html#/type:input">input</a> <a href="index.html#/type:channel">channel</a>
+    
+      <div class="doc">
+        
+      <p>Type of input channels</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:output_channel">
+  <a href="index.html#/type:output_channel" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> output_channel = <a href="index.html#/type:output">output</a> <a href="index.html#/type:channel">channel</a>
+    
+      <div class="doc">
+        
+      <p>Type of output channels</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mode">
+  <a href="index.html#/val:mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mode : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:mode">mode</a>
+    
+      <div class="doc">
+        
+      <p><code>mode ch</code> returns the mode of a channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Well-known instances</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:stdin">
+  <a href="index.html#/val:stdin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stdin : <a href="index.html#/type:input_channel">input_channel</a>
+    
+      <div class="doc">
+        
+      <p>The standard input, it reads data from <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:stdin">stdin</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stdout">
+  <a href="index.html#/val:stdout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stdout : <a href="index.html#/type:output_channel">output_channel</a>
+    
+      <div class="doc">
+        
+      <p>The standard output, it writes data to <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:stdout">stdout</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stderr">
+  <a href="index.html#/val:stderr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stderr : <a href="index.html#/type:output_channel">output_channel</a>
+    
+      <div class="doc">
+        
+      <p>The standard output for error messages, it writes data to
+<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:stderr">stderr</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:zero">
+  <a href="index.html#/val:zero" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> zero : <a href="index.html#/type:input_channel">input_channel</a>
+    
+      <div class="doc">
+        
+      <p>Inputs which returns always <code>'\x00'</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:null">
+  <a href="index.html#/val:null" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> null : <a href="index.html#/type:output_channel">output_channel</a>
+    
+      <div class="doc">
+        
+      <p>Output which drops everything</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Channels creation/manipulation</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pipe">
+  <a href="index.html#/val:pipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pipe : ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input_channel">input_channel</a> * <a href="index.html#/type:output_channel">output_channel</a>
+    
+      <div class="doc">
+        
+      <p><code>pipe ?buffer_size ()</code> creates a pipe using <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/val:pipe">pipe</a> and
+makes two channels from the two returned file descriptors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make">
+  <a href="index.html#/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?close:(unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> ?seek:(int64 <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:seek_command">seek_command</a> <span class="rarr"><span>-&gt;</span></span> int64 <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> mode:'mode <a href="index.html#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/">Lwt_bytes</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'mode <a href="index.html#/type:channel">channel</a>
+    
+      <div class="doc">
+        
+      <p><code>make ?buffer_size ?close ~mode perform_io</code> is the
+main function for creating new channels.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buffer_size</span> size of the internal buffer. It must be
+between 16 and <code>Sys.max_string_length</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">close</span> close function of the channel. It defaults to
+<code>Lwt.return</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">seek</span> same meaning as <code>Unix.lseek</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">mode</span> either <a href="index.html#/type:input">input</a> or <a href="index.html#/type:output">output</a>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">perform_io</span> is the read or write function. It is called
+when more input is needed or when the buffer need to be
+flushed.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_bytes">
+  <a href="index.html#/val:of_bytes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_bytes : mode:'mode <a href="index.html#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/">Lwt_bytes</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'mode <a href="index.html#/type:channel">channel</a>
+    
+      <div class="doc">
+        
+      <p>Create a channel from a byte array. Reading/writing is done
+directly on the provided array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_fd">
+  <a href="index.html#/val:of_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_fd : ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?close:(unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> mode:'mode <a href="index.html#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> 'mode <a href="index.html#/type:channel">channel</a>
+    
+      <div class="doc">
+        
+      <p><code>of_fd ?buffer_size ?close ~mode fd</code> creates a channel from a
+file descriptor.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">close</span> defaults to closing the file descriptor.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_unix_fd">
+  <a href="index.html#/val:of_unix_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_unix_fd : ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?close:(unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> mode:'mode <a href="index.html#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> 'mode <a href="index.html#/type:channel">channel</a>
+    
+      <div class="doc">
+        
+      <p><code>of_unix_fd ?buffer_size ?close ~mode fd</code> is a short-hand for:</p>
+      
+      <p><code>of_fd ?buffer_size ?close (Lwt_unix.of_unix_file_descr fd)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close">
+  <a href="index.html#/val:close" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>close ch</code> closes the given channel. If <code>ch</code> is an output
+channel, it performs all pending actions, flushes it and closes
+it. If <code>ch</code> is an input channel, it just closes it immediately.</p>
+      
+      <p><code>close</code> returns the result of the close function of the
+channel. Multiple calls to <code>close</code> will return exactly the same
+value.</p>
+      
+      <p>Note: you cannot use <code>close</code> on channels obtained with
+<a href="index.html#/val:atomic">atomic</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abort">
+  <a href="index.html#/val:abort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abort : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>abort ch</code> abort current operations and close the channel
+immediately.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:atomic">
+  <a href="index.html#/val:atomic" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> atomic : ('a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>atomic f</code> transforms a sequence of io operations into one
+single atomic io operation.</p>
+      
+      <p>Note:</p>
+      <ul><li>the channel passed to <code>f</code> is invalid after <code>f</code> terminates</li><li><code>atomic</code> can be called inside another <code>atomic</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_length">
+  <a href="index.html#/val:file_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_length : string <span class="rarr"><span>-&gt;</span></span> int64 <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the length of a file</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:buffered">
+  <a href="index.html#/val:buffered" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffered : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>buffered oc</code> returns the number of bytes in the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush">
+  <a href="index.html#/val:flush" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>flush oc</code> performs all pending writes on <code>oc</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush_all">
+  <a href="index.html#/val:flush_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush_all : unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>flush_all ()</code> flushes all open output channels</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:buffer_size">
+  <a href="index.html#/val:buffer_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffer_size : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the size of the internal buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:resize_buffer">
+  <a href="index.html#/val:resize_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resize_buffer : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Resize the internal buffer to the given size</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_busy">
+  <a href="index.html#/val:is_busy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_busy : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>is_busy channel</code> returns whether the given channel is currently
+busy. A channel is busy when there is at least one job using it
+that has not yet terminated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Random access</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:position">
+  <a href="index.html#/val:position" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> position : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p><code>position ch</code> Returns the current position in the channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_position">
+  <a href="index.html#/val:set_position" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_position : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>set_position ch pos</code> Sets the position in the output channel. This
+does not work if the channel does not support random access.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> int64 <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the length of the channel in bytes</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Reading</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Note: except for functions dealing with streams (<a href="index.html#/val:read_chars">read_chars</a> and
+<a href="index.html#/val:read_lines">read_lines</a>) all functions are <b>atomic</b>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:read_char">
+  <a href="index.html#/val:read_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_char : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_char ic</code> reads the next character of <code>ic</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>End_of_file</code> if the end of the file is reached
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_char_opt">
+  <a href="index.html#/val:read_char_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_char_opt : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> char option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Same as [root:read_byte] but does not raise <code>End_of_file</code> on end of
+input</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_chars">
+  <a href="index.html#/val:read_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_chars : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_chars ic</code> returns a stream holding all characters of
+<code>ic</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_line">
+  <a href="index.html#/val:read_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_line : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_line ic</code> reads one complete line from <code>ic</code> and returns it
+without the end of line. End of line is either <code>&quot;\n&quot;</code> or
+<code>&quot;\r\n&quot;</code>.</p>
+      
+      <p>If the end of line is reached before reading any character,
+<code>End_of_file</code> is raised. If it is reached before reading an end
+of line but characters have already been read, they are
+returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_line_opt">
+  <a href="index.html#/val:read_line_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_line_opt : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> string option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Same as <a href="index.html#/val:read_line">read_line</a> but do not raise <code>End_of_file</code> on end of
+input.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_lines">
+  <a href="index.html#/val:read_lines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_lines : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_lines ic</code> returns a stream holding all lines of <code>ic</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read">
+  <a href="index.html#/val:read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read : ?count:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read ?count ic</code> reads at most <code>len</code> characters from <code>ic</code>. It
+returns <code>&quot;&quot;</code> if the end of input is reached. If <code>count</code> is not
+specified, it reads all bytes until the end of input.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_into">
+  <a href="index.html#/val:read_into" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_into : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_into ic buffer offset length</code> reads up to <code>length</code> bytes,
+stores them in <code>buffer</code> at offset <code>offset</code>, and returns the
+number of bytes read.</p>
+      
+      <p>Note: <code>read_into</code> does not raise <code>End_of_file</code>, it returns a
+length of <code>0</code> instead.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_into_exactly">
+  <a href="index.html#/val:read_into_exactly" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_into_exactly : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_into_exactly ic buffer offset length</code> reads exactly
+<code>length</code> bytes and stores them in <code>buffer</code> at offset <code>offset</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>End_of_file</code> on end of input
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_value">
+  <a href="index.html#/val:read_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_value : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read_value ic</code> reads a marshaled value from <code>ic</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Writing</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Note: as for reading functions, all functions except
+<a href="index.html#/val:write_chars">write_chars</a> and <a href="index.html#/val:write_lines">write_lines</a> are <b>atomic</b>.</p>
+      
+      <p>For example if you use <a href="index.html#/val:write_line">write_line</a> in two different threads, the
+two operations will be serialized, and lines cannot be mixed.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:write_char">
+  <a href="index.html#/val:write_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_char : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write_char oc char</code> writes <code>char</code> on <code>oc</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_chars">
+  <a href="index.html#/val:write_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_chars : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write_chars oc chars</code> writes all characters of <code>chars</code> on
+<code>oc</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write">
+  <a href="index.html#/val:write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write oc str</code> writes all characters of <code>str</code> on <code>oc</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_line">
+  <a href="index.html#/val:write_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_line : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write_line oc str</code> writes <code>str</code> on <code>oc</code> followed by a
+new-line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_lines">
+  <a href="index.html#/val:write_lines" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_lines : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write_lines oc lines</code> writes all lines of <code>lines</code> to <code>oc</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_from">
+  <a href="index.html#/val:write_from" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_from : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write_from oc buffer offset length</code> writes up to <code>length</code> bytes
+to <code>oc</code>, from <code>buffer</code> at offset <code>offset</code> and returns the number
+of bytes actually written</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_from_exactly">
+  <a href="index.html#/val:write_from_exactly" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_from_exactly : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write_from_exactly oc buffer offset length</code> writes all <code>length</code>
+bytes from <code>buffer</code> at offset <code>offset</code> to <code>oc</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_value">
+  <a href="index.html#/val:write_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_value : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="../../../../../ocaml.4.02.1+doc/stdlib/marshal/">Marshal</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/marshal/#/type:extern_flags">extern_flags</a> list <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>write_value oc ?flags x</code> marshals the value <code>x</code> to <code>oc</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Printing</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These functions are basically helpers. Also you may prefer
+using the name <a href="index.html#/val:printl">printl</a> rather than <a href="index.html#/val:write_line">write_line</a> because it is
+shorter.</p>
+      
+      <p>The general name of a printing function is <code>&lt;prefix&gt;print&lt;suffixes&gt;</code>,</p>
+      
+      <p>where <code>&lt;prefix&gt;</code> is one of:</p>
+      <ul><li><code>'f'</code>, which means that the function takes as argument a channel</li><li>nothing, which means that the function prints on <a href="index.html#/val:stdout">stdout</a></li><li><code>'e'</code>, which means that the function prints on <a href="index.html#/val:stderr">stderr</a></li></ul>
+      <p>and <code>&lt;suffixes&gt;</code> is a combination of:</p>
+      <ul><li><code>'l'</code> which means that a new-line character is printed after the message</li><li><code>'f'</code> which means that the function takes as argument a <b>format</b> instead
+of a string</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/val:fprint">
+  <a href="index.html#/val:fprint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprint : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintl">
+  <a href="index.html#/val:fprintl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintl : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintf">
+  <a href="index.html#/val:fprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintf : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintlf">
+  <a href="index.html#/val:fprintlf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintlf : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print">
+  <a href="index.html#/val:print" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printl">
+  <a href="index.html#/val:printl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printl : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printf">
+  <a href="index.html#/val:printf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printf : ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printlf">
+  <a href="index.html#/val:printlf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printlf : ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprint">
+  <a href="index.html#/val:eprint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprint : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintl">
+  <a href="index.html#/val:eprintl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintl : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintf">
+  <a href="index.html#/val:eprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintf : ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintlf">
+  <a href="index.html#/val:eprintlf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintlf : ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Utilities</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:hexdump_stream">
+  <a href="index.html#/val:hexdump_stream" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hexdump_stream : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>hexdump_stream oc byte_stream</code> produces the same output as the
+command <code>hexdump -C</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hexdump">
+  <a href="index.html#/val:hexdump" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hexdump : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>hexdump oc str = hexdump_stream oc (Lwt_stream.of_string str)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">File utilities</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:file_name">
+  <a href="index.html#/type:file_name" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_name = string
+    
+      <div class="doc">
+        
+      <p>Type of file names</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_file">
+  <a href="index.html#/val:open_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_file : ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:open_flag">open_flag</a> list <span class="rarr"><span>-&gt;</span></span> ?perm:<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> mode:'a <a href="index.html#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_name">file_name</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:channel">channel</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>open_file ?buffer_size ?flags ?perm ~mode filename</code> opens the
+file with name <code>filename</code> and returns a channel for
+reading/writing it.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix.Unix_error</code> on error.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_file">
+  <a href="index.html#/val:with_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_file : ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:open_flag">open_flag</a> list <span class="rarr"><span>-&gt;</span></span> ?perm:<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> mode:'a <a href="index.html#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_name">file_name</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>with_file ?buffer_size ?flags ?perm ~mode filename f</code> opens a
+file and passes the channel to <code>f</code>. It is ensured that the
+channel is closed when <code>f ch</code> terminates (even if it fails).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_connection">
+  <a href="index.html#/val:open_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_connection : ?fd:<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:input_channel">input_channel</a> * <a href="index.html#/type:output_channel">output_channel</a>) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>open_connection ?fd ?buffer_size addr</code> opens a connection to the
+given address and returns two channels for using it. If <code>fd</code> is
+not specified, a fresh one will be used.</p>
+      
+      <p>The connection is completly closed when you close both
+channels.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix.Unix_error</code> on error.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_connection">
+  <a href="index.html#/val:with_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_connection : ?fd:<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:input_channel">input_channel</a> * <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>with_connection ?fd ?buffer_size addr f</code> opens a connection to
+the given address and passes the channels to <code>f</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:server">
+  <a href="index.html#/type:server" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> server
+    
+      <div class="doc">
+        
+      <p>Type of a server</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:establish_server">
+  <a href="index.html#/val:establish_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> establish_server : ?fd:<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?backlog:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:input_channel">input_channel</a> * <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:server">server</a>
+    
+      <div class="doc">
+        
+      <p><code>establish_server ?fd ?buffer_size ?backlog sockaddr f</code> creates a
+server which will listen for incoming connections. New connections
+are passed to <code>f</code>. Note that <code>f</code> must not raise any exception. If
+<code>fd</code> is not specified, a fresh file descriptor will be created.</p>
+      
+      <p><code>backlog</code> is the argument passed to <code>Lwt_unix.listen</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shutdown_server">
+  <a href="index.html#/val:shutdown_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shutdown_server : <a href="index.html#/type:server">server</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Shutdown the given server</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lines_of_file">
+  <a href="index.html#/val:lines_of_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lines_of_file : <a href="index.html#/type:file_name">file_name</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>lines_of_file name</code> returns a stream of all lines of the file
+with name <code>name</code>. The file is automatically closed when all
+lines have been read.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lines_to_file">
+  <a href="index.html#/val:lines_to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lines_to_file : <a href="index.html#/type:file_name">file_name</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>lines_to_file name lines</code> writes all lines of <code>lines</code> to
+file with name <code>name</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chars_of_file">
+  <a href="index.html#/val:chars_of_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chars_of_file : <a href="index.html#/type:file_name">file_name</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>chars_of_file name</code> returns a stream of all characters of the
+file with name <code>name</code>. As for <a href="index.html#/val:lines_of_file">lines_of_file</a> the file is
+closed when all characters have been read.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chars_to_file">
+  <a href="index.html#/val:chars_to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chars_to_file : <a href="index.html#/type:file_name">file_name</a> <span class="rarr"><span>-&gt;</span></span> char <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>chars_to_file name chars</code> writes all characters of <code>chars</code> to
+<code>name</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Input/output of integers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/modtype:NumberIO">
+  <a href="index.html#/modtype:NumberIO" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> NumberIO = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Common interface for reading/writing integers in binary</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Reading</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/modtype:NumberIO/val:read_int">
+  <a href="index.html#/modtype:NumberIO/val:read_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_int : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Reads a 32-bits integer as an ocaml int</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:read_int16">
+  <a href="index.html#/modtype:NumberIO/val:read_int16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_int16 : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:read_int32">
+  <a href="index.html#/modtype:NumberIO/val:read_int32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_int32 : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> int32 <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:read_int64">
+  <a href="index.html#/modtype:NumberIO/val:read_int64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_int64 : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> int64 <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:read_float32">
+  <a href="index.html#/modtype:NumberIO/val:read_float32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_float32 : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> float <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Reads an IEEE single precision floating point value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:read_float64">
+  <a href="index.html#/modtype:NumberIO/val:read_float64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_float64 : <a href="index.html#/type:input_channel">input_channel</a> <span class="rarr"><span>-&gt;</span></span> float <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Reads an IEEE double precision floating point value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Writing</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/modtype:NumberIO/val:write_int">
+  <a href="index.html#/modtype:NumberIO/val:write_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_int : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Writes an ocaml int as a 32-bits integer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:write_int16">
+  <a href="index.html#/modtype:NumberIO/val:write_int16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_int16 : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:write_int32">
+  <a href="index.html#/modtype:NumberIO/val:write_int32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_int32 : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:write_int64">
+  <a href="index.html#/modtype:NumberIO/val:write_int64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_int64 : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:write_float32">
+  <a href="index.html#/modtype:NumberIO/val:write_float32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_float32 : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Writes an IEEE single precision floating point value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:NumberIO/val:write_float64">
+  <a href="index.html#/modtype:NumberIO/val:write_float64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_float64 : <a href="index.html#/type:output_channel">output_channel</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Writes an IEEE double precision floating point value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LE">
+  <a href="index.html#/module:LE" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> LE : <a href="index.html#/modtype:NumberIO">NumberIO</a></div>
+      
+      <div class="doc">
+        
+      <p>Reading/writing of numbers in little-endian</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BE">
+  <a href="index.html#/module:BE" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> BE : <a href="index.html#/modtype:NumberIO">NumberIO</a></div>
+      
+      <div class="doc">
+        
+      <p>Reading/writing of numbers in big-endian</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="index.html#/modtype:NumberIO">NumberIO</a> 
+    </div>
+  
+  <div class="region" id="/type:byte_order">
+  <a href="index.html#/type:byte_order" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> byte_order = <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_sys/">Lwt_sys</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_sys/#/type:byte_order">byte_order</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:byte_order/cons:Little_endian">
+  <a href="index.html#/type:byte_order/cons:Little_endian" class="anchor">#</a>
+  | Little_endian
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:byte_order/cons:Big_endian">
+  <a href="index.html#/type:byte_order/cons:Big_endian" class="anchor">#</a>
+  | Big_endian
+  </div>
+  </td><td>(*</td><td class="doc">Type of byte order</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:system_byte_order">
+  <a href="index.html#/val:system_byte_order" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> system_byte_order : <a href="index.html#/type:byte_order">byte_order</a>
+    
+      <div class="doc">
+        
+      <p>Same as <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_sys/">Lwt_sys</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_sys/#/type:byte_order">byte_order</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Low-level access to the internal buffer</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:block">
+  <a href="index.html#/val:block" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> block : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/">Lwt_bytes</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>block ch size f</code> pass to <code>f</code> the internal buffer and an
+offset. The buffer contains <code>size</code> chars at <code>offset</code>. <code>f</code> may
+read or write these chars. <code>size</code> must satisfy <code>0 &lt;= size &lt;=
+      16</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:direct_access">
+  <a href="index.html#/type:direct_access" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> direct_access = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:direct_access/field:da_buffer">
+  <a href="index.html#/type:direct_access/field:da_buffer" class="anchor">#</a>
+  da_buffer
+  </div>
+  </td><td>: <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/">Lwt_bytes</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_bytes/#/type:t">t</a></td><td>;</td><td>(*</td><td class="doc">The internal buffer</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:direct_access/field:da_ptr">
+  <a href="index.html#/type:direct_access/field:da_ptr" class="anchor">#</a>
+  <span class="keyword">mutable</span> da_ptr
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The pointer to:<ul><li>the beginning of free space for output channels</li><li>the beginning of data for input channels</li></ul></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:direct_access/field:da_max">
+  <a href="index.html#/type:direct_access/field:da_max" class="anchor">#</a>
+  <span class="keyword">mutable</span> da_max
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The maximum offset</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:direct_access/field:da_perform">
+  <a href="index.html#/type:direct_access/field:da_perform" class="anchor">#</a>
+  da_perform
+  </div>
+  </td><td>: unit <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a></td><td>;</td><td>(*</td><td class="doc">- for input channels:
+refills the buffer and returns how many bytes have been read<ul><li>for output channels:
+flush partially the buffer and returns how many bytes have been written</li></ul></td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Information for directly accessing the internal buffer of a
+channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:direct_access">
+  <a href="index.html#/val:direct_access" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> direct_access : 'a <a href="index.html#/type:channel">channel</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:direct_access">direct_access</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>direct_access ch f</code> passes to <code>f</code> a <a href="index.html#/type:direct_access">direct_access</a>
+structure. <code>f</code> must use it and update <code>da_ptr</code> to reflect how
+many bytes have been read/written.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Misc</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:default_buffer_size">
+  <a href="index.html#/val:default_buffer_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_buffer_size : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Return the default size for buffers. Channels that are created
+without a specific size use this one.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_default_buffer_size">
+  <a href="index.html#/val:set_default_buffer_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_default_buffer_size : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Change the default buffer size.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the given size is smaller than <code>16</code>
+or greater than <code>Sys.max_string_length</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

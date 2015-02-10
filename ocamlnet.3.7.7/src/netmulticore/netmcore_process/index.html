@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_process</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_process</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Statically typed processes</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module provides a slightly higher-level view on processes,
+but is also a bit more restricted than the primitives in
+[root:Netmcore].</p>
+      
+      <p>Please read [root:Netmcore_basics] for an introduction into using
+this module. There is also [root:Netmcore_tut] with more advanced
+techniques.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:fork_point">
+  <a href="index.html#/type:fork_point" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a fork_point
+    
+      <div class="doc">
+        
+      <p>A fork point can start a new process with argument <code>'a</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:join_point">
+  <a href="index.html#/type:join_point" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'b join_point
+    
+      <div class="doc">
+        
+      <p>A join point can wait until a process finishes with a result <code>'b</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:def_process">
+  <a href="index.html#/val:def_process" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> def_process : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:fork_point">fork_point</a> * 'b <a href="index.html#/type:join_point">join_point</a>
+    
+      <div class="doc">
+        
+      <p><code>let (fp,jp) = def_process proc</code>: Defines a process (which must happen
+in the master process), so that:</p>
+      <ul><li><code>let pid = start fp arg</code>: Starts the new process and passes the
+argument <code>arg</code> to it. The process runs <code>proc arg</code> which will
+finally result in a value <code>r</code></li><li><code>let r_opt = join jp pid</code>: Waits until the process identified by
+<code>pid</code> finishes, and returns the result as <code>r_opt = Some r</code>.
+On error, it returns <code>None</code>.</li></ul>
+      <p><code>def_process</code> should be called at module initialization time
+before any process is started. This interface is not designed for
+calling <code>def_process</code> later.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:start">
+  <a href="index.html#/val:start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> start : ?inherit_resources:<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:inherit_request">inherit_request</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:fork_point">fork_point</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:process_id">process_id</a>
+    
+      <div class="doc">
+        
+      <p><code>let pid = start fp arg</code>: Starts a new process at the fork point
+<code>fp</code> with argument <code>arg</code>. This means that the process is forked
+from the master process, and that the value of <code>arg</code> is sent to it
+using <code>Marshal</code>. The returned process ID is Netmulticore's own
+ID and not to be confused with the ID assigned by the operating
+system.</p>
+      
+      <p>Option <code>inherit_resources</code>: Certain resources are only accessible by
+the process when they are inherited to it. This is the case for
+<code>`Posix_shm_preallocated</code>. This can be set to <code>`All</code> to inherit
+all inheritable resources, or to <code>`Resources l</code> to only inherit
+the resources of <code>l</code>. By default, no resources are inherited.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:join">
+  <a href="index.html#/val:join" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> join : 'b <a href="index.html#/type:join_point">join_point</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:process_id">process_id</a> <span class="rarr"><span>-&gt;</span></span> 'b option
+    
+      <div class="doc">
+        
+      <p><code>let r_opt = join jp pid</code>: Waits until the process <code>pid</code> finishes,
+and uses the join point <code>jp</code> to extract the result. The result
+is returned as <code>Some r</code> on success, and <code>None</code> on error.
+Result values are transmitted from the joining process to
+this function using <code>Marshal</code>. Errors include uncaught exceptions
+as well as unexpected process termination (<code>exit</code>, signal).</p>
+      
+      <p>If the process referenced by <code>pid</code> is not an instance that belongs
+to <code>jp</code>, the function will fail.</p>
+      
+      <p>This function must not be called from the master process (which is
+not allowed to block until a result is available).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:join_nowait">
+  <a href="index.html#/val:join_nowait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> join_nowait : 'b <a href="index.html#/type:join_point">join_point</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:process_id">process_id</a> <span class="rarr"><span>-&gt;</span></span> 'b option
+    
+      <div class="doc">
+        
+      <p>Like <code>join</code>, but it is not waited for the termination of the process.
+If the process is not yet done, this function returns <code>None</code>.
+It also returns <code>None</code> if the process terminated with an error or did
+not set a result value for other reasons.</p>
+      
+      <p>Unlike <code>join</code>, this function can be called in the master process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:release_fork_point">
+  <a href="index.html#/val:release_fork_point" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> release_fork_point : 'a <a href="index.html#/type:fork_point">fork_point</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Releases a fork point so it is deleted from the internal
+resource table.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:release_join_point">
+  <a href="index.html#/val:release_join_point" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> release_join_point : 'b <a href="index.html#/type:join_point">join_point</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Releases a join point so it is deleted from the internal
+resource table.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

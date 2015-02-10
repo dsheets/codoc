@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_portmapper</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_portmapper</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Portmapper version 2</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Call the portmapper version 2. Note that version 2 is an older version
+(version 3 and 4 are called 'rpcbind'), but it is normally available.</p>
+      
+      <p>The task of the portmapper is to map program numbers to port numbers.
+A RPC service that should be available in the whole network should:</p>
+      <ul><li>on startup: call the <code>set</code> procedure to establish a mapping of the
+own program number to the port that has been allocated previously</li><li>on shutdown: call the <code>unset</code> procedure to remove the mapping
+(this is NEVER done automatically!)</li></ul>
+      <p>To call an RPC service which is only known by its program number one should
+contact the portmapper using <code>getport</code> to find out the port where the
+service is actually listening.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>represents a client for the portmapper</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/type:connector">connector</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Connects to the portmapper service listening on the given connector.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_inet">
+  <a href="index.html#/val:create_inet" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_inet : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Connects to a portmapper listening on an Internet port. The argument
+is the hostname where the portmapper is running or its internet
+address. This function connects always to the port 111 on the given
+host; this is the standard for portmapper daemons.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shut_down">
+  <a href="index.html#/val:shut_down" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shut_down : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Shuts down the connection to the portmapper.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:null">
+  <a href="index.html#/val:null" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> null : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Calls the 'NULL' procedure of the portmapper. This procedure has no
+effect. You can use 'null' to determine whether a procedure call is
+possible or not.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>set pm_client program_nr version_nr protocol port_nr</code>:
+Extends the mapping managed by the portmapper: The triple
+<code>(program_nr, version_nr, protocol)</code> is mapped to the given
+<code>port_nr</code>.
+It is not allowed to overwrite an existing mapping.
+The procedure returns <code>true</code> if the mapping has been extended
+and <code>false</code> otherwise.
+Note that it usually only possible to <code>set</code> a mapping on the local
+host.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unset">
+  <a href="index.html#/val:unset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unset : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>unset pm_client program_nr version_nr protocol port_nr</code>:
+removes the mapping.
+The procedure returns <code>true</code> if the mapping has been removed
+and <code>false</code> otherwise.
+Note that it usually only possible to <code>unset</code> a mapping on the local
+host.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getport">
+  <a href="index.html#/val:getport" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getport : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>getport pm_client program_nr version_nr protocol</code>:
+finds out the port where the given service runs. Returns 0 if the
+service is not registered.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dump">
+  <a href="index.html#/val:dump" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dump : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> * <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> * int) list
+    
+      <div class="doc">
+        
+      <p>returns the list of known mappings. The quadrupels have the meaning
+<code>(program_nr, version_nr, protocol, port)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:callit">
+  <a href="index.html#/val:callit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> callit : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> int * <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a>
+    
+      <div class="doc">
+        
+      <p><code>callit pm_client program_spec proc_name argument</code>:
+This is an alternate way of calling a remote procedure. Instead
+of directly invoking the procedure, the portmapper does it for you.</p>
+      
+      <p>You must pass a program specification, the procedure name and the
+argument to <code>callit</code>. On return, you get the port of the service
+and the result of the procedure invocation.</p>
+      
+      <p>Note that there are several disadvantages:</p>
+      <ul><li>Error conditions cannot be transmitted back from the portmapper.
+<code>callit</code> gets a timeout in this case.</li><li>The portmapper uses always UDP. This means that the length of
+the messages that are exchanged is limited to a total of 8000 bytes.</li></ul>
+      <p>It is NOT recommended to use <code>callit</code> for indirecting calls.
+The <code>callit</code> interface was designed for broadcasts and should only
+be used for this purpose.
+<b>This</b> implementation of a <code>callit</code> client cannot be used for
+broadcasts, however.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:port_of_program">
+  <a href="index.html#/val:port_of_program" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> port_of_program : <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>port_of_program program host protocol</code>:
+queries the portmapper running on <code>host</code> for the <code>program</code> registered
+for <code>protocol</code>.
+Returns the port number or fails if the number is not known.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

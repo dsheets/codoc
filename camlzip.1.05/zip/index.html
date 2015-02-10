@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Zip</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Zip</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Reading and writing ZIP archives</p>
+      
+      <p>This module provides functions for reading and writing ZIP archive
+files. ZIP archives package one or more compressed files into
+a single ``ZIP file'' along with information about the files,
+including file name, date and time of last modification, user-provided
+comments, and a checksum to verify the integrity of each entry.
+The entries of a ZIP file are not necessarily actual files, and can
+actually consist of arbitrary data.</p>
+      
+      <p>The ZIP file format used in this module is identical to that
+implemented by the popular <code>pkzip</code> archiver under Windows,
+and by the Info-ZIP <code>zip</code> and <code>unzip</code> commands under Unix and Windows.
+This format is also identical to the JAR file format used by Java.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Information on ZIP entries</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:compression_method">
+  <a href="index.html#/type:compression_method" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> compression_method = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:compression_method/cons:Stored">
+  <a href="index.html#/type:compression_method/cons:Stored" class="anchor">#</a>
+  | Stored
+  </div>
+  </td><td>(*</td><td class="doc">data is stored without compression</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:compression_method/cons:Deflated">
+  <a href="index.html#/type:compression_method/cons:Deflated" class="anchor">#</a>
+  | Deflated
+  </div>
+  </td><td>(*</td><td class="doc">data is compressed with the ``deflate'' algorithm</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Indicate whether the data in the entry is compressed or not.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:entry">
+  <a href="index.html#/type:entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> entry = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:filename">
+  <a href="index.html#/type:entry/field:filename" class="anchor">#</a>
+  filename
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">file name for entry</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:extra">
+  <a href="index.html#/type:entry/field:extra" class="anchor">#</a>
+  extra
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">extra information attached to entry</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:comment">
+  <a href="index.html#/type:entry/field:comment" class="anchor">#</a>
+  comment
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">comment attached to entry</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:methd">
+  <a href="index.html#/type:entry/field:methd" class="anchor">#</a>
+  methd
+  </div>
+  </td><td>: <a href="index.html#/type:compression_method">compression_method</a></td><td>;</td><td>(*</td><td class="doc">compression method</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:mtime">
+  <a href="index.html#/type:entry/field:mtime" class="anchor">#</a>
+  mtime
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">last modification time (seconds since epoch)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:crc">
+  <a href="index.html#/type:entry/field:crc" class="anchor">#</a>
+  crc
+  </div>
+  </td><td>: int32</td><td>;</td><td>(*</td><td class="doc">cyclic redundancy check for data</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:uncompressed_size">
+  <a href="index.html#/type:entry/field:uncompressed_size" class="anchor">#</a>
+  uncompressed_size
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">size of original data in bytes</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:compressed_size">
+  <a href="index.html#/type:entry/field:compressed_size" class="anchor">#</a>
+  compressed_size
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">size of compressed data</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:is_directory">
+  <a href="index.html#/type:entry/field:is_directory" class="anchor">#</a>
+  is_directory
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">whether this entry represents a directory</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:entry/field:file_offset">
+  <a href="index.html#/type:entry/field:file_offset" class="anchor">#</a>
+  file_offset
+  </div>
+  </td><td>: int64</td><td>;</td><td>(*</td><td class="doc">for internal use</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Description of an entry in a ZIP file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Reading from ZIP files</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:in_file">
+  <a href="index.html#/type:in_file" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> in_file
+    
+      <div class="doc">
+        
+      <p>Abstract type representing a handle opened for reading from
+a ZIP file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_in">
+  <a href="index.html#/val:open_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_in : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:in_file">in_file</a>
+    
+      <div class="doc">
+        
+      <p>Open the ZIP file with the given filename. Return a
+handle opened for reading from this file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:entries">
+  <a href="index.html#/val:entries" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> entries : <a href="index.html#/type:in_file">in_file</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:entry">entry</a> list
+    
+      <div class="doc">
+        
+      <p>Return a list of all entries in the given ZIP file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment">
+  <a href="index.html#/val:comment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment : <a href="index.html#/type:in_file">in_file</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return the comment attached to the given ZIP file, or the
+empty string if none.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_entry">
+  <a href="index.html#/val:find_entry" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_entry : <a href="index.html#/type:in_file">in_file</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:entry">entry</a>
+    
+      <div class="doc">
+        
+      <p><code>Zip.find_entry zf filename</code> returns the description of the
+entry having name <code>filename</code> in the ZIP file <code>zf</code>.
+Raises <code>Not_found</code> if no such entry exists.
+The file name must match exactly; in particular, case is
+significant. File names must use <code>/</code> (slash) as the directory
+separator. The name of a directory must end with a trailing
+<code>/</code> (slash).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_entry">
+  <a href="index.html#/val:read_entry" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_entry : <a href="index.html#/type:in_file">in_file</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:entry">entry</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>Zip.read_entry zf e</code> reads and uncompresses the data
+(file contents) associated with entry <code>e</code> of ZIP file <code>zf</code>.
+The data is returned as a character string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_entry_to_channel">
+  <a href="index.html#/val:copy_entry_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_entry_to_channel : <a href="index.html#/type:in_file">in_file</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:entry">entry</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>Zip.copy_entry_to_channel zf e oc</code> reads and uncompresses
+the data associated with entry <code>e</code> of ZIP file <code>zf</code>.
+It then writes this data to the output channel <code>oc</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_entry_to_file">
+  <a href="index.html#/val:copy_entry_to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_entry_to_file : <a href="index.html#/type:in_file">in_file</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:entry">entry</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>Zip.copy_entry_to_file zf e destfile</code> reads and uncompresses
+the data associated with entry <code>e</code> of ZIP file <code>zf</code>.
+It then writes this data to the file named <code>destfile</code>.
+The file <code>destfile</code> is created if it does not exist,
+and overwritten otherwise. The last modification date of
+the file is set to that indicated in the ZIP entry <code>e</code>,
+if possible.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_in">
+  <a href="index.html#/val:close_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_in : <a href="index.html#/type:in_file">in_file</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Close the given ZIP file handle. If the ZIP file handle was
+created by <code>open_in_channel</code>, the underlying input channel
+is closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Writing to ZIP files</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:out_file">
+  <a href="index.html#/type:out_file" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> out_file
+    
+      <div class="doc">
+        
+      <p>Abstract type representing a handle opened for writing to
+a ZIP file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_out">
+  <a href="index.html#/val:open_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_out : ?comment:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:out_file">out_file</a>
+    
+      <div class="doc">
+        
+      <p>Create (or truncate to zero length) the ZIP file with
+the given filename. Return a handle opened for writing
+to this file. The optional argument <code>comment</code> is a
+comment string that is attached to the ZIP file as a whole
+(as opposed to the comments that can be attached to individual
+ZIP entries).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_entry">
+  <a href="index.html#/val:add_entry" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_entry : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:out_file">out_file</a> <span class="rarr"><span>-&gt;</span></span> ?extra:string <span class="rarr"><span>-&gt;</span></span> ?comment:string <span class="rarr"><span>-&gt;</span></span> ?level:int <span class="rarr"><span>-&gt;</span></span> ?mtime:float <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>Zip.add_entry data zf name</code> adds a new entry to the
+ZIP file <code>zf</code>. The data (file contents) associated with
+the entry is taken from the string <code>data</code>. It is compressed
+and written to the ZIP file <code>zf</code>. <code>name</code> is the file name
+stored along with this entry. Several optional arguments
+can be provided to control the format and attached information
+of the entry:</p>
+      
+        
+  <div class="tag param">
+    <span class="label">extra</span> extra data attached to the entry (a string).
+Default: empty.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">comment</span> attached to the entry (a string).
+Default: empty.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">level</span> compression level for the entry. This is an
+integer between 0 and 9, with 0 meaning no compression (store
+as is), 1 lowest compression, 9 highest compression. Higher
+levels result in smaller compressed data, but longer
+compression times.
+Default: 6 (moderate compression).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">mtime</span> last modification time (in seconds since the
+epoch).
+Default: the current time.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_channel_to_entry">
+  <a href="index.html#/val:copy_channel_to_entry" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_channel_to_entry : <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:out_file">out_file</a> <span class="rarr"><span>-&gt;</span></span> ?extra:string <span class="rarr"><span>-&gt;</span></span> ?comment:string <span class="rarr"><span>-&gt;</span></span> ?level:int <span class="rarr"><span>-&gt;</span></span> ?mtime:float <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>Zip.add_entry</code>, but the data associated with the
+entry is read from the input channel given as first argument.
+The channel is read up to end of file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_file_to_entry">
+  <a href="index.html#/val:copy_file_to_entry" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_file_to_entry : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:out_file">out_file</a> <span class="rarr"><span>-&gt;</span></span> ?extra:string <span class="rarr"><span>-&gt;</span></span> ?comment:string <span class="rarr"><span>-&gt;</span></span> ?level:int <span class="rarr"><span>-&gt;</span></span> ?mtime:float <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>Zip.add_entry</code>, but the data associated with the
+entry is read from the file whose name is given as first
+argument. Also, the default value for the <code>mtime</code>
+optional parameter is the time of last modification of the
+file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_entry_generator">
+  <a href="index.html#/val:add_entry_generator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_entry_generator : <a href="index.html#/type:out_file">out_file</a> <span class="rarr"><span>-&gt;</span></span> ?extra:string <span class="rarr"><span>-&gt;</span></span> ?comment:string <span class="rarr"><span>-&gt;</span></span> ?level:int <span class="rarr"><span>-&gt;</span></span> ?mtime:float <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) * (unit <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p><code>Zip.add_entry_generator zf name</code> returns a pair of functions
+<code>(add, finish)</code>. It adds a new entry to the
+ZIP file <code>zf</code>. The file name stored along with this entry
+is <code>name</code>. Initially, no data is stored in this entry.
+To store data in this entry, the program must repeatedly call
+the <code>add</code> function returned by <code>Zip.add_entry_generator</code>.
+An invocation <code>add s ofs len</code> stores <code>len</code> characters of
+string <code>s</code> starting at offset <code>ofs</code> in the ZIP entry.
+When all the data forming the entry has been sent, the
+program must call the <code>finish</code> function returned by
+<code>Zip.add_entry_generator</code>. <code>finish</code> must be called exactly once.
+The optional arguments to <code>Zip.add_entry_generator</code>
+are as described in <a href="../../camlzip.1.05/zip/">Zip</a>.<a href="../../camlzip.1.05/zip/#/val:add_entry">add_entry</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_out">
+  <a href="index.html#/val:close_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_out : <a href="index.html#/type:out_file">out_file</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Finish writing the ZIP archive by adding the table of
+contents, and close it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Error reporting</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Error">
+  <a href="index.html#/exn:Error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Error <span class="keyword">of</span> string * string * string
+    
+      <div class="doc">
+        
+      <p>Exception raised when an ill-formed ZIP archive is encountered,
+or illegal parameters are given to the functions in this
+module. The exception is of the form
+<code>Error(ZIP_name, entry_name, message)</code> where <code>ZIP_name</code>
+is the name of the ZIP file, <code>entry_name</code> the name of
+the offending entry, and <code>message</code> an explanation of the
+error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Http_client_conncache</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Http_client_conncache</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Connection cache</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module allows one to create special connection caches, e.g.
+by deriving from the official ones</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:channel_binding_id">
+  <a href="index.html#/type:channel_binding_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> channel_binding_id = int
+    
+      <div class="doc">
+        
+      <p>Same as in <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/type:channel_binding_id">channel_binding_id</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:private_data">
+  <a href="index.html#/type:private_data" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> private_data = exn option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:conn_state">
+  <a href="index.html#/type:conn_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> conn_state = [ <div class="cons">| `Inactive <span class="keyword">of</span> <a href="index.html#/type:channel_binding_id">channel_binding_id</a> * <a href="index.html#/type:private_data">private_data</a></div><div class="cons">| `Active <span class="keyword">of</span> &lt;  &gt;</div> ]
+    
+      <div class="doc">
+        
+      <p>A TCP connection may be either <code>`Inactive</code>, i.e. it is not used
+by any pipeline, or <code>`Active obj</code>, i.e. it is in use by the pipeline
+<code>obj</code> (this is the <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/class:pipeline">pipeline</a> coerced to <code>&lt; &gt;</code>).</p>
+      
+      <p>Since Ocamlnet-3.3, <code>`Inactive</code> connections carry the channel binding
+ID as argument. Since 3.8, there is the option of storing an exception
+value <code>private_data</code>. This may be used by implementations to store
+private data together with the file descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:peer">
+  <a href="index.html#/type:peer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> peer = [ <div class="cons">| `Direct <span class="keyword">of</span> string * int</div><div class="cons">| `Http_proxy <span class="keyword">of</span> string * int</div><div class="cons">| `Http_proxy_connect <span class="keyword">of</span> (string * int) * (string * int)</div><div class="cons">| `Socks5 <span class="keyword">of</span> (string * int) * (string * int)</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:connection_cache">
+  <a href="index.html#/classtype:connection_cache" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> connection_cache = 
+  <div class="region" id="/classtype:connection_cache/method:get_connection_state">
+  <a href="index.html#/classtype:connection_cache/method:get_connection_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_connection_state : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:conn_state">conn_state</a>
+  
+      <div class="doc">
+        
+      <p>Returns the state of the file descriptor, or raises <code>Not_found</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:connection_cache/method:set_connection_state">
+  <a href="index.html#/classtype:connection_cache/method:set_connection_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_connection_state : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:peer">peer</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:conn_state">conn_state</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the state of the file descriptor. It is allowed that
+inactive descriptors are simply closed and forgotten. It is
+also possible that this method raises <code>Not_found</code>, leaving it
+to the caller to close the connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:connection_cache/method:find_inactive_connection">
+  <a href="index.html#/classtype:connection_cache/method:find_inactive_connection" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> find_inactive_connection : <a href="index.html#/type:peer">peer</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:channel_binding_id">channel_binding_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="index.html#/type:private_data">private_data</a>
+  
+      <div class="doc">
+        
+      <p>Returns an inactive connection to the passed peer, or raise
+<code>Not_found</code>. Since Ocamlnet-3.3, the required channel binding ID
+is also an argument of this method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:connection_cache/method:find_my_connections">
+  <a href="index.html#/classtype:connection_cache/method:find_my_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> find_my_connections : &lt;  &gt; <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list
+  
+      <div class="doc">
+        
+      <p>Returns all active connections owned by the object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:connection_cache/method:close_connection">
+  <a href="index.html#/classtype:connection_cache/method:close_connection" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_connection : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Deletes the connection from the cache, and closes it</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:connection_cache/method:close_all">
+  <a href="index.html#/classtype:connection_cache/method:close_all" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_all : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Closes all descriptors known to the cache</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:restrictive_cache">
+  <a href="index.html#/class:restrictive_cache" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> restrictive_cache : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:connection_cache">connection_cache</a>
+    
+    
+      <div class="doc">
+        
+      <p>A restrictive cache closes connections as soon as there are no
+pending requests.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:aggressive_cache">
+  <a href="index.html#/class:aggressive_cache" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> aggressive_cache : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:connection_cache">connection_cache</a>
+    
+    
+      <div class="doc">
+        
+      <p>This type of cache tries to keep connections as long open as
+possible. The consequence is that users are responsible for
+closing the descriptors (by calling <code>close_connection_cache</code>) when the
+cache is no longer in use. It is also possible to derive a special
+version of the cache from this class, e.g. for closing descriptors
+when they are idle for some time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

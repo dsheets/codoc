@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Trie</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Trie</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Interface to 256-way radix trie for DNS lookups.
+Non-standard behaviour:</p>
+      <ol><li>We don't support '\000' as a character in labels (because it has a
+special meaning in the internal radix trie keys).</li><li>We don't support RFC2673 bitstring labels. Could be done but they're not
+worth the bother: nobody uses them.</li></ol>
+        
+  <div class="tag author">
+    <span class="label">Author</span> Tim Deegan
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:TrieCorrupt">
+  <a href="index.html#/exn:TrieCorrupt" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> TrieCorrupt
+    
+      <div class="doc">
+        
+      <p>Missing data from a SOA/cut node.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:dnstrie">
+  <a href="index.html#/type:dnstrie" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> dnstrie
+    
+      <div class="doc">
+        
+      <p>Node of the trie</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:new_trie">
+  <a href="index.html#/val:new_trie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_trie : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dnstrie">dnstrie</a>
+    
+      <div class="doc">
+        
+      <p>Make a new, empty trie.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:simple_lookup">
+  <a href="index.html#/val:simple_lookup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> simple_lookup : <a href="../../../../dns.0.13.0/_build/lib/name/">Name</a>.<a href="../../../../dns.0.13.0/_build/lib/name/#/type:key">key</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dnstrie">dnstrie</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> option
+    
+      <div class="doc">
+        
+      <p>Simple lookup function: just walk the trie.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup">
+  <a href="index.html#/val:lookup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup : <a href="../../../../dns.0.13.0/_build/lib/name/">Name</a>.<a href="../../../../dns.0.13.0/_build/lib/name/#/type:key">key</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dnstrie">dnstrie</a> <span class="rarr"><span>-&gt;</span></span> mdns:bool <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Delegated <span class="keyword">of</span> bool * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div><div class="cons">| `Found <span class="keyword">of</span> bool * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div><div class="cons">| `NXDomain <span class="keyword">of</span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div><div class="cons">| `NXDomainNSEC <span class="keyword">of</span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div><div class="cons">| `NoError <span class="keyword">of</span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div><div class="cons">| `NoErrorNSEC <span class="keyword">of</span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div><div class="cons">| `Wildcard <span class="keyword">of</span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div><div class="cons">| `WildcardNSEC <span class="keyword">of</span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> * <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Look up a DNS entry in the trie, with full return.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup_or_insert">
+  <a href="index.html#/val:lookup_or_insert" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup_or_insert : <a href="../../../../dns.0.13.0/_build/lib/name/">Name</a>.<a href="../../../../dns.0.13.0/_build/lib/name/#/type:key">key</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dnstrie">dnstrie</a> <span class="rarr"><span>-&gt;</span></span> ?parent:<a href="index.html#/type:dnstrie">dnstrie</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a>
+    
+      <div class="doc">
+        
+      <p>Return the data mapped from this key, making new data if there is none
+there yet.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fix_flags">
+  <a href="index.html#/val:fix_flags" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fix_flags : <a href="../../../../dns.0.13.0/_build/lib/name/">Name</a>.<a href="../../../../dns.0.13.0/_build/lib/name/#/type:key">key</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dnstrie">dnstrie</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sort out flags for a key's node: call after adding or removing NS, SOA and
+KEY RRs</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : (<a href="../../../../dns.0.13.0/_build/lib/RR/">RR</a>.<a href="../../../../dns.0.13.0/_build/lib/RR/#/type:dnsnode">dnsnode</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dnstrie">dnstrie</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Iterate over all of the nodes in the trie.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

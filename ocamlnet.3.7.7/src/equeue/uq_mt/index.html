@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Uq_mt</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Uq_mt</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Using engines in multi-threaded programs</h1>
+    </div>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Monitors can be used to coordinate access to a resource from several
+threads so that only one thread comes into contact with the resource.
+Of course, the resources we talk about must have an engine interface.
+For example, the resource could be an RPC client. In contrast to a
+critical section (protected with mutexes), the accesses are not
+serialized, but simply pushed onto the same event system, and run
+there concurrently. Effectively, the monitor translates heavy-weight
+threading (kernel threads) into light-weight threading (engines).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:monitor">
+  <a href="index.html#/type:monitor" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> monitor
+    
+      <div class="doc">
+        
+      <p>A thread monitor governs which threads have access to a set
+of engines running together on an event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_monitor">
+  <a href="index.html#/val:create_monitor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_monitor : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:monitor">monitor</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new monitor. The passed event system becomes the
+inner event system of the monitor. All engines attached to
+the monitor will use this event system.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:monitor_run">
+  <a href="index.html#/val:monitor_run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> monitor_run : <a href="index.html#/type:monitor">monitor</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>let result = monitor_run mon f outer_esys arg</code>:
+Runs another engine within the
+monitor. The engine <code>inner_e</code> is created as</p>
+      <pre><code>let inner_e = f inner_esys arg</code></pre>
+      <p>where <code>inner_esys</code> is the event system of the monitor. It is
+obligatory that <code>inner_e</code> uses this event system.</p>
+      
+      <p>When <code>inner_e</code> reaches a final state, the thread leaves the
+monitor, and the result of <code>inner_e</code> is returned (or the
+recorded exception is thrown).</p>
+      
+      <p>The &quot;special effect&quot; of the monitor is that several threads can
+share the same monitor, even at the same time. All parallel running
+engines <code>inner_e</code> will use the same event system <code>inner_esys</code>.
+Of course, this also means that they run in the same thread.
+Note that it is possible that the monitor switches the thread
+it uses for executing the event system (and the engines). In
+particular, this can happen when one of the inner engines finishes,
+and the thread that put this engine into the monitor was chosen
+as the thread for executing the event system. When this happens,
+another thread waiting for the monitor will be selected for
+running the event system.</p>
+      
+      <p>If an inner engine establishes configurations that are not bound
+to the lifetime of the inner engine, there is no guarantee that
+these additional events and handlers will be considered when the
+inner engine ends. For example, if the engine starts a timer to
+run an action later, it is not said that the action is carried
+out at all if the engine terminates before.</p>
+      
+      <p>Exceptions falling through to the caller of the event system
+are logged and otherwise ignored.</p>
+      
+      <p>It is possible to use monitors in single-threaded programs -
+this is treated as if only one thread was using the monitor in a
+multi-threaded program.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:monitor_do">
+  <a href="index.html#/val:monitor_do" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> monitor_do : <a href="index.html#/type:monitor">monitor</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>let result = monitor_do mon f arg</code>: Just runs <code>f arg</code> in the
+scope of the monitor, and returns the result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:monitor_async">
+  <a href="index.html#/val:monitor_async" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> monitor_async : <a href="index.html#/type:monitor">monitor</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> ((unit <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>let result = monitor_async f arg</code>: For calling RPC-style
+asynchronous clients. If <code>f</code> is called like <code>f arg emit</code>,
+the result is passed back by calling <code>emit (fun () -&gt; result)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:rpc_client">
+  <a href="index.html#/label:rpc_client" class="anchor">#</a>
+  
+    <h2 class="section level_2">Example: Threads sharing an RPC client</h2>
+    
+  </div>
+  
+      <p>In this example we want to achieve that several threads can use the
+same RPC client. This type of client is not thread-safe, but it is
+able to run asynchronously. Because of this, the requests coming from
+several threads can be concurrently handled.</p>
+      
+      <p>Prepare the RPC client and the monitor: We assume that <code>M_clnt</code> is
+the generated RPC module with the client, and that we access program
+<code>P</code> at version <code>V</code>.</p>
+      <pre><code>      let esys = Unixqueue.create_unix_event_system
+      let rpc = M_clnt.P.V.create_client ~esys connector protocol
+      let mon = Uq_mt.create_monitor esys</code></pre>
+      <p>It is essential that the RPC client and the monitor use the same
+<code>esys</code>.</p>
+      
+      <p>Next, let's assume we are in a spawned thread, and we want to
+call an RPC procedure <code>M_clnt.P.V.proc</code>. The trick here is to
+use the asynchronous variant <code>M_clnt.P.V.proc'async</code>, and to
+call it via the monitor:</p>
+      <pre><code>      let result = Uq_mt.monitor_async mon (M_clnt.P.V.proc'async rpc) arg</code></pre>
+      <p>The procedure is called with argument <code>arg</code> and returns the <code>result</code>.
+The monitor waits until the asynchronous call is done, so this appears
+as a synchronous call to the user.</p>
+      
+      <p>If you need to call functions to configure and control the RPC
+client, use <code>monitor_do</code>:</p>
+      <pre><code>      let sockaddr = Uq_mt.monitor_do mon Rpc_client.get_peer_name rpc</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

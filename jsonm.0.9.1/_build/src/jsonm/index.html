@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Jsonm</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Jsonm</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Non-blocking streaming JSON codec.</p>
+      
+      <p><code>Jsonm</code> is a non-blocking streaming codec to
+<a href="index.html#/label:decode">decode</a> and <a href="index.html#/label:encode">encode</a> the
+<a href="http://tools.ietf.org/html/rfc4627">JSON</a> data format. It can
+process JSON text without blocking on IO and without a complete
+in-memory representation of the data.</p>
+      
+      <p>The <a href="index.html#/module:Uncut">uncut codec</a> also processes whitespace and
+(non-standard) JSON with JavaScript comments.</p>
+      
+      <p>Consult the <a href="index.html#/label:datamodel">data model</a>, <a href="index.html#/label:limitations">limitations</a>
+and <a href="index.html#/label:examples">examples</a> of use.</p>
+      
+      <p><em>Version 0.9.1 - Daniel Bünzli &lt;daniel.buenzli at erratique.ch&gt;</em>
+</p>
+      <div class="region">
+    <h3 class="section level_3">References</h3>
+    </div>
+      <p>
+</p>
+      <ul><li>D. Crockford
+<em><a href="http://tools.ietf.org/html/rfc4627">JSON The application/json Media
+Type for JavaScript Object Notation (JSON)</a></em>, 2006.</li></ul>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:datamodel">
+  <a href="index.html#/label:datamodel" class="anchor">#</a>
+  
+    <h1 class="section level_1">JSON data model</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:lexeme">
+  <a href="index.html#/type:lexeme" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lexeme = [ <div class="cons">| `Null</div><div class="cons">| `Bool <span class="keyword">of</span> bool</div><div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Float <span class="keyword">of</span> float</div><div class="cons">| `Name <span class="keyword">of</span> string</div><div class="cons">| `As</div><div class="cons">| `Ae</div><div class="cons">| `Os</div><div class="cons">| `Oe</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for JSON lexemes. <code>`As</code> and <code>`Ae</code>
+start and end arrays and <code>`Os</code> and <code>`Oe</code> start
+and end objects. <code>`Name</code> is for the member names of objects.</p>
+      
+      <p>A <em>well-formed</em> sequence of lexemes belongs to the language of
+the <code>json</code> grammar:
+</p>
+      <pre><code>  json = object / array
+object = `Os *member `Oe
+member = (`Name s) value 
+ array = `As *value `Ae
+ value = `Null / `Bool b / `Float f / `String s / object / array  </code></pre>
+      <p>
+A <a href="index.html#/label:decode">decoder</a> returns only well-formed sequences of
+lexemes or <code>`Error</code>s are returned. The
+<a href="http://tools.ietf.org/html/rfc3629">UTF-8</a>,
+<a href="http://tools.ietf.org/html/rfc2781">UTF-16</a>, UTF-16LE and
+UTF-16BE encoding schemes are supported. The strings of decoded
+<code>`Name</code> and <code>`String</code> lexemes are however always UTF-8 encoded. In
+these strings, characters originally escaped in the input are in
+their unescaped representation.</p>
+      
+      <p>An <a href="index.html#/label:encode">encoder</a> accepts only well-formed sequences
+of lexemes or <code>Invalid_argument</code> is raised. Only the UTF-8
+encoding scheme is supported. The strings of encoded <code>`Name</code> and
+<code>`String</code> lexemes are assumed to be immutable and must be UTF-8
+encoded, this is <b>not</b> checked by the module. In these strings,
+the delimiter characters <code>U+0022</code> and <code>U+005C</code> (<code>'&quot;'</code>, <code>'\'</code>)
+aswell as the control characters <code>U+0000-U+001F</code> are automatically
+escaped by the encoders, as mandated by the standard.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_lexeme">
+  <a href="index.html#/val:pp_lexeme" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_lexeme : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:lexeme">lexeme</a></div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>pp_lexeme ppf l</code> prints a unspecified non-JSON representation of <code>l</code>
+on <code>ppf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:decode">
+  <a href="index.html#/label:decode" class="anchor">#</a>
+  
+    <h1 class="section level_1">Decode</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:error">
+  <a href="index.html#/type:error" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> error = [ <div class="cons">| `Illegal_BOM</div><div class="cons">| `Illegal_escape <span class="keyword">of</span> [ <div class="cons">| `Not_hex_uchar <span class="keyword">of</span> int</div><div class="cons">| `Not_esc_uchar <span class="keyword">of</span> int</div><div class="cons">| `Not_lo_surrogate <span class="keyword">of</span> int</div><div class="cons">| `Lone_lo_surrogate <span class="keyword">of</span> int</div><div class="cons">| `Lone_hi_surrogate <span class="keyword">of</span> int</div> ]</div><div class="cons">| `Illegal_string_uchar <span class="keyword">of</span> int</div><div class="cons">| `Illegal_bytes <span class="keyword">of</span> string</div><div class="cons">| `Illegal_literal <span class="keyword">of</span> string</div><div class="cons">| `Illegal_number <span class="keyword">of</span> string</div><div class="cons">| `Unclosed <span class="keyword">of</span> [ <div class="cons">| `As</div><div class="cons">| `Os</div><div class="cons">| `String</div><div class="cons">| `Comment</div> ]</div><div class="cons">| `Expected <span class="keyword">of</span> [ <div class="cons">| `Comment</div><div class="cons">| `Value</div><div class="cons">| `Name</div><div class="cons">| `Name_sep</div><div class="cons">| `Json</div><div class="cons">| `Eoi</div><div class="cons">| `Aval <span class="keyword">of</span> bool</div><div class="cons">| `Omem <span class="keyword">of</span> bool</div> ]</div> ]
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The type for decoding errors.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:pp_error">
+  <a href="index.html#/val:pp_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_error : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:error">error</a></div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>pp_error e</code> prints an unspecified UTF-8 representation of <code>e</code> on <code>ppf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:encoding">
+  <a href="index.html#/type:encoding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encoding = [ <div class="cons">| `UTF_8</div><div class="cons">| `UTF_16</div><div class="cons">| `UTF_16BE</div><div class="cons">| `UTF_16LE</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for Unicode encoding schemes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:src">
+  <a href="index.html#/type:src" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> src = [ <div class="cons">| `Channel <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a></div><div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Manual</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for input sources. With a <code>`Manual</code> source the client
+must provide input with <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:src">src</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:decoder">
+  <a href="index.html#/type:decoder" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> decoder
+    
+      <div class="doc">
+        
+      <p>The type for JSON decoders.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder">
+  <a href="index.html#/val:decoder" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder : ?encoding:[&lt; <div class="cons">| <a href="index.html#/type:encoding">encoding</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:src">src</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:decoder">decoder</a>
+    
+      <div class="doc">
+        
+      <p><code>decoder encoding src</code> is a JSON decoder that inputs from <code>src</code>.
+<code>encoding</code> specifies the character encoding of the data. If unspecified
+the encoding is guessed as
+<a href="http://tools.ietf.org/html/rfc4627#section-3">suggested</a> by
+the standard.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decode">
+  <a href="index.html#/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Await</div><div class="cons">| `Lexeme <span class="keyword">of</span> <a href="index.html#/type:lexeme">lexeme</a></div><div class="cons">| `End</div><div class="cons">| `Error <span class="keyword">of</span> <a href="index.html#/type:error">error</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>decode d</code> is:
+</p>
+      <ul><li><code>`Await</code> if <code>d</code> has a <code>`Manual</code> source and awaits for more input.
+The client must use <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:src">src</a> to provide it.</li><li><code>`Lexeme l</code> if a lexeme <code>l</code> was decoded.</li><li><code>`End</code> if the end of input was reached.</li><li><code>`Error e</code> if a decoding error occured. If the client is interested
+in a best-effort decoding it can still continue to decode
+after an error (see <a href="index.html#/label:errorrecovery">errorrecovery</a>) although the resulting sequence
+of <code>`Lexeme</code>s is undefined and may not be well-formed.</li></ul>
+      <p>The <a href="index.html#/module:Uncut">Uncut</a>.<a href="index.html#/module:Uncut/val:pp_decode">pp_decode</a> function can be used to inspect decode results.</p>
+      
+      <p><b>Note.</b> Repeated invocation always eventually returns <code>`End</code>, even
+in case of errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoded_range">
+  <a href="index.html#/val:decoded_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoded_range : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> (int * int) * (int * int)
+    
+      <div class="doc">
+        
+      <p><code>decoded_range d</code> is the range of characters spanning the last
+<code>`Lexeme</code> or <code>`Error</code> (or <code>`White</code> or <code>`Comment</code> for an
+<a href="index.html#/module:Uncut">Uncut</a>.<a href="index.html#/module:Uncut/val:decode">decode</a>) decoded by <code>d</code>. A pair of line and column numbers
+respectively one and zero based.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_encoding">
+  <a href="index.html#/val:decoder_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_encoding : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a>
+    
+      <div class="doc">
+        
+      <p><code>decoder_encoding d</code> is <code>d</code>'s encoding.</p>
+      
+      <p><b>Warning.</b> If the decoder guesses the encoding, rely on this
+value only after the first <code>`Lexeme</code> was decoded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_src">
+  <a href="index.html#/val:decoder_src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_src : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:src">src</a>
+    
+      <div class="doc">
+        
+      <p><code>decoder_src d</code> is <code>d</code>'s input source.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:encode">
+  <a href="index.html#/label:encode" class="anchor">#</a>
+  
+    <h1 class="section level_1">Encode</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:dst">
+  <a href="index.html#/type:dst" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> dst = [ <div class="cons">| `Channel <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a></div><div class="cons">| `Buffer <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a></div><div class="cons">| `Manual</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for output destinations. With a <code>`Manual</code> destination the
+client must provide output storage with <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst">dst</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:encoder">
+  <a href="index.html#/type:encoder" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encoder
+    
+      <div class="doc">
+        
+      <p>The type for JSON encoders.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoder">
+  <a href="index.html#/val:encoder" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoder : ?minify:bool <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:dst">dst</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoder">encoder</a>
+    
+      <div class="doc">
+        
+      <p><code>encoder minify dst</code> is an encoder that outputs to <code>dst</code>. If
+<code>minify</code> is <code>true</code> (default) the output is made as compact as
+possible, otherwise the output is indented. If you want better
+control on whitespace use <code>minify = true</code> and <a href="index.html#/module:Uncut">Uncut</a>.<a href="index.html#/module:Uncut/val:encode">encode</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode">
+  <a href="index.html#/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| `Await</div><div class="cons">| `End</div><div class="cons">| `Lexeme <span class="keyword">of</span> <a href="index.html#/type:lexeme">lexeme</a></div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Ok</div><div class="cons">| `Partial</div> ]
+    
+      <div class="doc">
+        
+      <p><code>encode e v</code> is:
+</p>
+      <ul><li><code>`Partial</code> iff <code>e</code> has a <code>`Manual</code> destination and needs more
+output storage. The client must use <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst">dst</a> to provide
+a new buffer and then call <a href="index.html#/label:encode">encode</a> with <code>`Await</code> until <code>`Ok</code>
+is returned.</li><li><code>`Ok</code> when the encoder is ready to encode a new <code>`Lexeme</code>
+or <code>`End</code>.</li></ul>
+      <p>
+For <code>`Manual</code> destinations, encoding <code>`End</code> always returns <code>`Partial</code>,
+the client should as usual use <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst">dst</a> and continue with <code>`Await</code>
+until <code>`Ok</code> is returned at which point <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst_rem">dst_rem</a> <code>e</code> is guaranteed
+to be the size of the last provided buffer (i.e. nothing was written).</p>
+      
+      <p><b>Raises.</b> <code>Invalid_argument</code> if a non <a href="index.html#/label:datamodel">well-formed</a>
+sequence of lexemes is encoded or if <code>`Lexeme</code> or <code>`End</code> is
+encoded after a <code>`Partial</code> encode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoder_dst">
+  <a href="index.html#/val:encoder_dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoder_dst : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dst">dst</a>
+    
+      <div class="doc">
+        
+      <p><code>encoder_dst e</code> is <code>e</code>'s output destination.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoder_minify">
+  <a href="index.html#/val:encoder_minify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoder_minify : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>encoder_minify e</code> is <code>true</code> if <code>e</code>'s output is minified.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:manual">
+  <a href="index.html#/label:manual" class="anchor">#</a>
+  
+    <h1 class="section level_1">Manual sources and destinations</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Manual">
+  <a href="index.html#/module:Manual" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Manual : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Manual input sources and output destinations.</p>
+      
+      <p><b>Warning.</b> Use only with <code>`Manual</code> decoders and encoders.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Manual/val:src">
+  <a href="index.html#/module:Manual/val:src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> src : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>src d s j l</code> provides <code>d</code> with <code>l</code> bytes to read, starting
+at <code>j</code> in <code>s</code>. This byte range is read by calls to <a href="index.html#/label:decode">decode</a> until
+<code>`Await</code> is returned. To signal the end of input call the function
+with <code>l = 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Manual/val:dst">
+  <a href="index.html#/module:Manual/val:dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dst : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>dst e s j l</code> provides <code>e</code> with <code>l</code> bytes to write, starting
+at <code>j</code> in <code>s</code>. This byte rang is written by calls to <a href="index.html#/label:encode">encode</a> with <code>e</code>
+until <code>`Partial</code> is returned. Use <a href="index.html#/module:Manual/val:dst_rem">dst_rem</a> to know the remaining
+number of non-written free bytes in <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Manual/val:dst_rem">
+  <a href="index.html#/module:Manual/val:dst_rem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dst_rem : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>dst_rem e</code> is the remaining number of non-written, free bytes
+in the last buffer provided with <a href="index.html#/module:Manual/val:dst">dst</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:uncut">
+  <a href="index.html#/label:uncut" class="anchor">#</a>
+  
+    <h1 class="section level_1">Uncut codec</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Uncut">
+  <a href="index.html#/module:Uncut" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Uncut : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Codec with comments and whitespace.</p>
+      
+      <p>The uncut codec also processes whitespace and JavaScript
+comments. The latter is non-standard JSON, fail on <code>`Comment</code>
+decoding if you want to process whitespace but stick to the standard.</p>
+      
+      <p>The uncut codec preserves as much of the original input as
+possible. Perfect round-trip with <code>Jsonm</code> is however impossible for
+the following reasons:
+</p>
+      <ul><li>Escapes unescaped by the decoder may not be escaped or escaped
+differently by the encoder.</li><li>The encoder automatically inserts name separator <code>':'</code> and
+value separators <code>&quot;,&quot;</code>. If you just reencode the sequence of
+decodes, whitespace and comments may (harmlessly, but significantly)
+commute with these separators.</li><li>Internally the encoder uses <code>U+000A</code> (<code>'\n'</code>) for newlines.</li><li><code>`Float</code> lexemes may be rewritten differently by the encoder.</li></ul>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/module:Uncut/label:uncutdatamodel">
+  <a href="index.html#/module:Uncut/label:uncutdatamodel" class="anchor">#</a>
+  
+    <h1 class="section level_1">Uncut data model</h1>
+    
+  </div>
+  
+      <p>The uncut data model is the same as the regular
+<a href="index.html#/label:datamodel">data model</a>, except that before or after any lexeme
+you may decode/encode one or more:
+</p>
+      <ul><li><code>`White w</code>, representing JSON whitespace <code>w</code>. On input
+the sequence CR (<code>U+000D</code>) and CRLF (&lt;<code>U+000A</code>, <code>U+000A</code>&gt;)
+are normalized to <code>U+000A</code>. The string <code>w</code> must be
+a sequence of <code>U+0020</code>, <code>U+0009</code>, <code>U+000A</code> or <code>U+000D</code>
+characters (<code>' '</code>, <code>'\t'</code>, <code>'\n'</code>, <code>'\r'</code>).</li><li><code>`Comment (`S, c)</code>, representing a JavaScript single line
+comment <code>c</code>. <code>c</code> is the comment's content without the starting
+<code>//</code> and the ending newline. The string <code>c</code> must not contain any newline.</li><li><code>`Comment (`M, c)</code>, representing a JavaScript multi-line
+comment <code>c</code>. <code>c</code> is the comment's content without the starting
+<code>/*</code> and the ending <code>*/</code>. The string <code>c</code> must not contain the
+sequence <code>*/</code>.</li></ul>
+      <p><b>Warning.</b> <a href="index.html#/module:Uncut">Uncut</a>.<a href="index.html#/module:Uncut/val:encode">encode</a> does not check the above constraints on
+<code>w</code> and <code>c</code>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Decode</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Uncut/val:decode">
+  <a href="index.html#/module:Uncut/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Await</div><div class="cons">| `Lexeme <span class="keyword">of</span> <a href="index.html#/type:lexeme">lexeme</a></div><div class="cons">| `White <span class="keyword">of</span> string</div><div class="cons">| `Comment <span class="keyword">of</span> [ <div class="cons">| `S</div><div class="cons">| `M</div> ] * string</div><div class="cons">| `End</div><div class="cons">| `Error <span class="keyword">of</span> <a href="index.html#/type:error">error</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>decode d</code> is like <a href="../../../../jsonm.0.9.1/_build/src/jsonm/">Jsonm</a>.<a href="../../../../jsonm.0.9.1/_build/src/jsonm/#/label:decode">decode</a> but for the
+<a href="index.html#/module:Uncut/label:uncutdatamodel">uncut data model</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Uncut/val:pp_decode">
+  <a href="index.html#/module:Uncut/val:pp_decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_decode : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| `Await</div><div class="cons">| `Lexeme <span class="keyword">of</span> <a href="index.html#/type:lexeme">lexeme</a></div><div class="cons">| `White <span class="keyword">of</span> string</div><div class="cons">| `Comment <span class="keyword">of</span> [ <div class="cons">| `S</div><div class="cons">| `M</div> ] * string</div><div class="cons">| `End</div><div class="cons">| `Error <span class="keyword">of</span> <a href="index.html#/type:error">error</a></div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>pp_decode ppf v</code> prints an unspecified representation of <code>v</code>
+on <code>ppf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Encode</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Uncut/val:encode">
+  <a href="index.html#/module:Uncut/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| `Await</div><div class="cons">| `Lexeme <span class="keyword">of</span> <a href="index.html#/type:lexeme">lexeme</a></div><div class="cons">| `White <span class="keyword">of</span> string</div><div class="cons">| `Comment <span class="keyword">of</span> [ <div class="cons">| `S</div><div class="cons">| `M</div> ] * string</div><div class="cons">| `End</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Ok</div><div class="cons">| `Partial</div> ]
+    
+      <div class="doc">
+        
+      <p><code>encode</code> is like <a href="../../../../jsonm.0.9.1/_build/src/jsonm/">Jsonm</a>.<a href="../../../../jsonm.0.9.1/_build/src/jsonm/#/label:encode">encode</a> but for the <a href="index.html#/module:Uncut/label:uncutdatamodel">uncut data model</a>.</p>
+      
+      <p><b>IMPORTANT.</b> Never encode <code>`Comment</code> for the web, it is
+non-standard and breaks interoperability.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:limitations">
+  <a href="index.html#/label:limitations" class="anchor">#</a>
+  
+    <h1 class="section level_1">Limitations</h1>
+    
+  </div>
+  <div class="region">
+    <h2 class="section level_2">Decode</h2>
+    </div>
+      <p>Decoders parse valid JSON with the following limitations:
+</p>
+      <ul><li>JSON numbers are represented with OCaml <code>float</code> values.
+This means that it can only represent integers exactly
+in the in the interval [-2<sup>53</sup>;2<sup>53</sup>]. This is equivalent
+to the contraints JavaScript has.</li><li>A superset of JSON numbers is parsed. After having seen a minus
+or a digit, including zero, <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/val:float_of_string">float_of_string</a>, is
+used. In particular this parses number with leading zeros, which are
+specifically prohibited by the standard.</li><li>Strings returned by <code>`String</code>, <code>`Name</code>, <code>`White</code> and <code>`Comment</code>
+are limited by <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:max_string_length">max_string_length</a>. There is no built-in
+protection against the fact that the internal OCaml <code>Buffer.t</code>
+value may raise <code>Failure</code> on <a href="../../../../jsonm.0.9.1/_build/src/jsonm/">Jsonm</a>.<a href="../../../../jsonm.0.9.1/_build/src/jsonm/#/label:decode">decode</a>. This should
+however only be a problem on 32-bits platforms if your
+strings are greater than 16Mo.</li></ul>
+      <p>Position tracking assumes that each decoded Unicode scalar value
+has a column width of 1. The same assumption may not be made by
+the display program (e.g. for <code>emacs</code>' compilation mode you need
+to set <code>compilation-error-screen-columns</code> to <code>nil</code>).</p>
+      
+      <p>The newlines LF (<code>U+000A</code>), CR (<code>U+000D</code>), and CRLF are all normalized
+to LF internally. This may have an impact in some corner <code>`Error</code>
+cases. For example the invalid escape sequence <code>&lt;U+005C,U+000D&gt;</code> in
+a string will be reported as being <code>`Illegal_escape (`Not_esc_uchar
+    0x000A)</code>.</p>
+      <div class="region">
+    <h2 class="section level_2">Encode</h2>
+    </div>
+      <p>Encoders produce valid JSON provided the <em>client</em> ensures that
+the following holds.
+</p>
+      <ul><li>All the strings given to the encoder must be valid UTF-8 and immutable.
+Characters that need to be escaped are automatically escaped by <code>Jsonm</code>.</li><li><code>`Float</code> lexemes must not be, <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/val:nan">nan</a>,
+<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/val:infinity">infinity</a> or <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/val:neg_infinity">neg_infinity</a>. They
+are encoded with the format string <code>&quot;%.16g&quot;</code>, this allows
+to roundtrip all the integers that can be precisely represented
+in OCaml <code>float</code> values, i.e. the integers in the interval
+[-2<sup>53</sup>;2<sup>53</sup>]. This is equivalent to the constraints
+JavaScript has.</li><li>If the <a href="index.html#/module:Uncut">uncut</a> codec is used <code>`White</code> must be made
+of <a href="index.html#/module:Uncut/label:uncutdatamodel">JSON whitespace</a> and <code>`Comment</code>
+must never be encoded.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        
+  <div class="region" id="/label:errorrecovery">
+  <a href="index.html#/label:errorrecovery" class="anchor">#</a>
+  
+    <h1 class="section level_1">Error recovery</h1>
+    
+  </div>
+  
+      <p>After a decoding error, if best-effort decoding is performed. The following
+happens before continuing:
+</p>
+      <ul><li><code>`Illegal_BOM</code>, the initial
+<a href="http://unicode.org/glossary/#byte_order_mark">BOM</a> is skipped.</li><li><code>`Illegal_bytes</code>, <code>`Illegal_escape</code>, <code>`Illegal_string_uchar</code>, a
+Unicode
+<a href="http://unicode.org/glossary/#replacement_character">replacement
+character</a> (<code>U+FFFD</code>) is substituted to the illegal sequence.</li><li><code>`Illegal_literal</code>, <code>`Illegal_number</code> the corresponding
+<code>`Lexeme</code> is skipped.</li><li><code>`Expected r</code>, input is discarded until a synchronyzing lexeme
+that depends on <code>r</code> is found.</li><li><code>`Unclosed</code>, the end of input is reached, further decodes will be
+<code>`End</code></li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        
+  <div class="region" id="/label:examples">
+  <a href="index.html#/label:examples" class="anchor">#</a>
+  
+    <h1 class="section level_1">Examples</h1>
+    
+  </div>
+  
+  <div class="region" id="/label:filter">
+  <a href="index.html#/label:filter" class="anchor">#</a>
+  
+    <h2 class="section level_2">Trip</h2>
+    
+  </div>
+  
+      <p>The result of <code>trip src dst</code> has the JSON from <code>src</code> written on <code>dst</code>.
+</p>
+      <pre><code>let trip ?encoding ?minify 
+    (src : [`Channel of in_channel | `String of string])
+    (dst : [`Channel of out_channel | `Buffer of Buffer.t])
+  = 
+  let rec loop d e = match Jsonm.decode d with 
+  | `Lexeme _ as v -&gt; ignore (Jsonm.encode e v); loop d e 
+  | `End -&gt; ignore (Jsonm.encode e `End); `Ok
+  | `Error err -&gt; `Error (Jsonm.decoded_range d, err)
+  | `Await -&gt; assert false
+  in
+  let d = Jsonm.decoder ?encoding src in 
+  let e = Jsonm.encoder ?minify dst in
+  loop d e</code></pre>
+      <p>
+Using the <code>`Manual</code> interface, <code>trip_fd</code> does the same but between Unix
+file descriptors.
+</p>
+      <pre><code>let trip_fd ?encoding ?minify
+    (fdi : Unix.file_descr) 
+    (fdo : Unix.file_descr) 
+  = 
+  let rec encode fd s e v = match Jsonm.encode e v with `Ok -&gt; () 
+  | `Partial -&gt; 
+      let rec unix_write fd s j l = 
+        let rec write fd s j l = try Unix.single_write fd s j l with 
+        | Unix.Unix_error (Unix.EINTR, _, _) -&gt; write fd s j l 
+        in
+        let wc = write fd s j l in 
+        if wc &lt; l then unix_write fd s (j + wc) (l - wc) else ()
+      in
+      unix_write fd s 0 (String.length s - Jsonm.Manual.dst_rem e); 
+      Jsonm.Manual.dst e s 0 (String.length s);
+      encode fd s e `Await
+  in
+  let rec loop fdi fdo ds es d e = match Jsonm.decode d with 
+  | `Lexeme _ as v -&gt; encode fdo es e v; loop fdi fdo ds es d e 
+  | `End -&gt; encode fdo es e `End; `Ok
+  | `Error err -&gt; `Error (Jsonm.decoded_range d, err)
+  | `Await -&gt;
+      let rec unix_read fd s j l = try Unix.read fd s j l with 
+      | Unix.Unix_error (Unix.EINTR, _, _) -&gt; unix_read fd s j l 
+      in
+      let rc = unix_read fdi ds 0 (String.length ds) in 
+      Jsonm.Manual.src d ds 0 rc; loop fdi fdo ds es d e 
+  in
+  let ds = String.create 65536 (* UNIX_BUFFER_SIZE in 4.0.0 *) in
+  let es = String.create 65536 (* UNIX_BUFFER_SIZE in 4.0.0 *) in
+  let d = Jsonm.decoder ?encoding `Manual in 
+  let e = Jsonm.encoder ?minify `Manual in
+  Jsonm.Manual.dst e es 0 (String.length es);
+  loop fdi fdo ds es d e</code></pre>
+      <p>
+</p>
+      
+  <div class="region" id="/label:memsel">
+  <a href="index.html#/label:memsel" class="anchor">#</a>
+  
+    <h2 class="section level_2">Member selection</h2>
+    
+  </div>
+  
+      <p>The result of <code>memsel names src</code> is the list of string values of
+members of <code>src</code> that have their name in <code>names</code>. In this example,
+decoding errors are silently ignored.
+</p>
+      <pre><code>let memsel ?encoding names 
+    (src : [`Channel of in_channel | `String of string])
+  = 
+  let rec loop acc names d = match Jsonm.decode d with 
+  | `Lexeme (`Name n) when List.mem n names -&gt; 
+      begin match Jsonm.decode d with 
+      | `Lexeme (`String s) -&gt; loop (s :: acc) names d
+      | _ -&gt; loop acc names d
+      end
+  | `Lexeme _ | `Error _ -&gt; loop acc names d
+  | `End -&gt; List.rev acc 
+  | `Await -&gt; assert false
+  in
+  loop [] names (Jsonm.decoder ?encoding src)</code></pre>
+  <div class="region" id="/label:tree">
+  <a href="index.html#/label:tree" class="anchor">#</a>
+  
+    <h2 class="section level_2">Generic JSON representation</h2>
+    
+  </div>
+  
+      <p>A generic OCaml representation of JSON text is the following one.
+</p>
+      <pre><code>type json = 
+  [ `Null | `Bool of bool | `Float of float| `String of string
+  | `A of json list | `O of (string * json) list ]</code></pre>
+      <p>
+The result of <code>json_of_src src</code> is the JSON text from <code>src</code> in this
+representation. The function is tail recursive.
+</p>
+      <pre><code>exception Escape of ((int * int) * (int * int)) * Jsonm.error
+
+let json_of_src ?encoding 
+    (src : [`Channel of in_channel | `String of string])
+  =
+  let dec d = match Jsonm.decode d with 
+  | `Lexeme l -&gt; l
+  | `Error e -&gt; raise (Escape (Jsonm.decoded_range d, e))
+  | `End | `Await -&gt; assert false
+  in
+  let rec value v k d = match v with 
+  | `Os -&gt; obj [] k d  | `As -&gt; arr [] k d
+  | `Null | `Bool _ | `String _ | `Float _ as v -&gt; k v d 
+  | _ -&gt; assert false
+  and arr vs k d = match dec d with 
+  | `Ae -&gt; k (`A (List.rev vs)) d
+  | v -&gt; value v (fun v -&gt; arr (v :: vs) k) d
+  and obj ms k d = match dec d with 
+  | `Oe -&gt; k (`O (List.rev ms)) d
+  | `Name n -&gt; value (dec d) (fun v -&gt; obj ((n, v) :: ms) k) d
+  | _ -&gt; assert false
+  in
+  let d = Jsonm.decoder ?encoding src in
+  try `JSON (value (dec d) (fun v _ -&gt; v) d) with 
+  | Escape (r, e) -&gt; `Error (r, e)</code></pre>
+      <p>
+The result of <code>json_to_dst dst json</code> has the JSON text <code>json</code> written
+on <code>dst</code>. The function is tail recursive.
+</p>
+      <pre><code>let json_to_dst ~minify 
+    (dst : [`Channel of out_channel | `Buffer of Buffer.t ]) 
+    (json : json)
+  =
+  let enc e l = ignore (Jsonm.encode e (`Lexeme l)) in
+  let rec value v k e = match v with 
+  | `A vs -&gt; arr vs k e 
+  | `O ms -&gt; obj ms k e 
+  | `Null | `Bool _ | `Float _ | `String _ as v -&gt; enc e v; k e
+  and arr vs k e = enc e `As; arr_vs vs k e
+  and arr_vs vs k e = match vs with 
+  | v :: vs' -&gt; value v (arr_vs vs' k) e 
+  | [] -&gt; enc e `Ae; k e
+  and obj ms k e = enc e `Os; obj_ms ms k e
+  and obj_ms ms k e = match ms with 
+  | (n, v) :: ms -&gt; enc e (`Name n); value v (obj_ms ms k) e
+  | [] -&gt; enc e `Oe; k e
+  in
+  let e = Jsonm.encoder ~minify dst in
+  let finish e = ignore (Jsonm.encode e `End) in
+  match json with `A _ | `O _ as json -&gt; value json finish e
+  | _ -&gt; invalid_arg &quot;invalid json text&quot;</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

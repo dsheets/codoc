@@ -1,0 +1,2466 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Ctypes</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Ctypes</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The core ctypes module.</p>
+      
+      <p>The main points of interest are the set of functions for describing C
+types (see <a href="index.html#/label:types">types</a>) and the set of functions for accessing C values (see
+<a href="index.html#/label:values">values</a>). The <a href="../../../../../ctypes.0.3.4/_build/src/ctypes-foreign-threaded/foreign/">Foreign</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes-foreign-threaded/foreign/#/val:foreign">foreign</a> function uses C type descriptions
+to bind external C values.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:types">
+  <a href="index.html#/label:types" class="anchor">#</a>
+  
+    <h2 class="section level_2">Values representing C types</h2>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:typ">
+  <a href="index.html#/type:typ" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a typ = 'a <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/">Static</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>The type of values representing C types. There are two types associated
+with each <code>typ</code> value: the C type used to store and pass values, and the
+corresponding OCaml type. The type parameter indicates the OCaml type, so a
+value of type <code>t typ</code> is used to read and write OCaml values of type <code>t</code>.
+There are various uses of <code>typ</code> values, including</p>
+      <ul><li>constructing function types for binding native functions using
+<a href="../../../../../ctypes.0.3.4/_build/src/ctypes-foreign-threaded/foreign/">Foreign</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes-foreign-threaded/foreign/#/val:foreign">foreign</a></li></ul><ul><li>constructing pointers for reading and writing locations in C-managed
+storage using <a href="index.html#/type:ptr">ptr</a></li></ul><ul><li>describing the fields of structured types built with <a href="index.html#/type:structure">structure</a> and
+<a href="index.html#/type:union">union</a>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">The void type</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:void">
+  <a href="index.html#/val:void" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> void : unit <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C void type. Void values appear in OCaml as the
+unit type, so using void in an argument or result type specification
+produces a function which accepts or returns unit.</p>
+      
+      <p>Dereferencing a pointer to void is an error, as in C, and will raise
+<a href="index.html#/exn:IncompleteType">IncompleteType</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Scalar types</h3>
+    </div>
+      <p>The scalar types consist of the <a href="index.html#/label:arithmetic_types">arithmetic_types</a> and the <a href="index.html#/label:pointer_types">pointer_types</a>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+  <div class="region" id="/label:arithmetic_types">
+  <a href="index.html#/label:arithmetic_types" class="anchor">#</a>
+  
+    <h4 class="section level_4">Arithmetic types</h4>
+    
+  </div>
+  
+      <p>The arithmetic types consist of the signed and unsigned integer types
+(including character types) and the floating types. There are values
+representing both exact-width integer types (of 8, 16, 32 and 64 bits) and
+types whose size depend on the platform (signed and unsigned short, int, long,
+long long).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:char">
+  <a href="index.html#/val:char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> char : char <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>char</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h5 class="section level_5">Signed integer types</h5>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:schar">
+  <a href="index.html#/val:schar" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> schar : int <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>signed char</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:short">
+  <a href="index.html#/val:short" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> short : int <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type (<code>signed</code>) <code>short</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int">
+  <a href="index.html#/val:int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int : int <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type (<code>signed</code>) <code>int</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:long">
+  <a href="index.html#/val:long" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> long : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/signed/">Signed</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/signed/#/type:long">long</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type (<code>signed</code>) <code>long</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:llong">
+  <a href="index.html#/val:llong" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> llong : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/signed/">Signed</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/signed/#/type:llong">llong</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type (<code>signed</code>) <code>long long</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nativeint">
+  <a href="index.html#/val:nativeint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nativeint : nativeint <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type (<code>signed</code>) <code>int</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int8_t">
+  <a href="index.html#/val:int8_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int8_t : int <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing an 8-bit signed integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int16_t">
+  <a href="index.html#/val:int16_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int16_t : int <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing a 16-bit signed integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int32_t">
+  <a href="index.html#/val:int32_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int32_t : int32 <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing a 32-bit signed integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int64_t">
+  <a href="index.html#/val:int64_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int64_t : int64 <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing a 64-bit signed integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:camlint">
+  <a href="index.html#/val:camlint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> camlint : int <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing an integer type with the same storage requirements as
+an OCaml <code>int</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h5 class="section level_5">Unsigned integer types</h5>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:uchar">
+  <a href="index.html#/val:uchar" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uchar : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:uchar">uchar</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>unsigned char</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uint8_t">
+  <a href="index.html#/val:uint8_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uint8_t : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:uint8">uint8</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing an 8-bit unsigned integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uint16_t">
+  <a href="index.html#/val:uint16_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uint16_t : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:uint16">uint16</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing a 16-bit unsigned integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uint32_t">
+  <a href="index.html#/val:uint32_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uint32_t : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:uint32">uint32</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing a 32-bit unsigned integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uint64_t">
+  <a href="index.html#/val:uint64_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uint64_t : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:uint64">uint64</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing a 64-bit unsigned integer C type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:size_t">
+  <a href="index.html#/val:size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> size_t : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:size_t">size_t</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>size_t</code>, an alias for one of the unsigned
+integer types. The actual size and alignment requirements for <code>size_t</code>
+vary between platforms.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ushort">
+  <a href="index.html#/val:ushort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ushort : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:ushort">ushort</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>unsigned short</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uint">
+  <a href="index.html#/val:uint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uint : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:uint">uint</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>unsigned int</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ulong">
+  <a href="index.html#/val:ulong" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ulong : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:ulong">ulong</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>unsigned long</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ullong">
+  <a href="index.html#/val:ullong" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ullong : <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/">Unsigned</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/unsigned/#/type:ullong">ullong</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>unsigned long long</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h5 class="section level_5">Floating types</h5>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:float">
+  <a href="index.html#/val:float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float : float <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C single-precision <code>float</code> type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:double">
+  <a href="index.html#/val:double" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> double : float <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C type <code>double</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h5 class="section level_5">Complex types</h5>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:complex32">
+  <a href="index.html#/val:complex32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> complex32 : <a href="../../../../../ocaml.4.02.1+doc/stdlib/complex/">Complex</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/complex/#/type:t">t</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C99 single-precision <code>float complex</code> type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:complex64">
+  <a href="index.html#/val:complex64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> complex64 : <a href="../../../../../ocaml.4.02.1+doc/stdlib/complex/">Complex</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/complex/#/type:t">t</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the C99 double-precision <code>double complex</code> type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:pointer_types">
+  <a href="index.html#/label:pointer_types" class="anchor">#</a>
+  
+    <h4 class="section level_4">Pointer types</h4>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:pointer">
+  <a href="index.html#/type:pointer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b) pointer = ('a, 'b) <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/">Static</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/#/type:pointer">pointer</a>
+    
+      <div class="doc">
+        
+      <p>The type of pointer values. A value of type <code>('a, [`C]) pointer</code> contains
+a C-compatible pointer, and a value of type <code>('a, [`OCaml]) pointer</code>
+contains a pointer to a value that can be moved by OCaml runtime.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">C-compatible pointers</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:ptr">
+  <a href="index.html#/type:ptr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a ptr = ('a, [ <div class="cons">| `C</div> ]) <a href="index.html#/type:pointer">pointer</a>
+    
+      <div class="doc">
+        
+      <p>The type of C-compatible pointer values. A value of type <code>t ptr</code> can be
+used to read and write values of type <code>t</code> at particular addresses.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ptr">
+  <a href="index.html#/val:ptr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ptr : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Construct a pointer type from an existing type (called the <i>reference
+type</i>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ptr_opt">
+  <a href="index.html#/val:ptr_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ptr_opt : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a> option <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Construct a pointer type from an existing type (called the <i>reference
+type</i>). This behaves like <a href="index.html#/type:ptr">ptr</a>, except that null pointers appear in OCaml
+as <code>None</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string">
+  <a href="index.html#/val:string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string : string <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>A high-level representation of the string type.</p>
+      
+      <p>On the C side this behaves like <code>char *</code>; on the OCaml side values read
+and written using <a href="index.html#/val:string">string</a> are simply native OCaml strings.</p>
+      
+      <p>To avoid problems with the garbage collector, values passed using
+<a href="index.html#/val:string">string</a> are copied into immovable C-managed storage before being passed
+to C.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_opt">
+  <a href="index.html#/val:string_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_opt : string option <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>A high-level representation of the string type. This behaves like <a href="index.html#/val:string">string</a>,
+except that null pointers appear in OCaml as <code>None</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">OCaml pointers</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:ocaml">
+  <a href="index.html#/type:ocaml" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a ocaml = 'a <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/">Static</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/#/type:ocaml">ocaml</a>
+    
+      <div class="doc">
+        
+      <p>The type of pointer values pointing directly into OCaml values.
+<b>Pointers of this type should never be captured by external code</b>.
+In particular, functions accepting <code>'a ocaml</code> pointers must not invoke
+any OCaml code.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ocaml_string">
+  <a href="index.html#/val:ocaml_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ocaml_string : string <a href="index.html#/type:ocaml">ocaml</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the directly mapped storage of an OCaml string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ocaml_bytes">
+  <a href="index.html#/val:ocaml_bytes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ocaml_bytes : <a href="../../../../../ocaml.4.02.1+doc/stdlib/bytes/">Bytes</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/bytes/#/type:t">t</a> <a href="index.html#/type:ocaml">ocaml</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Value representing the directly mapped storage of an OCaml byte array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Array types</h3>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">C array types</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:carray">
+  <a href="index.html#/type:carray" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a carray
+    
+      <div class="doc">
+        
+      <p>The type of C array values. A value of type <code>t carray</code> can be used to read
+and write array objects in C-managed storage.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:array">
+  <a href="index.html#/val:array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> array : int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:carray">carray</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Construct a sized array type from a length and an existing type (called
+the <i>element type</i>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">Bigarray types</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:bigarray_class">
+  <a href="index.html#/type:bigarray_class" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> _ bigarray_class
+    
+      <div class="doc">
+        
+      <p>The type of Bigarray classes. There are four instances, one for each of
+the Bigarray submodules.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:genarray">
+  <a href="index.html#/val:genarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> genarray : &lt; element : 'a; ba_repr : 'b; bigarray : ('a, 'b, <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:c_layout">c_layout</a>) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Genarray">Genarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Genarray/type:t">t</a>; carray : 'a <a href="index.html#/type:carray">carray</a>; dims : int array &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a>
+    
+      <div class="doc">
+        
+      <p>The class of <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Genarray">Genarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Genarray/type:t">t</a> values</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:array1">
+  <a href="index.html#/val:array1" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> array1 : &lt; element : 'a; ba_repr : 'b; bigarray : ('a, 'b, <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:c_layout">c_layout</a>) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1">Array1</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1/type:t">t</a>; carray : 'a <a href="index.html#/type:carray">carray</a>; dims : int &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a>
+    
+      <div class="doc">
+        
+      <p>The class of <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1">Array1</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1/type:t">t</a> values</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:array2">
+  <a href="index.html#/val:array2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> array2 : &lt; element : 'a; ba_repr : 'b; bigarray : ('a, 'b, <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:c_layout">c_layout</a>) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array2">Array2</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array2/type:t">t</a>; carray : 'a <a href="index.html#/type:carray">carray</a> <a href="index.html#/type:carray">carray</a>; dims : int * int &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a>
+    
+      <div class="doc">
+        
+      <p>The class of <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array2">Array2</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array2/type:t">t</a> values</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:array3">
+  <a href="index.html#/val:array3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> array3 : &lt; element : 'a; ba_repr : 'b; bigarray : ('a, 'b, <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:c_layout">c_layout</a>) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array3">Array3</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array3/type:t">t</a>; carray : 'a <a href="index.html#/type:carray">carray</a> <a href="index.html#/type:carray">carray</a> <a href="index.html#/type:carray">carray</a>; dims : int * int * int &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a>
+    
+      <div class="doc">
+        
+      <p>The class of <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array3">Array3</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array3/type:t">t</a> values</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bigarray">
+  <a href="index.html#/val:bigarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bigarray : &lt; element : 'a; ba_repr : 'b; dims : 'dims; bigarray : 'bigarray; carray : _ &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a> <span class="rarr"><span>-&gt;</span></span> 'dims <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:kind">kind</a> <span class="rarr"><span>-&gt;</span></span> 'bigarray <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Construct a sized bigarray type representation from a bigarray class, the
+dimensions, and the <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:kind">kind</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:typ_of_bigarray_kind">
+  <a href="index.html#/val:typ_of_bigarray_kind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> typ_of_bigarray_kind : ('a, 'b) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:kind">kind</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p><code>typ_of_bigarray_kind k</code> is the type corresponding to the Bigarray kind
+<code>k</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Function types</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:fn">
+  <a href="index.html#/type:fn" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a fn = 'a <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/">Static</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/#/type:fn">fn</a>
+    
+      <div class="doc">
+        
+      <p>The type of values representing C function types. A value of type <code>t fn</code>
+can be used to bind to C functions and to describe type of OCaml functions
+passed to C.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(@-&gt;)">
+  <a href="index.html#/val:(@-%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (@-&gt;) : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:fn">fn</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <a href="index.html#/type:fn">fn</a>
+    
+      <div class="doc">
+        
+      <p>Construct a function type from a type and an existing function type. This
+corresponds to prepending a parameter to a C function parameter list. For
+example,</p>
+      
+      <p><code>int @-&gt; ptr void @-&gt; returning float</code></p>
+      
+      <p>describes a function type that accepts two arguments -- an integer and a
+pointer to void -- and returns a float.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:returning">
+  <a href="index.html#/val:returning" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> returning : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:fn">fn</a>
+    
+      <div class="doc">
+        
+      <p>Give the return type of a C function. Note that <code>returning</code> is intended
+to be used together with [root:(@-&gt;)]; see the documentation for [root:(@-&gt;)] for an
+example.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Struct and union types</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:structured">
+  <a href="index.html#/type:structured" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'kind) structured = ('a, 'kind) <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/">Static</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/static/#/type:structured">structured</a>
+    
+      <div class="doc">
+        
+      <p>The base type of values representing C struct and union types. The
+<code>'kind</code> parameter is a polymorphic variant type indicating whether the type
+represents a struct (<code>`Struct</code>) or a union (<code>`Union</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:structure">
+  <a href="index.html#/type:structure" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a structure = ('a, [ <div class="cons">| `Struct</div> ]) <a href="index.html#/type:structured">structured</a>
+    
+      <div class="doc">
+        
+      <p>The type of values representing C struct types.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:union">
+  <a href="index.html#/type:union" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a union = ('a, [ <div class="cons">| `Union</div> ]) <a href="index.html#/type:structured">structured</a>
+    
+      <div class="doc">
+        
+      <p>The type of values representing C union types.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:field">
+  <a href="index.html#/type:field" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 't) field
+    
+      <div class="doc">
+        
+      <p>The type of values representing C struct or union members (called &quot;fields&quot;
+here). A value of type <code>(a, s) field</code> represents a field of type <code>a</code> in a
+struct or union of type <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:structure">
+  <a href="index.html#/val:structure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> structure : string <span class="rarr"><span>-&gt;</span></span> 's <a href="index.html#/type:structure">structure</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Construct a new structure type. The type value returned is incomplete and
+can be updated using [root:(*:*)] until it is passed to <a href="index.html#/val:seal">seal</a>, at which point
+the set of fields is fixed.</p>
+      
+      <p>The type (<code>'_s structure typ</code>) of the expression returned by the call
+<code>structure tag</code> includes a weak type variable, which can be explicitly
+instantiated to ensure that the OCaml values representing different C
+structure types have incompatible types. Typical usage is as follows:</p>
+      
+      <p><code>type tagname</code></p>
+      
+      <p><code>let tagname : tagname structure typ = structure &quot;tagname&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:union">
+  <a href="index.html#/val:union" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> union : string <span class="rarr"><span>-&gt;</span></span> 's <a href="index.html#/type:union">union</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Construct a new union type. This behaves analogously to <a href="index.html#/type:structure">structure</a>;
+fields are added with [root:(+:+)].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:field">
+  <a href="index.html#/val:field" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> field : 't <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> ('a, (('s, [&lt; <div class="cons">| `Struct</div><div class="cons">| `Union</div> ]) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 't)) <a href="index.html#/type:field">field</a>
+    
+      <div class="doc">
+        
+      <p><code>field ty label ty'</code> adds a field of type <code>ty'</code> with label <code>label</code> to the
+structure or union type <code>ty</code> and returns a field value that can be used to
+read and write the field in structure or union instances (e.g. using
+<a href="index.html#/val:getf">getf</a> and <a href="index.html#/val:setf">setf</a>).</p>
+      
+      <p>Attempting to add a field to a union type that has been sealed with <code>seal</code>
+is an error, and will raise <a href="index.html#/exn:ModifyingSealedType">ModifyingSealedType</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(*:*)">
+  <a href="index.html#/val:(*:*)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (*:*) : 't <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> ('a, (('s, [ <div class="cons">| `Struct</div> ]) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 't)) <a href="index.html#/type:field">field</a>
+    
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Add an anonymous field to a structure. Use <a href="index.html#/type:field">field</a> instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(+:+)">
+  <a href="index.html#/val:(%2B:%2B)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (+:+) : 't <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> ('a, (('s, [ <div class="cons">| `Union</div> ]) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 't)) <a href="index.html#/type:field">field</a>
+    
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Add an anonymous field to a union. Use <a href="index.html#/type:field">field</a> instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:seal">
+  <a href="index.html#/val:seal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> seal : (_, [&lt; <div class="cons">| `Struct</div><div class="cons">| `Union</div> ]) <a href="index.html#/type:structured">structured</a> <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>seal t</code> completes the struct or union type <code>t</code> so that no further fields
+can be added. Struct and union types must be sealed before they can be used
+in a way that involves their size or alignment; see the documentation for
+<a href="index.html#/exn:IncompleteType">IncompleteType</a> for further details.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">View types</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:view">
+  <a href="index.html#/val:view" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> view : ?format_typ:((<a href="../../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> read:('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> write:('b <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p><code>view ~read:r ~write:w t</code> creates a C type representation <code>t'</code> which
+behaves like <code>t</code> except that values read using <code>t'</code> are subsequently
+transformed using the function <code>r</code> and values written using <code>t'</code> are first
+transformed using the function <code>w</code>.</p>
+      
+      <p>For example, given suitable definitions of <code>string_of_char_ptr</code> and
+<code>char_ptr_of_string</code>, the type representation</p>
+      
+      <p><code>view ~read:string_of_char_ptr ~write:char_ptr_of_string (ptr char)</code></p>
+      
+      <p>can be used to pass OCaml strings directly to and from bound C functions,
+or to read and write string members in structs and arrays. (In fact, the
+<a href="index.html#/val:string">string</a> type representation is defined in exactly this way.)</p>
+      
+      <p>The optional argument <code>format_typ</code> is used by the <a href="../../../../../ctypes.0.3.4/_build/src/ctypes/ctypes/">Ctypes</a>.<a href="../../../../../ctypes.0.3.4/_build/src/ctypes/ctypes/#/val:format_typ">format_typ</a> and
+<a href="index.html#/val:string_of_typ">string_of_typ</a> functions to print the type at the top level and
+elsewhere. If <code>format_typ</code> is not supplied the printer for <code>t</code> is used
+instead.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Abstract types</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:abstract">
+  <a href="index.html#/type:abstract" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a abstract
+    
+      <div class="doc">
+        
+      <p>The type of abstract values. The purpose of the <code>abstract</code> type is to
+represent values whose type varies from platform to platform.</p>
+      
+      <p>For example, the type <code>pthread_t</code> is a pointer on some platforms, an
+integer on other platforms, and a struct on a third set of platforms. One
+way to deal with this kind of situation is to have
+possibly-platform-specific code which interrogates the C type in some way
+to help determine an appropriate representation. Another way is to use
+<code>abstract</code>, leaving the representation opaque.</p>
+      
+      <p>(Note, however, that although <code>pthread_t</code> is a convenient example, since
+the type used to implement it varies significantly across platforms, it's
+not actually a good match for <code>abstract</code>, since values of type <code>pthread_t</code>
+are passed and returned by value.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abstract">
+  <a href="index.html#/val:abstract" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abstract : name:string <span class="rarr"><span>-&gt;</span></span> size:int <span class="rarr"><span>-&gt;</span></span> alignment:int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:abstract">abstract</a> <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Create an abstract type specification from the size and alignment
+requirements for the type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Operations on types</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:sizeof">
+  <a href="index.html#/val:sizeof" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sizeof : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>sizeof t</code> computes the size in bytes of the type <code>t</code>. The exception
+<a href="index.html#/exn:IncompleteType">IncompleteType</a> is raised if <code>t</code> is incomplete.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:alignment">
+  <a href="index.html#/val:alignment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> alignment : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>alignment t</code> computes the alignment requirements of the type <code>t</code>. The
+exception <a href="index.html#/exn:IncompleteType">IncompleteType</a> is raised if <code>t</code> is incomplete.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format_typ">
+  <a href="index.html#/val:format_typ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format_typ : ?name:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty-print a C representation of the type to the specified formatter.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format_fn">
+  <a href="index.html#/val:format_fn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format_fn : ?name:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:fn">fn</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty-print a C representation of the function type to the specified
+formatter.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_typ">
+  <a href="index.html#/val:string_of_typ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_typ : ?name:string <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return a C representation of the type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_fn">
+  <a href="index.html#/val:string_of_fn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_fn : ?name:string <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:fn">fn</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return a C representation of the function type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:values">
+  <a href="index.html#/label:values" class="anchor">#</a>
+  
+    <h2 class="section level_2">Values representing C values</h2>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/val:format">
+  <a href="index.html#/val:format" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty-print a representation of the C value to the specified formatter.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of">
+  <a href="index.html#/val:string_of" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return a string representation of the C value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Pointer values</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:null">
+  <a href="index.html#/val:null" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> null : unit <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p>A null pointer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(!@)">
+  <a href="index.html#/val:(!@)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (!@) : 'a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>!@ p</code> dereferences the pointer <code>p</code>. If the reference type is a scalar
+type then dereferencing constructs a new value. If the reference type is
+an aggregate type then dereferencing returns a value that references the
+memory pointed to by <code>p</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(&lt;-@)">
+  <a href="index.html#/val:(%3C-@)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&lt;-@) : 'a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>p &lt;-@ v</code> writes the value <code>v</code> to the address <code>p</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(+@)">
+  <a href="index.html#/val:(%2B@)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (+@) : ('a, 'b) <a href="index.html#/type:pointer">pointer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:pointer">pointer</a>
+    
+      <div class="doc">
+        
+      <p>If <code>p</code> is a pointer to an array element then <code>p +@ n</code> computes the
+address of the <code>n</code>th next element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(-@)">
+  <a href="index.html#/val:(-@)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (-@) : ('a, 'b) <a href="index.html#/type:pointer">pointer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:pointer">pointer</a>
+    
+      <div class="doc">
+        
+      <p>If <code>p</code> is a pointer to an array element then <code>p -@ n</code> computes the address
+of the nth previous element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ptr_diff">
+  <a href="index.html#/val:ptr_diff" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ptr_diff : ('a, 'b) <a href="index.html#/type:pointer">pointer</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:pointer">pointer</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>ptr_diff p q</code> computes <code>q - p</code>. As in C, both <code>p</code> and <code>q</code> must point
+into the same array, and the result value is the difference of the
+subscripts of the two array elements.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_voidp">
+  <a href="index.html#/val:from_voidp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_voidp : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p>Conversion from <code>void *</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_voidp">
+  <a href="index.html#/val:to_voidp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_voidp : _ <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p>Conversion to <code>void *</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:allocate">
+  <a href="index.html#/val:allocate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> allocate : ?finalise:('a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p><code>allocate t v</code> allocates a fresh value of type <code>t</code>, initialises it with
+<code>v</code> and returns its address. The argument <code>?finalise</code>, if present, will be
+called just before the memory is freed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:allocate_n">
+  <a href="index.html#/val:allocate_n" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> allocate_n : ?finalise:('a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> count:int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p><code>allocate_n t ~count:n</code> allocates a fresh array with element type <code>t</code> and
+length <code>n</code>, and returns its address. The argument <code>?finalise</code>, if present,
+will be called just before the memory is freed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ptr_compare">
+  <a href="index.html#/val:ptr_compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ptr_compare : 'a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>If <code>p</code> and <code>q</code> are pointers to elements <code>i</code> and <code>j</code> of the same array then
+<code>ptr_compare p q</code> compares the indexes of the elements. The result is
+negative if <code>i</code> is less than <code>j</code>, positive if <code>i</code> is greater than <code>j</code>, and
+zero if <code>i</code> and <code>j</code> are equal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reference_type">
+  <a href="index.html#/val:reference_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reference_type : 'a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Retrieve the reference type of a pointer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ptr_of_raw_address">
+  <a href="index.html#/val:ptr_of_raw_address" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ptr_of_raw_address : int64 <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p>Convert the numeric representation of an address to a pointer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:raw_address_of_ptr">
+  <a href="index.html#/val:raw_address_of_ptr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> raw_address_of_ptr : unit <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Return the numeric representation of an address</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_from_ptr">
+  <a href="index.html#/val:string_from_ptr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_from_ptr : char <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> length:int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>string_from_ptr p ~length</code> creates a string initialized with the <code>length</code>
+characters at address <code>p</code>.</p>
+      
+      <p>Raise <code>Invalid_argument &quot;Ctypes.string_from_ptr&quot;</code> if <code>length</code> is
+negative.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ocaml_string_start">
+  <a href="index.html#/val:ocaml_string_start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ocaml_string_start : string <span class="rarr"><span>-&gt;</span></span> string <a href="index.html#/type:ocaml">ocaml</a>
+    
+      <div class="doc">
+        
+      <p><code>ocaml_string_start s</code> allows to pass a pointer to the contents of an OCaml
+string directly to a C function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ocaml_bytes_start">
+  <a href="index.html#/val:ocaml_bytes_start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ocaml_bytes_start : <a href="../../../../../ocaml.4.02.1+doc/stdlib/bytes/">Bytes</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/bytes/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/stdlib/bytes/">Bytes</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/bytes/#/type:t">t</a> <a href="index.html#/type:ocaml">ocaml</a>
+    
+      <div class="doc">
+        
+      <p><code>ocaml_bytes_start s</code> allows to pass a pointer to the contents of an OCaml
+byte array directly to a C function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Array values</h3>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">C array values</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:CArray">
+  <a href="index.html#/module:CArray" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> CArray : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Operations on C arrays.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:CArray/type:t">
+  <a href="index.html#/module:CArray/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = 'a <a href="index.html#/type:carray">carray</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:get">
+  <a href="index.html#/module:CArray/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>get a n</code> returns the <code>n</code>th element of the zero-indexed array <code>a</code>. The
+semantics for non-scalar types are non-copying, as for [root:(!@)].</p>
+      
+      <p>If you rebind the <code>CArray</code> module to <code>Array</code> then you can also use the
+syntax <code>a.(n)</code> instead of <code>Array.get a n</code>.</p>
+      
+      <p>Raise <code>Invalid_argument &quot;index out of bounds&quot;</code> if <code>n</code> is outside of the
+range <code>0</code> to <code>(CArray.length a - 1)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:set">
+  <a href="index.html#/module:CArray/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set a n v</code> overwrites the <code>n</code>th element of the zero-indexed array <code>a</code>
+with <code>v</code>.</p>
+      
+      <p>If you rebind the <code>CArray</code> module to <code>Array</code> then you can also use the
+<code>a.(n) &lt;- v</code> syntax instead of <code>Array.set a n v</code>.</p>
+      
+      <p>Raise <code>Invalid_argument &quot;index out of bounds&quot;</code> if <code>n</code> is outside of the
+range <code>0</code> to <code>(CArray.length a - 1)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:unsafe_get">
+  <a href="index.html#/module:CArray/val:unsafe_get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_get : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>unsafe_get a n</code> behaves like <code>get a n</code> except that the check that <code>n</code>
+between <code>0</code> and <code>(CArray.length a - 1)</code> is not performed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:unsafe_set">
+  <a href="index.html#/module:CArray/val:unsafe_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_set : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unsafe_set a n v</code> behaves like <code>set a n v</code> except that the check that
+<code>n</code> between <code>0</code> and <code>(CArray.length a - 1)</code> is not performed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:of_list">
+  <a href="index.html#/module:CArray/val:of_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_list : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:CArray/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_list t l</code> builds an array of type <code>t</code> of the same length as <code>l</code>, and
+writes the elements of <code>l</code> to the corresponding elements of the array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:to_list">
+  <a href="index.html#/module:CArray/val:to_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_list : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list
+    
+      <div class="doc">
+        
+      <p><code>to_list a</code> builds a list of the same length as <code>a</code> such that each
+element of the list is the result of reading the corresponding element of
+<code>a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:length">
+  <a href="index.html#/module:CArray/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Return the number of elements of the given array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:start">
+  <a href="index.html#/module:CArray/val:start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> start : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p>Return the address of the first element of the given array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:from_ptr">
+  <a href="index.html#/module:CArray/val:from_ptr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_ptr : 'a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:CArray/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>from_ptr p n</code> creates an <code>n</code>-length array reference to the memory at
+address <code>p</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:make">
+  <a href="index.html#/module:CArray/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : ?finalise:('a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> ?initial:'a <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:CArray/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>make t n</code> creates an <code>n</code>-length array of type <code>t</code>. If the optional
+argument <code>?initial</code> is supplied, it indicates a value that should be
+used to initialise every element of the array. The argument <code>?finalise</code>,
+if present, will be called just before the memory is freed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CArray/val:element_type">
+  <a href="index.html#/module:CArray/val:element_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> element_type : 'a <a href="index.html#/module:CArray/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p>Retrieve the element type of an array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h4 class="section level_4">Bigarray values</h4>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:bigarray_start">
+  <a href="index.html#/val:bigarray_start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bigarray_start : &lt; element : 'a; ba_repr : _; bigarray : 'b; carray : _; dims : _ &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p>Return the address of the first element of the given Bigarray value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bigarray_of_ptr">
+  <a href="index.html#/val:bigarray_of_ptr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bigarray_of_ptr : &lt; element : 'a; ba_repr : 'f; bigarray : 'b; carray : _; dims : 'i &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a> <span class="rarr"><span>-&gt;</span></span> 'i <span class="rarr"><span>-&gt;</span></span> ('a, 'f) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:kind">kind</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>bigarray_of_ptr c dims k p</code> converts the C pointer <code>p</code> to a bigarray
+value. No copy is made; the bigarray references the memory pointed to by
+<code>p</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:array_of_bigarray">
+  <a href="index.html#/val:array_of_bigarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> array_of_bigarray : &lt; element : _; ba_repr : _; bigarray : 'b; carray : 'c; dims : _ &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c
+    
+      <div class="doc">
+        
+      <p><code>array_of_bigarray c b</code> converts the bigarray value <code>b</code> to a value of type
+<a href="index.html#/module:CArray">CArray</a>.<a href="index.html#/module:CArray/type:t">t</a>. No copy is made; the result occupies the same memory as
+<code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Convert a Bigarray value to a C array.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:bigarray_of_array">
+  <a href="index.html#/val:bigarray_of_array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bigarray_of_array : &lt; element : 'a; ba_repr : 'f; bigarray : 'b; carray : 'c <a href="index.html#/type:carray">carray</a>; dims : 'i &gt; <a href="index.html#/type:bigarray_class">bigarray_class</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'f) <a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:kind">kind</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:carray">carray</a> <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>bigarray_of_array c k a</code> converts the <a href="index.html#/module:CArray">CArray</a>.<a href="index.html#/module:CArray/type:t">t</a> value <code>c</code> to a bigarray
+value. No copy is made; the result occupies the same memory as <code>c</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Struct and union values</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:make">
+  <a href="index.html#/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : ?finalise:('s <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ((_, _) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 's) <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 's
+    
+      <div class="doc">
+        
+      <p>Allocate a fresh, uninitialised structure or union value. The argument
+<code>?finalise</code>, if present, will be called just before the underlying memory is
+freed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setf">
+  <a href="index.html#/val:setf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setf : ((_, _) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 's) <span class="rarr"><span>-&gt;</span></span> ('a, 's) <a href="index.html#/type:field">field</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>setf s f v</code> overwrites the value of the field <code>f</code> in the structure or
+union <code>s</code> with <code>v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getf">
+  <a href="index.html#/val:getf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getf : ((_, _) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 's) <span class="rarr"><span>-&gt;</span></span> ('a, 's) <a href="index.html#/type:field">field</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>getf s f</code> retrieves the value of the field <code>f</code> in the structure or union
+<code>s</code>. The semantics for non-scalar types are non-copying, as for
+[root:(!@)].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(@.)">
+  <a href="index.html#/val:(@.)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (@.) : ((_, _) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 's) <span class="rarr"><span>-&gt;</span></span> ('a, 's) <a href="index.html#/type:field">field</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p><code>s @. f</code> computes the address of the field <code>f</code> in the structure or union
+value <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(|-&gt;)">
+  <a href="index.html#/val:(%7C-%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (|-&gt;) : ((_, _) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 's) <a href="index.html#/type:ptr">ptr</a> <span class="rarr"><span>-&gt;</span></span> ('a, 's) <a href="index.html#/type:field">field</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p><code>p |-&gt; f</code> computes the address of the field <code>f</code> in the structure or union
+value pointed to by <code>p</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:offsetof">
+  <a href="index.html#/val:offsetof" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> offsetof : (_, _ <a href="index.html#/type:structure">structure</a>) <a href="index.html#/type:field">field</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>offsetof f</code> returns the offset, in bytes, of the field <code>f</code> from the
+beginning of the associated struct type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:field_type">
+  <a href="index.html#/val:field_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> field_type : ('a, _) <a href="index.html#/type:field">field</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:typ">typ</a>
+    
+      <div class="doc">
+        
+      <p><code>field_type f</code> returns the type of the field <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:addr">
+  <a href="index.html#/val:addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> addr : ((_, _) <a href="index.html#/type:structured">structured</a> <span class="keyword">as</span> 's) <span class="rarr"><span>-&gt;</span></span> 's <a href="index.html#/type:ptr">ptr</a>
+    
+      <div class="doc">
+        
+      <p><code>addr s</code> returns the address of the structure or union <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Coercions</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:coerce">
+  <a href="index.html#/val:coerce" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> coerce : 'a <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>coerce t1 t2</code> returns a coercion function between the types represented
+by <code>t1</code> and <code>t2</code>. If <code>t1</code> cannot be coerced to <code>t2</code>, <code>coerce</code> raises
+<a href="index.html#/exn:Uncoercible">Uncoercible</a>.</p>
+      
+      <p>The following coercions are currently supported:</p>
+      <ul><li>All pointer types are intercoercible.</li><li>Any type may be coerced to <a href="index.html#/val:void">void</a></li><li>There is a coercion between a <a href="index.html#/val:view">view</a> and another type <code>t</code> (in either
+direction) if there is a coercion between the representation type
+underlying the view and <code>t</code>.</li><li>Coercion is transitive: if <code>t1</code> is coercible to <code>t2</code> and <code>t2</code> is
+coercible to <code>t3</code>, then <code>t1</code> is directly coercible to <code>t3</code>.</li></ul>
+      <p>The set of supported coercions is subject to change. Future versions of
+ctypes may both add new types of coercion and restrict the existing
+coercions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:coerce_fn">
+  <a href="index.html#/val:coerce_fn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> coerce_fn : 'a <a href="index.html#/type:fn">fn</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:fn">fn</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>coerce_fn f1 f2</code> returns a coercion function between the function
+types represented by <code>f1</code> and <code>f2</code>. If <code>f1</code> cannot be coerced to
+<code>f2</code>, <code>coerce_fn</code> raises <a href="index.html#/exn:Uncoercible">Uncoercible</a>.</p>
+      
+      <p>A function type <code>f1</code> may be coerced to another function type <code>f2</code>
+if all of the following hold:</p>
+      <ul><li>the C types described by <code>f1</code> and <code>f2</code> have the same arity</li></ul><ul><li>each argument of <code>f2</code> may be coerced to the corresponding
+argument of <code>f1</code></li></ul><ul><li>the return type of <code>f1</code> may be coerced to the return type of <code>f2</code></li></ul>
+      <p>The set of supported coercions is subject to change. Future versions of
+ctypes may both add new types of coercion and restrict the existing
+coercions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Exceptions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Unsupported">
+  <a href="index.html#/exn:Unsupported" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Unsupported <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>An attempt was made to use a feature not currently supported by ctypes.
+In practice this refers to attempts to use an union, array or abstract
+type as an argument or return type of a function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:ModifyingSealedType">
+  <a href="index.html#/exn:ModifyingSealedType" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> ModifyingSealedType <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>An attempt was made to modify a sealed struct or union type
+description.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:IncompleteType">
+  <a href="index.html#/exn:IncompleteType" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> IncompleteType
+    
+      <div class="doc">
+        
+      <p>An attempt was made to compute the size or alignment of an incomplete
+type.</p>
+      
+      <p>The incomplete types are struct and union types that have not been sealed,
+and the void type.</p>
+      
+      <p>It is not permitted to compute the size or alignment requirements of an
+incomplete type, to use it as a struct or union member, to read or write a
+value of the type through a pointer or to use it as the referenced type in
+pointer arithmetic. Additionally, incomplete struct and union types
+cannot be used as argument or return types.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Uncoercible">
+  <a href="index.html#/exn:Uncoercible" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Uncoercible
+    
+      <div class="doc">
+        
+      <p>An attempt was made to coerce between uncoercible types.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

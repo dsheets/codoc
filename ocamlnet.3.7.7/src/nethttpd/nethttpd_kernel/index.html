@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Nethttpd_kernel</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Nethttpd_kernel</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">The protocol kernel of the HTTP daemon</h1>
+    </div>
+      <p>This module mainly defines the <code>http_protocol</code> class which implements the
+exchange of messages with a HTTP client. The request messages are represented
+as sequence of <code>req_token</code> values. The response is encapsulated in a separate
+<code>http_response</code> class. The contents of the response are represented as sequence
+of <code>resp_token</code> values.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:fatal_error">
+  <a href="index.html#/type:fatal_error" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> fatal_error = [ <div class="cons">| `Broken_pipe</div><div class="cons">| `Broken_pipe_ignore</div><div class="cons">| `Message_too_long</div><div class="cons">| `Timeout</div><div class="cons">| `Unix_error <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:error">error</a></div><div class="cons">| `Server_error</div> ]
+    
+      <div class="doc">
+        
+      <p>These are the serious protocol violations after that the daemon stops
+any further processing.</p>
+      
+      <p>Note that <code>`Timeout</code> refers to a timeout in the middle of a request.
+<code>`Broken_pipe_ignore</code> is the &quot;harmless&quot; version of <code>`Broken_pipe</code>
+(see <code>config_suppress_broken_pipe</code>).</p>
+      
+      <p>Long messages are fatal because it is suspected that they are denial
+of service attacks. The kernel generates <code>`Message_too_long</code> only for
+long headers, not for long bodies.</p>
+      
+      <p>Fatal server errors can happen when exceptions are not properly handled.
+As last resort the HTTP daemon closes the connection without notifying
+the client.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_fatal_error">
+  <a href="index.html#/val:string_of_fatal_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_fatal_error : <a href="index.html#/type:fatal_error">fatal_error</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert error to a string, for logging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:bad_request_error">
+  <a href="index.html#/type:bad_request_error" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> bad_request_error = [ <div class="cons">| `Bad_header_field <span class="keyword">of</span> string</div><div class="cons">| `Bad_header</div><div class="cons">| `Bad_trailer</div><div class="cons">| `Bad_request_line</div><div class="cons">| `Request_line_too_long</div><div class="cons">| `Protocol_not_supported</div><div class="cons">| `Unexpected_eof</div><div class="cons">| `Format_error <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>A bad request is a violation where the current request cannot be
+decoded, and it is not possible to accept further requests over the
+current connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_bad_request_error">
+  <a href="index.html#/val:string_of_bad_request_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_bad_request_error : <a href="index.html#/type:bad_request_error">bad_request_error</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert error to a string, for logging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:status_of_bad_request_error">
+  <a href="index.html#/val:status_of_bad_request_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> status_of_bad_request_error : <a href="index.html#/type:bad_request_error">bad_request_error</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a>
+    
+      <div class="doc">
+        
+      <p>Returns the best response code for the error</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:data_chunk">
+  <a href="index.html#/type:data_chunk" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> data_chunk = string * int * int
+    
+      <div class="doc">
+        
+      <p>A <code>data_chunk</code> is a substring of a string. The substring is described by
+the triple <code>(s, pos, len)</code> where <code>s</code> is the container, <code>pos</code> is the
+position where the substring begins, and <code>len</code> its length.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:status_line">
+  <a href="index.html#/type:status_line" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> status_line = int * string
+    
+      <div class="doc">
+        
+      <p>= (code, phrase)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:transfer_coding">
+  <a href="index.html#/type:transfer_coding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> transfer_coding = [ <div class="cons">| `Identity</div><div class="cons">| `Chunked</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:resp_token">
+  <a href="index.html#/type:resp_token" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> resp_token = [ <div class="cons">| `Resp_info_line <span class="keyword">of</span> <a href="index.html#/type:status_line">status_line</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_header">http_header</a></div><div class="cons">| `Resp_status_line <span class="keyword">of</span> <a href="index.html#/type:status_line">status_line</a></div><div class="cons">| `Resp_header <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_header">http_header</a></div><div class="cons">| `Resp_body <span class="keyword">of</span> <a href="index.html#/type:data_chunk">data_chunk</a></div><div class="cons">| `Resp_trailer <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_trailer">http_trailer</a></div><div class="cons">| `Resp_end</div><div class="cons">| `Resp_action <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> unit</div> ]
+    
+      <div class="doc">
+        
+      <p>The <code>resp_token</code> represents a textual part of the response to send:</p>
+      <ul><li><code>`Resp_info_line</code> is an informational status line (code=100..199). There can
+be several informational lines, and they can be accompanied with their own
+headers. Such lines are only sent to HTTP/1.1 clients.</li><li><code>`Resp_status_line</code> is the final status line to send (code &gt;= 200)</li><li><code>`Resp_header</code> is the whole response header to send</li><li><code>`Resp_body</code> is the next part of the response body to send.</li><li><code>`Resp_trailer</code> is the whole response trailer to send (currently ignored)</li><li><code>`Resp_action</code> is special because it does not directly represent a token
+to send. The argument is a function which is called when the token is
+the next token on the active event queue. The function is also called when
+the event queue is dropped because of an error (the state of the
+response object indicates this). The function must not raise exceptions
+except <code>Unix_error</code>, and it must not block.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:resp_100_continue">
+  <a href="index.html#/val:resp_100_continue" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resp_100_continue : <a href="index.html#/type:resp_token">resp_token</a>
+    
+      <div class="doc">
+        
+      <p>The predefined token for the &quot;100 Continue&quot; response</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:resp_state">
+  <a href="index.html#/type:resp_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> resp_state = [ <div class="cons">| `Inhibited</div><div class="cons">| `Queued</div><div class="cons">| `Active</div><div class="cons">| `Processed</div><div class="cons">| `Error</div><div class="cons">| `Dropped</div> ]
+    
+      <div class="doc">
+        
+      <p>The response state:</p>
+      <ul><li><code>`Inhibited</code> = it is not yet allowed to start the response</li><li><code>`Queued</code> = the response waits on the queue for activation</li><li><code>`Active</code> = the response is currently being transmitted</li><li><code>`Processed</code> = the response has been completely sent</li><li><code>`Error</code> = an error occurred during the transmission of this response</li><li><code>`Dropped</code> = an earlier response forced to close the connection, and
+this response is dequeued</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:front_token">
+  <a href="index.html#/type:front_token" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> front_token = [ <div class="cons">| `Resp_wire_data <span class="keyword">of</span> <a href="index.html#/type:data_chunk">data_chunk</a></div><div class="cons">| `Resp_end</div> ]
+    
+      <div class="doc">
+        
+      <p>Tokens generated by <code>http_response</code>:</p>
+      <ul><li><code>`Resp_wire_data</code> are data tokens.</li><li><code>`Resp_end</code> indicates the end of the response.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Send_queue_empty">
+  <a href="index.html#/exn:Send_queue_empty" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Send_queue_empty
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:announcement">
+  <a href="index.html#/type:announcement" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> announcement = [ <div class="cons">| `Ignore</div><div class="cons">| `Ocamlnet</div><div class="cons">| `Ocamlnet_and <span class="keyword">of</span> string</div><div class="cons">| `As <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>See config</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response">
+  <a href="index.html#/classtype:http_response" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_response = 
+      <div class="doc">
+        
+      <p>Represents the action of sending the response</p>
+      
+      <p>This class has an internal
+queue of response tokens that are not yet processed. One can easily add
+new tokens to the end of the queue (<code>send</code>).</p>
+      
+      <p>The class is responsible for determining the transfer encoding:</p>
+      <ul><li>When the HTTP version is 1.0, the encoding is always &quot;identity&quot;, and the
+connection will be closed after the response.</li><li>When the HTTP version is 1.1, and there is a Content-length header,
+the encoding will be selected as &quot;identity&quot;. It is checked whether the
+body has really this length. If too short, it is suggested to close
+the connection. If too long, the extra part of the message is silently
+dropped.</li><li>When the HTTP version is 1.1, and there is no Content-length header,
+the encoding will be selected as &quot;chunked&quot;.</li></ul>
+      <p>Currently, the <code>TE</code> request header is not taken into account. The trailer
+is always empty.</p>
+      
+      <p>The following headers are set (or removed) by this class:</p>
+      <ul><li><code>Transfer-Encoding</code></li><li><code>Trailer</code></li><li><code>Date</code></li><li><code>Connection</code></li><li><code>Upgrade</code></li><li><code>Server</code> (it is appended to this field)</li></ul>
+      <p>Responses for HEAD requests have the special behaviour that the body is silently
+dropped. The calculation of header fields is not affected by this. This means
+that HEAD can be easily implemented by doing the same as for GET.</p>
+      
+      <p>Responses for other requests that must not include a body must set
+<code>Content-Length</code> to 0.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These methods can be called by the content provider:</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_response/method:state">
+  <a href="index.html#/classtype:http_response/method:state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> state : <a href="index.html#/type:resp_state">resp_state</a>
+  
+      <div class="doc">
+        
+      <p>Reports the state. The initial state is <code>`Inhibited</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:bidirectional_phase">
+  <a href="index.html#/classtype:http_response/method:bidirectional_phase" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> bidirectional_phase : bool
+  
+      <div class="doc">
+        
+      <p>The bidrectional phase starts after &quot;100 Continue&quot; has been sent to the
+client, and stops when the response body begins. The bidirectional phase
+is special for the calculation of timeout values (input determines the timeout
+although the response has started).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:send">
+  <a href="index.html#/classtype:http_response/method:send" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> send : <a href="index.html#/type:resp_token">resp_token</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Add token to the end of the send queue</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:send_queue_empty">
+  <a href="index.html#/classtype:http_response/method:send_queue_empty" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> send_queue_empty : bool
+  
+      <div class="doc">
+        
+      <p>Return whether the send queue is empty. When the state is <code>`Inhibited</code>, this
+method fakes an empty queue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:protocol">
+  <a href="index.html#/classtype:http_response/method:protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> protocol : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol">protocol</a>
+  
+      <div class="doc">
+        
+      <p>The HTTP version of the response. This is currently always HTTP/1.1, but maybe
+we need to fake lower versions for buggy clients. Let's see what comes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:close_connection">
+  <a href="index.html#/classtype:http_response/method:close_connection" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_connection : bool
+  
+      <div class="doc">
+        
+      <p>Returns whether the connection should be closed after this response.
+This flag should be evaluated when the <code>`Resp_end</code> front token has been
+reached.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:transfer_encoding">
+  <a href="index.html#/classtype:http_response/method:transfer_encoding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> transfer_encoding : <a href="index.html#/type:transfer_coding">transfer_coding</a>
+  
+      <div class="doc">
+        
+      <p>Returns the selected transfer encoding. This is valid after the header
+has been passed to this object with <code>send</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:front_token">
+  <a href="index.html#/classtype:http_response/method:front_token" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> front_token : <a href="index.html#/type:front_token">front_token</a>
+  
+      <div class="doc">
+        
+      <p>The first token of the queue, represented as <code>data_chunk</code>. Raises
+<code>Send_queue_empty</code> when there is currently no front token, or the state
+is <code>`Inhibited</code>.
+If there is a front token, it will never have length 0.</p>
+      
+      <p>Note that <code>Unix_error</code> exceptions can be raised when <code>`Resp_action</code>
+tokens are processed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:set_callback">
+  <a href="index.html#/classtype:http_response/method:set_callback" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_callback : (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>The function will be called when either <code>set_state</code> changes the state,
+or when the send queue becomes empty. Note that the callback must never
+fail, it is called in situations that make it hard to recover from errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:body_size">
+  <a href="index.html#/classtype:http_response/method:body_size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> body_size : int64
+  
+      <div class="doc">
+        
+      <p>Accumulated size of the response body</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>These methods must only be called by the HTTP protocol processor:</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_response/method:set_state">
+  <a href="index.html#/classtype:http_response/method:set_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_state : <a href="index.html#/type:resp_state">resp_state</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the state</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_response/method:advance">
+  <a href="index.html#/classtype:http_response/method:advance" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> advance : int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Tell this object that <code>n</code> bytes of the front token could be really
+sent using <code>Unix.write</code>. If this means that the whole front token
+has been sent, the next token is pulled from the queue and is made
+the new front token. Otherwise, the data chunk representing the
+front token is modified such that the position is advanced by
+<code>n</code>, and the length is reduced by <code>n</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Encapsultation of the HTTP response for a single request</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_response_impl">
+  <a href="index.html#/class:http_response_impl" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> http_response_impl : 
+    ?close:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?suppress_body:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    int64
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol">protocol</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:announcement">announcement</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_response">http_response</a>
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Exported for debugging and testing only</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:send_static_response">
+  <a href="index.html#/val:send_static_response" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send_static_response : <a href="index.html#/classtype:http_response">http_response</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_header">http_header</a> option <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sends the string argument as response body, together with the given status and
+the header (optional). Response header fields are set as follows:</p>
+      <ul><li>The <code>Content-Length</code> is set to the length of the string.</li><li>The <code>Content-Type</code> is set to &quot;text/html&quot; unless given by the header.
+If the header object is passed in, these modifications are done
+directly in this object as side effect.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:send_file_response">
+  <a href="index.html#/val:send_file_response" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send_file_response : <a href="index.html#/classtype:http_response">http_response</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_header">http_header</a> option <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sends the contents of a file as response body, together with the given status and
+the header (optional). The descriptor must be a file descriptor (that cannot
+block). The int64 number is the length
+of the body. Response header fields are set as follows:</p>
+      <ul><li>The <code>Content-Length</code> is set to the length of the string.</li><li>The <code>Content-Type</code> is set to &quot;text/html&quot; unless given by the header.</li></ul>
+      <p>Note that <code>Content-Range</code> is not set automatically, even if the file is only
+partially transferred.</p>
+      
+      <p>If the header object is passed in, these modifications are done
+directly in this object as side effect.</p>
+      
+      <p>The function does not send the file immediately, but rather sets the <code>http_response</code>
+object up that the next chunk of the file is added when the send queue becomes
+empty. This file will be closed when the transfer is done.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:request_line">
+  <a href="index.html#/type:request_line" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> request_line = <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_method">http_method</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol">protocol</a>
+    
+      <div class="doc">
+        
+      <p>The method (including the URI), and the HTTP version</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:req_token">
+  <a href="index.html#/type:req_token" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> req_token = [ <div class="cons">| `Req_header <span class="keyword">of</span> <a href="index.html#/type:request_line">request_line</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_header">http_header</a> * <a href="index.html#/classtype:http_response">http_response</a></div><div class="cons">| `Req_expect_100_continue</div><div class="cons">| `Req_body <span class="keyword">of</span> <a href="index.html#/type:data_chunk">data_chunk</a></div><div class="cons">| `Req_trailer <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_trailer">http_trailer</a></div><div class="cons">| `Req_end</div><div class="cons">| `Eof</div><div class="cons">| `Fatal_error <span class="keyword">of</span> <a href="index.html#/type:fatal_error">fatal_error</a></div><div class="cons">| `Bad_request_error <span class="keyword">of</span> <a href="index.html#/type:bad_request_error">bad_request_error</a> * <a href="index.html#/classtype:http_response">http_response</a></div><div class="cons">| `Timeout</div> ]
+    
+      <div class="doc">
+        
+      <p>A <code>req_token</code> represents a textual part of the received request:</p>
+      <ul><li><code>`Req_header</code> is the full received header. Together with the header,
+the corresponding <code>http_response</code> object is returned which must
+be used to transmit the response.</li><li><code>`Req_expect_100_continue</code> is generated when the client expects that the
+server sends a &quot;100 Continue&quot; response (or a final status code) now.
+One should add <code>`Resp_info_line resp_100_continue</code> to the send queue
+if the header is acceptable, or otherwise generate an error response. In any
+case, the rest of the request must be read until <code>`Req_end</code>.</li><li><code>`Req_body</code> is a part of the request body. The transfer-coding, if any,
+is already decoded.</li><li><code>`Req_trailer</code> is the received trailer</li><li><code>`Req_end</code> indicates the end of the request (the next request may begin
+immediately).</li><li><code>`Eof</code> indicates the end of the stream</li><li><code>`Bad_request_error</code> indicates that the request violated the HTTP protocol
+in a serious way and cannot be decoded. It is required to send a
+&quot;400 Bad Request&quot; response. The following token will be <code>`Eof</code>.</li><li><code>`Fatal_error</code> indicates that the connection crashed.
+The following token will be <code>`Eof</code>.</li><li><code>`Timeout</code> means that nothing has been received for a certain amount
+of time, and the protocol is in a state that the next request can begin.
+The following token will be <code>`Eof</code>.</li></ul>
+      <p>Note that it is always allowed to <code>send</code> tokens to the client. The protocol
+implementation takes care that the response is transmitted at the right point
+in time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_req_token">
+  <a href="index.html#/val:string_of_req_token" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_req_token : <a href="index.html#/type:req_token">req_token</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>For debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Recv_queue_empty">
+  <a href="index.html#/exn:Recv_queue_empty" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Recv_queue_empty
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_protocol_config">
+  <a href="index.html#/classtype:http_protocol_config" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_protocol_config = 
+  <div class="region" id="/classtype:http_protocol_config/method:config_max_reqline_length">
+  <a href="index.html#/classtype:http_protocol_config/method:config_max_reqline_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_max_reqline_length : int
+  
+      <div class="doc">
+        
+      <p>Maximum size of the request line. Longer lines are immediately replied with
+a &quot;Request URI too long&quot; response. Suggestion: 32768.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_protocol_config/method:config_max_header_length">
+  <a href="index.html#/classtype:http_protocol_config/method:config_max_header_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_max_header_length : int
+  
+      <div class="doc">
+        
+      <p>Maximum size of the header, <b>including</b> the request line. Longer headers
+are treated as attack, and cause the fatal error <code>`Message_too_long</code>.
+Suggestion: 65536.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_protocol_config/method:config_max_trailer_length">
+  <a href="index.html#/classtype:http_protocol_config/method:config_max_trailer_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_max_trailer_length : int
+  
+      <div class="doc">
+        
+      <p>Maximum size of the trailer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_protocol_config/method:config_limit_pipeline_length">
+  <a href="index.html#/classtype:http_protocol_config/method:config_limit_pipeline_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_limit_pipeline_length : int
+  
+      <div class="doc">
+        
+      <p>Limits the length of the pipeline (= unreplied requests). A value of 0
+disables pipelining. A value of n allows that another request is
+received although there are already n unreplied requests.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_protocol_config/method:config_limit_pipeline_size">
+  <a href="index.html#/classtype:http_protocol_config/method:config_limit_pipeline_size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_limit_pipeline_size : int
+  
+      <div class="doc">
+        
+      <p>Limits the size of the pipeline in bytes. If the buffered bytes in the
+input queue exceed this value, the receiver temporarily stops reading
+more data. The value 0 has the effect that even the read-ahead of
+data of the current request is disabled. The value (-1) disables the
+receiver completely (not recommended).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_protocol_config/method:config_announce_server">
+  <a href="index.html#/classtype:http_protocol_config/method:config_announce_server" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_announce_server : <a href="index.html#/type:announcement">announcement</a>
+  
+      <div class="doc">
+        
+      <p>Whether to set the <code>Server</code> header:</p>
+      <ul><li><code>`Ignore</code>: The kernel does not touch the <code>Server</code> header.</li><li><code>`Ocamlnet</code>: Announce this web server as &quot;Ocamlnet/&lt;version&gt;&quot;</li><li><code>`Ocamlnet_and s</code>: Announce this web server as <code>s</code> and append
+the Ocamlnet string.</li><li><code>`As s</code>: Announce this web server as <code>s</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_protocol_config/method:config_suppress_broken_pipe">
+  <a href="index.html#/classtype:http_protocol_config/method:config_suppress_broken_pipe" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_suppress_broken_pipe : bool
+  
+      <div class="doc">
+        
+      <p>Whether to suppress <code>`Broken_pipe</code> errors. Instead
+<code>`Broken_pipe_ignore</code> is reported.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Configuration values for the HTTP kernel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_http_protocol_config">
+  <a href="index.html#/val:default_http_protocol_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_http_protocol_config : <a href="index.html#/classtype:http_protocol_config">http_protocol_config</a>
+    
+      <div class="doc">
+        
+      <p>Default config:</p>
+      <ul><li><code>config_max_reqline_length = 32768</code></li><li><code>config_max_header_length = 65536</code></li><li><code>config_max_trailer_length = 32768</code></li><li><code>config_limit_pipeline_length = 5</code></li><li><code>config_limit_pipeline_size = 65536</code></li><li><code>config_announce_server = `Ocamlnet</code></li><li><code>config_suppress_broken_pipe = false</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:modify_http_protocol_config">
+  <a href="index.html#/class:modify_http_protocol_config" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> modify_http_protocol_config : 
+    ?config_max_reqline_length:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_max_header_length:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_max_trailer_length:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_limit_pipeline_length:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_limit_pipeline_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_announce_server:<a href="index.html#/type:announcement">announcement</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_suppress_broken_pipe:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:http_protocol_config">http_protocol_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_protocol_config">http_protocol_config</a>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Modifies the passed config object as specified by the optional
+arguments</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol">
+  <a href="index.html#/class:http_protocol" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> http_protocol : 
+    <a href="index.html#/classtype:http_protocol_config">http_protocol_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+      <div class="doc">
+        
+      <p>Exchange of HTTP messages</p>
+      
+      <p>In <code>fd</code> one must pass the already connected socket. It must be in non-
+blocking mode.</p>
+      
+      <p>How to use this class: Basically, one invokes <code>cycle</code> until the whole
+message exchange on <code>fd</code> is processed. <code>cycle</code> receives data from the
+socket and sends data to the socket. There are two internal queues:</p>
+      
+      <p>The receive queue stores parts of received requests as <code>req_token</code>.
+One can take values from the front of this queue by calling <code>receive</code>.</p>
+      
+      <p>The response queue stores <code>http_response</code> objects. Each of the objects
+corresponds to a request that was received before. This queue is handled
+fully automatically, but one can watch its length to see whether all responses
+are actually transmitted over the wire.</p>
+      
+      <p>The basic algorithm to process messages is:</p>
+      <pre><code>      let rec next_token () =
+        if proto # recv_queue_len = 0 then (
+          proto # cycle ();
+          next_token()
+        )
+        else
+          proto # receive()
+     
+      let cur_token = ref (next_token()) in
+      while !cur_token &lt;&gt; `Eof do
+        (* Process first token of next request: *)
+        match !cur_token with
+         | `Req_header(req_line, header, resp) -&gt;
+              (* Depending on [req_line], read further tokens until [`Req_end] *)
+              ...
+              (* Switch to the first token of the next message: *)
+              cur_token := next_token()
+         | `Timeout -&gt; ...
+         | `Bad_request_error(e,resp) -&gt; 
+               (* Generate 400 error, send it to [resp] *)
+               ...
+               (* Switch to the first token of the next message: *)
+               cur_token := next_token()
+         | `Fatal_error e -&gt; failwith &quot;Crash&quot;
+         | _ -&gt; assert false
+      done;
+      while proto # resp_queue_len &gt; 0 do
+        proto # cycle ();
+      done;
+      proto # shutdown()</code></pre>
+      <p>See the file <code>tests/easy_daemon.ml</code> for a complete implementation of this.</p>
+      
+      <p>As one can see, it is essential to watch the lengths of the queues in order
+to figure out what has happened during <code>cycle</code>.</p>
+      
+      <p>When the body of the request is empty, <code>`Req_body</code> tokens are omitted.
+Note that for requests like <code>GET</code> that always have an empty body, it is
+still possible that an errorneous client sends a body, and that <code>`Req_body</code>
+tokens arrive. One must accept and ignore these tokens.</p>
+      
+      <p>Error handling: For serious errors, the connection is immediately aborted.
+In this case, <code>receive</code> returns a <code>`Fatal_error</code> token. Note that the
+queued responses cannot be sent! An example of this is <code>`Broken_pipe</code>.</p>
+      
+      <p>There is a large class of non-serious errors, esp. format errors
+in the header and body. It is typical of these errors that one cannot determine
+the end of the request properly. For this reason, the daemon stops reading
+further data from the request, but the response queue is still delivered.
+For these errors, <code>receive</code> returns a <code>`Bad_request_error</code> token.
+This token contains a <code>http_response</code> object that must be filled with a
+400 error response.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:http_protocol/method:cycle">
+  <a href="index.html#/class:http_protocol/method:cycle" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cycle : ?block:float <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Looks at the file descriptor. If there is data to read from the descriptor,
+and there is free space in the input buffer, additional data is read into
+the buffer. It is also tried to interpret the new data as <code>req_token</code>s,
+and if possible, new <code>req_token</code>s are appended to the receive queue.</p>
+      
+      <p>If the response queue has objects, and there is really data one can send,
+and if the socket allows one to send data, it is tried to send as much
+data as possible.</p>
+      
+      <p>The option <code>block</code> (default: 0) can be set to wait until data
+can be exchanged with the socket. This avoids busy waiting. The number
+is the duration in seconds to wait until the connection times out
+(0 means not to wait at all, -1 means to wait infinitely). When a timeout
+happens, and there is nothing to send, and the last request was fully
+processed, <code>receive</code> will simply return <code>`Timeout</code> (i.e. when
+<code>waiting_for_next_message</code> is <code>true</code>). Otherwise, the
+fatal error <code>`Timeout</code> is generated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:receive">
+  <a href="index.html#/class:http_protocol/method:receive" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> receive : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:req_token">req_token</a>
+  
+      <div class="doc">
+        
+      <p>Returns the first <code>req_token</code> from the receive queue. Raises
+<code>Recv_queue_empty</code> when the queue is empty (= has no new data)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:peek_recv">
+  <a href="index.html#/class:http_protocol/method:peek_recv" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> peek_recv : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:req_token">req_token</a>
+  
+      <div class="doc">
+        
+      <p>Peeks the first token, but leaves it in the queue.
+Raises <code>Recv_queue_empty</code> when the queue is empty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:recv_queue_len">
+  <a href="index.html#/class:http_protocol/method:recv_queue_len" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> recv_queue_len : int
+  
+      <div class="doc">
+        
+      <p>Returns the length of the receive queue (number of tokens)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:resp_queue_len">
+  <a href="index.html#/class:http_protocol/method:resp_queue_len" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> resp_queue_len : int
+  
+      <div class="doc">
+        
+      <p>Returns the length of the internal response queue (number of <code>http_response</code>
+objects that have not yet fully processed)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:pipeline_len">
+  <a href="index.html#/class:http_protocol/method:pipeline_len" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pipeline_len : int
+  
+      <div class="doc">
+        
+      <p>Returns the number of unanswered requests = Number of received <code>`Req_end</code> tokens
+minus number of responses in state <code>`Processed</code>. Note that <code>pipeline_len</code>
+can become <code>-1</code> when bad requests are responded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:recv_queue_byte_size">
+  <a href="index.html#/class:http_protocol/method:recv_queue_byte_size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> recv_queue_byte_size : int
+  
+      <div class="doc">
+        
+      <p>Returns the (estimated) size of the input queue in bytes</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:waiting_for_next_message">
+  <a href="index.html#/class:http_protocol/method:waiting_for_next_message" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> waiting_for_next_message : bool
+  
+      <div class="doc">
+        
+      <p>Whether the kernel is currently waiting for the beginning of a new
+arriving HTTP request. This is <code>false</code> while the request is being
+received.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:input_timeout_class">
+  <a href="index.html#/class:http_protocol/method:input_timeout_class" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_timeout_class : [ <div class="cons">| `Normal</div><div class="cons">| `Next_message</div><div class="cons">| `None</div> ]
+  
+      <div class="doc">
+        
+      <p>Suggests the calculation of a timeout value for input:</p>
+      <ul><li><code>`Normal</code>: The normal timeout value applies</li><li><code>`Next_message</code>: The timeout value applies while waiting for the next message</li><li><code>`None</code>: The connection is output-driven, no input timeout value</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:shutdown">
+  <a href="index.html#/class:http_protocol/method:shutdown" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> shutdown : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Shuts the socket down. Note: the descriptor is not closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:timeout">
+  <a href="index.html#/class:http_protocol/method:timeout" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> timeout : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Process a timeout condition as <code>cycle</code> does</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:abort">
+  <a href="index.html#/class:http_protocol/method:abort" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> abort : <a href="index.html#/type:fatal_error">fatal_error</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Stops the transmission of data. The receive queue is cleared and filled
+with the two tokens <code>`Fatal_error</code> and <code>`Eof</code>.
+The response queue is cleared. The <code>cycle</code>
+method will return immediately without doing anything.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:fd">
+  <a href="index.html#/class:http_protocol/method:fd" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> fd : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  
+      <div class="doc">
+        
+      <p>Just returns the socket</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:do_input">
+  <a href="index.html#/class:http_protocol/method:do_input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> do_input : bool
+  
+      <div class="doc">
+        
+      <p>Returns <code>true</code> iff the protocol engine is interested in new data from the
+socket. Returns <code>false</code> after EOF and after errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:do_output">
+  <a href="index.html#/class:http_protocol/method:do_output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> do_output : bool
+  
+      <div class="doc">
+        
+      <p>Returns <code>true</code> iff the protocol engine has data to output to the socket</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:need_linger">
+  <a href="index.html#/class:http_protocol/method:need_linger" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> need_linger : bool
+  
+      <div class="doc">
+        
+      <p>Returns <code>true</code> when a lingering close operation is needed to reliably shut
+down the socket. In many cases, this expensive operation is not necessary.
+See the class <code>lingering_close</code> below.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:config">
+  <a href="index.html#/class:http_protocol/method:config" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config : <a href="index.html#/classtype:http_protocol_config">http_protocol_config</a>
+  
+      <div class="doc">
+        
+      <p>Just returns the configuration</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_protocol/method:test_coverage">
+  <a href="index.html#/class:http_protocol/method:test_coverage" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> test_coverage : string list
+  
+      <div class="doc">
+        
+      <p>For testing: returns a list of tokens indicating into which cases the program
+ran.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>The core event loop of the HTTP daemon</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lingering_close">
+  <a href="index.html#/class:lingering_close" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> lingering_close : 
+    ?preclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+      <div class="doc">
+        
+      <p>Closes a file descriptor using the &quot;lingering close&quot; algorithm</p>
+      
+      <p>Usage:
+</p>
+      <pre><code>while lc # lingering do lc # cycle ~block:true () done</code></pre>
+        
+      </div>
+    
+  <div class="region" id="/class:lingering_close/method:cycle">
+  <a href="index.html#/class:lingering_close/method:cycle" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cycle : ?block:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Reads data from the file descriptor until EOF or until a fixed timeout
+is over. Finally, the descriptor is closed. If <code>block</code> is set, the method
+blocks until data is available. (Default: <code>false</code>)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lingering_close/method:lingering">
+  <a href="index.html#/class:lingering_close/method:lingering" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> lingering : bool
+  
+      <div class="doc">
+        
+      <p>Whether the socket is still lingering</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lingering_close/method:fd">
+  <a href="index.html#/class:lingering_close/method:fd" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> fd : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  
+      <div class="doc">
+        
+      <p>The file descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>Closes a file descriptor using the &quot;lingering close&quot; algorithm.
+The optional <code>preclose</code> function is called just before <code>Unix.close</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>Fixpoint</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Fixpoint</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Fixpoint computation implemented using the work list algorithm.
+This module makes writing data-flow analysis easy.</p>
+      
+      <p>One of the simplest fixpoint analysis is that of reachability.
+Given a directed graph module <code>G</code>, its analysis can be implemented
+as follows:</p>
+      <pre><code>module Reachability = Graph.Fixpoint.Make(G)
+(struct
+  type vertex = G.E.vertex
+  type edge = G.E.t
+  type g = G.t
+  type data = bool
+  let direction = Graph.Fixpoint.Forward
+  let equal = (=)
+  let join = (||)
+  let analyze _ = (fun x -&gt; x)
+end)</code></pre>
+      <p>The types for <code>vertex</code>, <code>edge</code> and <code>g</code> are those of the graph to be
+analyzed. The <code>data</code> type is <code>bool</code>: It will tell if the
+vertex is reachable from the start vertex. The <code>equal</code> operation
+for <code>bool</code> is simply structural equality; the <code>join</code> operation is
+logical or. The <code>analyze</code> function is very simple, too: If the
+predecessor vertex is reachable, so is the successor vertex of the
+edge.</p>
+      
+      <p>To use the analysis, an instance of a graph <code>g</code> is required. For
+this analysis a predicate <code>is_root_vertex : G.E.vertex -&gt; bool</code> is
+required to initialize the reachability of the root vertex to
+<code>true</code> and of all other vertices to <code>false</code>.</p>
+      <pre><code>    let g = ...
+    let result = Reachability.analyze is_root_vertex g</code></pre>
+      <p>The <code>result</code> is a map of type <code>G.E.vertex -&gt; bool</code> that can be
+queried for every vertex to tell if the vertex is reachable from
+the root vertex.</p>
+      
+        
+  <div class="tag author">
+    <span class="label">Author</span> Markus W. Weissmann
+  </div>
+  
+  <div class="tag see-also">
+    <span class="label">See also DOC Introduction to Lattices and Order</span> B. A. Davey and H. A. Priestley, Cambridge University Press, 2002
+  </div>
+  
+  <div class="tag see-also">
+    <span class="label">See also DOC Fixed Point Theory</span> Andrzej Granas and James Dugundji, Springer, 2003
+  </div>
+  
+  <div class="tag see-also">
+    <span class="label">See also DOC Principles of Program Analysis</span> Flemming Nielson, Hanne Riis Nielson and Chris Hankin, Springer, 2005
+  </div>
+  
+  <div class="tag see-also">
+    <span class="label">See also DOC Ubersetzerbau 3: Analyse und Transformation</span> Reinhard Wilhelm and Helmut Seidl, Springer, 2010
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/modtype:G">
+  <a href="index.html#/modtype:G" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> G = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Minimal graph signature for work list algorithm</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:G/type:t">
+  <a href="index.html#/modtype:G/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/module:V">
+  <a href="index.html#/modtype:G/module:V" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V : <a href="../../../ocamlgraph.1.8.5/src/sig/">Sig</a>.<a href="../../../ocamlgraph.1.8.5/src/sig/#/modtype:COMPARABLE">COMPARABLE</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/module:E">
+  <a href="index.html#/modtype:G/module:E" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> E : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/modtype:G/module:E/type:t">
+  <a href="index.html#/modtype:G/module:E/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/module:E/val:dst">
+  <a href="index.html#/modtype:G/module:E/val:dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dst : <a href="index.html#/modtype:G/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/module:E/val:src">
+  <a href="index.html#/modtype:G/module:E/val:src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> src : <a href="index.html#/modtype:G/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:fold_vertex">
+  <a href="index.html#/modtype:G/val:fold_vertex" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_vertex : (<a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:succ_e">
+  <a href="index.html#/modtype:G/val:succ_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> succ_e : <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:E">E</a>.<a href="index.html#/modtype:G/module:E/type:t">t</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:pred_e">
+  <a href="index.html#/modtype:G/val:pred_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pred_e : <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:E">E</a>.<a href="index.html#/modtype:G/module:E/type:t">t</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:succ">
+  <a href="index.html#/modtype:G/val:succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> succ : <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:pred">
+  <a href="index.html#/modtype:G/val:pred" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pred : <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> list
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:direction">
+  <a href="index.html#/type:direction" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> direction = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:direction/cons:Forward">
+  <a href="index.html#/type:direction/cons:Forward" class="anchor">#</a>
+  | Forward
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:direction/cons:Backward">
+  <a href="index.html#/type:direction/cons:Backward" class="anchor">#</a>
+  | Backward
+  </div>
+  </td><td>(*</td><td class="doc">Type of an analysis</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis">
+  <a href="index.html#/modtype:Analysis" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Analysis = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Analysis/type:data">
+  <a href="index.html#/modtype:Analysis/type:data" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> data
+    
+      <div class="doc">
+        
+      <p>information stored at each vertex</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis/type:edge">
+  <a href="index.html#/modtype:Analysis/type:edge" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> edge
+    
+      <div class="doc">
+        
+      <p>type of edges of the underlying graph</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis/type:vertex">
+  <a href="index.html#/modtype:Analysis/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex
+    
+      <div class="doc">
+        
+      <p>type of vertices of the underlying graph</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis/type:g">
+  <a href="index.html#/modtype:Analysis/type:g" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> g
+    
+      <div class="doc">
+        
+      <p>type of the underlying graph</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis/val:direction">
+  <a href="index.html#/modtype:Analysis/val:direction" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> direction : <a href="index.html#/type:direction">direction</a>
+    
+      <div class="doc">
+        
+      <p>the direction of the analysis</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis/val:join">
+  <a href="index.html#/modtype:Analysis/val:join" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> join : <a href="index.html#/modtype:Analysis/type:data">data</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Analysis/type:data">data</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Analysis/type:data">data</a>
+    
+      <div class="doc">
+        
+      <p>operation how to join data when paths meet</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis/val:equal">
+  <a href="index.html#/modtype:Analysis/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : <a href="index.html#/modtype:Analysis/type:data">data</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Analysis/type:data">data</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>predicate to determine the fixpoint</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Analysis/val:analyze">
+  <a href="index.html#/modtype:Analysis/val:analyze" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> analyze : <a href="index.html#/modtype:Analysis/type:edge">edge</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Analysis/type:data">data</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Analysis/type:data">data</a>
+    
+      <div class="doc">
+        
+      <p>the actual analysis of one edge; provided the edge and the incoming
+data, it needs to compute the outgoing data</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (G : <a href="index.html#/modtype:G">G</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (A : <a href="index.html#/modtype:Analysis">Analysis</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:Analysis/type:g">g</a> = <a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/type:t">t</a> <span class="keyword">and</span> <span class="keyword">type</span> edge = <a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/module:E">E</a>.<a href="index.html#/module:Make/modarg:1:G/module:E/type:t">t</a> <span class="keyword">and</span> <span class="keyword">type</span> <a href="index.html#/modtype:Analysis/type:vertex">vertex</a> = <a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make/modarg:1:G/module:V/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Make/val:analyze">
+  <a href="index.html#/module:Make/val:analyze" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> analyze : (<a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make/modarg:1:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/modarg:2:A">A</a>.<a href="index.html#/module:Make/modarg:2:A/type:data">data</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/modarg:2:A">A</a>.<a href="index.html#/module:Make/modarg:2:A/type:g">g</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make/modarg:1:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/modarg:2:A">A</a>.<a href="index.html#/module:Make/modarg:2:A/type:data">data</a>
+    
+      <div class="doc">
+        
+      <p><code>analyze f g</code> computes the fixpoint on the given graph using the
+work list algorithm. Beware that a misconstructed Analysis will
+not terminate! <code>f</code> is used to create the initial analysis
+data. The function returned is a map to see what data was computed
+for which node.</p>
+      
+      <p>Beware of applying function <code>analyze</code> partially, to arguments
+<code>f</code> and <code>g</code> only. The result is a function that is to be used to query
+the result of the analysis.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

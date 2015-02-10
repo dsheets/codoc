@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Nethttpd_reactor</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Nethttpd_reactor</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">The reactive encapsulation of the HTTP daemon</h1>
+    </div>
+      <p>This is a user-friendlier encapsulation of the HTTP daemon. It uses a
+&quot;pull model&quot;: One pulls HTTP requests from the &quot;reactor&quot; one after the
+other. Request/response pairs have a common environment that represents
+the input and output facilities. Input and output are realised by
+<code>Netchannels</code>, and the implementation details are completely hidden.</p>
+      
+      <p>This encapsulation can be easily used in a multi-threaded environment
+when for every arriving HTTP connection a separate thread is used.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/classtype:http_processor_config">
+  <a href="index.html#/classtype:http_processor_config" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_processor_config = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_protocol_config">http_protocol_config</a>
+    </div>
+    
+  <div class="region" id="/classtype:http_processor_config/method:config_timeout_next_request">
+  <a href="index.html#/classtype:http_processor_config/method:config_timeout_next_request" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_timeout_next_request : float
+  
+      <div class="doc">
+        
+      <p>Timeout in seconds to wait for the next request after the previous one
+has been completely received. (-1) means no timeout.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_processor_config/method:config_timeout">
+  <a href="index.html#/classtype:http_processor_config/method:config_timeout" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_timeout : float
+  
+      <div class="doc">
+        
+      <p>General timeout for network I/O (per I/O primitive).
+(-1) means no timeout.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_processor_config/method:config_cgi">
+  <a href="index.html#/classtype:http_processor_config/method:config_cgi" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_cgi : <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a>
+  
+      <div class="doc">
+        
+      <p>The CGI configuration to use in the Netcgi environment</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_processor_config/method:config_error_response">
+  <a href="index.html#/classtype:http_processor_config/method:config_error_response" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_error_response : <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:error_response_params">error_response_params</a> <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Get HTML error text for the HTTP status code. Must return a generic
+text for unknown codes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_processor_config/method:config_log_error">
+  <a href="index.html#/classtype:http_processor_config/method:config_log_error" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_log_error : <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:request_info">request_info</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>config_log_error info msg</code>: Log the message <code>msg</code>. Information
+about the request can be taken from <code>info</code>. The request may
+only be partially available - be prepared that <code>info</code> methods
+raise <code>Not_found</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_processor_config/method:config_log_access">
+  <a href="index.html#/classtype:http_processor_config/method:config_log_access" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_log_access : <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:full_info">full_info</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Logs the access after the request/response cycle is complete.</p>
+      
+      <p>The <code>cgi_properties</code> are from the environment. As there
+is no automatic way of recording the last, finally used version of
+this list, it is required that users call <code>log_props</code> of the extended
+environment whenever the properties are updated. This is done by
+all <code>Nethttpd</code> modules.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_http_processor_config">
+  <a href="index.html#/val:default_http_processor_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_http_processor_config : <a href="index.html#/classtype:http_processor_config">http_processor_config</a>
+    
+      <div class="doc">
+        
+      <p>Default configuration: Extends
+<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/val:default_http_protocol_config">default_http_protocol_config</a> with</p>
+      <ul><li><code>config_timeout_next_request = 15.0</code></li><li><code>config_timeout = 300.0</code></li><li><code>config_cgi =</code><a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/val:default_config">default_config</a></li><li><code>config_error_response =</code> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_util/">Nethttpd_util</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_util/#/val:std_error_response">std_error_response</a></li><li><code>config_log_error</code>: Uses <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_util/">Nethttpd_util</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_util/#/val:std_error_log_string">std_error_log_string</a>
+to write a log message via [root:Netlog].</li><li><code>config_log_access</code>: is a no-op</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:modify_http_processor_config">
+  <a href="index.html#/class:modify_http_processor_config" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> modify_http_processor_config : 
+    ?modify_http_protocol_config:(<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_protocol_config">http_protocol_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_protocol_config">http_protocol_config</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_timeout_next_request:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_timeout:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_cgi:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_error_response:(<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:error_response_params">error_response_params</a> <span class="rarr"><span>-&gt;</span></span> string) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_log_error:(<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:request_info">request_info</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_log_access:(<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:full_info">full_info</a> <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:http_processor_config">http_processor_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_processor_config">http_processor_config</a>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Modifies the passed config object as specified by the optional
+arguments.</p>
+      
+      <p><code>modify_http_protocol_config</code>: This function can be used to modify the
+parts of the config object that are inherited from <code>http_protocol_config</code>.
+For example:</p>
+      <pre><code>        let new_cfg =
+          new modify_http_processor_config
+            ~modify_http_protocol_config:
+               (new Nethttpd_kernel.modify_http_protocol_config
+                  ~config_suppress_broken_pipe:true)
+            ~config_timeout:15.0
+            old_cfg</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_reactor_config">
+  <a href="index.html#/classtype:http_reactor_config" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_reactor_config = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:http_processor_config">http_processor_config</a>
+    </div>
+    
+  <div class="region" id="/classtype:http_reactor_config/method:config_reactor_synch">
+  <a href="index.html#/classtype:http_reactor_config/method:config_reactor_synch" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_reactor_synch : [ <div class="cons">| `Connection</div><div class="cons">| `Close</div><div class="cons">| `Flush</div><div class="cons">| `Write</div> ]
+  
+      <div class="doc">
+        
+      <p>Specifies when to synchronize output, i.e. force that all channel data are
+actually transmitted to the client:</p>
+      <ul><li><code>`Connection</code> means only at the end of the connection. This means that the
+channels of all pending requests may be buffered - needs a huge amount of
+memory</li><li><code>`Close</code> means only when closing the output channel (after every response).
+This means that the whole response may be buffered - needs a lot of memory.</li><li><code>`Flush</code> means only when the <code>flush</code> method is called. This is a good idea
+when one can control that.</li><li><code>`Write</code> means every time the internal output buffer overflows. This is the
+recommended setting in general.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_http_reactor_config">
+  <a href="index.html#/val:default_http_reactor_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_http_reactor_config : <a href="index.html#/classtype:http_reactor_config">http_reactor_config</a>
+    
+      <div class="doc">
+        
+      <p>Default configuration: Extends
+<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/">Nethttpd_reactor</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/#/val:default_http_processor_config">default_http_processor_config</a> with</p>
+      <ul><li><code>config_reactor_synch = `Write</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:modify_http_reactor_config">
+  <a href="index.html#/class:modify_http_reactor_config" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> modify_http_reactor_config : 
+    ?modify_http_protocol_config:(<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_protocol_config">http_protocol_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_protocol_config">http_protocol_config</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?modify_http_processor_config:(<a href="index.html#/classtype:http_processor_config">http_processor_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_processor_config">http_processor_config</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_reactor_synch:[ <div class="cons">| `Connection</div><div class="cons">| `Close</div><div class="cons">| `Flush</div><div class="cons">| `Write</div> ] option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:http_reactor_config">http_reactor_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_reactor_config">http_reactor_config</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Modifies the passed config object as specified by the optional
+arguments.</p>
+      
+      <p><code>modify_http_protocol_config</code> and <code>modify_http_processor_config</code>:
+These functions can be used to modify the
+parts of the config object that are inherited from <code>http_protocol_config</code>
+and <code>http_processor_config</code>, respectively:
+For example:</p>
+      <pre><code>        let new_cfg =
+          new modify_http_reactor_config
+            ~modify_http_protocol_config:
+               (new Nethttpd_kernel.modify_http_protocol_config
+                  ~config_suppress_broken_pipe:true)
+            ~modify_http_processor_config:
+               (new Nethttpd_reactor.modify_http_processor_config
+                  ~config_timeout:15.0)
+            old_cfg</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:internal_environment">
+  <a href="index.html#/classtype:internal_environment" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> internal_environment = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a>
+    </div>
+    
+  <div class="region" id="/classtype:internal_environment/method:unlock">
+  <a href="index.html#/classtype:internal_environment/method:unlock" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> unlock : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:internal_environment/method:req_method">
+  <a href="index.html#/classtype:internal_environment/method:req_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> req_method : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_method">http_method</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:internal_environment/method:response">
+  <a href="index.html#/classtype:internal_environment/method:response" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response : <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_response">http_response</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:internal_environment/method:log_access">
+  <a href="index.html#/classtype:internal_environment/method:log_access" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> log_access : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>For private use only</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_environment">
+  <a href="index.html#/class:http_environment" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> http_environment : 
+    <a href="index.html#/classtype:http_processor_config">http_processor_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol">protocol</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/classtype:http_header">http_header</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    int64 <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/type:output_state">output_state</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_response">http_response</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit <span class="rarr"><span>-&gt;</span></span> unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    int64
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:internal_environment">internal_environment</a>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>For private use only</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_reactive_request">
+  <a href="index.html#/classtype:http_reactive_request" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_reactive_request = 
+  <div class="region" id="/classtype:http_reactive_request/method:environment">
+  <a href="index.html#/classtype:http_reactive_request/method:environment" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> environment : <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a>
+  
+      <div class="doc">
+        
+      <p>The Netcgi environment representing the request header, the response header, and
+the channels to receive the request body and to send the response body.
+The channels are locked until either <code>accept_body</code> or <code>reject_body</code> have been
+called - using the channels before raises exceptions.</p>
+      
+      <p>This environment is not fully CGI-compatible. In particular, the following
+differences exist:</p>
+      <ul><li>There is no <code>cgi_path_info</code> and no <code>cgi_path_translated</code>.</li><li>The user is always unauthenticated.</li><li>The <code>Status</code> response header works as in CGI. The <code>Location</code> header, however,
+must be a full URL when set (only browser redirects)</li><li>When the request body is transmitted by chunked encoding, the header
+<code>Content-Length</code> is not set. In CGI this is interpreted as missing body.
+It is unlikely that clients send requests with chunked encoding, as this
+may cause interoperability problems anyway.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_reactive_request/method:accept_body">
+  <a href="index.html#/classtype:http_reactive_request/method:accept_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> accept_body : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Call this method to unlock the body channels. In terms of HTTP, this sends the
+&quot;100 Continue&quot; response when necessary. One can reply with a positive or
+negative message.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_reactive_request/method:reject_body">
+  <a href="index.html#/classtype:http_reactive_request/method:reject_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reject_body : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Call this method to unlock the body channels. In terms of HTTP, this prevents
+sending the &quot;100 Continue&quot; response. Any arriving request body is silently
+discarded. One should immediately reply with an error mesage.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_reactive_request/method:finish_request">
+  <a href="index.html#/classtype:http_reactive_request/method:finish_request" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> finish_request : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Reads the rest of the body (if any), and discards that data</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_reactive_request/method:finish">
+  <a href="index.html#/classtype:http_reactive_request/method:finish" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> finish : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>This method should be called after the request has been fully processed.
+It takes care that the HTTP protocol is fulfilled, and the next request
+can be properly detected and parsed. If the request body has not been
+fully read, this is now done, and its data are dropped. If the response
+is incomplete, it is completed. If the error is not recoverable, a &quot;Server
+Error&quot; is generated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_reactor">
+  <a href="index.html#/class:http_reactor" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> http_reactor : 
+    <a href="index.html#/classtype:http_reactor_config">http_reactor_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:http_reactor/method:next_request">
+  <a href="index.html#/class:http_reactor/method:next_request" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> next_request : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_reactive_request">http_reactive_request</a> option
+  
+      <div class="doc">
+        
+      <p>Tries to read the next request. When the header of the request is successfully
+read, the method returns the request object (see above). It is connected
+with the socket and can read the request body.</p>
+      
+      <p>After receiving the request, one must either call <code>accept_body</code> when the
+request is acceptable and one want to reply afer evaluating the body, or
+invoke <code>reject_body</code> when the request can be denied without looking at the
+body. One must also call <code>accept_body</code> when there is not any body (it
+is a no-op then). The HTTP protocol explicitly forbids to perform the request
+when <code>reject_body</code> has been invoked (&quot;<code>The origin server</code> MUST NOT
+perform the requested method if it returns a final status code&quot;).</p>
+      
+      <p>The response must be written to the Netcgi environment. Depending on
+<code>config_reactor_synch</code> the response is immediately transmitted to the
+client or at some specified time in the future (untransmitted data is buffered
+in this case).</p>
+      
+      <p>While transmitting output, the reactor is able to read the next request
+in the background when the limits for the pipeline size allows that.</p>
+      
+      <p>While receiving input, the reactor is able to write untransmitted response
+data in the background.</p>
+      
+      <p>It is <b>an error</b> to call <code>next_request</code> again before the previous request
+is completely processed (you can ensure this by calling <code>finish</code>).
+In this case the HTTP connection is immediately shut down.</p>
+      
+      <p>The method <code>next_request</code> returns <code>None</code> when all requests of the
+connection are processed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_reactor/method:close">
+  <a href="index.html#/class:http_reactor/method:close" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Closes the file descriptor with a reliable method. This method must be
+called after <code>next_request</code> returned <code>None</code>. It can also be called at any
+time to shut down the connection prematurely (this means a lingering close,
+and may cost some time).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>The <code>http_reactor</code> allows one to pull the next request from a connected
+client, and to deliver the response to the protocol engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_connection">
+  <a href="index.html#/val:process_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_connection : <a href="index.html#/classtype:http_reactor_config">http_reactor_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Processes all HTTP requests in turn arriving at the file descriptor, and
+calls the service provider for every request. Finally, the descriptor is
+closed.</p>
+      
+      <p>All stages of HTTP processing, as defined by the service provider, are
+executed in the current thread.</p>
+      
+      <p>Any exceptions are caught and logged. The connection is immediately closed
+in this case.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

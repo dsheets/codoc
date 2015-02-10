@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_cenv</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_cenv</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Container environment</p>
+      
+      <p>Some helper functions to explore the environment from a container.
+Most of the following functions <b>must</b> be called from a container context,
+i.e. from a process or thread that acts as container, otherwise
+the exception <code>Not_in_container_thread</code> is raised. There are also some
+functions that can be called from controller context for convenience.</p>
+      
+      <p><b>Thread safety:</b> Full. The functions in this module can be called from any
+thread.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:Not_in_container_thread">
+  <a href="index.html#/exn:Not_in_container_thread" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Not_in_container_thread
+    
+      <div class="doc">
+        
+      <p>Raised when the caller's thread is not a container thread</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Logging</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Logging functions can be invoked from both container and controller
+contexts.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:log">
+  <a href="index.html#/val:log" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Writes a log message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:logf">
+  <a href="index.html#/val:logf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> logf : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Writes a log message like <code>printf</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:report_connection_string">
+  <a href="index.html#/val:report_connection_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> report_connection_string : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Output a log line for the <code>netplex.connections</code> admin message.
+The string is the detail to report.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Timer</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Timer functions can only be invoked from container contexts.
+More documentation is available in [root:Netplex_advanced].timers.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:timer">
+  <a href="index.html#/type:timer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> timer
+    
+      <div class="doc">
+        
+      <p>A timer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_timer">
+  <a href="index.html#/val:create_timer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_timer : (<a href="index.html#/type:timer">timer</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timer">timer</a>
+    
+      <div class="doc">
+        
+      <p><code>create_timer f tmo</code>: Creates a timer with timeout value <code>tmo</code>:
+In <code>tmo</code> seconds <code>f</code> is called, and if this function returns <code>true</code>,
+the timer remains active, and another round of timing is arranged.
+If the functions returns <code>false</code> or raises an exception, the timer
+is stopped.</p>
+      
+      <p>Timers are also stopped on container shutdown.</p>
+      
+      <p>Timers are attached to the container event system, and run only
+if this event system runs. Also note that <code>f</code> is always called from
+the main thread of the container.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cancel_timer">
+  <a href="index.html#/val:cancel_timer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cancel_timer : <a href="index.html#/type:timer">timer</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cancels the timer: The callback function is not called any longer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cancel_all_timers">
+  <a href="index.html#/val:cancel_all_timers" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cancel_all_timers : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cancels all active timers</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timer_id">
+  <a href="index.html#/val:timer_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timer_id : <a href="index.html#/type:timer">timer</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns an ID, e.g. useful for debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Container variables</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Container variables exist once per container. Primary access is
+done via the <code>var</code> and <code>set_var</code> methods of the container class.
+The following functions are often more convenient, however.</p>
+      
+      <p>These functions can only be invoked from container contexts.</p>
+      
+      <p>More documentation: [root:Netplex_advanced].contvars</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Container_variable_not_found">
+  <a href="index.html#/exn:Container_variable_not_found" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Container_variable_not_found <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>The variable does not exist</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Container_variable_type_mismatch">
+  <a href="index.html#/exn:Container_variable_type_mismatch" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Container_variable_type_mismatch <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>The (dynamically typed) variable has the wrong type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int_var">
+  <a href="index.html#/val:int_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_var : string <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_var">
+  <a href="index.html#/val:string_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_var : string <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:float_var">
+  <a href="index.html#/val:float_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float_var : string <span class="rarr"><span>-&gt;</span></span> float
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bool_var">
+  <a href="index.html#/val:bool_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bool_var : string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Access a variable with simple type. May raise
+<code>Container_variable_not_found</code> or <code>Container_variable_type_mismatch</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_int_var">
+  <a href="index.html#/val:set_int_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_int_var : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_string_var">
+  <a href="index.html#/val:set_string_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_string_var : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_float_var">
+  <a href="index.html#/val:set_float_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_float_var : string <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_bool_var">
+  <a href="index.html#/val:set_bool_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_bool_var : string <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set a variable with simple type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make_var_type">
+  <a href="index.html#/val:make_var_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_var_type : ('a <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:encap">encap</a>) <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:encap">encap</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> 'a) * (string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p>Create get and set functions for any (monomorphic) type. For example,
+to create such function for a type <code>foo</code>, do</p>
+      <pre><code>          module E = Netplex_encap.Make_encap(struct type t = foo end)
+          let (get, set) = 
+            make_var_type E.wrap E.unwrap</code></pre>
+      <p>Read on for using functors to create <code>get</code> and <code>set</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:TYPE">
+  <a href="index.html#/modtype:TYPE" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> TYPE = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Just a (monomorphic) type <code>t</code></p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:TYPE/type:t">
+  <a href="index.html#/modtype:TYPE/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:VAR_TYPE">
+  <a href="index.html#/modtype:VAR_TYPE" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> VAR_TYPE = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>A (monomorphic) type <code>t</code> with two functions <code>get</code> and <code>set</code>
+accessing the container variables</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:VAR_TYPE/type:t">
+  <a href="index.html#/modtype:VAR_TYPE/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:VAR_TYPE/val:get">
+  <a href="index.html#/modtype:VAR_TYPE/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:VAR_TYPE/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:VAR_TYPE/val:set">
+  <a href="index.html#/modtype:VAR_TYPE/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:VAR_TYPE/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_var_type">
+  <a href="index.html#/module:Make_var_type" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_var_type : <span class="keyword">functor</span> (T : <a href="index.html#/modtype:TYPE">TYPE</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:VAR_TYPE">VAR_TYPE</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:VAR_TYPE/type:t">t</a> = <a href="index.html#/module:Make_var_type/modarg:1:T">T</a>.<a href="index.html#/module:Make_var_type/modarg:1:T/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>Creates <code>get</code> and <code>set</code> like <code>make_var_type</code>. Call it like</p>
+      <pre><code>         module Foo_var = 
+           Make_var_type(struct t = foo end)</code></pre>
+      <p>and use <code>Foo_var.get</code> and <code>Foo_var.set</code> to access the container
+variables of type <code>foo</code>.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">System control</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>System control functions can be invoked from both container and controller
+contexts.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:system_shutdown">
+  <a href="index.html#/val:system_shutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> system_shutdown : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Initiates a system shutdown (like the <code>shutdown</code> method of the
+controller)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:system_restart">
+  <a href="index.html#/val:system_restart" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> system_restart : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Initiates a system restart (like the <code>restart</code> method of the
+controller)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Inter-Container Communication</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These functions can only be invoked from container contexts,
+except <code>send_message</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:send_message">
+  <a href="index.html#/val:send_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send_message : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string array <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>send_message service_pattern msg_name msg_arguments</code>: Sends
+a message to all services and message receivers matching
+<code>service_pattern</code>. The pattern may include the wildcard <code>*</code>.</p>
+      
+      <p>See the <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller/method:send_message">send_message</a> method for
+the notification guarantees.</p>
+      
+      <p>This function can be invoked from both container and controller
+contexts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup">
+  <a href="index.html#/val:lookup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p><code>lookup service_name protocol_name</code> tries to find a Unix domain
+socket for the service and returns it.</p>
+      
+      <p>On Win32, the returned path refers to a file describing the
+IPC mechanism. Use <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_sockserv/">Netplex_sockserv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_sockserv/#/val:any_file_client_connector">any_file_client_connector</a>
+to convert the path into an RPC connector.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup_container_sockets">
+  <a href="index.html#/val:lookup_container_sockets" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup_container_sockets : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string array
+    
+      <div class="doc">
+        
+      <p><code>lookup_container_sockets service_name protocol_name</code>: returns
+the Unix Domain paths of all container sockets for this service and
+protocol. These are the sockets declared with address type
+&quot;container&quot; in the config file.</p>
+      
+      <p>On Win32, the returned paths refer to files describing the
+IPC mechanism. Use <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_sockserv/">Netplex_sockserv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_sockserv/#/val:any_file_client_connector">any_file_client_connector</a>
+to convert the paths into RPC connectors.</p>
+      
+      <p>Container sockets are explained here:
+[root:Netplex_advanced].contsocks</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Direct container and admin interface access</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:self_cont">
+  <a href="index.html#/val:self_cont" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> self_cont : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a>
+    
+      <div class="doc">
+        
+      <p>Returns the container running the code of the caller,
+or raise <code>Not_in_container_thread</code> if called from outside a
+container context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:self_obj">
+  <a href="index.html#/val:self_obj" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> self_obj : unit <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Container <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a></div><div class="cons">| `Controller <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Returns the container or the controller running the code of the
+caller, or raise <code>Not_found</code> if called from
+neither a container not a controller thread.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:current_sys_id">
+  <a href="index.html#/val:current_sys_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> current_sys_id : unit <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Thread <span class="keyword">of</span> int</div><div class="cons">| `Process <span class="keyword">of</span> int</div> ]
+    
+      <div class="doc">
+        
+      <p>Returns the system-dependent thread identifier of the caller
+(which must be in container or controller context)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:admin_connector">
+  <a href="index.html#/val:admin_connector" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> admin_connector : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/type:mode2">mode2</a>
+    
+      <div class="doc">
+        
+      <p>Determines the admin socket of the controller, and returns an RPC
+client connector suitable for connecting with the admin interface
+of the controller. For instance to initiate a system shutdown from
+the context of a container:</p>
+      <pre><code>         let conn = Netplex_cenv.admin_connector() in
+         let client = Netplex_ctrl_clnt.Admin.V2.create_client2 conn in
+         Netplex_ctrl_clnt.Admin.V2.system_shutdown client ();
+         Rpc_client.shut_down client</code></pre>
+      <p>Note that the admin interface is going to evolve, and it is advisable
+to avoid admin calls whenever possible.</p>
+      
+      <p>This function must be called from container context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run_in_controller_context">
+  <a href="index.html#/val:run_in_controller_context" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run_in_controller_context : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>run_in_controller_context ctrl f</code>: Arranges that <code>f()</code> is executed
+in the context of the controller. <b>This is only possible for
+multi-threading but not for multi-processing style!</b> For
+programs using multi-processing, see <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/module:Make_lever">Make_lever</a>
+for a workaround.</p>
+      
+      <p>This function can be called from any thread. The function <code>f</code> is
+executed by pushing it onto the event queue, and calling it when
+the pushed event is reached. This is usually a safe point for
+many kinds of operations, but if controller methods are invoked
+the details are left unspecified.</p>
+      
+      <p>For example, this allows it to start helper threads via
+<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_kit/">Netplex_kit</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_kit/#/val:add_helper_service">add_helper_service</a> at any time.</p>
+      
+      <p>An example can be found here: [root:Netplex_advanced].levers</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run_in_container_context">
+  <a href="index.html#/val:run_in_container_context" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run_in_container_context : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>run_in_container_context cont f</code>: Arranges that <code>f()</code> is executed
+in the context of the container <code>cont</code>. <b>This is only possible for
+multi-threading but not for multi-processing style!</b></p>
+      
+      <p>This function can be called from any thread. The function <code>f</code> is
+executed by pushing it onto the event queue, and calling it when
+the pushed event is reached. This is usually a safe point for
+many kinds of operations, but if container method are invoked
+the details are left unspecified.</p>
+      
+      <p>There is no guarantee that <code>f</code> is called anytime soon - if the
+container is busy with something else than with the event queue
+the execution will be blocked until these other activities are
+over.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Levers are a way to send messages to the controller, and to effectively
+run functions there that were previously registered.</p>
+      
+      <p>More documentation: [root:Netplex_advanced].levers</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/modtype:FUN_TYPE">
+  <a href="index.html#/modtype:FUN_TYPE" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> FUN_TYPE = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Abstraction for function types <code>s-&gt;t</code></p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:FUN_TYPE/type:s">
+  <a href="index.html#/modtype:FUN_TYPE/type:s" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> s
+    
+      <div class="doc">
+        
+      <p>argument type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:FUN_TYPE/type:r">
+  <a href="index.html#/modtype:FUN_TYPE/type:r" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> r
+    
+      <div class="doc">
+        
+      <p>result type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:LEVER">
+  <a href="index.html#/modtype:LEVER" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> LEVER = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:LEVER/type:s">
+  <a href="index.html#/modtype:LEVER/type:s" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> s
+    
+      <div class="doc">
+        
+      <p>argument type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:LEVER/type:r">
+  <a href="index.html#/modtype:LEVER/type:r" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> r
+    
+      <div class="doc">
+        
+      <p>result type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:LEVER/type:t">
+  <a href="index.html#/modtype:LEVER/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="index.html#/modtype:LEVER/type:s">s</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:LEVER/type:r">r</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:LEVER/val:register">
+  <a href="index.html#/modtype:LEVER/val:register" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> register : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:LEVER/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:LEVER/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>let reg_lever = register ctrl raw_lever</code>:
+Registers <code>raw_lever</code> in the controller <code>ctrl</code>, so one can call
+<code>reg_lever</code> to activate it. For example:</p>
+      <pre><code>           module LT = struct type s = unit type r = int end
+           module L = Make_lever(LT)
+         
+           let get_num_services =
+             L.register ctrl (fun ctrl () -&gt; List.length ctrl#services)</code></pre>
+      <p>The registration must be done in controller context, e.g.
+in the <code>pre_start_hook</code> of a container.</p>
+      
+      <p>From the running container, one can now call:</p>
+      <pre><code>get_num_services()</code></pre>
+      <p>to get the current length of the <code>ctrl#services</code> list.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_lever">
+  <a href="index.html#/module:Make_lever" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_lever : <span class="keyword">functor</span> (T : <a href="index.html#/modtype:FUN_TYPE">FUN_TYPE</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:LEVER">LEVER</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:LEVER/type:s">s</a> = <a href="index.html#/module:Make_lever/modarg:1:T">T</a>.<a href="index.html#/module:Make_lever/modarg:1:T/type:s">s</a> <span class="keyword">and</span> <span class="keyword">type</span> <a href="index.html#/modtype:LEVER/type:r">r</a> = <a href="index.html#/module:Make_lever/modarg:1:T">T</a>.<a href="index.html#/module:Make_lever/modarg:1:T/type:r">r</a></div>
+      
+      <div class="doc">
+        
+      <p>Creates a <code>LEVER</code> module from a function type as specified in
+<code>FUN_TYPE</code></p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Persistent kernel objects</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pmanage">
+  <a href="index.html#/val:pmanage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pmanage : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_pmanage/">Netsys_pmanage</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_pmanage/#/classtype:pmanage">pmanage</a>
+    
+      <div class="doc">
+        
+      <p>Access the manager for persistent kernel objects with limited
+lifetime. Among these objects there are shared memory objects,
+and named semaphores. These objects can usually be deleted when
+the program finishes (or crashes), but this is not done automatically
+because of kernel persistency.</p>
+      
+      <p>See [root:Netplex_admin].unlink for more information.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

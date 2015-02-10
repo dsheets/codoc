@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_simple_client</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_simple_client</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Synchronous API for RPC clients</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This is a synchronous client that suffices for most applications
+of RPC.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The type of simple clients</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/type:connector">connector</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Create a simple client that connects with the given server using
+the given protocol type. The program argument specifies the remote
+program.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:call">
+  <a href="index.html#/val:call" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> call : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a>
+    
+      <div class="doc">
+        
+      <p><code>call simple_client procedure_name procedure_arg</code>:
+Call the procedure with the given name and the given argument. Returns
+the result of the procedure on success; otherwise raises an exception.</p>
+      
+      <p>Note that it is possible that the connection is aborted and the
+client is reset. In this case <code>call</code> raises an exception but it is
+currently difficult to recognize this case.
+Other reasons may be that the server refuses the call (e.g. because
+of missing authentication).</p>
+      
+      <p>Frequent exceptions:</p>
+      <ul><li><code>Rpc.Rpc_server condition</code>: The server did not like the call;
+the 'condition' explains why</li><li><code>Rpc.Rpc_cannot_unpack reason</code>: Got a badly formatted message.</li><li><code>Rpc_client.Message_lost</code>: The stream ended before there was any
+reply (perhaps not even the call could
+be sent over the stream)</li><li><code>Rpc_client.Message_timeout</code>: There was no reply for the specified
+period of time</li><li><code>Rpc_client.Communication_error x</code>:
+An I/O error or a serious internal
+error happened
+<code>Failure s</code>: Mostly: The internal state of the client
+does not allow to do another call</li></ul>
+      <p>Note that only the <code>Rpc_server</code> exception has clear semantics as it is
+known that the procedure has not been invoked.
+It is a good choice to shut down the connection if one of the other
+exceptions happens. (Note that the connection may already have been
+shutted down, but it is ok to shut down twice.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shut_down">
+  <a href="index.html#/val:shut_down" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shut_down : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Shut the connection down. After the client has been shutted down, it
+is not possible to call further remote procedures. Throw the client
+away and create a new one if you want to continue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_engine</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_engine</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Lwt unix main loop engine</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Events</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:event">
+  <a href="index.html#/type:event" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> event
+    
+      <div class="doc">
+        
+      <p>Type of events. An event represent a callback registered to be
+called when some event occurs.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stop_event">
+  <a href="index.html#/val:stop_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stop_event : <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>stop_event event</code> stops the given event.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fake_event">
+  <a href="index.html#/val:fake_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fake_event : <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p>Event which does nothing when stopped.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Event loop functions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter block</code> performs one iteration of the main loop. If <code>block</code>
+is <code>true</code> the function must blocks until one event become
+available, otherwise it should just check for available events
+and return immediately.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:on_readable">
+  <a href="index.html#/val:on_readable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on_readable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>on_readable fd f</code> calls <code>f</code> each time <code>fd</code> becomes readable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:on_writable">
+  <a href="index.html#/val:on_writable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on_writable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>on_readable fd f</code> calls <code>f</code> each time <code>fd</code> becomes writable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:on_timer">
+  <a href="index.html#/val:on_timer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on_timer : float <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>on_timer delay repeat f</code> calls <code>f</code> one time after <code>delay</code>
+seconds. If <code>repeat</code> is <code>true</code> then <code>f</code> is called each <code>delay</code>
+seconds, otherwise it is called only one time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:readable_count">
+  <a href="index.html#/val:readable_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> readable_count : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the number of events waiting for a file descriptor to
+become readable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:writable_count">
+  <a href="index.html#/val:writable_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> writable_count : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the number of events waiting for a file descriptor to
+become writable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timer_count">
+  <a href="index.html#/val:timer_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timer_count : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the number of registered timers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fake_io">
+  <a href="index.html#/val:fake_io" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fake_io : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Simulates activity on the given file descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Engines</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>An engine represent a set of functions used to register different
+kind of callbacks for different kind of events.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:abstract">
+  <a href="index.html#/class:abstract" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> abstract : 
+  <div class="region" id="/class:abstract/method:destroy">
+  <a href="index.html#/class:abstract/method:destroy" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> destroy : unit
+  
+      <div class="doc">
+        
+      <p>Destroy the engine, remove all its events and free its
+associated resources.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:transfer">
+  <a href="index.html#/class:abstract/method:transfer" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> transfer : <a href="index.html#/class:abstract">abstract</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>transfer engine</code> moves all events from the current engine to
+<code>engine</code>. Note that timers are reset in the destination
+engine, i.e. if a timer with a delay of 2 seconds was
+registered 1 second ago it will occurs in 2 seconds in the
+destination engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Event loop methods</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:abstract/method:iter">
+  <a href="index.html#/class:abstract/method:iter" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> iter : bool <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:on_readable">
+  <a href="index.html#/class:abstract/method:on_readable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> on_readable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:on_writable">
+  <a href="index.html#/class:abstract/method:on_writable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> on_writable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:on_timer">
+  <a href="index.html#/class:abstract/method:on_timer" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> on_timer : float <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event">event</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:fake_io">
+  <a href="index.html#/class:abstract/method:fake_io" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> fake_io : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:readable_count">
+  <a href="index.html#/class:abstract/method:readable_count" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> readable_count : int
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:writable_count">
+  <a href="index.html#/class:abstract/method:writable_count" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> writable_count : int
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:timer_count">
+  <a href="index.html#/class:abstract/method:timer_count" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> timer_count : int
+  
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Backend methods</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Notes:</p>
+      <ul><li>the callback passed to register methods is of type <code>unit -&gt;
+      unit</code> and not <code>event -&gt; unit</code></li><li>register methods returns a lazy value which unregister the
+event when forced</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/class:abstract/method:cleanup">
+  <a href="index.html#/class:abstract/method:cleanup" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> cleanup : unit
+  
+      <div class="doc">
+        
+      <p>Cleanup resources associated to the engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:register_readable">
+  <a href="index.html#/class:abstract/method:register_readable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> register_readable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:register_writable">
+  <a href="index.html#/class:abstract/method:register_writable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> register_writable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:register_timer">
+  <a href="index.html#/class:abstract/method:register_timer" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> register_timer : float <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Abstract class for engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:t">
+  <a href="index.html#/classtype:t" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> t = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/class:abstract">abstract</a>
+    </div>
+    
+  <div class="region" id="/classtype:t/method:iter">
+  <a href="index.html#/classtype:t/method:iter" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> iter : bool <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:t/method:cleanup">
+  <a href="index.html#/classtype:t/method:cleanup" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> cleanup : unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:t/method:register_readable">
+  <a href="index.html#/classtype:t/method:register_readable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> register_readable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:t/method:register_writable">
+  <a href="index.html#/classtype:t/method:register_writable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> register_writable : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:t/method:register_timer">
+  <a href="index.html#/classtype:t/method:register_timer" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> register_timer : float <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Type of engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Predefined engines</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:ev_loop">
+  <a href="index.html#/type:ev_loop" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ev_loop
+    
+      <div class="doc">
+        
+      <p>Type of libev loops.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:libev">
+  <a href="index.html#/class:libev" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> libev : 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:t">t</a>
+    </div>
+    
+  <div class="region" id="/class:libev/var:loop">
+  <a href="index.html#/class:libev/var:loop" class="anchor">#</a>
+  
+  <div class="classval">
+  <span class="keyword">val</span> loop : <a href="index.html#/type:ev_loop">ev_loop</a>
+  
+      <div class="doc">
+        
+      <p>The libev loop used for this engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:libev/method:loop">
+  <a href="index.html#/class:libev/method:loop" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> loop : <a href="index.html#/type:ev_loop">ev_loop</a>
+  
+      <div class="doc">
+        
+      <p>Returns <code>loop</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Engine based on libev. If not compiled with libev support, the
+creation of the class will raise <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_sys/">Lwt_sys</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_sys/#/exn:Not_available">Not_available</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:select">
+  <a href="index.html#/class:select" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> select : <a href="index.html#/classtype:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Engine based on <code>Unix.select</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:select_based">
+  <a href="index.html#/class:select_based" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> select_based : 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:t">t</a>
+    </div>
+    
+  <div class="region" id="/class:select_based/method:select">
+  <a href="index.html#/class:select_based/method:select" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> select : <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list * <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list
+  
+      <div class="doc">
+        
+      <p><code>select fds_r fds_w timeout</code> waits for either:</p>
+      <ul><li>one of the file descriptor of <code>fds_r</code> to become readable</li><li>one of the file descriptor of <code>fds_w</code> to become writable</li><li>timeout to expire</li></ul>
+      <p>and returns the list of readable file descriptor and the list
+of writable file descriptors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Abstract class for engines based on a select-like function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:poll_based">
+  <a href="index.html#/class:poll_based" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> poll_based : 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:t">t</a>
+    </div>
+    
+  <div class="region" id="/class:poll_based/method:poll">
+  <a href="index.html#/class:poll_based/method:poll" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> poll : (<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * bool * bool) list <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * bool * bool) list
+  
+      <div class="doc">
+        
+      <p><code>poll fds tiomeout</code>, where <code>fds</code> is a list of tuples of the
+form <code>(fd, check_readable, check_writable)</code>, waits for either:</p>
+      <ul><li>one of the file descriptor with <code>check_readable</code> set to
+<code>true</code> to become readable</li><li>one of the file descriptor with <code>check_writable</code> set to
+<code>true</code> to become writable</li><li>timeout to expire</li></ul>
+      <p>and returns the list of file descriptors with their readable
+and writable status.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Abstract class for engines based on a poll-like function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">The current engine</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>get ()</code> returns the engine currently in use.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : ?transfer:bool <span class="rarr"><span>-&gt;</span></span> ?destroy:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set ?transfer ?destroy engine</code> replaces the current engine by
+the given one.</p>
+      
+      <p>If <code>transfer</code> is <code>true</code> (the default) all events from the
+current engine are transferred to the new one.</p>
+      
+      <p>If <code>destroy</code> is <code>true</code> (the default) then the current engine is
+destroyed before being replaced.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

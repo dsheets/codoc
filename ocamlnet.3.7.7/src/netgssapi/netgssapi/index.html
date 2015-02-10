@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netgssapi</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netgssapi</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>GSS-API Definition</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This is mainly a translation of RFC 2743/2744 to Ocaml.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Types</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:oid">
+  <a href="index.html#/type:oid" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> oid = int array
+    
+      <div class="doc">
+        
+      <p>OIDs like &quot;1.3.6.1.5.6.2&quot; as array of int's. The empty array
+means <code>GSS_C_NO_OID</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:oid_set">
+  <a href="index.html#/type:oid_set" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> oid_set = <a href="index.html#/type:oid">oid</a> list
+    
+      <div class="doc">
+        
+      <p>A set of OID's. These lists should not contain OID's twice.
+The empty list means <code>GSS_C_NO_OID_SET</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:credential">
+  <a href="index.html#/type:credential" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> credential = &lt; otype : [ <div class="cons">| `Credential</div> ] &gt;
+    
+      <div class="doc">
+        
+      <p>A credential is opaque for the caller of the GSS-API.
+The provider of the GSS-API can emit new credential objects,
+and hand them out to the caller. When the caller passes
+credentials back to the provider, the provider must check
+whether the object is known, and reject any fake objects
+created by the caller by raising <code>Invalid_argument</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:context">
+  <a href="index.html#/type:context" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> context = &lt; otype : [ <div class="cons">| `Context</div> ]; valid : bool &gt;
+    
+      <div class="doc">
+        
+      <p>A context is also opaque, and the same rules apply as for
+<code>credential</code>.</p>
+      
+      <p>The method <code>valid</code> is true as long as the context is not
+deleted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:token">
+  <a href="index.html#/type:token" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> token = string
+    
+      <div class="doc">
+        
+      <p>Authentication tokens. These are also opaque to the caller,
+but have a string representation so that they can be sent
+over the wire.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:interprocess_token">
+  <a href="index.html#/type:interprocess_token" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> interprocess_token = string
+    
+      <div class="doc">
+        
+      <p>Interprocess tokens. These are also opaque to the caller,
+but have a string representation so that they can be sent
+over the wire.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:calling_error">
+  <a href="index.html#/type:calling_error" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> calling_error = [ <div class="cons">| `None</div><div class="cons">| `Inaccessible_read</div><div class="cons">| `Inaccessible_write</div><div class="cons">| `Bad_structure</div> ]
+    
+      <div class="doc">
+        
+      <p>Possible errors caused by the caller</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:routine_error">
+  <a href="index.html#/type:routine_error" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> routine_error = [ <div class="cons">| `None</div><div class="cons">| `Bad_mech</div><div class="cons">| `Bad_name</div><div class="cons">| `Bad_nametype</div><div class="cons">| `Bad_bindings</div><div class="cons">| `Bad_status</div><div class="cons">| `Bad_mic</div><div class="cons">| `No_cred</div><div class="cons">| `No_context</div><div class="cons">| `Defective_token</div><div class="cons">| `Defective_credential</div><div class="cons">| `Credentials_expired</div><div class="cons">| `Context_expired</div><div class="cons">| `Failure</div><div class="cons">| `Bad_QOP</div><div class="cons">| `Unauthorized</div><div class="cons">| `Unavailable</div><div class="cons">| `Duplicate_element</div><div class="cons">| `Name_not_mn</div> ]
+    
+      <div class="doc">
+        
+      <p>Possible errors caused by the provider</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:suppl_status">
+  <a href="index.html#/type:suppl_status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> suppl_status = [ <div class="cons">| `Continue_needed</div><div class="cons">| `Duplicate_token</div><div class="cons">| `Old_token</div><div class="cons">| `Unseq_token</div><div class="cons">| `Gap_token</div> ]
+    
+      <div class="doc">
+        
+      <p>Further flags</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:major_status">
+  <a href="index.html#/type:major_status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> major_status = <a href="index.html#/type:calling_error">calling_error</a> * <a href="index.html#/type:routine_error">routine_error</a> * <a href="index.html#/type:suppl_status">suppl_status</a> list
+    
+      <div class="doc">
+        
+      <p>The major status consists of these three elements. The bits of the
+supplementary status field are represented as list</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:minor_status">
+  <a href="index.html#/type:minor_status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> minor_status = int32
+    
+      <div class="doc">
+        
+      <p>The minor status is provider-specific. Note that GSS-API defines
+it as <b>unsigned</b> 32-bit integer whereas <code>int32</code> is signed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:name">
+  <a href="index.html#/type:name" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> name = &lt; otype : [ <div class="cons">| `Name</div> ] &gt;
+    
+      <div class="doc">
+        
+      <p>A name is also opaque, and the same rules apply as for
+<code>credential</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:address">
+  <a href="index.html#/type:address" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> address = [ <div class="cons">| `Unspecified <span class="keyword">of</span> string</div><div class="cons">| `Local <span class="keyword">of</span> string</div><div class="cons">| `Inet <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a></div><div class="cons">| `Nulladdr</div><div class="cons">| `Other <span class="keyword">of</span> int32 * string</div> ]
+    
+      <div class="doc">
+        
+      <p>Addresses tagged by address types</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:channel_bindings">
+  <a href="index.html#/type:channel_bindings" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> channel_bindings = <a href="index.html#/type:address">address</a> * <a href="index.html#/type:address">address</a> * string
+    
+      <div class="doc">
+        
+      <p>Channel binding as tuple
+<code>(initiator_address, acceptor_address, application_data)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:cred_usage">
+  <a href="index.html#/type:cred_usage" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cred_usage = [ <div class="cons">| `Initiate</div><div class="cons">| `Accept</div><div class="cons">| `Both</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:qop">
+  <a href="index.html#/type:qop" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> qop = &lt; otype : [ <div class="cons">| `QOP</div> ] &gt;
+    
+      <div class="doc">
+        
+      <p>Quality-of-proctection parameters are mechanism-specific</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:message">
+  <a href="index.html#/type:message" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> message = <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a> list
+    
+      <div class="doc">
+        
+      <p>Messages are represented as lists of <code>mstring</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ret_flag">
+  <a href="index.html#/type:ret_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ret_flag = [ <div class="cons">| `Deleg_flag</div><div class="cons">| `Mutual_flag</div><div class="cons">| `Replay_flag</div><div class="cons">| `Sequence_flag</div><div class="cons">| `Conf_flag</div><div class="cons">| `Integ_flag</div><div class="cons">| `Anon_flag</div><div class="cons">| `Prot_ready_flag</div><div class="cons">| `Trans_flag</div> ]
+    
+      <div class="doc">
+        
+      <p>Flags for the <code>accept_sec_context</code> method</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:req_flag">
+  <a href="index.html#/type:req_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> req_flag = [ <div class="cons">| `Deleg_flag</div><div class="cons">| `Mutual_flag</div><div class="cons">| `Replay_flag</div><div class="cons">| `Sequence_flag</div><div class="cons">| `Conf_flag</div><div class="cons">| `Integ_flag</div><div class="cons">| `Anon_flag</div> ]
+    
+      <div class="doc">
+        
+      <p>Flags for the <code>init_sec_context</code> method</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Exceptions</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>There are no defined exceptions.</p>
+      
+      <p>Errors should be reported using the <code>major_status</code> and <code>minor_status</code>
+codes as much as possible.</p>
+      
+      <p><code>Invalid_argument</code> may be raised for clear violations of calling
+requirements, e.g. when an opaque object is passed to this interface
+that was not returned by it before.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">The API</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The methods have generally a type of the form</p>
+      <pre><code>       m : 't . arg1 -&gt; ... -&gt; argN -&gt; out:( ret1 -&gt; ... -&gt; retM -&gt; 't ) -&gt; 't </code></pre>
+      <p>where <code>arg</code>s are input arguments (with the exception of <code>context</code>
+which is in/out), and where outputs are passed back by calling the <code>out</code>
+functions with the outputs. The return value of <code>out</code> is the return
+value of the method call.</p>
+      
+      <p>For example, if only <code>output_token</code> of the <code>accept_sec_context</code> method
+is needed, one could call this method as in</p>
+      <pre><code>      let output_token =
+	gss_api # accept_sec_context 
+	   ... 
+	   ~out:(fun ~src_name ~mech_type ~output_token ~ret_flags
+		     ~time_rec ~delegated_cred_handle ~minor_status
+		     ~major_status -&gt;
+		  output_token
+		)</code></pre>
+      <p>Output values may not be defined when <code>major_status</code> indicates
+an error. (But see the RFC for details; especially <code>init_sec_contect</code>
+and <code>accept_sec_context</code> may emit tokens even when <code>major_status</code>
+indicates an error.)</p>
+      
+      <p>The names of the parameters are taken from RFC 2744, only
+suffixes like <code>_handle</code> have been removed. When the prefixes
+<code>input_</code> and <code>output_</code> are meaningless, they are also removed.
+All prefixes like &quot;GSS&quot; are removed anyway.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:gss_api">
+  <a href="index.html#/classtype:gss_api" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> gss_api = 
+  <div class="region" id="/classtype:gss_api/method:provider">
+  <a href="index.html#/classtype:gss_api/method:provider" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> provider : string
+  
+      <div class="doc">
+        
+      <p>A string name identifying the provider</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:no_credential">
+  <a href="index.html#/classtype:gss_api/method:no_credential" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> no_credential : <a href="index.html#/type:credential">credential</a>
+  
+      <div class="doc">
+        
+      <p>A substitute credential for <code>GSS_C_NO_CREDENTIAL</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:no_name">
+  <a href="index.html#/classtype:gss_api/method:no_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> no_name : <a href="index.html#/type:name">name</a>
+  
+      <div class="doc">
+        
+      <p>A substitute name for <code>GSS_C_NO_NAME</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:accept_sec_context">
+  <a href="index.html#/classtype:gss_api/method:accept_sec_context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> accept_sec_context : 't . context:<a href="index.html#/type:context">context</a> option <span class="rarr"><span>-&gt;</span></span> acceptor_cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> input_token:<a href="index.html#/type:token">token</a> <span class="rarr"><span>-&gt;</span></span> chan_bindings:<a href="index.html#/type:channel_bindings">channel_bindings</a> option <span class="rarr"><span>-&gt;</span></span> out:(src_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> mech_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> output_context:<a href="index.html#/type:context">context</a> option <span class="rarr"><span>-&gt;</span></span> output_token:<a href="index.html#/type:token">token</a> <span class="rarr"><span>-&gt;</span></span> ret_flags:<a href="index.html#/type:ret_flag">ret_flag</a> list <span class="rarr"><span>-&gt;</span></span> time_rec:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> delegated_cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+      <div class="doc">
+        
+      <p>On the first call, pass <code>~context:None</code>. If successful, the
+function outputs a non-None <code>~output_context</code> which should be
+passed as new <code>~context</code> in follow-up calls.</p>
+      
+      <p>If the <code>output_token</code> is non-empty, it must be transmitted to
+the peer - independent of the <code>major_status</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:acquire_cred">
+  <a href="index.html#/classtype:gss_api/method:acquire_cred" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> acquire_cred : 't . desired_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> time_req:[ <div class="cons">| `None</div><div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> desired_mechs:<a href="index.html#/type:oid_set">oid_set</a> <span class="rarr"><span>-&gt;</span></span> cred_usage:<a href="index.html#/type:cred_usage">cred_usage</a> <span class="rarr"><span>-&gt;</span></span> out:(cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> actual_mechs:<a href="index.html#/type:oid_set">oid_set</a> <span class="rarr"><span>-&gt;</span></span> time_rec:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:add_cred">
+  <a href="index.html#/classtype:gss_api/method:add_cred" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_cred : 't . input_cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> desired_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> desired_mech:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> cred_usage:<a href="index.html#/type:cred_usage">cred_usage</a> <span class="rarr"><span>-&gt;</span></span> initiator_time_req:[ <div class="cons">| `None</div><div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> acceptor_time_req:[ <div class="cons">| `None</div><div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> out:(output_cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> actual_mechs:<a href="index.html#/type:oid_set">oid_set</a> <span class="rarr"><span>-&gt;</span></span> initiator_time_rec:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> acceptor_time_rec:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:canonicalize_name">
+  <a href="index.html#/classtype:gss_api/method:canonicalize_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> canonicalize_name : 't . input_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> mech_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> out:(output_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:compare_name">
+  <a href="index.html#/classtype:gss_api/method:compare_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> compare_name : 't . name1:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> name2:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> out:(name_equal:bool <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:context_time">
+  <a href="index.html#/classtype:gss_api/method:context_time" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> context_time : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> out:(time_rec:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:delete_sec_context">
+  <a href="index.html#/classtype:gss_api/method:delete_sec_context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> delete_sec_context : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> out:(minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+      <div class="doc">
+        
+      <p>Output tokens are not supported (this is a deprecated feature of
+GSSAPI)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:display_name">
+  <a href="index.html#/classtype:gss_api/method:display_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> display_name : 't . input_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> out:(output_name:string <span class="rarr"><span>-&gt;</span></span> output_name_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:display_minor_status">
+  <a href="index.html#/classtype:gss_api/method:display_minor_status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> display_minor_status : 't . minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> mech_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> out:(status_strings:string list <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+      <div class="doc">
+        
+      <p>Note that <code>display_minor_status</code> decodes all status value parts in
+one step and returns the result as <code>string list</code>. Also, this
+method is restricted to decoding minor statuses</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:export_name">
+  <a href="index.html#/classtype:gss_api/method:export_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> export_name : 't . name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> out:(exported_name:string <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:export_sec_context">
+  <a href="index.html#/classtype:gss_api/method:export_sec_context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> export_sec_context : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> out:(interprocess_token:<a href="index.html#/type:interprocess_token">interprocess_token</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:get_mic">
+  <a href="index.html#/classtype:gss_api/method:get_mic" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_mic : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> qop_req:<a href="index.html#/type:qop">qop</a> option <span class="rarr"><span>-&gt;</span></span> message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> out:(msg_token:<a href="index.html#/type:token">token</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:import_name">
+  <a href="index.html#/classtype:gss_api/method:import_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> import_name : 't . input_name:string <span class="rarr"><span>-&gt;</span></span> input_name_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> out:(output_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:import_sec_context">
+  <a href="index.html#/classtype:gss_api/method:import_sec_context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> import_sec_context : 't . interprocess_token:<a href="index.html#/type:interprocess_token">interprocess_token</a> <span class="rarr"><span>-&gt;</span></span> out:(context:<a href="index.html#/type:context">context</a> option <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:indicate_mechs">
+  <a href="index.html#/classtype:gss_api/method:indicate_mechs" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> indicate_mechs : 't . out:(mech_set:<a href="index.html#/type:oid_set">oid_set</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:init_sec_context">
+  <a href="index.html#/classtype:gss_api/method:init_sec_context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> init_sec_context : 't . initiator_cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> context:<a href="index.html#/type:context">context</a> option <span class="rarr"><span>-&gt;</span></span> target_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> mech_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> req_flags:<a href="index.html#/type:req_flag">req_flag</a> list <span class="rarr"><span>-&gt;</span></span> time_rec:float option <span class="rarr"><span>-&gt;</span></span> chan_bindings:<a href="index.html#/type:channel_bindings">channel_bindings</a> option <span class="rarr"><span>-&gt;</span></span> input_token:<a href="index.html#/type:token">token</a> option <span class="rarr"><span>-&gt;</span></span> out:(actual_mech_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> output_context:<a href="index.html#/type:context">context</a> option <span class="rarr"><span>-&gt;</span></span> output_token:<a href="index.html#/type:token">token</a> <span class="rarr"><span>-&gt;</span></span> ret_flags:<a href="index.html#/type:ret_flag">ret_flag</a> list <span class="rarr"><span>-&gt;</span></span> time_rec:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+      <div class="doc">
+        
+      <p>On the first call, pass <code>~context:None</code>. If successful, the
+function outputs a non-None <code>~output_context</code> which should be
+passed as new <code>~context</code> in follow-up calls.</p>
+      
+      <p>If the <code>output_token</code> is non-empty, it must be transmitted to
+the peer - independent of the <code>major_status</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:inquire_context">
+  <a href="index.html#/classtype:gss_api/method:inquire_context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inquire_context : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> out:(src_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> targ_name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> lifetime_req:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> mech_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> ctx_flags:<a href="index.html#/type:ret_flag">ret_flag</a> list <span class="rarr"><span>-&gt;</span></span> locally_initiated:bool <span class="rarr"><span>-&gt;</span></span> is_open:bool <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:inquire_cred">
+  <a href="index.html#/classtype:gss_api/method:inquire_cred" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inquire_cred : 't . cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> out:(name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> lifetime:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> cred_usage:<a href="index.html#/type:cred_usage">cred_usage</a> <span class="rarr"><span>-&gt;</span></span> mechanisms:<a href="index.html#/type:oid_set">oid_set</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:inquire_cred_by_mech">
+  <a href="index.html#/classtype:gss_api/method:inquire_cred_by_mech" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inquire_cred_by_mech : 't . cred:<a href="index.html#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> mech_type:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> out:(name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> initiator_lifetime:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> acceptor_lifetime:[ <div class="cons">| `Indefinite</div><div class="cons">| `This <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> cred_usage:<a href="index.html#/type:cred_usage">cred_usage</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:inquire_mechs_for_name">
+  <a href="index.html#/classtype:gss_api/method:inquire_mechs_for_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inquire_mechs_for_name : 't . name:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> out:(mech_types:<a href="index.html#/type:oid_set">oid_set</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:inquire_names_for_mech">
+  <a href="index.html#/classtype:gss_api/method:inquire_names_for_mech" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inquire_names_for_mech : 't . mechanism:<a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> out:(name_types:<a href="index.html#/type:oid_set">oid_set</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:process_context_token">
+  <a href="index.html#/classtype:gss_api/method:process_context_token" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> process_context_token : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> token:<a href="index.html#/type:token">token</a> <span class="rarr"><span>-&gt;</span></span> out:(minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:unwrap">
+  <a href="index.html#/classtype:gss_api/method:unwrap" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> unwrap : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> input_message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> output_message_preferred_type:[ <div class="cons">| `String</div><div class="cons">| `Memory</div> ] <span class="rarr"><span>-&gt;</span></span> out:(output_message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> conf_state:bool <span class="rarr"><span>-&gt;</span></span> qop_state:<a href="index.html#/type:qop">qop</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+      <div class="doc">
+        
+      <p>Note that the <code>output_message</code> can be a buffer of different type
+(string vs. bigarray) than <code>input_message</code>. In
+<code>output_message_preferred_type</code> the called may wish a certain
+representation. It is, however, not ensured that the wish is
+granted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:verify_mic">
+  <a href="index.html#/classtype:gss_api/method:verify_mic" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> verify_mic : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> token:<a href="index.html#/type:token">token</a> <span class="rarr"><span>-&gt;</span></span> out:(qop_state:<a href="index.html#/type:qop">qop</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:wrap">
+  <a href="index.html#/classtype:gss_api/method:wrap" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> wrap : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> conf_req:bool <span class="rarr"><span>-&gt;</span></span> qop_req:<a href="index.html#/type:qop">qop</a> option <span class="rarr"><span>-&gt;</span></span> input_message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> output_message_preferred_type:[ <div class="cons">| `String</div><div class="cons">| `Memory</div> ] <span class="rarr"><span>-&gt;</span></span> out:(conf_state:bool <span class="rarr"><span>-&gt;</span></span> output_message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+      <div class="doc">
+        
+      <p><code>output_message_preferred_type</code>: see <code>unwrap</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:gss_api/method:wrap_size_limit">
+  <a href="index.html#/classtype:gss_api/method:wrap_size_limit" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> wrap_size_limit : 't . context:<a href="index.html#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> conf_req:bool <span class="rarr"><span>-&gt;</span></span> qop_req:<a href="index.html#/type:qop">qop</a> option <span class="rarr"><span>-&gt;</span></span> req_output_size:int <span class="rarr"><span>-&gt;</span></span> out:(max_input_size:int <span class="rarr"><span>-&gt;</span></span> minor_status:<a href="index.html#/type:minor_status">minor_status</a> <span class="rarr"><span>-&gt;</span></span> major_status:<a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 't
+  
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Utility functions</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These functions convert values to strings. Useful for generating
+log messages.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:string_of_calling_error">
+  <a href="index.html#/val:string_of_calling_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_calling_error : <a href="index.html#/type:calling_error">calling_error</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_routine_error">
+  <a href="index.html#/val:string_of_routine_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_routine_error : <a href="index.html#/type:routine_error">routine_error</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_suppl_status">
+  <a href="index.html#/val:string_of_suppl_status" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_suppl_status : <a href="index.html#/type:suppl_status">suppl_status</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_major_status">
+  <a href="index.html#/val:string_of_major_status" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_major_status : <a href="index.html#/type:major_status">major_status</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Common OID's for name types</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>See RFC 2078, section 4</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:nt_hostbased_service">
+  <a href="index.html#/val:nt_hostbased_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nt_hostbased_service : <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>names like &quot;service</p>
+      
+        
+  <div class="tag custom hostname">
+    <span class="label">Hostname</span> &quot;
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nt_user_name">
+  <a href="index.html#/val:nt_user_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nt_user_name : <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>names like &quot;username&quot;</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nt_machine_uid_name">
+  <a href="index.html#/val:nt_machine_uid_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nt_machine_uid_name : <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>user ID in host byte order</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nt_string_uid_name">
+  <a href="index.html#/val:nt_string_uid_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nt_string_uid_name : <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>user ID as string of digits</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nt_anonymous">
+  <a href="index.html#/val:nt_anonymous" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nt_anonymous : <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>anonymous name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nt_export_name">
+  <a href="index.html#/val:nt_export_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nt_export_name : <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>an export name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_hostbased_service">
+  <a href="index.html#/val:parse_hostbased_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_hostbased_service : string <span class="rarr"><span>-&gt;</span></span> string * string
+    
+      <div class="doc">
+        
+      <p>Returns (<code>service,host</code>) for &quot;service</p>
+      
+        
+  <div class="tag custom host">
+    <span class="label">Host</span> &quot;. Fails if not parseable
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Encodings</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>There is some chance that some of these routines will finally be moved to
+netstring</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:oid_to_string">
+  <a href="index.html#/val:oid_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> oid_to_string : <a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_to_oid">
+  <a href="index.html#/val:string_to_oid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_to_oid : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>Convert OID's to/from curly brace notation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:oid_to_der">
+  <a href="index.html#/val:oid_to_der" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> oid_to_der : <a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:der_to_oid">
+  <a href="index.html#/val:der_to_oid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> der_to_oid : string <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:oid">oid</a>
+    
+      <div class="doc">
+        
+      <p>Convert OID's to/from DER. <code>der_to_oid</code> takes a cursor as second arg.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wire_encode_token">
+  <a href="index.html#/val:wire_encode_token" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wire_encode_token : <a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:token">token</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wire_decode_token">
+  <a href="index.html#/val:wire_decode_token" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wire_decode_token : string <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:oid">oid</a> * <a href="index.html#/type:token">token</a>
+    
+      <div class="doc">
+        
+      <p>Encode tokens as described in section 3.1 of RFC 2078. This is usually
+only done for the initiating token.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode_exported_name">
+  <a href="index.html#/val:encode_exported_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_exported_name : <a href="index.html#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decode_exported_name">
+  <a href="index.html#/val:decode_exported_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode_exported_name : string <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:oid">oid</a> * string
+    
+      <div class="doc">
+        
+      <p>Encode names as described in section 3.2 of RFC 2078</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Create tokens</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Format of the tokens: see RFC 4121</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:create_mic_token">
+  <a href="index.html#/val:create_mic_token" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_mic_token : sent_by_acceptor:bool <span class="rarr"><span>-&gt;</span></span> acceptor_subkey:bool <span class="rarr"><span>-&gt;</span></span> sequence_number:int64 <span class="rarr"><span>-&gt;</span></span> get_mic:(<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Create a MIC token:</p>
+      <ul><li><code>sent_by_acceptor</code>: whether this token comes from the acceptor</li><li><code>acceptor_subkey</code>: see RFC</li><li><code>sequence_number</code>: a sequence number</li><li><code>get_mic</code>: the checksum function
+(e.g. [root:Netmech_scram].Cryptosystem.get_mic)</li><li><code>message</code>: the message to be signed</li></ul>
+      <p>The function returns the MIC token</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_mic_token_header">
+  <a href="index.html#/val:parse_mic_token_header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_mic_token_header : string <span class="rarr"><span>-&gt;</span></span> bool * bool * int64
+    
+      <div class="doc">
+        
+      <p>Returns the triple
+(<code>sent_by_acceptor</code>, <code>acceptor_subkey</code>, <code>sequence_number</code>) from
+the header of a MIC token that is passed to this function as
+string. Fails if not parsable</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:verify_mic_token">
+  <a href="index.html#/val:verify_mic_token" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> verify_mic_token : get_mic:(<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> token:string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Verifies the MIC <code>token</code> with <code>get_mic</code>, and returns true if the
+verification is successful</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_wrap_token_conf">
+  <a href="index.html#/val:create_wrap_token_conf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_wrap_token_conf : sent_by_acceptor:bool <span class="rarr"><span>-&gt;</span></span> acceptor_subkey:bool <span class="rarr"><span>-&gt;</span></span> sequence_number:int64 <span class="rarr"><span>-&gt;</span></span> get_ec:(int <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> encrypt_and_sign:(<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:message">message</a>) <span class="rarr"><span>-&gt;</span></span> message:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:message">message</a>
+    
+      <div class="doc">
+        
+      <p>Wraps a <code>message</code> so that it is encrypted and signed (confidential).</p>
+      <ul><li><code>sent_by_acceptor</code>: whether this token comes from the acceptor</li><li><code>acceptor_subkey</code>: see RFC</li><li><code>sequence_number</code>: a sequence number</li><li><code>get_ec</code>: This function returns the &quot;extra count&quot; number for
+the size of the plaintext w/o filler (e.g. use
+[root:Netmech_scram].Cryptosystem.get_ec).</li><li><code>encrypt_and_sign</code>: the encryption function from the cryptosystem.
+The plaintext is passed to this function, and the ciphertext with
+the appended signature must be returned in the string.</li><li><code>message</code>: the payload message</li></ul>
+      <p>The function returns the token wrapping the message.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_wrap_token_header">
+  <a href="index.html#/val:parse_wrap_token_header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_wrap_token_header : <a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> bool * bool * bool * int64
+    
+      <div class="doc">
+        
+      <p><code>let (sent_by_acceptor, sealed, acceptor_subkey, sequence_number) =
+      parse_wrap_token_header token</code></p>
+      
+      <p>Fails if the <code>token</code> cannot be parsed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unwrap_wrap_token_conf">
+  <a href="index.html#/val:unwrap_wrap_token_conf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unwrap_wrap_token_conf : decrypt_and_verify:(<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:message">message</a>) <span class="rarr"><span>-&gt;</span></span> token:<a href="index.html#/type:message">message</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:message">message</a>
+    
+      <div class="doc">
+        
+      <p>Unwraps the <code>token</code> using the decryption function
+<code>decrypt_and_verify</code> from the cryptosystem.</p>
+      
+      <p>The functions fails if there is a format error, or the integrity
+check fails.</p>
+      
+      <p>Non-confidential messages cannot be unwrapped with this function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Token functions for non-confidential messages are still missing</p>
+      
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

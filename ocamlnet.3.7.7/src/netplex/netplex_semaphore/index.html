@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_semaphore</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_semaphore</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Netplex-wide semaphores</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Semaphores are counters with atomic increment and decrement operations.
+They are very useful for counting the number of uses of a shared
+resource, and allow the identification of the first use (so the resource
+must be made available at all), and the last use (the resource can be
+released).</p>
+      
+      <p>This implementation works in both multi-processing and
+multi-threading netplex environments. It is, however, not very
+fast, because the counters live in the controller, and the
+increment/decrement operations are realized by RPC's. It is good
+enough when these operations are only infrequently called, e.g. in
+the post-start and pre-finish processor callbacks.</p>
+      
+      <p>This interface is designed so that a later re-implementation with
+POSIX semaphores is relatively straight-forward.</p>
+      
+      <p><b>Thread safety:</b> Full. The functions can be called from any thread.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:plugin">
+  <a href="index.html#/val:plugin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> plugin : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:plugin">plugin</a>
+    
+      <div class="doc">
+        
+      <p>To enable semaphores, call the controller's <code>add_plugin</code> method
+with this object as argument. This can e.g. be done in the
+<code>post_add_hook</code> of the processor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following functions can <b>only</b> be invoked in container
+contexts. Outside of such a context the exception
+<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/exn:Not_in_container_thread">Not_in_container_thread</a> is raised.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:increment">
+  <a href="index.html#/val:increment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> increment : string <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Increment the named semaphore by 1, and return the new value.
+If the semaphore does not exist yet, it is created with an initial
+value of 0, which is then incremented.</p>
+      
+      <p>Semaphore names are global to the whole netplex system. By convention,
+these names are formed like <code>&quot;service_name.local_name&quot;</code>, i.e. they
+are prefixed by the socket service to which they refer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decrement">
+  <a href="index.html#/val:decrement" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decrement : ?wait:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Decrement the named semaphore by 1, and return the new value.
+Semaphore values cannot become negative. If the value is already 0,
+it is not decremented anymore if <code>wait = false</code>. However, (-1)
+is then returned nevertheless.</p>
+      
+      <p>If the value is already 0 and <code>wait=true</code>, the operation waits until
+the value exceeds 0, and when this happens, the semaphore is then
+decremented again. If several waiters exist, only one waiter gets
+the chance to decrement.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : string <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Get the value of the named semaphore. Useful e.g. for monitoring
+the semaphore. If the semaphore does not exist, a value of 0 is
+returned.</p>
+      
+      <p><code>get</code> can also be invoked from the controller process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?protected:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Create the semaphore with this initial value. Returns <code>true</code> if the
+creation is successful, and <code>false</code> if the semaphore already existed.</p>
+      
+      <p>If <code>protected</code>, the semaphore
+is automatically decremented by some value when the container
+calling this function terminates. This value is <code>pi - d</code> where
+<code>pi</code> is the number of increments and <code>d</code> is the number
+of (successful) decrements requested by the container.</p>
+      
+      <p>A semaphore needs not to be explicitly created by calling <code>create</code>.
+It is automatically created at the first use time with a value of 0
+and <code>protected=true</code>.</p>
+      
+      <p><code>create</code> can also be invoked from the controller process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy">
+  <a href="index.html#/val:destroy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroy this semaphore. Any waiting <code>decrement</code> will immediately
+get (-1L).</p>
+      
+      <p>Note that there is no protection against unintended re-creation
+after <code>destroy</code>.</p>
+      
+      <p><code>destroy</code> can also be invoked from the controller process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ctrl_increment">
+  <a href="index.html#/val:ctrl_increment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ctrl_increment : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:container_id">container_id</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Increment the named semaphore from controller context, substituting
+an increment from a container (e.g. a container that terminated
+or is otherwise no longer able to do so). In this
+case the ID of the container needs to be passed</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Example (code fragment):</p>
+      
+      <p>Override the processor callbacks as follows to count the number of
+containers for the service:</p>
+      <pre><code>    method post_add_hook sockserv ctrl =
+      ctrl # add_plugin Netplex_semaphore.plugin
+
+    method post_start_hook container =
+      let sem_name = container#socket_service#name ^ &quot;.counter&quot; in
+      let n =
+        Netplex_semaphore.increment sem_name in
+      if n=1 then
+        prerr_endline &quot;First container&quot;
+
+    method pre_finish_hook container =
+      let sem_name = container#socket_service#name ^ &quot;.counter&quot; in
+      let n =
+        Netplex_semaphore.decrement sem_name in
+      if n=0 then
+        prerr_endline &quot;Last container&quot;</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

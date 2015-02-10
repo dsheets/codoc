@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_mbox</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_mbox</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Netplex message boxes</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This plugin implements a message box, following a simple model:
+Receivers wait until messages are put into the box. Senders
+wait until the box is free again.</p>
+      
+      <p>This is actually an extension of [root:Netplex_sharedvar], and the
+same caveats apply.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:plugin">
+  <a href="index.html#/val:plugin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> plugin : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:plugin">plugin</a>
+    
+      <div class="doc">
+        
+      <p>To enable message boxes, call the controller's <code>add_plugin</code> method
+with this object as argument. This can e.g. be done in the
+<code>post_add_hook</code> of the processor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>How to use this module:</p>
+      <ul><li>Encapsulate the type of the messages:
+<pre><code>module Msg_type = struct type t = &lt;some_type&gt; end</code></pre></li></ul><ul><li>Create the box module for this type:
+<pre><code>module Mbox_type = Netplex_mbox.Make_mbox_type(Msg_type)</code></pre></li></ul><ul><li>Call functions of this module, e.g.
+<pre><code>let box = Mbox_type.create &quot;my_box&quot;
+let msg = Mbox_type.receive box</code></pre></li></ul>
+        
+      </div>
+    
+  <div class="region" id="/modtype:MBOX">
+  <a href="index.html#/modtype:MBOX" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> MBOX = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The type of mailboxes <code>mbox</code> with messages of type <code>t</code></p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:MBOX/type:t">
+  <a href="index.html#/modtype:MBOX/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The type of messages</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:MBOX/type:mbox">
+  <a href="index.html#/modtype:MBOX/type:mbox" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mbox
+    
+      <div class="doc">
+        
+      <p>The type of the mailboxes</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:MBOX/val:create">
+  <a href="index.html#/modtype:MBOX/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:MBOX/type:mbox">mbox</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new mailbox with the passed name, or opens an existing
+mailbox. Names are global to the whole Netplex process system.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:MBOX/val:send">
+  <a href="index.html#/modtype:MBOX/val:send" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send : <a href="index.html#/modtype:MBOX/type:mbox">mbox</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:MBOX/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Send a message to this box. If the box is full, it is waited until
+the box is free again. If several senders wait for the box, one
+sender is selected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:MBOX/val:receive">
+  <a href="index.html#/modtype:MBOX/val:receive" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> receive : <a href="index.html#/modtype:MBOX/type:mbox">mbox</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:MBOX/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Receive a message: It is waited until a sender puts a message into
+the box. If several receivers wait for the box, one receiver is
+selected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_mbox_type">
+  <a href="index.html#/module:Make_mbox_type" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_mbox_type : <span class="keyword">functor</span> (T : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/modtype:TYPE">TYPE</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:MBOX">MBOX</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:MBOX/type:t">t</a> = <a href="index.html#/module:Make_mbox_type/modarg:1:T">T</a>.<a href="index.html#/module:Make_mbox_type/modarg:1:T/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>Create a new mailbox access module for message type <code>T.t</code></p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

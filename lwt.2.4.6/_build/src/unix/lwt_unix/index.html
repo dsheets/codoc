@@ -1,0 +1,4857 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_unix</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_unix</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Cooperative system calls</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This modules maps system calls, like those of the standard
+library's <code>Unix</code> module, to cooperative ones, which will not block
+the program.</p>
+      
+      <p>The semantics of all operations is the following: if the action
+(for example reading from a <b>file descriptor</b>) can be performed
+immediately, it is done and returns immediately, otherwise it
+returns a sleeping thread which is woken up when the operation
+completes.</p>
+      
+      <p>Most operations on sockets and pipes (on Windows it is only
+sockets) are <b>cancelable</b>, meaning you can cancel them
+with <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/val:cancel">cancel</a>. For example if you want to read something from
+a <b>file descriptor</b> with a timeout, you can cancel the action
+after the timeout and the reading will not be performed if not
+already done.</p>
+      
+      <p>For example, consider that you have two sockets <code>sock1</code> and
+<code>sock2</code>. You want to read something from <code>sock1</code> or exclusively
+from <code>sock2</code> and fail with an exception if a timeout of 1 second
+expires, without reading anything from <code>sock1</code> and <code>sock2</code>, even
+if they become readable in the future.</p>
+      
+      <p>Then you can do:</p>
+      <pre><code>    Lwt.pick [Lwt_unix.timeout 1.0; read sock1 buf1 ofs1 len1; read sock2 buf2 ofs2 len2]</code></pre>
+      <p>In this case, it is guaranteed that exactly one of the three
+operations will complete, and the others will be cancelled.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:handle_unix_error">
+  <a href="index.html#/val:handle_unix_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> handle_unix_error : ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>Unix.handle_unix_error</code> but catches lwt-level
+exceptions</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Configuration</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:async_method">
+  <a href="index.html#/type:async_method" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> async_method = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:async_method/cons:Async_none">
+  <a href="index.html#/type:async_method/cons:Async_none" class="anchor">#</a>
+  | Async_none
+  </div>
+  </td><td>(*</td><td class="doc">System calls are made synchronously, and may block the
+entire program.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:async_method/cons:Async_detach">
+  <a href="index.html#/type:async_method/cons:Async_detach" class="anchor">#</a>
+  | Async_detach
+  </div>
+  </td><td>(*</td><td class="doc">System calls are made in another system thread, thus without
+blocking other Lwt threads. The drawback is that it may
+degrade performances in some cases.<br/>This is the default.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:async_method/cons:Async_switch">
+  <a href="index.html#/type:async_method/cons:Async_switch" class="anchor">#</a>
+  | Async_switch
+  </div>
+  </td><td>(*</td><td class="doc">System calls are made in the main thread, and if one blocks
+the execution continue in another system thread. This method
+is the most efficient, also you will get better performance
+if you force all threads to run on the same cpu. On linux
+this can be done by using the command <code>taskset</code>.<br/>Note that this method is still experimental.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>For system calls that cannot be made asynchronously, Lwt uses one
+of the following method:</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_async_method">
+  <a href="index.html#/val:default_async_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_async_method : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:async_method">async_method</a>
+    
+      <div class="doc">
+        
+      <p>Returns the default async method.</p>
+      
+      <p>This can be initialized using the environment variable
+<code>&quot;LWT_ASYNC_METHOD&quot;</code> with possible values <code>&quot;none&quot;</code>,
+<code>&quot;detach&quot;</code> and <code>&quot;switch&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_default_async_method">
+  <a href="index.html#/val:set_default_async_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_default_async_method : <a href="index.html#/type:async_method">async_method</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the default async method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:async_method">
+  <a href="index.html#/val:async_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> async_method : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:async_method">async_method</a>
+    
+      <div class="doc">
+        
+      <p><code>async_method ()</code> returns the async method used in the current
+thread.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:async_method_key">
+  <a href="index.html#/val:async_method_key" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> async_method_key : <a href="index.html#/type:async_method">async_method</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:key">key</a>
+    
+      <div class="doc">
+        
+      <p>The key for storing the local async method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_async_none">
+  <a href="index.html#/val:with_async_none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_async_none : (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>with_async_none f</code> is a shorthand for:</p>
+      <pre><code>        Lwt.with_value async_method_key (Some Async_none) f</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_async_detach">
+  <a href="index.html#/val:with_async_detach" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_async_detach : (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>with_async_none f</code> is a shorthand for:</p>
+      <pre><code>        Lwt.with_value async_method_key (Some Async_detach) f</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_async_switch">
+  <a href="index.html#/val:with_async_switch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_async_switch : (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>with_async_none f</code> is a shorthand for:</p>
+      <pre><code>        Lwt.with_value async_method_key (Some Async_switch) f</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Sleeping</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:sleep">
+  <a href="index.html#/val:sleep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sleep : float <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>sleep d</code> is a thread that remains suspended for <code>d</code> seconds
+and then terminates.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:yield">
+  <a href="index.html#/val:yield" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> yield : unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>yield ()</code> is a thread that suspends itself and then resumes
+as soon as possible and terminates.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:auto_yield">
+  <a href="index.html#/val:auto_yield" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> auto_yield : float <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>auto_yield timeout</code> returns a function <code>f</code> that will yield
+every <code>timeout</code> seconds.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Timeout">
+  <a href="index.html#/exn:Timeout" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Timeout
+    
+      <div class="doc">
+        
+      <p>Exception raised by timeout operations</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timeout">
+  <a href="index.html#/val:timeout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timeout : float <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>timeout d</code> is a thread that remains suspended for <code>d</code> seconds
+and then fails with <a href="index.html#/exn:Timeout">Timeout</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_timeout">
+  <a href="index.html#/val:with_timeout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_timeout : float <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>with_timeout d f</code> is a short-hand for:</p>
+      <pre><code>        Lwt.pick [Lwt_unix.timeout d; f ()]</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Operation on file-descriptors</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:file_descr">
+  <a href="index.html#/type:file_descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_descr
+    
+      <div class="doc">
+        
+      <p>The abstract type for <b>file descriptor</b>s. A Lwt <b>file
+descriptor</b> is a pair of a unix <b>file descriptor</b> (of type
+<code>Unix.file_descr</code>) and a <b>state</b>.</p>
+      
+      <p>A <b>file descriptor</b> may be:</p>
+      <ul><li><b>opened</b>, in which case it is fully usable</li><li><b>closed</b> or <b>aborted</b>, in which case it is no longer
+usable</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:state">
+  <a href="index.html#/type:state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> state = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:state/cons:Opened">
+  <a href="index.html#/type:state/cons:Opened" class="anchor">#</a>
+  | Opened
+  </div>
+  </td><td>(*</td><td class="doc">The <b>file descriptor</b> is opened</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:state/cons:Closed">
+  <a href="index.html#/type:state/cons:Closed" class="anchor">#</a>
+  | Closed
+  </div>
+  </td><td>(*</td><td class="doc">The <b>file descriptor</b> has been closed by <a href="index.html#/val:close">close</a>. It must
+not be used for any operation.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:state/cons:Aborted">
+  <a href="index.html#/type:state/cons:Aborted" class="anchor">#</a>
+  | Aborted <span class="keyword">of</span> exn
+  </div>
+  </td><td>(*</td><td class="doc">The <b>file descriptor</b> has been aborted, the only operation
+possible is <a href="index.html#/val:close">close</a>, all others will fail.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>State of a <b>file descriptor</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:state">
+  <a href="index.html#/val:state" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> state : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:state">state</a>
+    
+      <div class="doc">
+        
+      <p><code>state fd</code> returns the state of <code>fd</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unix_file_descr">
+  <a href="index.html#/val:unix_file_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unix_file_descr : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the underlying unix <b>file descriptor</b>. It always
+succeeds, even if the <b>file descriptor</b>'s state is not
+[root:Open].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_unix_file_descr">
+  <a href="index.html#/val:of_unix_file_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_unix_file_descr : ?blocking:bool <span class="rarr"><span>-&gt;</span></span> ?set_flags:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Creates a lwt <b>file descriptor</b> from a unix one.</p>
+      
+      <p><code>blocking</code> is the blocking mode of the file-descriptor, and
+describes how Lwt will use it. In non-blocking mode, read/write
+on this file descriptor are made using non-blocking IO; in
+blocking mode they are made using the current async method. If
+<code>blocking</code> is not specified it is guessed according to the file
+kind: socket and pipes are in non-blocking mode and others are
+in blocking mode.</p>
+      
+      <p>If <code>set_flags</code> is <code>true</code> (the default) then the file flags are
+modified according to the <code>blocking</code> argument, otherwise they
+are left unchanged.</p>
+      
+      <p>Note that the blocking mode is less efficient than the
+non-blocking one, so it should be used only for file descriptors
+that does not support asynchronous operations, such as regular
+files, or for shared descriptors such as <a href="index.html#/val:stdout">stdout</a>, <a href="index.html#/val:stderr">stderr</a> or
+<a href="index.html#/val:stdin">stdin</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blocking">
+  <a href="index.html#/val:blocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blocking : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>blocking fd</code> returns whether <code>fd</code> is used in blocking or
+non-blocking mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_blocking">
+  <a href="index.html#/val:set_blocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_blocking : ?set_flags:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_blocking fd b</code> puts <code>fd</code> in blocking or non-blocking
+mode. If <code>set_flags</code> is <code>true</code> (the default) then the file flags
+are modified, otherwise the modification is only done at the
+application level.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abort">
+  <a href="index.html#/val:abort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abort : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> exn <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>abort fd exn</code> makes all current and further uses of the file
+descriptor fail with the given exception. This put the <b>file
+descriptor</b> into the <a href="index.html#/type:state/cons:Aborted">Aborted</a> state.</p>
+      
+      <p>If the <b>file descriptor</b> is closed, this does nothing, if it is
+aborted, this replace the abort exception by <code>exn</code>.</p>
+      
+      <p>Note that this only works for reading and writing operations on
+file descriptors supporting non-blocking mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Process handling</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:fork">
+  <a href="index.html#/val:fork" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fork : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>fork ()</code> does the same as <code>Unix.fork</code>. You must use this
+function instead of <code>Unix.fork</code> when you want to use Lwt in the
+child process.</p>
+      
+      <p>Notes:</p>
+      <ul><li>in the child process all pending jobs are canceled,</li><li>if you are going to use Lwt in the parent and the child, it is
+a good idea to call <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/val:flush_all">flush_all</a> before callling
+<a href="index.html#/val:fork">fork</a> to avoid double-flush.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:process_status">
+  <a href="index.html#/type:process_status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> process_status = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:process_status/cons:WEXITED">
+  <a href="index.html#/type:process_status/cons:WEXITED" class="anchor">#</a>
+  | WEXITED <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:process_status/cons:WSIGNALED">
+  <a href="index.html#/type:process_status/cons:WSIGNALED" class="anchor">#</a>
+  | WSIGNALED <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:process_status/cons:WSTOPPED">
+  <a href="index.html#/type:process_status/cons:WSTOPPED" class="anchor">#</a>
+  | WSTOPPED <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:wait_flag">
+  <a href="index.html#/type:wait_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> wait_flag = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:wait_flag">wait_flag</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:wait_flag/cons:WNOHANG">
+  <a href="index.html#/type:wait_flag/cons:WNOHANG" class="anchor">#</a>
+  | WNOHANG
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:wait_flag/cons:WUNTRACED">
+  <a href="index.html#/type:wait_flag/cons:WUNTRACED" class="anchor">#</a>
+  | WUNTRACED
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait">
+  <a href="index.html#/val:wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait : unit <span class="rarr"><span>-&gt;</span></span> (int * <a href="index.html#/type:process_status">process_status</a>) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.wait</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:waitpid">
+  <a href="index.html#/val:waitpid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> waitpid : <a href="index.html#/type:wait_flag">wait_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (int * <a href="index.html#/type:process_status">process_status</a>) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.waitpid</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:resource_usage">
+  <a href="index.html#/type:resource_usage" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> resource_usage = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:resource_usage/field:ru_utime">
+  <a href="index.html#/type:resource_usage/field:ru_utime" class="anchor">#</a>
+  ru_utime
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">User time used</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:resource_usage/field:ru_stime">
+  <a href="index.html#/type:resource_usage/field:ru_stime" class="anchor">#</a>
+  ru_stime
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">System time used</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Resource usages</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait4">
+  <a href="index.html#/val:wait4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait4 : <a href="index.html#/type:wait_flag">wait_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (int * <a href="index.html#/type:process_status">process_status</a> * <a href="index.html#/type:resource_usage">resource_usage</a>) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>wait4 flags pid</code> returns <code>(pid, status, rusage)</code> where <code>(pid,
+      status)</code> is the same result as <code>Unix.waitpid flags pid</code>, and
+<code>rusage</code> contains accounting information about the child.</p>
+      
+      <p>On windows it will always returns <code>{ utime = 0.0; stime = 0.0 }</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_count">
+  <a href="index.html#/val:wait_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_count : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the number of threads waiting for a child to
+terminate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:system">
+  <a href="index.html#/val:system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> system : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_status">process_status</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Executes the given command, waits until it terminates, and
+return its termination status. The string is interpreted by the
+shell <code>/bin/sh</code> on Unix and <code>cmd.exe</code> on Windows. The result
+<code>WEXITED 127</code> indicates that the shell couldn't be executed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Basic file input/output</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:stdin">
+  <a href="index.html#/val:stdin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stdin : <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>The standard <b>file descriptor</b> for input. This one is usually
+a terminal is the program is started from a terminal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stdout">
+  <a href="index.html#/val:stdout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stdout : <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>The standard <b>file descriptor</b> for output</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stderr">
+  <a href="index.html#/val:stderr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stderr : <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>The standard <b>file descriptor</b> for printing error messages</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:file_perm">
+  <a href="index.html#/type:file_perm" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_perm = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_perm">file_perm</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:open_flag">
+  <a href="index.html#/type:open_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> open_flag = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:open_flag">open_flag</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_RDONLY">
+  <a href="index.html#/type:open_flag/cons:O_RDONLY" class="anchor">#</a>
+  | O_RDONLY
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_WRONLY">
+  <a href="index.html#/type:open_flag/cons:O_WRONLY" class="anchor">#</a>
+  | O_WRONLY
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_RDWR">
+  <a href="index.html#/type:open_flag/cons:O_RDWR" class="anchor">#</a>
+  | O_RDWR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_NONBLOCK">
+  <a href="index.html#/type:open_flag/cons:O_NONBLOCK" class="anchor">#</a>
+  | O_NONBLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_APPEND">
+  <a href="index.html#/type:open_flag/cons:O_APPEND" class="anchor">#</a>
+  | O_APPEND
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_CREAT">
+  <a href="index.html#/type:open_flag/cons:O_CREAT" class="anchor">#</a>
+  | O_CREAT
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_TRUNC">
+  <a href="index.html#/type:open_flag/cons:O_TRUNC" class="anchor">#</a>
+  | O_TRUNC
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_EXCL">
+  <a href="index.html#/type:open_flag/cons:O_EXCL" class="anchor">#</a>
+  | O_EXCL
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_NOCTTY">
+  <a href="index.html#/type:open_flag/cons:O_NOCTTY" class="anchor">#</a>
+  | O_NOCTTY
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_DSYNC">
+  <a href="index.html#/type:open_flag/cons:O_DSYNC" class="anchor">#</a>
+  | O_DSYNC
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_SYNC">
+  <a href="index.html#/type:open_flag/cons:O_SYNC" class="anchor">#</a>
+  | O_SYNC
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_RSYNC">
+  <a href="index.html#/type:open_flag/cons:O_RSYNC" class="anchor">#</a>
+  | O_RSYNC
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_SHARE_DELETE">
+  <a href="index.html#/type:open_flag/cons:O_SHARE_DELETE" class="anchor">#</a>
+  | O_SHARE_DELETE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:open_flag/cons:O_CLOEXEC">
+  <a href="index.html#/type:open_flag/cons:O_CLOEXEC" class="anchor">#</a>
+  | O_CLOEXEC
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:openfile">
+  <a href="index.html#/val:openfile" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> openfile : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:open_flag">open_flag</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.openfile</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close">
+  <a href="index.html#/val:close" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Close a <b>file descriptor</b>. This close the underlying unix <b>file descriptor</b> and set its state to <a href="index.html#/type:state/cons:Closed">Closed</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read">
+  <a href="index.html#/val:read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read fd buf ofs len</code> has the same semantic as <code>Unix.read</code>, but
+is cooperative</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write">
+  <a href="index.html#/val:write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>read fd buf ofs len</code> has the same semantic as <code>Unix.write</code>, but
+is cooperative</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:readable">
+  <a href="index.html#/val:readable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> readable : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the given file descriptor is currently
+readable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:writable">
+  <a href="index.html#/val:writable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> writable : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the given file descriptor is currently
+writable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_read">
+  <a href="index.html#/val:wait_read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_read : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>waits (without blocking other threads) until there is something
+to read on the file descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_write">
+  <a href="index.html#/val:wait_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_write : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>waits (without blocking other threads) until it is possible to
+write on the file descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Seeking and truncating</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:seek_command">
+  <a href="index.html#/type:seek_command" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> seek_command = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:seek_command">seek_command</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:seek_command/cons:SEEK_SET">
+  <a href="index.html#/type:seek_command/cons:SEEK_SET" class="anchor">#</a>
+  | SEEK_SET
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:seek_command/cons:SEEK_CUR">
+  <a href="index.html#/type:seek_command/cons:SEEK_CUR" class="anchor">#</a>
+  | SEEK_CUR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:seek_command/cons:SEEK_END">
+  <a href="index.html#/type:seek_command/cons:SEEK_END" class="anchor">#</a>
+  | SEEK_END
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lseek">
+  <a href="index.html#/val:lseek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lseek : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:seek_command">seek_command</a> <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.lseek</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:truncate">
+  <a href="index.html#/val:truncate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> truncate : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.truncate</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ftruncate">
+  <a href="index.html#/val:ftruncate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ftruncate : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.ftruncate</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Syncing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:fsync">
+  <a href="index.html#/val:fsync" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fsync : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Synchronise all data and metadata of the file descriptor with
+the disk. On Windows it uses <code>FlushFileBuffers</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fdatasync">
+  <a href="index.html#/val:fdatasync" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fdatasync : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Synchronise all data (but not metadata) of the file descriptor
+with the disk.</p>
+      
+      <p>Note that <code>fdatasync</code> is not available on all platforms.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">File status</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:file_kind">
+  <a href="index.html#/type:file_kind" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_kind = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_kind">file_kind</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:file_kind/cons:S_REG">
+  <a href="index.html#/type:file_kind/cons:S_REG" class="anchor">#</a>
+  | S_REG
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_kind/cons:S_DIR">
+  <a href="index.html#/type:file_kind/cons:S_DIR" class="anchor">#</a>
+  | S_DIR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_kind/cons:S_CHR">
+  <a href="index.html#/type:file_kind/cons:S_CHR" class="anchor">#</a>
+  | S_CHR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_kind/cons:S_BLK">
+  <a href="index.html#/type:file_kind/cons:S_BLK" class="anchor">#</a>
+  | S_BLK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_kind/cons:S_LNK">
+  <a href="index.html#/type:file_kind/cons:S_LNK" class="anchor">#</a>
+  | S_LNK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_kind/cons:S_FIFO">
+  <a href="index.html#/type:file_kind/cons:S_FIFO" class="anchor">#</a>
+  | S_FIFO
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_kind/cons:S_SOCK">
+  <a href="index.html#/type:file_kind/cons:S_SOCK" class="anchor">#</a>
+  | S_SOCK
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:stats">
+  <a href="index.html#/type:stats" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> stats = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:stats">stats</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_dev">
+  <a href="index.html#/type:stats/field:st_dev" class="anchor">#</a>
+  st_dev
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_ino">
+  <a href="index.html#/type:stats/field:st_ino" class="anchor">#</a>
+  st_ino
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_kind">
+  <a href="index.html#/type:stats/field:st_kind" class="anchor">#</a>
+  st_kind
+  </div>
+  </td><td>: <a href="index.html#/type:file_kind">file_kind</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_perm">
+  <a href="index.html#/type:stats/field:st_perm" class="anchor">#</a>
+  st_perm
+  </div>
+  </td><td>: <a href="index.html#/type:file_perm">file_perm</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_nlink">
+  <a href="index.html#/type:stats/field:st_nlink" class="anchor">#</a>
+  st_nlink
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_uid">
+  <a href="index.html#/type:stats/field:st_uid" class="anchor">#</a>
+  st_uid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_gid">
+  <a href="index.html#/type:stats/field:st_gid" class="anchor">#</a>
+  st_gid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_rdev">
+  <a href="index.html#/type:stats/field:st_rdev" class="anchor">#</a>
+  st_rdev
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_size">
+  <a href="index.html#/type:stats/field:st_size" class="anchor">#</a>
+  st_size
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_atime">
+  <a href="index.html#/type:stats/field:st_atime" class="anchor">#</a>
+  st_atime
+  </div>
+  </td><td>: float</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_mtime">
+  <a href="index.html#/type:stats/field:st_mtime" class="anchor">#</a>
+  st_mtime
+  </div>
+  </td><td>: float</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:stats/field:st_ctime">
+  <a href="index.html#/type:stats/field:st_ctime" class="anchor">#</a>
+  st_ctime
+  </div>
+  </td><td>: float</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stat">
+  <a href="index.html#/val:stat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stat : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:stats">stats</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.stat</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lstat">
+  <a href="index.html#/val:lstat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lstat : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:stats">stats</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.lstat</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fstat">
+  <a href="index.html#/val:fstat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fstat : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:stats">stats</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.fstat</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:isatty">
+  <a href="index.html#/val:isatty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> isatty : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.isatty</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">File operations on large files</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:LargeFile">
+  <a href="index.html#/module:LargeFile" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> LargeFile : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:LargeFile/val:lseek">
+  <a href="index.html#/module:LargeFile/val:lseek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lseek : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:seek_command">seek_command</a> <span class="rarr"><span>-&gt;</span></span> int64 <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.LargeFile.lseek</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LargeFile/val:truncate">
+  <a href="index.html#/module:LargeFile/val:truncate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> truncate : string <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.LargeFile.truncate</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LargeFile/val:ftruncate">
+  <a href="index.html#/module:LargeFile/val:ftruncate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ftruncate : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.LargeFile.ftruncate</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LargeFile/type:stats">
+  <a href="index.html#/module:LargeFile/type:stats" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> stats = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/module:LargeFile">LargeFile</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/module:LargeFile/type:stats">stats</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_dev">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_dev" class="anchor">#</a>
+  st_dev
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_ino">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_ino" class="anchor">#</a>
+  st_ino
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_kind">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_kind" class="anchor">#</a>
+  st_kind
+  </div>
+  </td><td>: <a href="index.html#/type:file_kind">file_kind</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_perm">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_perm" class="anchor">#</a>
+  st_perm
+  </div>
+  </td><td>: <a href="index.html#/type:file_perm">file_perm</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_nlink">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_nlink" class="anchor">#</a>
+  st_nlink
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_uid">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_uid" class="anchor">#</a>
+  st_uid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_gid">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_gid" class="anchor">#</a>
+  st_gid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_rdev">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_rdev" class="anchor">#</a>
+  st_rdev
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_size">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_size" class="anchor">#</a>
+  st_size
+  </div>
+  </td><td>: int64</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_atime">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_atime" class="anchor">#</a>
+  st_atime
+  </div>
+  </td><td>: float</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_mtime">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_mtime" class="anchor">#</a>
+  st_mtime
+  </div>
+  </td><td>: float</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:LargeFile/type:stats/field:st_ctime">
+  <a href="index.html#/module:LargeFile/type:stats/field:st_ctime" class="anchor">#</a>
+  st_ctime
+  </div>
+  </td><td>: float</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LargeFile/val:stat">
+  <a href="index.html#/module:LargeFile/val:stat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stat : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:LargeFile/type:stats">stats</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.LargeFile.stat</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LargeFile/val:lstat">
+  <a href="index.html#/module:LargeFile/val:lstat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lstat : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:LargeFile/type:stats">stats</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.LargeFile.lstat</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LargeFile/val:fstat">
+  <a href="index.html#/module:LargeFile/val:fstat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fstat : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:LargeFile/type:stats">stats</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.LargeFile.fstat</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Operations on file names</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:unlink">
+  <a href="index.html#/val:unlink" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlink : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.unlink</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rename">
+  <a href="index.html#/val:rename" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rename : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.rename</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:link">
+  <a href="index.html#/val:link" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> link : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.link</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">File permissions and ownership</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:chmod">
+  <a href="index.html#/val:chmod" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chmod : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.chmod</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fchmod">
+  <a href="index.html#/val:fchmod" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fchmod : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.fchmod</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chown">
+  <a href="index.html#/val:chown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chown : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.chown</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fchown">
+  <a href="index.html#/val:fchown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fchown : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.fchown</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:access_permission">
+  <a href="index.html#/type:access_permission" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> access_permission = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:access_permission">access_permission</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:access_permission/cons:R_OK">
+  <a href="index.html#/type:access_permission/cons:R_OK" class="anchor">#</a>
+  | R_OK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:access_permission/cons:W_OK">
+  <a href="index.html#/type:access_permission/cons:W_OK" class="anchor">#</a>
+  | W_OK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:access_permission/cons:X_OK">
+  <a href="index.html#/type:access_permission/cons:X_OK" class="anchor">#</a>
+  | X_OK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:access_permission/cons:F_OK">
+  <a href="index.html#/type:access_permission/cons:F_OK" class="anchor">#</a>
+  | F_OK
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:access">
+  <a href="index.html#/val:access" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> access : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:access_permission">access_permission</a> list <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.access</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Operations on file descriptors</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:dup">
+  <a href="index.html#/val:dup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dup : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.dup</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dup2">
+  <a href="index.html#/val:dup2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dup2 : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.dup2</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_close_on_exec">
+  <a href="index.html#/val:set_close_on_exec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_close_on_exec : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.set_close_on_exec</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_close_on_exec">
+  <a href="index.html#/val:clear_close_on_exec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_close_on_exec : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.clear_close_on_exec</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Directories</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:mkdir">
+  <a href="index.html#/val:mkdir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mkdir : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.mkdir</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rmdir">
+  <a href="index.html#/val:rmdir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rmdir : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.rmdir</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chdir">
+  <a href="index.html#/val:chdir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chdir : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.chdir</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chroot">
+  <a href="index.html#/val:chroot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chroot : string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.chroot</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:dir_handle">
+  <a href="index.html#/type:dir_handle" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> dir_handle = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:dir_handle">dir_handle</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:opendir">
+  <a href="index.html#/val:opendir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> opendir : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dir_handle">dir_handle</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.opendir</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:readdir">
+  <a href="index.html#/val:readdir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> readdir : <a href="index.html#/type:dir_handle">dir_handle</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.readdir</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:readdir_n">
+  <a href="index.html#/val:readdir_n" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> readdir_n : <a href="index.html#/type:dir_handle">dir_handle</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string array <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>readdir_n handle count</code> reads at most <code>count</code> entry from the
+given directory. It is more efficient than calling <code>readdir</code>
+<code>count</code> times. If the length of the returned array is smaller
+than <code>count</code>, this means that the end of the directory has been
+reached.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rewinddir">
+  <a href="index.html#/val:rewinddir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rewinddir : <a href="index.html#/type:dir_handle">dir_handle</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.rewinddir</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:closedir">
+  <a href="index.html#/val:closedir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> closedir : <a href="index.html#/type:dir_handle">dir_handle</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.closedir</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:files_of_directory">
+  <a href="index.html#/val:files_of_directory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> files_of_directory : string <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>files_of_directory dir</code> returns the stream of all files of
+<code>dir</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Pipes and redirections</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pipe">
+  <a href="index.html#/val:pipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pipe : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> * <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p><code>pipe ()</code> creates pipe using <code>Unix.pipe</code> and returns two lwt <b>file descriptor</b>s created from unix <b>file_descriptor</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pipe_in">
+  <a href="index.html#/val:pipe_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pipe_in : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> * <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p><code>pipe_in ()</code> is the same as <a href="index.html#/val:pipe">pipe</a> but maps only the unix <b>file descriptor</b> for reading into a lwt one. The second is not
+put into non-blocking mode. You usually want to use this before
+forking to receive data from the child process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pipe_out">
+  <a href="index.html#/val:pipe_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pipe_out : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p><code>pipe_out ()</code> is the inverse of <a href="index.html#/val:pipe_in">pipe_in</a>. You usually want to
+use this before forking to send data to the child process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mkfifo">
+  <a href="index.html#/val:mkfifo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mkfifo : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.mkfifo</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Symbolic links</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:symlink">
+  <a href="index.html#/val:symlink" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> symlink : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.symlink</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:readlink">
+  <a href="index.html#/val:readlink" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> readlink : string <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.readlink</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Locking</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:lock_command">
+  <a href="index.html#/type:lock_command" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lock_command = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:lock_command">lock_command</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:lock_command/cons:F_ULOCK">
+  <a href="index.html#/type:lock_command/cons:F_ULOCK" class="anchor">#</a>
+  | F_ULOCK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:lock_command/cons:F_LOCK">
+  <a href="index.html#/type:lock_command/cons:F_LOCK" class="anchor">#</a>
+  | F_LOCK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:lock_command/cons:F_TLOCK">
+  <a href="index.html#/type:lock_command/cons:F_TLOCK" class="anchor">#</a>
+  | F_TLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:lock_command/cons:F_TEST">
+  <a href="index.html#/type:lock_command/cons:F_TEST" class="anchor">#</a>
+  | F_TEST
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:lock_command/cons:F_RLOCK">
+  <a href="index.html#/type:lock_command/cons:F_RLOCK" class="anchor">#</a>
+  | F_RLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:lock_command/cons:F_TRLOCK">
+  <a href="index.html#/type:lock_command/cons:F_TRLOCK" class="anchor">#</a>
+  | F_TRLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lockf">
+  <a href="index.html#/val:lockf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lockf : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:lock_command">lock_command</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.lockf</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">User id, group id</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:passwd_entry">
+  <a href="index.html#/type:passwd_entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> passwd_entry = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:passwd_entry">passwd_entry</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:passwd_entry/field:pw_name">
+  <a href="index.html#/type:passwd_entry/field:pw_name" class="anchor">#</a>
+  pw_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:passwd_entry/field:pw_passwd">
+  <a href="index.html#/type:passwd_entry/field:pw_passwd" class="anchor">#</a>
+  pw_passwd
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:passwd_entry/field:pw_uid">
+  <a href="index.html#/type:passwd_entry/field:pw_uid" class="anchor">#</a>
+  pw_uid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:passwd_entry/field:pw_gid">
+  <a href="index.html#/type:passwd_entry/field:pw_gid" class="anchor">#</a>
+  pw_gid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:passwd_entry/field:pw_gecos">
+  <a href="index.html#/type:passwd_entry/field:pw_gecos" class="anchor">#</a>
+  pw_gecos
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:passwd_entry/field:pw_dir">
+  <a href="index.html#/type:passwd_entry/field:pw_dir" class="anchor">#</a>
+  pw_dir
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:passwd_entry/field:pw_shell">
+  <a href="index.html#/type:passwd_entry/field:pw_shell" class="anchor">#</a>
+  pw_shell
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:group_entry">
+  <a href="index.html#/type:group_entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> group_entry = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:group_entry">group_entry</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:group_entry/field:gr_name">
+  <a href="index.html#/type:group_entry/field:gr_name" class="anchor">#</a>
+  gr_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:group_entry/field:gr_passwd">
+  <a href="index.html#/type:group_entry/field:gr_passwd" class="anchor">#</a>
+  gr_passwd
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:group_entry/field:gr_gid">
+  <a href="index.html#/type:group_entry/field:gr_gid" class="anchor">#</a>
+  gr_gid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:group_entry/field:gr_mem">
+  <a href="index.html#/type:group_entry/field:gr_mem" class="anchor">#</a>
+  gr_mem
+  </div>
+  </td><td>: string array</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getlogin">
+  <a href="index.html#/val:getlogin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getlogin : unit <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getlogin</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getpwnam">
+  <a href="index.html#/val:getpwnam" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getpwnam : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:passwd_entry">passwd_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getpwnam</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getgrnam">
+  <a href="index.html#/val:getgrnam" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getgrnam : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group_entry">group_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getgrnam</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getpwuid">
+  <a href="index.html#/val:getpwuid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getpwuid : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:passwd_entry">passwd_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getpwuid</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getgrgid">
+  <a href="index.html#/val:getgrgid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getgrgid : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:group_entry">group_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getgrgid</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Signals</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:signal_handler_id">
+  <a href="index.html#/type:signal_handler_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> signal_handler_id
+    
+      <div class="doc">
+        
+      <p>Id of a signal handler, used to cancel it</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:on_signal">
+  <a href="index.html#/val:on_signal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on_signal : int <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:signal_handler_id">signal_handler_id</a>
+    
+      <div class="doc">
+        
+      <p><code>on_signal signum f</code> calls <code>f</code> each time the signal with numnber
+<code>signum</code> is received by the process. It returns a signal handler
+identifier that can be used to stop monitoring <code>signum</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:on_signal_full">
+  <a href="index.html#/val:on_signal_full" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on_signal_full : int <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:signal_handler_id">signal_handler_id</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:signal_handler_id">signal_handler_id</a>
+    
+      <div class="doc">
+        
+      <p><code>on_signal_full f</code> is the same as <code>on_signal f</code> except that <code>f</code>
+also receive the signal handler identifier as argument so it can
+disable it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:disable_signal_handler">
+  <a href="index.html#/val:disable_signal_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> disable_signal_handler : <a href="index.html#/type:signal_handler_id">signal_handler_id</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Stops receiving this signal</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:signal_count">
+  <a href="index.html#/val:signal_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> signal_count : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the number of registered signal handler.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reinstall_signal_handler">
+  <a href="index.html#/val:reinstall_signal_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reinstall_signal_handler : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>reinstall_signal_handler signum</code> if any signal handler is
+registered for this signal with <a href="index.html#/val:on_signal">on_signal</a>, it reinstall the
+signal handler (with <code>Sys.set_signal</code>). This is usefull in case
+another part of the program install another signal handler.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Sockets</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:inet_addr">
+  <a href="index.html#/type:inet_addr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> inet_addr = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:socket_domain">
+  <a href="index.html#/type:socket_domain" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> socket_domain = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_domain">socket_domain</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:socket_domain/cons:PF_UNIX">
+  <a href="index.html#/type:socket_domain/cons:PF_UNIX" class="anchor">#</a>
+  | PF_UNIX
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_domain/cons:PF_INET">
+  <a href="index.html#/type:socket_domain/cons:PF_INET" class="anchor">#</a>
+  | PF_INET
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_domain/cons:PF_INET6">
+  <a href="index.html#/type:socket_domain/cons:PF_INET6" class="anchor">#</a>
+  | PF_INET6
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:socket_type">
+  <a href="index.html#/type:socket_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> socket_type = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_type">socket_type</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:socket_type/cons:SOCK_STREAM">
+  <a href="index.html#/type:socket_type/cons:SOCK_STREAM" class="anchor">#</a>
+  | SOCK_STREAM
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_type/cons:SOCK_DGRAM">
+  <a href="index.html#/type:socket_type/cons:SOCK_DGRAM" class="anchor">#</a>
+  | SOCK_DGRAM
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_type/cons:SOCK_RAW">
+  <a href="index.html#/type:socket_type/cons:SOCK_RAW" class="anchor">#</a>
+  | SOCK_RAW
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_type/cons:SOCK_SEQPACKET">
+  <a href="index.html#/type:socket_type/cons:SOCK_SEQPACKET" class="anchor">#</a>
+  | SOCK_SEQPACKET
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sockaddr">
+  <a href="index.html#/type:sockaddr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sockaddr = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:sockaddr/cons:ADDR_UNIX">
+  <a href="index.html#/type:sockaddr/cons:ADDR_UNIX" class="anchor">#</a>
+  | ADDR_UNIX <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:sockaddr/cons:ADDR_INET">
+  <a href="index.html#/type:sockaddr/cons:ADDR_INET" class="anchor">#</a>
+  | ADDR_INET <span class="keyword">of</span> <a href="index.html#/type:inet_addr">inet_addr</a> * int
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:socket">
+  <a href="index.html#/val:socket" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> socket : <a href="index.html#/type:socket_domain">socket_domain</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_type">socket_type</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p><code>socket domain type proto</code> is the same as <code>Unix.socket</code> but maps
+the result into a lwt <b>file descriptor</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:socketpair">
+  <a href="index.html#/val:socketpair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> socketpair : <a href="index.html#/type:socket_domain">socket_domain</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_type">socket_type</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> * <a href="index.html#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.socketpair</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bind">
+  <a href="index.html#/val:bind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bind : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.bind</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:listen">
+  <a href="index.html#/val:listen" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> listen : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.listen</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:accept">
+  <a href="index.html#/val:accept" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> accept : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:file_descr">file_descr</a> * <a href="index.html#/type:sockaddr">sockaddr</a>) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.accept</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:accept_n">
+  <a href="index.html#/val:accept_n" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> accept_n : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ((<a href="index.html#/type:file_descr">file_descr</a> * <a href="index.html#/type:sockaddr">sockaddr</a>) list * exn option) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>accept_n fd count</code> accepts up to <code>count</code> connections at one time.</p>
+      <ul><li>if no connection is available right now, it returns a sleeping
+thread</li></ul><ul><li>if more than 1 and less than <code>count</code> are available, it returns
+all of them</li></ul><ul><li>if more than <code>count</code> are available, it returns the next
+<code>count</code> of them</li></ul><ul><li>if an error happens, it returns the connections that have been
+successfully accepted so far and the error</li></ul>
+      <p><code>accept_n</code> has the advantage of improving performance. If you
+want a more detailed description, you can have a look at:</p>
+      
+      <p><a href="http://portal.acm.org/citation.cfm?id=1247435">Acceptable strategies for improving web server performance</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:connect">
+  <a href="index.html#/val:connect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connect : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.connect</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:shutdown_command">
+  <a href="index.html#/type:shutdown_command" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> shutdown_command = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:shutdown_command">shutdown_command</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:shutdown_command/cons:SHUTDOWN_RECEIVE">
+  <a href="index.html#/type:shutdown_command/cons:SHUTDOWN_RECEIVE" class="anchor">#</a>
+  | SHUTDOWN_RECEIVE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shutdown_command/cons:SHUTDOWN_SEND">
+  <a href="index.html#/type:shutdown_command/cons:SHUTDOWN_SEND" class="anchor">#</a>
+  | SHUTDOWN_SEND
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shutdown_command/cons:SHUTDOWN_ALL">
+  <a href="index.html#/type:shutdown_command/cons:SHUTDOWN_ALL" class="anchor">#</a>
+  | SHUTDOWN_ALL
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shutdown">
+  <a href="index.html#/val:shutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shutdown : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shutdown_command">shutdown_command</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.shutdown</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getsockname">
+  <a href="index.html#/val:getsockname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getsockname : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getsockname</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getpeername">
+  <a href="index.html#/val:getpeername" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getpeername : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getpeername</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:msg_flag">
+  <a href="index.html#/type:msg_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> msg_flag = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:msg_flag">msg_flag</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:msg_flag/cons:MSG_OOB">
+  <a href="index.html#/type:msg_flag/cons:MSG_OOB" class="anchor">#</a>
+  | MSG_OOB
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:msg_flag/cons:MSG_DONTROUTE">
+  <a href="index.html#/type:msg_flag/cons:MSG_DONTROUTE" class="anchor">#</a>
+  | MSG_DONTROUTE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:msg_flag/cons:MSG_PEEK">
+  <a href="index.html#/type:msg_flag/cons:MSG_PEEK" class="anchor">#</a>
+  | MSG_PEEK
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recv">
+  <a href="index.html#/val:recv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recv : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:msg_flag">msg_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.recv</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recvfrom">
+  <a href="index.html#/val:recvfrom" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recvfrom : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:msg_flag">msg_flag</a> list <span class="rarr"><span>-&gt;</span></span> (int * <a href="index.html#/type:sockaddr">sockaddr</a>) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.recvfrom</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:send">
+  <a href="index.html#/val:send" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:msg_flag">msg_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.send</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sendto">
+  <a href="index.html#/val:sendto" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sendto : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:msg_flag">msg_flag</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.sendto</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:io_vector">
+  <a href="index.html#/type:io_vector" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> io_vector = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:io_vector/field:iov_buffer">
+  <a href="index.html#/type:io_vector/field:iov_buffer" class="anchor">#</a>
+  iov_buffer
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:io_vector/field:iov_offset">
+  <a href="index.html#/type:io_vector/field:iov_offset" class="anchor">#</a>
+  iov_offset
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:io_vector/field:iov_length">
+  <a href="index.html#/type:io_vector/field:iov_length" class="anchor">#</a>
+  iov_length
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>An io-vector. Used by <a href="index.html#/val:recv_msg">recv_msg</a> and <a href="index.html#/val:send_msg">send_msg</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:io_vector">
+  <a href="index.html#/val:io_vector" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> io_vector : buffer:string <span class="rarr"><span>-&gt;</span></span> offset:int <span class="rarr"><span>-&gt;</span></span> length:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:io_vector">io_vector</a>
+    
+      <div class="doc">
+        
+      <p>Creates an io-vector</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recv_msg">
+  <a href="index.html#/val:recv_msg" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recv_msg : socket:<a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> io_vectors:<a href="index.html#/type:io_vector">io_vector</a> list <span class="rarr"><span>-&gt;</span></span> (int * <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>recv_msg ~socket ~io_vectors</code> receives data into a list of
+io-vectors, plus any file-descriptors that may accompany the
+messages. It returns a tuple whose first field is the number of
+bytes received and second is a list of received file
+descriptors. The messages themselves will be recorded in the
+provided <code>io_vectors</code> list.</p>
+      
+      <p>This call is not available on windows.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:send_msg">
+  <a href="index.html#/val:send_msg" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send_msg : socket:<a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> io_vectors:<a href="index.html#/type:io_vector">io_vector</a> list <span class="rarr"><span>-&gt;</span></span> fds:<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>send_msg ~socket ~io_vectors ~fds</code> sends data from a list of
+io-vectors, accompanied with a list of file-descriptors. It
+returns the number of bytes sent. If fd-passing is not possible on
+the current system and <code>fds</code> is not empty, it raises
+<code>Lwt_sys.Not_available &quot;fd_passing&quot;</code>.</p>
+      
+      <p>This call is not available on windows.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:credentials">
+  <a href="index.html#/type:credentials" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> credentials = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:credentials/field:cred_pid">
+  <a href="index.html#/type:credentials/field:cred_pid" class="anchor">#</a>
+  cred_pid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:credentials/field:cred_uid">
+  <a href="index.html#/type:credentials/field:cred_uid" class="anchor">#</a>
+  cred_uid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:credentials/field:cred_gid">
+  <a href="index.html#/type:credentials/field:cred_gid" class="anchor">#</a>
+  cred_gid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_credentials">
+  <a href="index.html#/val:get_credentials" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_credentials : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:credentials">credentials</a>
+    
+      <div class="doc">
+        
+      <p><code>get_credentials fd</code> returns credential informations from the
+given socket. On some platforms, obtaining the peer pid is not
+possible and it will be set to <code>-1</code>. If obtaining credentials
+is not possible on the current system, it raises
+<code>Lwt_sys.Not_available &quot;get_credentials&quot;</code>.</p>
+      
+      <p>This call is not available on windows.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Socket options</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:socket_bool_option">
+  <a href="index.html#/type:socket_bool_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> socket_bool_option = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_bool_option">socket_bool_option</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:SO_DEBUG">
+  <a href="index.html#/type:socket_bool_option/cons:SO_DEBUG" class="anchor">#</a>
+  | SO_DEBUG
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:SO_BROADCAST">
+  <a href="index.html#/type:socket_bool_option/cons:SO_BROADCAST" class="anchor">#</a>
+  | SO_BROADCAST
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:SO_REUSEADDR">
+  <a href="index.html#/type:socket_bool_option/cons:SO_REUSEADDR" class="anchor">#</a>
+  | SO_REUSEADDR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:SO_KEEPALIVE">
+  <a href="index.html#/type:socket_bool_option/cons:SO_KEEPALIVE" class="anchor">#</a>
+  | SO_KEEPALIVE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:SO_DONTROUTE">
+  <a href="index.html#/type:socket_bool_option/cons:SO_DONTROUTE" class="anchor">#</a>
+  | SO_DONTROUTE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:SO_OOBINLINE">
+  <a href="index.html#/type:socket_bool_option/cons:SO_OOBINLINE" class="anchor">#</a>
+  | SO_OOBINLINE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:SO_ACCEPTCONN">
+  <a href="index.html#/type:socket_bool_option/cons:SO_ACCEPTCONN" class="anchor">#</a>
+  | SO_ACCEPTCONN
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:TCP_NODELAY">
+  <a href="index.html#/type:socket_bool_option/cons:TCP_NODELAY" class="anchor">#</a>
+  | TCP_NODELAY
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_bool_option/cons:IPV6_ONLY">
+  <a href="index.html#/type:socket_bool_option/cons:IPV6_ONLY" class="anchor">#</a>
+  | IPV6_ONLY
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:socket_int_option">
+  <a href="index.html#/type:socket_int_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> socket_int_option = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_int_option">socket_int_option</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:socket_int_option/cons:SO_SNDBUF">
+  <a href="index.html#/type:socket_int_option/cons:SO_SNDBUF" class="anchor">#</a>
+  | SO_SNDBUF
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_int_option/cons:SO_RCVBUF">
+  <a href="index.html#/type:socket_int_option/cons:SO_RCVBUF" class="anchor">#</a>
+  | SO_RCVBUF
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_int_option/cons:SO_ERROR">
+  <a href="index.html#/type:socket_int_option/cons:SO_ERROR" class="anchor">#</a>
+  | SO_ERROR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_int_option/cons:SO_TYPE">
+  <a href="index.html#/type:socket_int_option/cons:SO_TYPE" class="anchor">#</a>
+  | SO_TYPE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_int_option/cons:SO_RCVLOWAT">
+  <a href="index.html#/type:socket_int_option/cons:SO_RCVLOWAT" class="anchor">#</a>
+  | SO_RCVLOWAT
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_int_option/cons:SO_SNDLOWAT">
+  <a href="index.html#/type:socket_int_option/cons:SO_SNDLOWAT" class="anchor">#</a>
+  | SO_SNDLOWAT
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:socket_optint_option">
+  <a href="index.html#/type:socket_optint_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> socket_optint_option = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_optint_option">socket_optint_option</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:socket_optint_option/cons:SO_LINGER">
+  <a href="index.html#/type:socket_optint_option/cons:SO_LINGER" class="anchor">#</a>
+  | SO_LINGER
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:socket_float_option">
+  <a href="index.html#/type:socket_float_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> socket_float_option = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_float_option">socket_float_option</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:socket_float_option/cons:SO_RCVTIMEO">
+  <a href="index.html#/type:socket_float_option/cons:SO_RCVTIMEO" class="anchor">#</a>
+  | SO_RCVTIMEO
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:socket_float_option/cons:SO_SNDTIMEO">
+  <a href="index.html#/type:socket_float_option/cons:SO_SNDTIMEO" class="anchor">#</a>
+  | SO_SNDTIMEO
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getsockopt">
+  <a href="index.html#/val:getsockopt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getsockopt : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_bool_option">socket_bool_option</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getsockopt</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setsockopt">
+  <a href="index.html#/val:setsockopt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setsockopt : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_bool_option">socket_bool_option</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.setsockopt</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getsockopt_int">
+  <a href="index.html#/val:getsockopt_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getsockopt_int : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_int_option">socket_int_option</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getsockopt_int</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setsockopt_int">
+  <a href="index.html#/val:setsockopt_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setsockopt_int : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_int_option">socket_int_option</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.setsockopt_int</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getsockopt_optint">
+  <a href="index.html#/val:getsockopt_optint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getsockopt_optint : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_optint_option">socket_optint_option</a> <span class="rarr"><span>-&gt;</span></span> int option
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getsockopt_optint</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setsockopt_optint">
+  <a href="index.html#/val:setsockopt_optint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setsockopt_optint : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_optint_option">socket_optint_option</a> <span class="rarr"><span>-&gt;</span></span> int option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.setsockopt_optint</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getsockopt_float">
+  <a href="index.html#/val:getsockopt_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getsockopt_float : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_float_option">socket_float_option</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getsockopt_float</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setsockopt_float">
+  <a href="index.html#/val:setsockopt_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setsockopt_float : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:socket_float_option">socket_float_option</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.setsockopt_float</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getsockopt_error">
+  <a href="index.html#/val:getsockopt_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getsockopt_error : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:error">error</a> option
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getsockopt_error</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Host and protocol databases</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:host_entry">
+  <a href="index.html#/type:host_entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> host_entry = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:host_entry">host_entry</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:host_entry/field:h_name">
+  <a href="index.html#/type:host_entry/field:h_name" class="anchor">#</a>
+  h_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:host_entry/field:h_aliases">
+  <a href="index.html#/type:host_entry/field:h_aliases" class="anchor">#</a>
+  h_aliases
+  </div>
+  </td><td>: string array</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:host_entry/field:h_addrtype">
+  <a href="index.html#/type:host_entry/field:h_addrtype" class="anchor">#</a>
+  h_addrtype
+  </div>
+  </td><td>: <a href="index.html#/type:socket_domain">socket_domain</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:host_entry/field:h_addr_list">
+  <a href="index.html#/type:host_entry/field:h_addr_list" class="anchor">#</a>
+  h_addr_list
+  </div>
+  </td><td>: <a href="index.html#/type:inet_addr">inet_addr</a> array</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:protocol_entry">
+  <a href="index.html#/type:protocol_entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol_entry = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:protocol_entry">protocol_entry</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:protocol_entry/field:p_name">
+  <a href="index.html#/type:protocol_entry/field:p_name" class="anchor">#</a>
+  p_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:protocol_entry/field:p_aliases">
+  <a href="index.html#/type:protocol_entry/field:p_aliases" class="anchor">#</a>
+  p_aliases
+  </div>
+  </td><td>: string array</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:protocol_entry/field:p_proto">
+  <a href="index.html#/type:protocol_entry/field:p_proto" class="anchor">#</a>
+  p_proto
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:service_entry">
+  <a href="index.html#/type:service_entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> service_entry = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:service_entry">service_entry</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:service_entry/field:s_name">
+  <a href="index.html#/type:service_entry/field:s_name" class="anchor">#</a>
+  s_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:service_entry/field:s_aliases">
+  <a href="index.html#/type:service_entry/field:s_aliases" class="anchor">#</a>
+  s_aliases
+  </div>
+  </td><td>: string array</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:service_entry/field:s_port">
+  <a href="index.html#/type:service_entry/field:s_port" class="anchor">#</a>
+  s_port
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:service_entry/field:s_proto">
+  <a href="index.html#/type:service_entry/field:s_proto" class="anchor">#</a>
+  s_proto
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gethostname">
+  <a href="index.html#/val:gethostname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gethostname : unit <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.gethostname</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gethostbyname">
+  <a href="index.html#/val:gethostbyname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gethostbyname : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:host_entry">host_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.gethostbyname</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gethostbyaddr">
+  <a href="index.html#/val:gethostbyaddr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gethostbyaddr : <a href="index.html#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:host_entry">host_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.gethostbyaddr</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getprotobyname">
+  <a href="index.html#/val:getprotobyname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getprotobyname : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:protocol_entry">protocol_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getprotobyname</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getprotobynumber">
+  <a href="index.html#/val:getprotobynumber" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getprotobynumber : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:protocol_entry">protocol_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getprotobynumber</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getservbyname">
+  <a href="index.html#/val:getservbyname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getservbyname : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:service_entry">service_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getservbyname</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getservbyport">
+  <a href="index.html#/val:getservbyport" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getservbyport : int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:service_entry">service_entry</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getservbyport</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:addr_info">
+  <a href="index.html#/type:addr_info" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> addr_info = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:addr_info">addr_info</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:addr_info/field:ai_family">
+  <a href="index.html#/type:addr_info/field:ai_family" class="anchor">#</a>
+  ai_family
+  </div>
+  </td><td>: <a href="index.html#/type:socket_domain">socket_domain</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:addr_info/field:ai_socktype">
+  <a href="index.html#/type:addr_info/field:ai_socktype" class="anchor">#</a>
+  ai_socktype
+  </div>
+  </td><td>: <a href="index.html#/type:socket_type">socket_type</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:addr_info/field:ai_protocol">
+  <a href="index.html#/type:addr_info/field:ai_protocol" class="anchor">#</a>
+  ai_protocol
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:addr_info/field:ai_addr">
+  <a href="index.html#/type:addr_info/field:ai_addr" class="anchor">#</a>
+  ai_addr
+  </div>
+  </td><td>: <a href="index.html#/type:sockaddr">sockaddr</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:addr_info/field:ai_canonname">
+  <a href="index.html#/type:addr_info/field:ai_canonname" class="anchor">#</a>
+  ai_canonname
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:getaddrinfo_option">
+  <a href="index.html#/type:getaddrinfo_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> getaddrinfo_option = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:getaddrinfo_option">getaddrinfo_option</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:getaddrinfo_option/cons:AI_FAMILY">
+  <a href="index.html#/type:getaddrinfo_option/cons:AI_FAMILY" class="anchor">#</a>
+  | AI_FAMILY <span class="keyword">of</span> <a href="index.html#/type:socket_domain">socket_domain</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getaddrinfo_option/cons:AI_SOCKTYPE">
+  <a href="index.html#/type:getaddrinfo_option/cons:AI_SOCKTYPE" class="anchor">#</a>
+  | AI_SOCKTYPE <span class="keyword">of</span> <a href="index.html#/type:socket_type">socket_type</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getaddrinfo_option/cons:AI_PROTOCOL">
+  <a href="index.html#/type:getaddrinfo_option/cons:AI_PROTOCOL" class="anchor">#</a>
+  | AI_PROTOCOL <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getaddrinfo_option/cons:AI_NUMERICHOST">
+  <a href="index.html#/type:getaddrinfo_option/cons:AI_NUMERICHOST" class="anchor">#</a>
+  | AI_NUMERICHOST
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getaddrinfo_option/cons:AI_CANONNAME">
+  <a href="index.html#/type:getaddrinfo_option/cons:AI_CANONNAME" class="anchor">#</a>
+  | AI_CANONNAME
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getaddrinfo_option/cons:AI_PASSIVE">
+  <a href="index.html#/type:getaddrinfo_option/cons:AI_PASSIVE" class="anchor">#</a>
+  | AI_PASSIVE
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getaddrinfo">
+  <a href="index.html#/val:getaddrinfo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getaddrinfo : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:getaddrinfo_option">getaddrinfo_option</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:addr_info">addr_info</a> list <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getaddrinfo</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:name_info">
+  <a href="index.html#/type:name_info" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> name_info = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:name_info">name_info</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:name_info/field:ni_hostname">
+  <a href="index.html#/type:name_info/field:ni_hostname" class="anchor">#</a>
+  ni_hostname
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:name_info/field:ni_service">
+  <a href="index.html#/type:name_info/field:ni_service" class="anchor">#</a>
+  ni_service
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:getnameinfo_option">
+  <a href="index.html#/type:getnameinfo_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> getnameinfo_option = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:getnameinfo_option">getnameinfo_option</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:getnameinfo_option/cons:NI_NOFQDN">
+  <a href="index.html#/type:getnameinfo_option/cons:NI_NOFQDN" class="anchor">#</a>
+  | NI_NOFQDN
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getnameinfo_option/cons:NI_NUMERICHOST">
+  <a href="index.html#/type:getnameinfo_option/cons:NI_NUMERICHOST" class="anchor">#</a>
+  | NI_NUMERICHOST
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getnameinfo_option/cons:NI_NAMEREQD">
+  <a href="index.html#/type:getnameinfo_option/cons:NI_NAMEREQD" class="anchor">#</a>
+  | NI_NAMEREQD
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getnameinfo_option/cons:NI_NUMERICSERV">
+  <a href="index.html#/type:getnameinfo_option/cons:NI_NUMERICSERV" class="anchor">#</a>
+  | NI_NUMERICSERV
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:getnameinfo_option/cons:NI_DGRAM">
+  <a href="index.html#/type:getnameinfo_option/cons:NI_DGRAM" class="anchor">#</a>
+  | NI_DGRAM
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getnameinfo">
+  <a href="index.html#/val:getnameinfo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getnameinfo : <a href="index.html#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:getnameinfo_option">getnameinfo_option</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:name_info">name_info</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.getnameinfo</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Terminal interface</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:terminal_io">
+  <a href="index.html#/type:terminal_io" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> terminal_io = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:terminal_io">terminal_io</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_ignbrk">
+  <a href="index.html#/type:terminal_io/field:c_ignbrk" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_ignbrk
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_brkint">
+  <a href="index.html#/type:terminal_io/field:c_brkint" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_brkint
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_ignpar">
+  <a href="index.html#/type:terminal_io/field:c_ignpar" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_ignpar
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_parmrk">
+  <a href="index.html#/type:terminal_io/field:c_parmrk" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_parmrk
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_inpck">
+  <a href="index.html#/type:terminal_io/field:c_inpck" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_inpck
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_istrip">
+  <a href="index.html#/type:terminal_io/field:c_istrip" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_istrip
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_inlcr">
+  <a href="index.html#/type:terminal_io/field:c_inlcr" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_inlcr
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_igncr">
+  <a href="index.html#/type:terminal_io/field:c_igncr" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_igncr
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_icrnl">
+  <a href="index.html#/type:terminal_io/field:c_icrnl" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_icrnl
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_ixon">
+  <a href="index.html#/type:terminal_io/field:c_ixon" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_ixon
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_ixoff">
+  <a href="index.html#/type:terminal_io/field:c_ixoff" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_ixoff
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_opost">
+  <a href="index.html#/type:terminal_io/field:c_opost" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_opost
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_obaud">
+  <a href="index.html#/type:terminal_io/field:c_obaud" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_obaud
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_ibaud">
+  <a href="index.html#/type:terminal_io/field:c_ibaud" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_ibaud
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_csize">
+  <a href="index.html#/type:terminal_io/field:c_csize" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_csize
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_cstopb">
+  <a href="index.html#/type:terminal_io/field:c_cstopb" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_cstopb
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_cread">
+  <a href="index.html#/type:terminal_io/field:c_cread" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_cread
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_parenb">
+  <a href="index.html#/type:terminal_io/field:c_parenb" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_parenb
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_parodd">
+  <a href="index.html#/type:terminal_io/field:c_parodd" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_parodd
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_hupcl">
+  <a href="index.html#/type:terminal_io/field:c_hupcl" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_hupcl
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_clocal">
+  <a href="index.html#/type:terminal_io/field:c_clocal" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_clocal
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_isig">
+  <a href="index.html#/type:terminal_io/field:c_isig" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_isig
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_icanon">
+  <a href="index.html#/type:terminal_io/field:c_icanon" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_icanon
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_noflsh">
+  <a href="index.html#/type:terminal_io/field:c_noflsh" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_noflsh
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_echo">
+  <a href="index.html#/type:terminal_io/field:c_echo" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_echo
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_echoe">
+  <a href="index.html#/type:terminal_io/field:c_echoe" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_echoe
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_echok">
+  <a href="index.html#/type:terminal_io/field:c_echok" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_echok
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_echonl">
+  <a href="index.html#/type:terminal_io/field:c_echonl" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_echonl
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_vintr">
+  <a href="index.html#/type:terminal_io/field:c_vintr" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_vintr
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_vquit">
+  <a href="index.html#/type:terminal_io/field:c_vquit" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_vquit
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_verase">
+  <a href="index.html#/type:terminal_io/field:c_verase" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_verase
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_vkill">
+  <a href="index.html#/type:terminal_io/field:c_vkill" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_vkill
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_veof">
+  <a href="index.html#/type:terminal_io/field:c_veof" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_veof
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_veol">
+  <a href="index.html#/type:terminal_io/field:c_veol" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_veol
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_vmin">
+  <a href="index.html#/type:terminal_io/field:c_vmin" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_vmin
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_vtime">
+  <a href="index.html#/type:terminal_io/field:c_vtime" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_vtime
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_vstart">
+  <a href="index.html#/type:terminal_io/field:c_vstart" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_vstart
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:terminal_io/field:c_vstop">
+  <a href="index.html#/type:terminal_io/field:c_vstop" class="anchor">#</a>
+  <span class="keyword">mutable</span> c_vstop
+  </div>
+  </td><td>: char</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcgetattr">
+  <a href="index.html#/val:tcgetattr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcgetattr : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:terminal_io">terminal_io</a> <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.tcgetattr</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:setattr_when">
+  <a href="index.html#/type:setattr_when" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> setattr_when = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:setattr_when">setattr_when</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:setattr_when/cons:TCSANOW">
+  <a href="index.html#/type:setattr_when/cons:TCSANOW" class="anchor">#</a>
+  | TCSANOW
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:setattr_when/cons:TCSADRAIN">
+  <a href="index.html#/type:setattr_when/cons:TCSADRAIN" class="anchor">#</a>
+  | TCSADRAIN
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:setattr_when/cons:TCSAFLUSH">
+  <a href="index.html#/type:setattr_when/cons:TCSAFLUSH" class="anchor">#</a>
+  | TCSAFLUSH
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcsetattr">
+  <a href="index.html#/val:tcsetattr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcsetattr : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:setattr_when">setattr_when</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:terminal_io">terminal_io</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.tcsetattr</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcsendbreak">
+  <a href="index.html#/val:tcsendbreak" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcsendbreak : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.tcsendbreak</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcdrain">
+  <a href="index.html#/val:tcdrain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcdrain : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.tcdrain</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:flush_queue">
+  <a href="index.html#/type:flush_queue" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> flush_queue = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:flush_queue">flush_queue</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:flush_queue/cons:TCIFLUSH">
+  <a href="index.html#/type:flush_queue/cons:TCIFLUSH" class="anchor">#</a>
+  | TCIFLUSH
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:flush_queue/cons:TCOFLUSH">
+  <a href="index.html#/type:flush_queue/cons:TCOFLUSH" class="anchor">#</a>
+  | TCOFLUSH
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:flush_queue/cons:TCIOFLUSH">
+  <a href="index.html#/type:flush_queue/cons:TCIOFLUSH" class="anchor">#</a>
+  | TCIOFLUSH
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcflush">
+  <a href="index.html#/val:tcflush" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcflush : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:flush_queue">flush_queue</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.tcflush</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:flow_action">
+  <a href="index.html#/type:flow_action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> flow_action = <a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:flow_action">flow_action</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:flow_action/cons:TCOOFF">
+  <a href="index.html#/type:flow_action/cons:TCOOFF" class="anchor">#</a>
+  | TCOOFF
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:flow_action/cons:TCOON">
+  <a href="index.html#/type:flow_action/cons:TCOON" class="anchor">#</a>
+  | TCOON
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:flow_action/cons:TCIOFF">
+  <a href="index.html#/type:flow_action/cons:TCIOFF" class="anchor">#</a>
+  | TCIOFF
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:flow_action/cons:TCION">
+  <a href="index.html#/type:flow_action/cons:TCION" class="anchor">#</a>
+  | TCION
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcflow">
+  <a href="index.html#/val:tcflow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcflow : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:flow_action">flow_action</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wrapper for <code>Unix.tcflow</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Low-level interaction</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Retry">
+  <a href="index.html#/exn:Retry" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Retry
+    
+      <div class="doc">
+        
+      <p>If an action raises <a href="index.html#/exn:Retry">Retry</a>, it will be requeued until the <b>file descriptor</b> becomes readable/writable again.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Retry_read">
+  <a href="index.html#/exn:Retry_read" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Retry_read
+    
+      <div class="doc">
+        
+      <p>If an action raises <a href="index.html#/exn:Retry_read">Retry_read</a>, it will be requeued until the
+<b>file descriptor</b> becomes readable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Retry_write">
+  <a href="index.html#/exn:Retry_write" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Retry_write
+    
+      <div class="doc">
+        
+      <p>If an action raises <a href="index.html#/exn:Retry_read">Retry_read</a>, it will be requeued until the
+<b>file descriptor</b> becomes writables.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:io_event">
+  <a href="index.html#/type:io_event" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> io_event = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:io_event/cons:Read">
+  <a href="index.html#/type:io_event/cons:Read" class="anchor">#</a>
+  | Read
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:io_event/cons:Write">
+  <a href="index.html#/type:io_event/cons:Write" class="anchor">#</a>
+  | Write
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wrap_syscall">
+  <a href="index.html#/val:wrap_syscall" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wrap_syscall : <a href="index.html#/type:io_event">io_event</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>wrap_syscall set fd action</code> wrap an action on a <b>file
+descriptor</b>. It tries to execture action, and if it can not be
+performed immediately without blocking, it is registered for
+latter.</p>
+      
+      <p>In the latter case, if the thread is canceled, <code>action</code> is
+removed from <code>set</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:check_descriptor">
+  <a href="index.html#/val:check_descriptor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check_descriptor : <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>check_descriptor fd</code> raise an exception if <code>fd</code> is not in the
+state [root:Open]</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:register_action">
+  <a href="index.html#/val:register_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> register_action : <a href="index.html#/type:io_event">io_event</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>register_action set fd action</code> registers <code>action</code> on <code>fd</code>. When
+<code>fd</code> becomes <code>readable</code>/<code>writable</code> <code>action</code> is called.</p>
+      
+      <p>Note:</p>
+      <ul><li>you must call <code>check_descriptor fd</code> before calling
+<code>register_action</code></li></ul><ul><li>you should prefer using <a href="index.html#/val:wrap_syscall">wrap_syscall</a></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:job">
+  <a href="index.html#/type:job" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a job
+    
+      <div class="doc">
+        
+      <p>Type of job descriptions. A job description describe how to call
+a C function and how to get its result. The C function may be
+executed in another system thread.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:execute_job">
+  <a href="index.html#/val:execute_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> execute_job : ?async_method:<a href="index.html#/type:async_method">async_method</a> <span class="rarr"><span>-&gt;</span></span> job:'a <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> result:('a <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> free:('a <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>This is the old and deprecated way of running a job. Use
+<a href="index.html#/val:run_job">run_job</a> in new code.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run_job">
+  <a href="index.html#/val:run_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run_job : ?async_method:<a href="index.html#/type:async_method">async_method</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>run_job ?async_method job</code> starts <code>job</code> and wait for its
+termination.</p>
+      
+      <p>The async method is choosen follow:</p>
+      <ul><li>if the optional parameter <code>async_method</code> is specified, it is
+used,</li><li>otherwise if the local key <a href="index.html#/val:async_method_key">async_method_key</a> is set in the
+current thread, it is used,</li><li>otherwise the default method (returned by
+<a href="index.html#/val:default_async_method">default_async_method</a>) is used.</li></ul>
+      <p>If the method is <a href="index.html#/type:async_method/cons:Async_none">Async_none</a> then the job is run synchronously
+and may block the current system thread, thus blocking all Lwt
+threads.</p>
+      
+      <p>If the method is <a href="index.html#/type:async_method/cons:Async_detach">Async_detach</a> then the job is run in another
+system thread, unless the the maximum number of worker threads
+has been reached (as given by <a href="index.html#/val:pool_size">pool_size</a>).</p>
+      
+      <p>If the method is <a href="index.html#/type:async_method/cons:Async_switch">Async_switch</a> then the job is run
+synchronously and if it blocks, execution will continue in
+another system thread (unless the limit is reached).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abort_jobs">
+  <a href="index.html#/val:abort_jobs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abort_jobs : exn <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>abort_jobs exn</code> make all pending jobs to fail with exn. Note
+that this does not abort the real job (i.e. the C function
+executing it), just the lwt thread for it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cancel_jobs">
+  <a href="index.html#/val:cancel_jobs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cancel_jobs : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>cancel_jobs ()</code> is the same as <code>abort_jobs Lwt.Canceled</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_for_jobs">
+  <a href="index.html#/val:wait_for_jobs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_for_jobs : unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Wait for all pending jobs to terminate.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Notifications</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Lwt internally use a pipe to send notification to the main
+thread. The following functions allow to use this pipe.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:make_notification">
+  <a href="index.html#/val:make_notification" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_notification : ?once:bool <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>new_notifier ?once f</code> registers a new notifier. It returns the
+id of the notifier. Each time a notification with this id is
+received, <code>f</code> is called.</p>
+      
+      <p>if <code>once</code> is specified, then the notification is stopped after
+the first time it is received. It defaults to <code>false</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:send_notification">
+  <a href="index.html#/val:send_notification" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send_notification : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>send_notification id</code> sends a notification.</p>
+      
+      <p>This function is thread-safe.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stop_notification">
+  <a href="index.html#/val:stop_notification" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stop_notification : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Stop the given notification. Note that you should not reuse the
+id after the notification has been stopped, the result is
+unspecified if you do so.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:call_notification">
+  <a href="index.html#/val:call_notification" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> call_notification : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Call the handler associated to the given notification. Note that
+if the notification was defined with <code>once = true</code> it is removed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_notification">
+  <a href="index.html#/val:set_notification" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_notification : int <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_notification id f</code> replace the function associated to the
+notification by <code>f</code>. It raises <code>Not_found</code> if the given
+notification is not found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">System threads pool</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>If the program is using the async method <a href="index.html#/type:async_method/cons:Async_detach">Async_detach</a> or
+<a href="index.html#/type:async_method/cons:Async_switch">Async_switch</a>, Lwt will launch system threads to execute
+blocking system calls asynchronously.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:pool_size">
+  <a href="index.html#/val:pool_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pool_size : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Maximum number of system threads that can be started. If this
+limit is reached, jobs will be executed synchronously.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_pool_size">
+  <a href="index.html#/val:set_pool_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_pool_size : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Change the size of the pool.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:thread_count">
+  <a href="index.html#/val:thread_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> thread_count : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>The number of system threads running (excluding this one).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:thread_waiting_count">
+  <a href="index.html#/val:thread_waiting_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> thread_waiting_count : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>The number threads waiting for a job.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">CPUs</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:get_cpu">
+  <a href="index.html#/val:get_cpu" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cpu : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>get_cpu ()</code> returns the number of the CPU the current thread is
+running on.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_affinity">
+  <a href="index.html#/val:get_affinity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_affinity : ?pid:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> int list
+    
+      <div class="doc">
+        
+      <p><code>get_affinity ?pid ()</code> returns the list of CPUs the process with
+pid <code>pid</code> is allowed to run on. If <code>pid</code> is not specified then
+the affinity of the current process is returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_affinity">
+  <a href="index.html#/val:set_affinity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_affinity : ?pid:int <span class="rarr"><span>-&gt;</span></span> int list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_affinity ?pid cpus</code> sets the list of CPUs the given process
+is allowed to run on.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

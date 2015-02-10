@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_heap</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_heap</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shared heaps of structured values</p>
+      
+      <p>These heaps live in [root:Netmcore_mempool]-type shared memory pools,
+and can contain an arbitrary number of Ocaml values. These values
+can be mutable, but special care has to be taken when modifying them.
+The first value pushed onto the heap is called the <i>root element</i>.
+All other values must be (directly or indirectly) reachable from the
+root element.</p>
+      
+      <p>Heaps are created with a certain initial size. The heaps remain
+connected with the memory pool, and they are enlarged if necessary
+by allocating more blocks in the pool.</p>
+      
+      <p>As the heaps are shared between processes, it must be taken care
+that no reference is made from shared heaps to normal process-local
+memory. These references would only be valid in the process creating
+them, and following such references from other processes would probably
+crash the program (or at least return wrong values). In order to ensure
+this, it is strictly forbidden to directly manipulate mutable
+data structures. The <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/val:modify">modify</a> function has to be used,
+as this function makes it possible to copy more values to the heap.
+Unfortunately, there is nothing in the type system that would prevent
+direct mutation. so this can only be ensured by the discipline of the
+programmer.</p>
+      
+      <p>The values of the heap are also garbage-collected: If all allocated
+space is used and more values need to be added, it is first tried
+to get rid of old unreachable values. The garbarge collection is done
+by the process that happens to initiate the addition of the value
+that does no more fit onto the heap. During garbage collection, no
+other additions can be done, but read accesses are not prevented.
+The garbage collector does not move values (addresses remain unchanged).</p>
+      
+      <p>The garabage collector only considers values as reachable that are
+reachable via the root element. It is not sufficient when a value
+is only reachable via a process-specific reference.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:heap">
+  <a href="index.html#/type:heap" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a heap
+    
+      <div class="doc">
+        
+      <p>A heap where the type of the root element is <code>'a</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:descr">
+  <a href="index.html#/type:descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a descr
+    
+      <div class="doc">
+        
+      <p>A descriptor (&quot;address&quot;) pointing to the heap. Descriptors
+can be marshalled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_heap">
+  <a href="index.html#/val:create_heap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_heap : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:heap">heap</a>
+    
+      <div class="doc">
+        
+      <p><code>create_heap pool_id size root</code>: Creates a new heap with <code>size</code>
+bytes in the pool identified by <code>pool_id</code>. This ID must refer
+to a [root:Netmcore_mempool]-managed pool.</p>
+      
+      <p>The value <code>root</code> is copied to the new heap. This is done by
+deeply duplicating <code>root</code> and all values pointed to by <code>root</code>,
+and storing these duplicates in the heap.</p>
+      
+      <p>The possible types of value <code>root</code> are restricted, see the <code>add</code>
+function for more.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:minimum_size">
+  <a href="index.html#/val:minimum_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minimum_size : 'a <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the <code>size</code> value one must pass to <code>create_heap</code> at minimum
+to put this root element onto the heap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:root">
+  <a href="index.html#/val:root" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> root : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Returns the root element</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:descr_of_heap">
+  <a href="index.html#/val:descr_of_heap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> descr_of_heap : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:descr">descr</a>
+    
+      <div class="doc">
+        
+      <p>Get the descriptor of a heap</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap_of_descr">
+  <a href="index.html#/val:heap_of_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap_of_descr : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:descr">descr</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:heap">heap</a>
+    
+      <div class="doc">
+        
+      <p><code>heap_of_descr pool d</code>:
+Get the heap for a descriptor. This assumes that the heap still
+exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mutator">
+  <a href="index.html#/type:mutator" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mutator
+    
+      <div class="doc">
+        
+      <p>Mutators allow it to push new values onto the heap.</p>
+      
+      <p>Caveat: pushed values are not considered as roots, and thus they
+need immediately be attached to the existing data structure.
+Otherwise, the next push might trigger a garbage collection, and
+the new value is deleted. If this is not possible, one can
+call <code>pin</code> instead (see below).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:modify">
+  <a href="index.html#/val:modify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> modify : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> 'r) <span class="rarr"><span>-&gt;</span></span> 'r
+    
+      <div class="doc">
+        
+      <p><code>modify h mutate</code>: This function locks the heap so that this process
+has exclusive write access to it for the duration of the <code>mutate</code>
+function. The <code>mutate</code> function is immediately called back, and
+the argument of <code>mutate</code> is the mutator <code>m</code> that allows one to push
+values onto the heap.</p>
+      
+      <p>By calling <code>add m x</code> from the body of <code>mutate</code> one can create a copy
+of <code>x</code> that is stored in the heap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Pushes a new value onto the heap. This creates a deep copy of the
+value.</p>
+      
+      <p>Not all values can be pushed here. In particular, forbidden are:</p>
+      <ul><li>Functions</li><li>Objects</li><li>Unsupported custom blocks, e.g. <code>in_channel</code> and <code>out_channel</code>.
+Supported custom blocks are only <code>int32</code>, <code>int64</code>, <code>nativeint</code>,
+and bigarrays.</li><li>Heaps (a heap cannot contain a heap)</li><li>Values containing semaphores and other synchronization primitives.
+Explicitly allowed are dummy primitives like <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_mutex/">Netmcore_mutex</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_mutex/#/val:dummy">dummy</a>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_immutable">
+  <a href="index.html#/val:add_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_immutable : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Pushes a new value onto the heap. This function must only be used
+if the added value is immutable. An important optimization is applied
+here: if parts of the value are already living on the heap, these
+parts are not copied, but shared with the output value.</p>
+      
+      <p>The same value restrictions apply as for <code>add</code>. Note that
+<code>add_immutable</code> cannot be used if the value to copy lives in a different
+heap of the same pool (as a whole or partially). In this case use
+<code>add</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_uniform_array">
+  <a href="index.html#/val:add_uniform_array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_uniform_array : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a array
+    
+      <div class="doc">
+        
+      <p><code>add_uniform_array m n x</code>: Pushes a new value with n elements onto
+the heap. Each index position of the array is initialized with
+the same copy of <code>x</code>.</p>
+      
+      <p>You should not call this function with <code>n=0</code>, because this results in
+a copied atom, which is an illegal representation in OCaml.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_init_array">
+  <a href="index.html#/val:add_init_array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_init_array : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a array
+    
+      <div class="doc">
+        
+      <p><code>add_init_array m n f</code>: Pushes a new value with n elements onto
+the heap. The index position <code>k</code> is inititialized by running
+<code>f k</code> and pushing the copy of this onto the heap.</p>
+      
+      <p>You should not call this function with <code>n=0</code>, because this results in
+a copied atom, which is an illegal representation in OCaml.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_some">
+  <a href="index.html#/val:add_some" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_some : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p><code>add_some mut x</code>: Returns <code>Some x</code> where the O'Caml value representing
+<code>Some</code> is allocated in the heap using <code>mut</code>. It is assumed that <code>x</code> is
+already a resident of the heap. This means <code>x</code> is not copied!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_string">
+  <a href="index.html#/val:add_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_string : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>let s = add_string mut len</code>: Adds an uninitialized string of length
+<code>len</code> to the heap using <code>mut</code>, and returns the string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pin">
+  <a href="index.html#/val:pin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pin : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>pin m x</code>: Pins a shared value <code>x</code> so it cannot be deleted by
+the garbage collector. The value remains pinned for the lifetime
+of the mutator <code>m</code> (i.e. the runtime of the <code>modify</code> function).</p>
+      
+      <p>Pinning is relatively expensive if done in masses, and should be
+avoided if possible.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy">
+  <a href="index.html#/val:copy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy : 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Creates a deep copy of the input value, and stores the duplicate
+in normal process memory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_value">
+  <a href="index.html#/val:with_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_value : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> 'c
+    
+      <div class="doc">
+        
+      <p><code>with_value h find process</code>: Logically, this runs
+<code>process (find ())</code> and returns the result. While <code>find</code> is being
+executed, the heap is write-locked. This returns a value <code>x</code>.
+While <code>process</code> is being executed, the value <code>x</code> is temporarily
+added to the set of reachable values, so that a parallely running
+garbage collection will not delete it.</p>
+      
+      <p>Note that <code>x</code> <b>must</b> reside in the heap!</p>
+      
+      <p>Calling <code>modify</code> from <code>find</code> will cause a deadlock. Calling
+it from <code>process</code> is allowed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_value_2">
+  <a href="index.html#/val:with_value_2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_value_2 : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'b * 'c) <span class="rarr"><span>-&gt;</span></span> ('b * 'c <span class="rarr"><span>-&gt;</span></span> 'z) <span class="rarr"><span>-&gt;</span></span> 'z
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_value_3">
+  <a href="index.html#/val:with_value_3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_value_3 : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'b * 'c * 'd) <span class="rarr"><span>-&gt;</span></span> ('b * 'c * 'd <span class="rarr"><span>-&gt;</span></span> 'z) <span class="rarr"><span>-&gt;</span></span> 'z
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_value_4">
+  <a href="index.html#/val:with_value_4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_value_4 : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'b * 'c * 'd * 'e) <span class="rarr"><span>-&gt;</span></span> ('b * 'c * 'd * 'e <span class="rarr"><span>-&gt;</span></span> 'z) <span class="rarr"><span>-&gt;</span></span> 'z
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_value_5">
+  <a href="index.html#/val:with_value_5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_value_5 : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'b * 'c * 'd * 'e * 'f) <span class="rarr"><span>-&gt;</span></span> ('b * 'c * 'd * 'e * 'f <span class="rarr"><span>-&gt;</span></span> 'z) <span class="rarr"><span>-&gt;</span></span> 'z
+    
+      <div class="doc">
+        
+      <p>Same as <code>with_value</code>, but a tuple of values can be passed down</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_value_n">
+  <a href="index.html#/val:with_value_n" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_value_n : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'b list) <span class="rarr"><span>-&gt;</span></span> ('b list <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> 'c
+    
+      <div class="doc">
+        
+      <p>Same as <code>with_value</code>, but a list of values can be passed down</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy">
+  <a href="index.html#/val:destroy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys the heap and gives the memory back to the pool</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gc">
+  <a href="index.html#/val:gc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gc : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Lock the heap and do a GC pass</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pool">
+  <a href="index.html#/val:pool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pool : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a>
+    
+      <div class="doc">
+        
+      <p>Return the pool ID</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mut_pool">
+  <a href="index.html#/val:mut_pool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mut_pool : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a>
+    
+      <div class="doc">
+        
+      <p>Return the pool ID</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_container">
+  <a href="index.html#/val:sem_container" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_container : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:container">container</a>
+    
+      <div class="doc">
+        
+      <p>Return the semaphore container</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mut_sem_container">
+  <a href="index.html#/val:mut_sem_container" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mut_sem_container : <a href="index.html#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:container">container</a>
+    
+      <div class="doc">
+        
+      <p>Return the semaphore container</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug_info">
+  <a href="index.html#/val:debug_info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug_info : 'a <a href="index.html#/type:heap">heap</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a multi-line debug string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Example: Mutable Variable</h2>
+    </div>
+      <p>This example creates a heap that stores a single value. (This is
+available as [root:Netmcore_ref].)</p>
+      <pre><code>    let shared_ref x =
+      (* The shm version of [ref x] *)
+      let r = ref x in
+      let init_size = minimum_size r in
+      let hp = create_heap pool_id init_size r in
+      hp
+
+    let deref sref =
+      (* The shm version of [!] *)
+      !(root sref)
+
+    let assign sref x =
+      (* The shm version of [:=] - however, a copy of x is done *)
+      modify sref
+        (fun add -&gt;
+          (root sref) := add x
+        )</code></pre>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

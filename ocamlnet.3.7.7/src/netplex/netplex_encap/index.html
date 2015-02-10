@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_encap</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_encap</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Type-safe marshalling between processes of the same executable</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This is a pragmatic approach to type-safe marshalling. We define
+<code>type encap</code> as an arbitrary value that carries a type identifier with it.
+The type identifier is generated when the functor
+<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/module:Make_encap">Make_encap</a> is applied. Every instantiation of this
+functor generates a new type identifier.</p>
+      
+      <p>The idea is then that an <code>encap</code> value can be marshalled to another
+process using <code>Marshal</code>, and when it is unwrapped the type identifier
+is checked. Unwrapping is only successful when the <code>unwrap</code> function
+from the same functor instantiation is used as the <code>wrap</code>
+function.</p>
+      
+      <p>This module is incompatible with:</p>
+      <ul><li>Marshalling to processes running a different executable</li><li>Marshalling to processes that are dynamically loading
+modules</li><li>The functor must be instantiated at program initialization time.
+Especially this must not happen in <code>let module</code> expressions.</li></ul>
+      <p>Only some of these assumptions can be checked at runtime by this
+implementation.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Type_mismatch">
+  <a href="index.html#/exn:Type_mismatch" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Type_mismatch
+    
+      <div class="doc">
+        
+      <p>Raised when an encapulated type is tried to be unwrapped by the
+wrong encapsulation module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:encap">
+  <a href="index.html#/type:encap" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encap
+    
+      <div class="doc">
+        
+      <p>An encapsulated value with a type identifier</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:TYPE">
+  <a href="index.html#/modtype:TYPE" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> TYPE = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Just a (monomorphic) type <code>t</code></p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:TYPE/type:t">
+  <a href="index.html#/modtype:TYPE/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:ENCAP">
+  <a href="index.html#/modtype:ENCAP" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> ENCAP = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:ENCAP/type:t">
+  <a href="index.html#/modtype:ENCAP/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:ENCAP/val:wrap">
+  <a href="index.html#/modtype:ENCAP/val:wrap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wrap : <a href="index.html#/modtype:ENCAP/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encap">encap</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:ENCAP/val:unwrap">
+  <a href="index.html#/modtype:ENCAP/val:unwrap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unwrap : <a href="index.html#/type:encap">encap</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:ENCAP/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Raises <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/exn:Type_mismatch">Type_mismatch</a> if the value does not fit</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_encap">
+  <a href="index.html#/module:Make_encap" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_encap : <span class="keyword">functor</span> (T : <a href="index.html#/modtype:TYPE">TYPE</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:ENCAP">ENCAP</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:ENCAP/type:t">t</a> = <a href="index.html#/module:Make_encap/modarg:1:T">T</a>.<a href="index.html#/module:Make_encap/modarg:1:T/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>Create an encapsulation module</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

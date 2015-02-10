@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Xdr_mstring</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Xdr_mstring</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Managed Strings</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Managed strings are used in XDR context for constant strings that
+are stored either as string or as memory (bigarray of char).</p>
+      
+      <p>A managed string <code>ms</code> is declared in the XDR file as in</p>
+      <pre><code>      typedef _managed string ms&lt;&gt;;</code></pre>
+      <p>In the encoded XDR stream there is no difference between strings and
+managed strings, i.e. the wire representation is identical. Only
+the Ocaml type differs to which the managed string is mapped. This
+type is <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a> (below).</p>
+      
+      <p>In the RPC context there is often the problem that the I/O backend
+would profit from a different string representation than the user of
+the RPC layer. To bridge this gap, managed strings have been invented.
+Generally, the user can determine how to represent strings (usually
+either as an Ocaml string, or as memory), and the I/O backend
+can request to transform to a different representation when this
+leads to an improvement (i.e. copy operations can be saved).</p>
+      
+      <p>Only large managed strings result in a speedup of the program
+(at least several K).</p>
+      <div class="region">
+    <h2 class="section level_2">How to practically use managed strings</h2>
+    </div>
+      <p>There are two cases: The encoding case, and the decoding case.
+In the encoding case the <code>mstring</code> object is created by the user
+and passed to the RPC library. This happens when a client prepares
+an argument for calling a remote procedure, or when the server
+sends a response back to the caller. In the decoding case the client
+analyzes the response from an RPC call, or the server looks at the
+arguments of an RPC invocation. The difference here is that in the
+encoding case user code can directly create <code>mstring</code> objects by
+calling functions of this module, whereas in the decoding case the
+RPC library creates the <code>mstring</code> objects.</p>
+      
+      <p>For simplicity, let us only look at this problem from the perspective
+of an RPC client.</p>
+      
+      <p><b>Encoding.</b> Image a client wants to call an RPC, and one of the
+arguments is a managed string. This means we finally need an <code>mstring</code>
+object that can be put into the argument list of the call.</p>
+      
+      <p>This library supports two string representation specially: The normal
+Ocaml <code>string</code> type, and <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> which is actually just
+a bigarray of char's. There are two factories <code>fac</code>,</p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/val:string_based_mstrings">string_based_mstrings</a>, and</li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/val:memory_based_mstrings">memory_based_mstrings</a>,</li></ul>
+      <p>and both can be used to create the <code>mstring</code> to pass to the
+RPC layer. It should be noted that this layer can process the
+<code>memory</code> representation a bit better. So, if the original <code>data</code>
+value is a string, the factory for <code>string</code> should be used, and
+if it is a char bigarray, the factory for <code>memory</code> should be used.
+Now, the <code>mstring</code> object is created by</p>
+      <ul><li><code>let mstring = fac # create_from_string data pos len copy_flag</code>, or by</li><li><code>let mstring = fac # create_from_memory data pos len copy_flag</code>.</li></ul>
+      <p>Of course, if <code>fac</code> is the factory for strings, the <code>create_from_string</code>
+method works better, and if <code>fac</code> is for <code>memory</code>, the <code>create_from_memory</code>
+method works better. <code>pos</code> and <code>len</code> can select a substring of <code>data</code>.
+If <code>copy_flag</code> is <code>false</code>, the <code>mstring</code> object does not copy the data
+if possible, but just keeps a reference to <code>data</code> until it is accessed;
+otherwise if <code>copy_flag</code> is <code>true</code>, a copy is made immediately.
+Of couse, delaying the copy is better, but this requires that <code>data</code>
+is not modified until the RPC call is completed.</p>
+      
+      <p><b>Decoding.</b> Now, the call is done, and the client looks at the
+result. There is also an <code>mstring</code> object in the result. As noted
+above, this <code>mstring</code> object was already created by the RPC library
+(and currently this library prefers string-based objects if not
+told otherwise). The user code can now access this <code>mstring</code>
+object with the access methods of the <code>mstring</code> class (see below).
+As these methods are quite limited, it makes normally only sense
+to output the <code>mstring</code> contents to a file descriptor.</p>
+      
+      <p>The user can request a different factory for managed strings. The
+function <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:set_mstring_factories">set_mstring_factories</a> can be used for this
+purpose. (Similar ways exist for managed clients, and for RPC servers.)</p>
+      
+      <p><b>Potential.</b> Before introducing managed strings, a clean analysis
+was done how many copy operations can be avoided by using this
+technique. Example: The first N bytes of a file are taken as
+argument of an RPC call. Instead of reading these bytes into a
+normal Ocaml string, an optimal implementation uses now a <code>memory</code>
+buffer for this purpose. This gives:</p>
+      <ul><li>Old implementation with strings and ocamlnet-2:
+Data is copied <b>six</b> times from reading it from the file until
+writing it to the socket.</li><li>New implementation with memory-based mstrings:
+Data is copied only <b>twice</b>! The first copy reads it from the
+file into the input buffer (a <code>memory</code> value), and the second copy
+writes the data into the socket.</li></ul>
+      <p>Part of the optimization is that <code>Unix.read</code> and <code>Unix.write</code>
+do a completely avoidable copy of the data which is prevented by
+switching to <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/val:mem_read">mem_read</a> and <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/val:mem_write">mem_write</a>,
+respectively. The latter two functions exploit an optimization
+that is only possible when the data is <code>memory</code>-typed.</p>
+      
+      <p>The possible optimizations for the decoding side of the problem
+are slightly less impressive, but still worth doing it.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Interface</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:mstring">
+  <a href="index.html#/classtype:mstring" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mstring = 
+  <div class="region" id="/classtype:mstring/method:length">
+  <a href="index.html#/classtype:mstring/method:length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> length : int
+  
+      <div class="doc">
+        
+      <p>The length of the managed string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mstring/method:blit_to_string">
+  <a href="index.html#/classtype:mstring/method:blit_to_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> blit_to_string : int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>blit_to_string mpos s spos len</code>: Copies the substring of the
+managed string from <code>mpos</code> to <code>mpos+len-1</code> to the substring of
+<code>s</code> from <code>spos</code> to <code>spos+len-1</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mstring/method:blit_to_memory">
+  <a href="index.html#/classtype:mstring/method:blit_to_memory" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> blit_to_memory : int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>blit_to_string mpos mem mempos len</code>: Copies the substring of the
+managed string from <code>mpos</code> to <code>mpos+len-1</code> to the substring of
+<code>mem</code> from <code>mempos</code> to <code>mempos+len-1</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mstring/method:as_string">
+  <a href="index.html#/classtype:mstring/method:as_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> as_string : string * int
+  
+      <div class="doc">
+        
+      <p>Returns the contents as string. It is undefined whether the returned
+string is a copy or the underlying buffer. The int is the position
+where the contents start</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mstring/method:as_memory">
+  <a href="index.html#/classtype:mstring/method:as_memory" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> as_memory : <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> * int
+  
+      <div class="doc">
+        
+      <p>Returns the contents as memory. It is undefined whether the returned
+memory is a copy or the underlying buffer. The int is the position
+where the contents start</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mstring/method:preferred">
+  <a href="index.html#/classtype:mstring/method:preferred" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> preferred : [ <div class="cons">| `Memory</div><div class="cons">| `String</div> ]
+  
+      <div class="doc">
+        
+      <p>Whether <code>as_memory</code> or <code>as_string</code> is cheaper</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The object holding the string value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mstring_factory">
+  <a href="index.html#/classtype:mstring_factory" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mstring_factory = 
+  <div class="region" id="/classtype:mstring_factory/method:create_from_string">
+  <a href="index.html#/classtype:mstring_factory/method:create_from_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_from_string : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a>
+  
+      <div class="doc">
+        
+      <p><code>create_from_string s pos len must_copy</code>: Creates the <code>mstring</code> from the
+sub string of s starting at <code>pos</code> with length <code>len</code></p>
+      
+      <p>If <code>must_copy</code> the mstring object must create a copy. Otherwise
+it can just keep the string passed in.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mstring_factory/method:create_from_memory">
+  <a href="index.html#/classtype:mstring_factory/method:create_from_memory" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_from_memory : <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a>
+  
+      <div class="doc">
+        
+      <p><code>create_from_memory m pos len must_copy</code>: Creates the <code>mstring</code> from the
+sub string of m starting at <code>pos</code> with length <code>len</code></p>
+      
+      <p>If <code>must_copy</code> the mstring object must create a copy. Otherwise
+it can just keep the memory passed in.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The object creating new <code>mstring</code> objects</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_based_mstrings">
+  <a href="index.html#/val:string_based_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_based_mstrings : <a href="index.html#/classtype:mstring_factory">mstring_factory</a>
+    
+      <div class="doc">
+        
+      <p>Uses strings to represent mstrings</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_to_mstring">
+  <a href="index.html#/val:string_to_mstring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_to_mstring : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a>
+    
+      <div class="doc">
+        
+      <p>Represent a string as mstring (no copy)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:memory_based_mstrings">
+  <a href="index.html#/val:memory_based_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> memory_based_mstrings : <a href="index.html#/classtype:mstring_factory">mstring_factory</a>
+    
+      <div class="doc">
+        
+      <p>Uses memory to represent mstrings. The memory bigarrays are allocated
+with <code>Bigarray.Array1.create</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:memory_to_mstring">
+  <a href="index.html#/val:memory_to_mstring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> memory_to_mstring : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a>
+    
+      <div class="doc">
+        
+      <p>Represent memory as mstring (no copy)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:paligned_memory_based_mstrings">
+  <a href="index.html#/val:paligned_memory_based_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> paligned_memory_based_mstrings : <a href="index.html#/classtype:mstring_factory">mstring_factory</a>
+    
+      <div class="doc">
+        
+      <p>Uses memory to represent mstrings. The memory bigarrays are allocated
+with <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/val:alloc_memory_pages">alloc_memory_pages</a> if available, and
+<code>Bigarray.Array1.create</code> if not.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:memory_pool_based_mstrings">
+  <a href="index.html#/val:memory_pool_based_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> memory_pool_based_mstrings : <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory_pool">memory_pool</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring_factory">mstring_factory</a>
+    
+      <div class="doc">
+        
+      <p>Uses memory to represent mstrings. The memory bigarrays are obtained
+from the pool. The length of these mstrings is limited by the
+blocksize of the pool.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length_mstrings">
+  <a href="index.html#/val:length_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length_mstrings : <a href="index.html#/classtype:mstring">mstring</a> list <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>returns the sum of the lengths of the mstrings</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:concat_mstrings">
+  <a href="index.html#/val:concat_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> concat_mstrings : <a href="index.html#/classtype:mstring">mstring</a> list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>concatenates the mstrings and return them as single string. The returned
+string may be shared with one of the mstrings passed in.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prefix_mstrings">
+  <a href="index.html#/val:prefix_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prefix_mstrings : <a href="index.html#/classtype:mstring">mstring</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>prefix_mstrings l n</code>: returns the first <code>n</code> chars of the
+concatenated mstrings <code>l</code> as single string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_mstrings_to_memory">
+  <a href="index.html#/val:blit_mstrings_to_memory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_mstrings_to_memory : <a href="index.html#/classtype:mstring">mstring</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>blits the mstrings one after the other to the memory, so that
+they appear there concatenated</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shared_sub_mstring">
+  <a href="index.html#/val:shared_sub_mstring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shared_sub_mstring : <a href="index.html#/classtype:mstring">mstring</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a>
+    
+      <div class="doc">
+        
+      <p><code>shared_sub_mstring ms pos len</code>: returns an mstring that includes
+a substring of <code>ms</code>, starting at <code>pos</code>, and with <code>len</code> bytes.
+The returned mstring shares the buffer with the original mstring <code>ms</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shared_sub_mstrings">
+  <a href="index.html#/val:shared_sub_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shared_sub_mstrings : <a href="index.html#/classtype:mstring">mstring</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a> list
+    
+      <div class="doc">
+        
+      <p>Same for a list of mstrings</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_mstring">
+  <a href="index.html#/val:copy_mstring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_mstring : <a href="index.html#/classtype:mstring">mstring</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a>
+    
+      <div class="doc">
+        
+      <p>Create a copy</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_mstrings">
+  <a href="index.html#/val:copy_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_mstrings : <a href="index.html#/classtype:mstring">mstring</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mstring">mstring</a> list
+    
+      <div class="doc">
+        
+      <p>Create a copy</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:named_mstring_factories">
+  <a href="index.html#/type:named_mstring_factories" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> named_mstring_factories = (string, <a href="index.html#/classtype:mstring_factory">mstring_factory</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

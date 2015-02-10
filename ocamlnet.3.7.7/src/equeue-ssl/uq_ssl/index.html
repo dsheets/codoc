@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Uq_ssl</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Uq_ssl</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Asynchronous SSL connections</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:Ssl_error">
+  <a href="index.html#/exn:Ssl_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Ssl_error <span class="keyword">of</span> <a href="../../../../ssl.0.4.7/src/ssl/">Ssl</a>.<a href="../../../../ssl.0.4.7/src/ssl/#/type:ssl_error">ssl_error</a>
+    
+      <div class="doc">
+        
+      <p>Used in <code>when_done</code> callbacks to indicate an SSL-specific error code</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ssl_socket_state">
+  <a href="index.html#/type:ssl_socket_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ssl_socket_state = [ <div class="cons">| `Unset</div><div class="cons">| `Client</div><div class="cons">| `Server</div><div class="cons">| `Unclean</div><div class="cons">| `Clean</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ssl_multiplex_controller">
+  <a href="index.html#/classtype:ssl_multiplex_controller" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ssl_multiplex_controller = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:multiplex_controller">multiplex_controller</a>
+    </div>
+    
+  <div class="region" id="/classtype:ssl_multiplex_controller/method:ssl_socket">
+  <a href="index.html#/classtype:ssl_multiplex_controller/method:ssl_socket" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ssl_socket : <a href="../../../../ssl.0.4.7/src/ssl/">Ssl</a>.<a href="../../../../ssl.0.4.7/src/ssl/#/type:socket">socket</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ssl_multiplex_controller/method:ssl_socket_state">
+  <a href="index.html#/classtype:ssl_multiplex_controller/method:ssl_socket_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ssl_socket_state : <a href="index.html#/type:ssl_socket_state">ssl_socket_state</a>
+  
+      <div class="doc">
+        
+      <p>Returns the socket state:</p>
+      <ul><li><code>`Unset</code>: A fresh socket</li><li><code>`Client</code>: A socket playing the SSL client role</li><li><code>`Server</code>: A socket playing the SSL server role</li><li><code>`Unclean</code>: The socket state is unclean. The socket is no longer usable.</li><li><code>`Clean</code>: The SSL connection has been cleanly shut down.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ssl_multiplex_controller/method:ssl_connecting">
+  <a href="index.html#/classtype:ssl_multiplex_controller/method:ssl_connecting" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ssl_connecting : bool
+  
+      <div class="doc">
+        
+      <p>Whether the initial SSL handshake is in progress that makes this
+socket a client.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ssl_multiplex_controller/method:ssl_accepting">
+  <a href="index.html#/classtype:ssl_multiplex_controller/method:ssl_accepting" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ssl_accepting : bool
+  
+      <div class="doc">
+        
+      <p>Whether the initial SSL handshake is in progress that makes this
+socket a server.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ssl_multiplex_controller/method:start_ssl_connecting">
+  <a href="index.html#/classtype:ssl_multiplex_controller/method:start_ssl_connecting" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_ssl_connecting : when_done:(exn option <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Makes the socket an SSL client socket by initiating the handshake.
+The <code>when_done</code> callback is invoked when the handshake is done.</p>
+      
+      <p>One can neither read nor write before that.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ssl_multiplex_controller/method:start_ssl_accepting">
+  <a href="index.html#/classtype:ssl_multiplex_controller/method:start_ssl_accepting" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_ssl_accepting : when_done:(exn option <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Makes the socket an SSL server socket by initiating the handshake.
+The <code>when_done</code> callback is invoked when the handshake is done.</p>
+      
+      <p>One can neither read nor write before that.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ssl_multiplex_controller/method:inactivate_no_close">
+  <a href="index.html#/classtype:ssl_multiplex_controller/method:inactivate_no_close" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inactivate_no_close : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Inactivates the controller by deleting all event handlers. The
+file descriptor, however, is not closed. Normal users should not
+call this method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The <code>ssl_multiplex_controller</code> is an extended multiplex controller
+which can also control SSL handshakes.</p>
+      
+      <p>Important note: SSL/TLS does not support half-open connections. When
+one party closes the connection, the other party must immediately
+close the connection, too, throwing away any pending writes. See
+RFC 2246.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_ssl_multiplex_controller">
+  <a href="index.html#/val:create_ssl_multiplex_controller" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_ssl_multiplex_controller : ?close_inactive_descr:bool <span class="rarr"><span>-&gt;</span></span> ?preclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?initial_state:<a href="index.html#/type:ssl_socket_state">ssl_socket_state</a> <span class="rarr"><span>-&gt;</span></span> ?timeout:float * exn <span class="rarr"><span>-&gt;</span></span> ?ssl_socket:<a href="../../../../ssl.0.4.7/src/ssl/">Ssl</a>.<a href="../../../../ssl.0.4.7/src/ssl/#/type:socket">socket</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ssl.0.4.7/src/ssl/">Ssl</a>.<a href="../../../../ssl.0.4.7/src/ssl/#/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:ssl_multiplex_controller">ssl_multiplex_controller</a>
+    
+      <div class="doc">
+        
+      <p>Creates a multiplex controller for an SSL socket. The descriptor must
+be a connected socket descriptor.</p>
+      
+      <p><code>close_inactive_descr</code>: Whether to close the file descriptor by
+<code>inactivate</code>.</p>
+      
+      <p><code>preclose</code>: This function is called immediately before closing
+the descriptor</p>
+      
+      <p><code>initial_state</code>: can be set to <code>`Client</code> or <code>`Server</code> if the context
+is already established. Defaults to <code>`Unset</code></p>
+      
+      <p><code>timeout</code>: if set to <code>(t, x)</code>, started operations time out after <code>t</code>
+seconds and pass the exception <code>x</code> back. A timeout is only indicated
+when all started operations are inactive for <code>t</code> seconds.</p>
+      
+      <p><code>ssl_socket</code>: If passed, this socket is used instead of creating a
+new one for the file descriptor. It is required that the descriptor
+and the SSL context are connected with this SSL socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ssl_connect_engine">
+  <a href="index.html#/val:ssl_connect_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ssl_connect_engine : <a href="index.html#/classtype:ssl_multiplex_controller">ssl_multiplex_controller</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>This engine performs the client handshake.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ssl_accept_engine">
+  <a href="index.html#/val:ssl_accept_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ssl_accept_engine : <a href="index.html#/classtype:ssl_multiplex_controller">ssl_multiplex_controller</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>This engine performs the server handshake.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:dump_data">
+  <a href="index.html#/module:Debug/val:dump_data" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dump_data : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>If also <code>enable</code>, output a full dump of payload data</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

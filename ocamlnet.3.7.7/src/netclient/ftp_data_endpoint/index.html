@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Ftp_data_endpoint</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Ftp_data_endpoint</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Senders and receivers for the FTP data connection</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Types and Exceptions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:out_record_channel">
+  <a href="index.html#/classtype:out_record_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> out_record_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    </div>
+    
+  <div class="region" id="/classtype:out_record_channel/method:output_eor">
+  <a href="index.html#/classtype:out_record_channel/method:output_eor" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_eor : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Finishes the current record.</p>
+      
+      <p>The record model is as follows: At the beginning of the channel,
+or after <code>output_eor</code>, a new record can be potentially started.
+However, the record counts only as existing when either at least
+one byte is output, or the record is explicitly ended with a
+<code>output_eor</code> call.</p>
+      
+      <p>This rule allows it to represent channels containing no records.
+There is an ambiguity at the end of the channel, however: It is
+possible that there are characters between the last EOR and the
+EOF. This could also be represented by printing another EOR just
+before EOF. The preferred representation is the latter.</p>
+      
+      <p>This model correlates to the usual rules for line-structured
+files, so think EOR = EOL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>An <code>out_record_channel</code> can be used to output files with record
+structure. This is purely abstract, as Unix does not support such
+files natively, so this kind of channel is usually mapped to a flat
+representation when stored in a real file, e.g. record boundaries
+become newline characters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_record_channel">
+  <a href="index.html#/classtype:in_record_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> in_record_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    </div>
+    
+  <div class="region" id="/classtype:in_record_channel/method:input_eor">
+  <a href="index.html#/classtype:in_record_channel/method:input_eor" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_eor : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Skips over the remaining data of the current record and the
+record boundary to the next record. Raises <code>End_of_file</code> when
+the current record is the &quot;EOF&quot; record (see below for explanations).</p>
+      
+      <p>A record channel can be read as follows: After opening the channel,
+one can read the contents of the first record with the <code>input</code>
+method. The end of the record is indicated by an <code>End_of_file</code>
+exception. By calling <code>input_eor</code>, the next record is opened
+and can be read.</p>
+      
+      <p>After the last real record, there is always a special
+&quot;EOF&quot; record which is empty, and must be ignored by applications
+processing records. This means, after opening an empty channel,
+the current record is this &quot;EOF&quot; record, and <code>input_eor</code> raises
+<code>End_of_file</code>. After reading a non-empty channel, one can
+do <code>input_eor</code> after the last regular record, and the following
+<code>input_eor</code> raises <code>End_of_file</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>An <code>in_record_channel</code> can be used to read files with record
+structure. This is purely abstract, as Unix does not support such
+files natively, so this kind of channel is usually mapped to a flat
+representation when stored in a real file, e.g. record boundaries
+become newline characters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:local_receiver">
+  <a href="index.html#/type:local_receiver" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> local_receiver = [ <div class="cons">| `File_structure <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a></div><div class="cons">| `Record_structure <span class="keyword">of</span> <a href="index.html#/classtype:out_record_channel">out_record_channel</a></div> ]
+    
+      <div class="doc">
+        
+      <p>The <code>local_receiver</code> is the object that gets the data received
+over the data connection.</p>
+      
+      <p>Page structure is not supported.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:local_sender">
+  <a href="index.html#/type:local_sender" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> local_sender = [ <div class="cons">| `File_structure <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a></div><div class="cons">| `Record_structure <span class="keyword">of</span> <a href="index.html#/classtype:in_record_channel">in_record_channel</a></div> ]
+    
+      <div class="doc">
+        
+      <p>The <code>local_sender</code> is the object that provides the data sent
+over the data connection.</p>
+      
+      <p>Page structure is not supported.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:transmission_mode">
+  <a href="index.html#/type:transmission_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> transmission_mode = [ <div class="cons">| `Stream_mode</div><div class="cons">| `Block_mode</div> ]
+    
+      <div class="doc">
+        
+      <p>The transmission mode as described in RFC 959.
+Compressed mode is not supported.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:descr_state">
+  <a href="index.html#/type:descr_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> descr_state = [ <div class="cons">| `Clean</div><div class="cons">| `Transfer_in_progress</div><div class="cons">| `Down</div> ]
+    
+      <div class="doc">
+        
+      <p>Describes the state of the socket used for data transfers.
+The state <code>`Clean</code> means that a new data transfer may be started,
+either because the socket is new, or the last block transfer was
+properly finished. The state <code>`Transfer_in_progress</code> means that
+data is being transferred, but also that the transfer is aborted.
+The state <code>`Down</code> means that the socket is already at least half-closed,
+i.e. EOF was sent in one direction.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:text_data_repr">
+  <a href="index.html#/type:text_data_repr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> text_data_repr = [ <div class="cons">| `ASCII <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a></div><div class="cons">| `ASCII_unix <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a></div><div class="cons">| `EBCDIC <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Possible representation of text data:
+<code>`ASCII</code> means an ASCII-compatible encoding where the newline
+character is represented by CR/LF. <code>`ASCII_unix</code> is the same
+but newline is only LF. <code>`EBCDIC</code> is an EBCDIC variant.</p>
+      
+      <p>The argument specifies the exact variant to be used, e.g.
+<code>`ASCII `Enc_iso88591</code> or <code>`EBCDIC `Enc_cp1047</code>.</p>
+      
+      <p>It is illegal to use <code>`ASCII</code> or <code>`ASCII_unix</code> with an ASCII-
+incompatible encoding, as well as combining <code>`EBCDIC</code> with a
+non-EBCDIC encoding. Wrong conversions would be the result of
+this.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Data Stream Converters</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:write_out_record_channel">
+  <a href="index.html#/class:write_out_record_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> write_out_record_channel : 
+    repr:<a href="index.html#/type:text_data_repr">text_data_repr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_record_channel">out_record_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Provides an <code>out_record_channel</code> that represents EOR as
+newline character.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">repr</span> Determines the newline character to use
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:read_in_record_channel">
+  <a href="index.html#/class:read_in_record_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> read_in_record_channel : 
+    repr:<a href="index.html#/type:text_data_repr">text_data_repr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_record_channel">in_record_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Provides an <code>in_record_channel</code> that takes newline characters as
+EOR representation.</p>
+      
+      <p>In this implementation, <code>input_line</code> can be used to read the full
+contents of a record (=line). However, <code>input_line</code> does not
+switch to the next record.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">repr</span> Determines the newline character to use
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:data_converter">
+  <a href="index.html#/class:data_converter" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> data_converter : 
+    fromrepr:<a href="index.html#/type:text_data_repr">text_data_repr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    torepr:<a href="index.html#/type:text_data_repr">text_data_repr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:io_obj_channel">io_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates a data conversion pipe converting <code>fromrepr</code> to
+<code>torepr</code>.</p>
+      
+      <p>For simplicity, in an <code>`ASCII</code> input stream the CR characters are
+discarded, and the LF characters are taken as newline characters.
+In an output <code>`ASCII</code> stream, the CR/LF sequence is correctly
+created for newline characters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Engines</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:ftp_data_engine">
+  <a href="index.html#/classtype:ftp_data_engine" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ftp_data_engine = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> [unit] <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    </div>
+    
+  <div class="region" id="/classtype:ftp_data_engine/method:descr">
+  <a href="index.html#/classtype:ftp_data_engine/method:descr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> descr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  
+      <div class="doc">
+        
+      <p>The socket to use for data transfers. This class never closes
+this socket, but it may be shut down at least partially.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:ftp_data_engine/method:descr_state">
+  <a href="index.html#/classtype:ftp_data_engine/method:descr_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> descr_state : <a href="index.html#/type:descr_state">descr_state</a>
+  
+      <div class="doc">
+        
+      <p>The socket state</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The common type of FTP data engines</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:ftp_data_receiver">
+  <a href="index.html#/class:ftp_data_receiver" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ftp_data_receiver : 
+    esys:<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    mode:<a href="index.html#/type:transmission_mode">transmission_mode</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    local_receiver:<a href="index.html#/type:local_receiver">local_receiver</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    descr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:ftp_data_engine">ftp_data_engine</a>
+    </div>
+    
+  <div class="region" id="/class:ftp_data_receiver/method:local_receiver">
+  <a href="index.html#/class:ftp_data_receiver/method:local_receiver" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> local_receiver : <a href="index.html#/type:local_receiver">local_receiver</a>
+  
+      <div class="doc">
+        
+      <p>The local receiver. It is closed when the logical EOF is found in the
+data connection</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine receives data on a FTP data connection, and forwards
+them to a local receiver. The socket must already be open.</p>
+      
+      <p>It is ensured that <code>local_receiver</code> is always closed after operation
+(whether successful or not). The socket <code>descr</code> remains open.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:ftp_data_sender">
+  <a href="index.html#/class:ftp_data_sender" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ftp_data_sender : 
+    esys:<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    mode:<a href="index.html#/type:transmission_mode">transmission_mode</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    local_sender:<a href="index.html#/type:local_sender">local_sender</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    descr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:ftp_data_engine">ftp_data_engine</a>
+    </div>
+    
+  <div class="region" id="/class:ftp_data_sender/method:local_sender">
+  <a href="index.html#/class:ftp_data_sender/method:local_sender" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> local_sender : <a href="index.html#/type:local_sender">local_sender</a>
+  
+      <div class="doc">
+        
+      <p>The local sender. It is closed after usage.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine sends data over a FTP data connection coming from
+a local sender. The socket must already be open.</p>
+      
+      <p>It is ensured that <code>local_sender</code> is always closed after operation
+(whether successful or not). The socket <code>descr</code> remains open.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

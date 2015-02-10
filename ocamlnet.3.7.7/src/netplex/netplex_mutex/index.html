@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_mutex</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_mutex</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Netplex-wide mutexes</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>These are mutexes that work in both multi-processing and
+multi-threading netplex environments. They are implemented on top of
+[root:Netplex_semaphore], and use the same name space for named objects.</p>
+      
+      <p>For implementation issues, see [root:Netplex_semaphore].</p>
+      
+      <p>It is not required to create mutexes: A mutex is automatically created
+when the name is used for the first time. Mutexes are initially always
+in unlocked state.</p>
+      
+      <p>Mutexes do not stack: A container cannot lock a mutex several times.
+(The second lock attempt would result in a deadlock.)</p>
+      
+      <p>There is no deadlock detection.</p>
+      
+      <p>If a container holding mutexes terminates the mutexes are automatically
+unlocked.</p>
+      
+      <p>Mutex are not owned by their container. It is allowed that a different
+container unlocks the mutex.</p>
+      
+      <p>Technically, a mutex named <code>n</code> is implemented by a semaphore <code>n</code>.
+If the mutex is locked, the semaphore has the value 0, and if it is
+unlocked, it has value 1.</p>
+      
+      <p><b>Thread safety:</b> Full. The functions can be called from any thread.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:plugin">
+  <a href="index.html#/val:plugin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> plugin : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:plugin">plugin</a>
+    
+      <div class="doc">
+        
+      <p>To enable mutexes, call the controller's <code>add_plugin</code> method
+with this object as argument. This can e.g. be done in the
+<code>post_add_hook</code> of the processor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following functions can <b>only</b> be invoked in container
+contexts. Outside of such a context the exception
+<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/exn:Not_in_container_thread">Not_in_container_thread</a> is raised.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:mutex">
+  <a href="index.html#/type:mutex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mutex
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:access">
+  <a href="index.html#/val:access" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> access : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:mutex">mutex</a>
+    
+      <div class="doc">
+        
+      <p>Access the named mutex. If the mutex does not exist, it is created in
+unlocked state</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lock">
+  <a href="index.html#/val:lock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lock : <a href="index.html#/type:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Wait until the mutex is free, and locks it</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unlock">
+  <a href="index.html#/val:unlock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlock : <a href="index.html#/type:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Unlocks the mutex. This is a no-op if the mutex is not locked</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

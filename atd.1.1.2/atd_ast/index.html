@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Atd_ast</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Atd_ast</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Abstract syntax tree (AST) representing ATD data</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:loc">
+  <a href="index.html#/type:loc" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> loc = <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:position">position</a> * <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:position">position</a>
+    
+      <div class="doc">
+        
+      <p>A location in the source code.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Atd_error">
+  <a href="index.html#/exn:Atd_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Atd_error <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Exception raised by functions of the <code>atd</code> library and indicating
+errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:annot">
+  <a href="index.html#/type:annot" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> annot = <a href="index.html#/type:annot_section">annot_section</a> list
+    
+      <div class="doc">
+        
+      <p>An annotation, consisting of a sequence of sections.
+[root:Atd_annot] provides utilities for handling annotations.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:annot_section">
+  <a href="index.html#/type:annot_section" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> annot_section = string * (<a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:annot_field">annot_field</a> list)
+    
+      <div class="doc">
+        
+      <p>represents a single annotation within edgy brackets.
+<code>&lt;&quot;foo&quot; bar baz=&quot;123&quot;&gt;</code> in ATD syntax translates to:
+</p>
+      <pre>(&quot;foo&quot;, (loc1, [ (&quot;bar&quot;, (loc2, None));
+                 (&quot;baz&quot;, (loc3, Some &quot;123&quot;)) ] ))</pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:annot_field">
+  <a href="index.html#/type:annot_field" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> annot_field = string * (<a href="index.html#/type:loc">loc</a> * string option)
+    
+      <div class="doc">
+        
+      <p>An annotation field,
+i.e. a key with an optional value within an annotation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:full_module">
+  <a href="index.html#/type:full_module" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> full_module = <a href="index.html#/type:module_head">module_head</a> * <a href="index.html#/type:module_body">module_body</a>
+    
+      <div class="doc">
+        
+      <p>Contents of an ATD file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:module_head">
+  <a href="index.html#/type:module_head" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> module_head = <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:annot">annot</a>
+    
+      <div class="doc">
+        
+      <p>The head of an ATD file is just a list of annotations.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:module_body">
+  <a href="index.html#/type:module_body" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> module_body = <a href="index.html#/type:module_item">module_item</a> list
+    
+      <div class="doc">
+        
+      <p>The body of an ATD file is a list of type definitions.
+Type definitions are implicitely mutually
+recursive. They can be sorted based on dependencies
+using <a href="../../atd.1.1.2/atd_util/">Atd_util</a>.<a href="../../atd.1.1.2/atd_util/#/val:tsort">tsort</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:module_item">
+  <a href="index.html#/type:module_item" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> module_item = [ <div class="cons">| `Type <span class="keyword">of</span> <a href="index.html#/type:type_def">type_def</a></div> ]
+    
+      <div class="doc">
+        
+      <p>There is currently only one kind of module items,
+that is single type definitions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:type_def">
+  <a href="index.html#/type:type_def" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> type_def = <a href="index.html#/type:loc">loc</a> * (string * <a href="index.html#/type:type_param">type_param</a> * <a href="index.html#/type:annot">annot</a>) * <a href="index.html#/type:type_expr">type_expr</a>
+    
+      <div class="doc">
+        
+      <p>A type definition.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:type_param">
+  <a href="index.html#/type:type_param" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> type_param = string list
+    
+      <div class="doc">
+        
+      <p>List of type variables without the tick.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:type_expr">
+  <a href="index.html#/type:type_expr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> type_expr = [ <div class="cons">| `Sum <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:variant">variant</a> list * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Record <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:field">field</a> list * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Tuple <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:cell">cell</a> list * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `List <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a> * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Option <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a> * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Nullable <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a> * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Shared <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a> * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Wrap <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a> * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Name <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_inst">type_inst</a> * <a href="index.html#/type:annot">annot</a></div><div class="cons">| `Tvar <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * string</div> ]
+    
+      <div class="doc">
+        
+      <p>A type expression is one of the following:</p>
+      <ul><li><code>`Sum</code>: a sum type (within square brackets)</li><li><code>`Record</code>: a record type (within curly braces)</li><li><code>`Tuple</code>: a tuple (within parentheses)</li><li><code>`List</code>: a list type written <code>list</code> with its parameter
+e.g. <code>int list</code></li><li><code>`Option</code>: an option type written <code>option</code> with its parameter
+e.g. <code>string option</code></li><li><code>`Nullable</code>: adds a null value to a type.
+<code>`Option</code> should be preferred over <code>`Nullable</code> since
+it makes it possible to distinguish <code>Some None</code> from <code>None</code>.</li><li><code>`Shared</code>: values for which sharing must be preserved. Such
+type expressions may not be parametrized. Values may only
+be shared if the source location of the type expression is the same.</li><li><code>`Wrap</code>: optional wrapping of a type. For example, a timestamp
+represented as a string can be wrapped within a proper time type.
+In that case, the wrapper would parse the timestamp and convert
+it into the internal representation of its choice. Unwrapping
+would consist in converting it back to a string.</li><li><code>`Name</code>: a type name other than <code>list</code> or <code>option</code>, including
+the predefined types <code>unit</code>, <code>bool</code>, <code>int</code>, <code>float</code>, <code>string</code>
+and <code>abstract</code>.</li><li><code>`Tvar</code>: a type variable identifier without the tick</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:type_inst">
+  <a href="index.html#/type:type_inst" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> type_inst = <a href="index.html#/type:loc">loc</a> * string * <a href="index.html#/type:type_expr">type_expr</a> list
+    
+      <div class="doc">
+        
+      <p>A type name and its arguments</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:variant">
+  <a href="index.html#/type:variant" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> variant = [ <div class="cons">| `Variant <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * (string * <a href="index.html#/type:annot">annot</a>) * <a href="index.html#/type:type_expr">type_expr</a> option</div><div class="cons">| `Inherit <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a></div> ]
+    
+      <div class="doc">
+        
+      <p>A single variant or an <code>inherit</code> statement.
+<code>`Inherit</code> statements can be expanded into variants
+using [root:Atd_inherit]
+or at loading time using the <code>inherit_variant</code> option
+offered by the [root:Atd_util] functions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:cell">
+  <a href="index.html#/type:cell" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cell = <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a> * <a href="index.html#/type:annot">annot</a>
+    
+      <div class="doc">
+        
+      <p>Tuple cell. Note that annotations placed before the type
+expression are supported and represented here,
+such as the third cell in
+<code>(float * float * &lt;ocaml default=&quot;0.0&quot;&gt; float)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:field_kind">
+  <a href="index.html#/type:field_kind" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> field_kind = [ <div class="cons">| `Required</div><div class="cons">| `Optional</div><div class="cons">| `With_default</div> ]
+    
+      <div class="doc">
+        
+      <p>Different kinds of record fields based on the</p>
+      <ul><li><code>`Required</code>: required field, e.g. <code>id : string</code></li><li><code>`Optional</code>: optional field without a default value, e.g.
+<code>?name : string option</code>. The ATD type of the field
+value must be an option type.</li><li><code>`With_default</code>: optional field with a default value, e.g.
+<code>~websites : string list</code>. The default value may be implicit
+or specified explicitely using annotations.
+Each target language that cannot omit fields
+may have to specify the default in its own syntax.</li></ul>
+      <p>Sample ATD file:
+</p>
+      <pre>type level = [ Beginner | Advanced | Expert ]
+
+type user = {
+  id : string;
+
+  ?name : string option;
+    (* Field may be omitted when no value is set, if permitted
+       by the target language. *)
+
+  ~websites : string list;
+    (* Implicit default: empty list.
+       Field may be omitted if the field value is
+       equal to the default value and the
+       target language permits it. *)
+
+  ~level &lt;ocaml default=&quot;`Beginner&quot;&gt; : level;
+    (* Explicit default for `ocaml'.
+       For instance there is no `json' annotation because
+       the default for undefined `JSON' fields would be to omit them. *)
+}</pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:field">
+  <a href="index.html#/type:field" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> field = [ <div class="cons">| `Field <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * (string * <a href="index.html#/type:field_kind">field_kind</a> * <a href="index.html#/type:annot">annot</a>) * <a href="index.html#/type:type_expr">type_expr</a></div><div class="cons">| `Inherit <span class="keyword">of</span> <a href="index.html#/type:loc">loc</a> * <a href="index.html#/type:type_expr">type_expr</a></div> ]
+    
+      <div class="doc">
+        
+      <p>A single record field or an <code>inherit</code> statement.
+<code>`Inherit</code> statements can be expanded into fields using [root:Atd_inherit]
+or at loading time using the <code>inherit_fields</code> option
+offered by the [root:Atd_util] functions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:loc_of_type_expr">
+  <a href="index.html#/val:loc_of_type_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> loc_of_type_expr : <a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:loc">loc</a>
+    
+      <div class="doc">
+        
+      <p>Extract the source location of any type expression.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_type_expr_loc">
+  <a href="index.html#/val:set_type_expr_loc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_type_expr_loc : <a href="index.html#/type:loc">loc</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:type_expr">type_expr</a>
+    
+      <div class="doc">
+        
+      <p>Replace the location of the given expression.
+This is a shallow substitution. Sub-expressions are not affected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_loc">
+  <a href="index.html#/val:string_of_loc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_loc : <a href="index.html#/type:loc">loc</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert a location into a human-readable string
+such as <code>File &quot;foo.atd&quot;, line 123, characters 40-45</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:error">
+  <a href="index.html#/val:error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error : string <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>error s</code> is a shorthand for <code>raise (Atd_error s)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:error_at">
+  <a href="index.html#/val:error_at" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error_at : <a href="index.html#/type:loc">loc</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>error_at loc s</code> raises <code>Atd_error s'</code> where <code>s'</code>
+is the location followed by <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dummy_loc">
+  <a href="index.html#/val:dummy_loc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dummy_loc : <a href="index.html#/type:loc">loc</a>
+    
+      <div class="doc">
+        
+      <p>Dummy value for predefined constructs that are
+not associated with a useful source location.
+Should not show up in error messages.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:annot_of_type_expr">
+  <a href="index.html#/val:annot_of_type_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> annot_of_type_expr : <a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:annot">annot</a>
+    
+      <div class="doc">
+        
+      <p>Return the annotations associated with a type expression.
+Note that there can be annotations in a variety of places,
+not just after type expressions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_annot">
+  <a href="index.html#/val:map_annot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_annot : (<a href="index.html#/type:annot">annot</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:annot">annot</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:type_expr">type_expr</a>
+    
+      <div class="doc">
+        
+      <p>Replacement of the annotations associated with a type
+expression.
+This is a shallow transformation. Sub-expressions are not affected.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_all_annot">
+  <a href="index.html#/val:map_all_annot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_all_annot : (<a href="index.html#/type:annot">annot</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:annot">annot</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:full_module">full_module</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:full_module">full_module</a>
+    
+      <div class="doc">
+        
+      <p>Replacement of all annotations occurring in an ATD module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : (<a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Iteration and accumulation over each <code>type_expr</code> node
+within a given <code>type_expr</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract_type_names">
+  <a href="index.html#/val:extract_type_names" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract_type_names : ?ignorable:string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Extract all the type names occurring in a type expression
+under <code>`Name</code>, without duplicates.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">ignorable</span> specifies a list of type names to exclude from the result
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_parametrized">
+  <a href="index.html#/val:is_parametrized" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_parametrized : <a href="index.html#/type:type_expr">type_expr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Test whether a type expression contains type variables (<code>`Tvar</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

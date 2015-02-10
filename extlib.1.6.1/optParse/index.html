@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>OptParse</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">OptParse</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Modules for GNU <code>getopt(3)</code>-style command line parsing.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Opt">
+  <a href="index.html#/module:Opt" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Opt : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>This module contains the basic functions and types for defining
+new option types and accessing the values of options.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Exceptions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Opt/exn:No_value">
+  <a href="index.html#/module:Opt/exn:No_value" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_value
+    
+      <div class="doc">
+        
+      <p><code>No_value</code> gets raised by <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:Opt">Opt</a>.<a href="../../extlib.1.6.1/optParse/#/module:Opt/val:get">get</a> when an option
+value is not available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Opt/exn:Option_error">
+  <a href="index.html#/module:Opt/exn:Option_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Option_error <span class="keyword">of</span> string * string
+    
+      <div class="doc">
+        
+      <p>This exception signals that an option value is invalid. The
+first string contains the option string ('-x' or '--long-name')
+and the second string contains an error message.</p>
+      
+      <p>This exception is only used when implementing custom option types
+and can never &quot;escape&quot; the scope of a <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:OptParser">OptParser</a>.<a href="../../extlib.1.6.1/optParse/#/module:OptParser/val:parse">parse</a>.
+The user should therefore not attempt to catch it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Opt/exn:Option_help">
+  <a href="index.html#/module:Opt/exn:Option_help" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Option_help
+    
+      <div class="doc">
+        
+      <p>When an option wants to display a usage message, this exception
+may be raised. It can never &quot;escape&quot; the scope of a
+<a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:OptParser">OptParser</a>.<a href="../../extlib.1.6.1/optParse/#/module:OptParser/val:parse">parse</a> call and the user should therefore not
+attempt to catch it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Types</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Opt/type:t">
+  <a href="index.html#/module:Opt/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Opt/type:t/field:option_set">
+  <a href="index.html#/module:Opt/type:t/field:option_set" class="anchor">#</a>
+  option_set
+  </div>
+  </td><td>: string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Opt/type:t/field:option_set_value">
+  <a href="index.html#/module:Opt/type:t/field:option_set_value" class="anchor">#</a>
+  option_set_value
+  </div>
+  </td><td>: 'a <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Opt/type:t/field:option_get">
+  <a href="index.html#/module:Opt/type:t/field:option_get" class="anchor">#</a>
+  option_get
+  </div>
+  </td><td>: unit <span class="rarr"><span>-&gt;</span></span> 'a option</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Opt/type:t/field:option_metavars">
+  <a href="index.html#/module:Opt/type:t/field:option_metavars" class="anchor">#</a>
+  option_metavars
+  </div>
+  </td><td>: string list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Opt/type:t/field:option_defhelp">
+  <a href="index.html#/module:Opt/type:t/field:option_defhelp" class="anchor">#</a>
+  option_defhelp
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Option type.</p>
+      
+      <p><code>option_set</code> is a closure which converts and records the value of
+an option so that it can be retrieved with a later call to the
+<code>option_get</code> closure. It is called with the option name which was
+given on the command line and a list of strings, each representing
+one of the argument values given on the command line. It may raise
+<code>Option_error</code> if the value is invalid (for whatever reason).</p>
+      
+      <p><code>option_set_value</code> is a closure which sets the value of an option
+to a particular value.</p>
+      
+      <p><code>option_get</code> is a closure which retrieves the recorded value
+of the option. If the option value has not been set from the
+command line, the default value is used. If there is no default
+value, then <code>None</code> should be returned.</p>
+      
+      <p><code>option_metavars</code> is a list of &quot;meta-variables&quot; (arguments)
+which this option accepts. This is mainly for display purposes,
+but the length of this list determines how many arguments the
+option parser accepts for this option (currently only lists of
+length 0 or 1 are supported).</p>
+      
+      <p><code>option_defhelp</code> is the default help string (if any). It is
+used for displaying help messages whenever the user does <b>not</b> specify a help string manually when adding this
+option. Using a non-None value here only makes sense for
+completely generic options like <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt">StdOpt</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt/val:help_option">help_option</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Option value retrieval</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Opt/val:get">
+  <a href="index.html#/module:Opt/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : 'a <a href="index.html#/module:Opt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Get the value of an option.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the value of the option. If the option has not been
+encountered while parsing the command line, the default value is
+returned.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>No_value</code> if no default values has been given
+and the option value has not been set from the command line.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Opt/val:set">
+  <a href="index.html#/module:Opt/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : 'a <a href="index.html#/module:Opt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the value of an option.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Opt/val:opt">
+  <a href="index.html#/module:Opt/val:opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> opt : 'a <a href="index.html#/module:Opt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p>Get the value of an option as an optional value.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> <code>Some x</code> if the option has value <code>x</code> (either by default or
+from the command line). If the option doesn't have a value <code>None</code>
+is returned.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Opt/val:is_set">
+  <a href="index.html#/module:Opt/val:is_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_set : 'a <a href="index.html#/module:Opt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Find out if the option has a value (either by default or
+from the command line).</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> <code>True</code> iff the option has a value.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Option creation</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Opt/val:value_option">
+  <a href="index.html#/module:Opt/val:value_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_option : string <span class="rarr"><span>-&gt;</span></span> 'a option <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> (exn <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Make an option which takes a single argument.</p>
+      
+      <p><code>value_option metavar default coerce errfmt</code> returns an option
+which takes a single argument from the command line and calls
+<code>coerce</code> to coerce it to the proper type. If <code>coerce</code> raises an
+exception, <code>exn</code>, then <code>errfmt exn argval</code> is called to generate
+an error message for display. <code>metavar</code> is the name of the
+metavariable of the option.</p>
+      
+      <p><code>default</code> is the default value of the option. If <code>None</code>, the the
+option has no default value.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the newly created option.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Opt/val:callback_option">
+  <a href="index.html#/module:Opt/val:callback_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> callback_option : string <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> (exn <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Make a callback option which takes a single argument.</p>
+      
+      <p><code>callback_option metavar coerce errfmt f</code> returns an option which
+takes a single argument from the command line and calls <code>coerce</code>
+to coerce it to the proper type. If <code>coerce</code> raises an exception
+<code>errfmt exn argval</code> is called to format an error message for
+display. If <code>coerce</code> succeeds, the callback function <code>f</code> is called
+with the coerced value. Finally, <code>metavar</code> is the name of the
+metavariable of the option.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the newly created option.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt">
+  <a href="index.html#/module:StdOpt" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> StdOpt : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>This module contains various standard options.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Flag options</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:StdOpt/val:store_const">
+  <a href="index.html#/module:StdOpt/val:store_const" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> store_const : ?default:'a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>store_const ?default const</code> returns a flag option which
+stores the constant value <code>const</code> when the option is
+encountered on the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:store_true">
+  <a href="index.html#/module:StdOpt/val:store_true" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> store_true : unit <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>store_true ()</code> returns an option which is set to true when
+it is encountered on the command line. The default value is
+false.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:store_false">
+  <a href="index.html#/module:StdOpt/val:store_false" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> store_false : unit <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>store_false ()</code> returns an option which is set to false when
+it is encountered on the command line. The default value is
+true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:count_option">
+  <a href="index.html#/module:StdOpt/val:count_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> count_option : ?dest:int <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> ?increment:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Create a counting option which increments its value each time the
+option is encountered on the command line.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">increment</span> Increment to add to the option value each
+time the option is encountered.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">dest</span> Reference to the option value. Useful for making
+options like '--quiet' and '--verbose' sharing a single value.
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> the newly created option.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:incr_option">
+  <a href="index.html#/module:StdOpt/val:incr_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> incr_option : ?dest:int <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Exactly identical to <code>count_option ~dest:dest ~increment:1 ()</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:decr_option">
+  <a href="index.html#/module:StdOpt/val:decr_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decr_option : ?dest:int <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Exactly identical to <code>count_option ~dest:dest ~increment:(-1) ()</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Value options</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:StdOpt/val:int_option">
+  <a href="index.html#/module:StdOpt/val:int_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_option : ?default:int <span class="rarr"><span>-&gt;</span></span> ?metavar:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>int_option ?default ?metavar ()</code> returns an option which takes
+a single integer argument. If <code>~default</code> is given it is the
+default value returned when the option has not been encountered
+on the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:float_option">
+  <a href="index.html#/module:StdOpt/val:float_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float_option : ?default:float <span class="rarr"><span>-&gt;</span></span> ?metavar:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>See <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt">StdOpt</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt/val:int_option">int_option</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:str_option">
+  <a href="index.html#/module:StdOpt/val:str_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> str_option : ?default:string <span class="rarr"><span>-&gt;</span></span> ?metavar:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>See <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt">StdOpt</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt/val:int_option">int_option</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Callback options</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:StdOpt/val:int_callback">
+  <a href="index.html#/module:StdOpt/val:int_callback" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_callback : ?metavar:string <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>int_callback ?metavar f</code> returns an option which takes a single
+integer argument and calls <code>f</code> with that argument when encountered
+on the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:float_callback">
+  <a href="index.html#/module:StdOpt/val:float_callback" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float_callback : ?metavar:string <span class="rarr"><span>-&gt;</span></span> (float <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>See <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt">StdOpt</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt/val:int_callback">int_callback</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:str_callback">
+  <a href="index.html#/module:StdOpt/val:str_callback" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> str_callback : ?metavar:string <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>See <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt">StdOpt</a>.<a href="../../extlib.1.6.1/optParse/#/module:StdOpt/val:int_callback">int_callback</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Special options</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:StdOpt/val:help_option">
+  <a href="index.html#/module:StdOpt/val:help_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> help_option : unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>help_option ()</code> returns the standard help option which
+displays a usage message and exits the program when encountered
+on the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:StdOpt/val:version_option">
+  <a href="index.html#/module:StdOpt/val:version_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> version_option : (unit <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>version_option f</code> returns the standard version option which
+displays the string returned by <code>f ()</code> (and nothing else) on
+standard output and exits.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Formatter">
+  <a href="index.html#/module:Formatter" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Formatter : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>This module contains the types and functions for implementing
+custom usage message formatters.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Formatter/type:t">
+  <a href="index.html#/module:Formatter/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Formatter/type:t/field:indent">
+  <a href="index.html#/module:Formatter/type:t/field:indent" class="anchor">#</a>
+  indent
+  </div>
+  </td><td>: unit <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">Increase the indentation level.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Formatter/type:t/field:dedent">
+  <a href="index.html#/module:Formatter/type:t/field:dedent" class="anchor">#</a>
+  dedent
+  </div>
+  </td><td>: unit <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">Decrease the indentation level.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Formatter/type:t/field:format_usage">
+  <a href="index.html#/module:Formatter/type:t/field:format_usage" class="anchor">#</a>
+  format_usage
+  </div>
+  </td><td>: string <span class="rarr"><span>-&gt;</span></span> string</td><td>;</td><td>(*</td><td class="doc">Format usage string into style of this formatter.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Formatter/type:t/field:format_heading">
+  <a href="index.html#/module:Formatter/type:t/field:format_heading" class="anchor">#</a>
+  format_heading
+  </div>
+  </td><td>: string <span class="rarr"><span>-&gt;</span></span> string</td><td>;</td><td>(*</td><td class="doc">Format heading into style of this formatter.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Formatter/type:t/field:format_description">
+  <a href="index.html#/module:Formatter/type:t/field:format_description" class="anchor">#</a>
+  format_description
+  </div>
+  </td><td>: string <span class="rarr"><span>-&gt;</span></span> string</td><td>;</td><td>(*</td><td class="doc">Format description into style of this formatter.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Formatter/type:t/field:format_option">
+  <a href="index.html#/module:Formatter/type:t/field:format_option" class="anchor">#</a>
+  format_option
+  </div>
+  </td><td>: char list * string list <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> string</td><td>;</td><td>(*</td><td class="doc">Format option into style of this formatter (see explanation below).</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>This is the type of a formatter. The <code>format_option</code> has
+signature <code>format_option (snames,lnames) metavars help</code>, where
+<code>snames</code> is a list of the short option names, <code>lnames</code> is a
+list of the long option names, <code>metavars</code> is a list of the
+metavars the option takes as arguments, and <code>help</code> is the help
+string supplied by the user.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Standard formatters</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Formatter/val:indented_formatter">
+  <a href="index.html#/module:Formatter/val:indented_formatter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> indented_formatter : ?level:int <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> ?indent:int <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> ?indent_increment:int <span class="rarr"><span>-&gt;</span></span> ?max_help_position:int <span class="rarr"><span>-&gt;</span></span> ?width:int <span class="rarr"><span>-&gt;</span></span> ?short_first:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Formatter/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Create an &quot;indented&quot; formatter with the given options.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">width</span> Total with of the usage messages printed.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">max_help_position</span> Maximum starting column for the help
+messages relating to each option.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">short_first</span> List all the short option names first?
+  </div>
+  
+  <div class="tag param">
+    <span class="label">indent_increment</span> Number of columns to indent by when
+more indentation is required.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">indent</span> Reference to the current indentation amount. Its
+value reflects changes in indentation level.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">level</span> Reference to the current indentation level. Its
+value reflects changes in indentation level.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Formatter/val:titled_formatter">
+  <a href="index.html#/module:Formatter/val:titled_formatter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> titled_formatter : ?level:int <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> ?indent:int <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> ?indent_increment:int <span class="rarr"><span>-&gt;</span></span> ?max_help_position:int <span class="rarr"><span>-&gt;</span></span> ?width:int <span class="rarr"><span>-&gt;</span></span> ?short_first:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Formatter/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Creates a titled formatter which is quite similar to the
+indented formatter. See
+<a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:Formatter">Formatter</a>.<a href="../../extlib.1.6.1/optParse/#/module:Formatter/val:indented_formatter">indented_formatter</a> for a description of
+the options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Low-level formatting</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Formatter/val:wrap">
+  <a href="index.html#/module:Formatter/val:wrap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wrap : ?initial_indent:int <span class="rarr"><span>-&gt;</span></span> ?subsequent_indent:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p><code>wrap text width</code> reflows the given text paragraph into lines
+of width at most <code>width</code> (lines may exceed this if the are
+single words that exceed this limit).</p>
+      
+        
+  <div class="tag param">
+    <span class="label">initial_indent</span> Indentation of the first line.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">subsequent_indent</span> Indentation of the following lines.
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> a list of lines making up the reformatted paragraph.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Formatter/val:fill">
+  <a href="index.html#/module:Formatter/val:fill" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fill : ?initial_indent:int <span class="rarr"><span>-&gt;</span></span> ?subsequent_indent:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>See <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:Formatter">Formatter</a>.<a href="../../extlib.1.6.1/optParse/#/module:Formatter/val:wrap">wrap</a>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> a string containing the reformatted paragraph.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:OptParser">
+  <a href="index.html#/module:OptParser" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> OptParser : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>This module contains the option parser itself.</p>
+      
+      <p>It provides functions to create, populate and use option parsers to
+parse command line arguments.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Exceptions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:OptParser/exn:Option_conflict">
+  <a href="index.html#/module:OptParser/exn:Option_conflict" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Option_conflict <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p><code>Option_conflict name</code> is raised by <a href="../../extlib.1.6.1/optParse/">OptParse</a>.<a href="../../extlib.1.6.1/optParse/#/module:OptParser">OptParser</a>.<a href="../../extlib.1.6.1/optParse/#/module:OptParser/val:add">add</a>
+when two different options are added with identical
+names. Usually this doesn't need to be caught since this error
+is usually easily fixed permanently by removing/renaming the
+conflicting option names.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Types</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:OptParser/type:t">
+  <a href="index.html#/module:OptParser/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The type of an option parser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:OptParser/type:group">
+  <a href="index.html#/module:OptParser/type:group" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> group
+    
+      <div class="doc">
+        
+      <p>The type of an option group.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Option parser creation</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:OptParser/val:make">
+  <a href="index.html#/module:OptParser/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : ?usage:string <span class="rarr"><span>-&gt;</span></span> ?description:string <span class="rarr"><span>-&gt;</span></span> ?version:string <span class="rarr"><span>-&gt;</span></span> ?suppress_usage:bool <span class="rarr"><span>-&gt;</span></span> ?suppress_help:bool <span class="rarr"><span>-&gt;</span></span> ?prog:string <span class="rarr"><span>-&gt;</span></span> ?formatter:<a href="index.html#/module:Formatter">Formatter</a>.<a href="index.html#/module:Formatter/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:OptParser/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new option parser with the given options.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">usage</span> Usage message. The default is a reasonable usage
+message for most programs. Any occurrence of the substring
+<code>&quot;%prog&quot;</code> in <code>usage</code> is replaced with the name of the program
+(see <code>prog</code>).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">prog</span> Program name. The default is the base name of the
+executable.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">suppress_usage</span> Suppress the usage message if set.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">suppress_help</span> Suppress the 'help' option which is
+otherwise added by default.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">version</span> Version string. If set, a '--version' option is
+automatically added. When encountered on the command line it
+causes <code>version</code> to be printed to the standard output and the
+program to exit.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">description</span> : description of the main purpose of the
+program.
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> the new option parser.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:OptParser/val:add">
+  <a href="index.html#/module:OptParser/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/module:OptParser/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?group:<a href="index.html#/module:OptParser/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> ?help:string <span class="rarr"><span>-&gt;</span></span> ?hide:bool <span class="rarr"><span>-&gt;</span></span> ?short_name:char <span class="rarr"><span>-&gt;</span></span> ?short_names:char list <span class="rarr"><span>-&gt;</span></span> ?long_name:string <span class="rarr"><span>-&gt;</span></span> ?long_names:string list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Opt">Opt</a>.<a href="index.html#/module:Opt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add an option to the option parser.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Option_conflict</code> if the short name(s) or long name(s)
+have alread been used for some other option.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">help</span> Short help message describing the option (for the usage message).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">hide</span> If true, hide the option from the usage
+message. This can be used to implement &quot;secret&quot; options which
+are not shown, but work just the same as regular options in all
+other respects.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">short_name</span> is the name for the short form of the option
+(e.g. <code>'x'</code> means that the option is invoked with <code>-x</code> on the
+command line).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">short_names</span> is a list of names for the short form of the
+option (see <code>short_name</code>).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">long_name</span> is the name for the long form of the option
+(e.g. <code>&quot;xyzzy&quot;</code> means that the option is invoked with <code>--xyzzy</code>
+on the command line).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">long_names</span> is a list of names for the long form of the
+option (see <code>long_name</code>).
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:OptParser/val:add_group">
+  <a href="index.html#/module:OptParser/val:add_group" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_group : <a href="index.html#/module:OptParser/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?parent:<a href="index.html#/module:OptParser/type:group">group</a> <span class="rarr"><span>-&gt;</span></span> ?description:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:OptParser/type:group">group</a>
+    
+      <div class="doc">
+        
+      <p>Add a group to the option parser.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">parent</span> is the parent group (if any).
+  </div>
+  
+  <div class="tag param">
+    <span class="label">description</span> is a description of the group.
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> the new group.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Output and error handling</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:OptParser/val:error">
+  <a href="index.html#/module:OptParser/val:error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error : <a href="index.html#/module:OptParser/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?chn:<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> ?status:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Display an error message and exit the program. The error
+message is printed to the channel <code>chn</code> (default is
+<code>Pervasives.stderr</code>) and the program exits with exit status
+<code>status</code> (default is 1).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:OptParser/val:usage">
+  <a href="index.html#/module:OptParser/val:usage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> usage : <a href="index.html#/module:OptParser/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?chn:<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Display the usage message to the channel <code>chn</code> (default is
+<code>Pervasives.stdout</code>) and return.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Option parsing</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:OptParser/val:parse">
+  <a href="index.html#/module:OptParser/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : <a href="index.html#/module:OptParser/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?first:int <span class="rarr"><span>-&gt;</span></span> ?last:int <span class="rarr"><span>-&gt;</span></span> string array <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Parse arguments as if the arguments <code>args.(first)</code>,
+<code>args.(first+1)</code>, ..., <code>args.(last)</code> had been given on the
+command line. By default <code>first</code> is 0 and <code>last</code> is the index
+of the last element of the array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:OptParser/val:parse_argv">
+  <a href="index.html#/module:OptParser/val:parse_argv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_argv : <a href="index.html#/module:OptParser/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Parse all the arguments in <code>Sys.argv</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

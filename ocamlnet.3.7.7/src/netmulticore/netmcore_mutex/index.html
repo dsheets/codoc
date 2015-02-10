@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_mutex</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_mutex</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Mutexes</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Mutexes are here defined as values that reside in shared heaps
+([root:Netmcore_heap]), for example in the header field of
+[root:Netmcore_array] or somewhere else in heap-allocated
+data structures.</p>
+      
+      <p>In order to ensure that the mutex is in the heap, the
+special function <code>create</code> must be used to initialize it
+there. As <code>create</code> requires a mutator as argument, this is
+only possible by calling <code>create</code> from the callback of
+<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/val:modify">modify</a>.</p>
+      
+      <p>Mutexes are special values, and cannot be copied or moved.</p>
+      
+      <p>Mutexes are implemented on top of semaphores. For mutex types with
+deadlock handling, the process is considered as the owner, and
+process ID is the identifier.</p>
+      
+      <p>Only mutexes of type <code>`Normal</code> are thread-safe, i.e. can be used
+when the worker processes also use threads internally.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:mutex_type">
+  <a href="index.html#/type:mutex_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mutex_type = [ <div class="cons">| `Normal</div><div class="cons">| `Errorcheck</div><div class="cons">| `Recursive</div> ]
+    
+      <div class="doc">
+        
+      <p>Types:</p>
+      <ul><li><code>`Normal</code> mutexes have no checks for deadlocks.</li><li><code>`Errorcheck</code> mutexes check whether the process locks the mutex
+again, and fail in this case. Also, only the owning process can
+unlock a mutex.</li><li><code>`Recursive</code> mutexes allow that the owner locks several times.
+The same number of unlock requests need to be issued to give
+up the ownership</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mutex">
+  <a href="index.html#/type:mutex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mutex
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dummy">
+  <a href="index.html#/val:dummy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dummy : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:mutex">mutex</a>
+    
+      <div class="doc">
+        
+      <p>A dummy mutex is non-functional, but can be used to put something
+into <code>mutex</code>-typed variables</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:mutex_type">mutex_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:mutex">mutex</a>
+    
+      <div class="doc">
+        
+      <p><code>create m t</code>: Creates a mutex of type <code>t</code>, and
+pushes it to the heap, using the mutator <code>m</code>.</p>
+      
+      <p>After being pushed to the heap, the mutex can be used. It is
+nonsense to copy it outside the heap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lock">
+  <a href="index.html#/val:lock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lock : <a href="index.html#/type:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Locks the mutex</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unlock">
+  <a href="index.html#/val:unlock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlock : <a href="index.html#/type:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Unlocks the mutex</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy">
+  <a href="index.html#/val:destroy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy : <a href="index.html#/type:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys the mutex</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netcgi_plex</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netcgi_plex</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Netplex support for FastCGI, SCGI and AJP connectors</h1>
+    </div>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Factory</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:factory">
+  <a href="index.html#/val:factory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> factory : ?config:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> ?enable:[ <div class="cons">| `FCGI</div><div class="cons">| `SCGI</div><div class="cons">| `AJP</div> ] list <span class="rarr"><span>-&gt;</span></span> ?name:string <span class="rarr"><span>-&gt;</span></span> ?output_type:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> ?arg_store:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> ?exn_handler:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> ?configure:(<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:config_file">config_file</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:address">address</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a>) <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_factory">processor_factory</a>
+    
+      <div class="doc">
+        
+      <p>Reads a Netplex configuration section like
+</p>
+      <pre><code>         processor {
+           type = &quot;netcgi&quot;;          (* or the overridden [name] *)
+           timeout = 15;             (* optional *)
+           mount_dir = &quot;/url/path&quot;;  (* optional *)
+           mount_at = &quot;/url/path&quot;;   (* optional alternative to mount_dir *)
+         }</code></pre>
+      <p>and creates a processor for the protocols &quot;fcgi&quot;, &quot;scgi&quot;,
+and &quot;ajp&quot; (or a subset of these protocols if the <code>enable</code>
+parameter restricts them). A complete service definition
+looks thus like:</p>
+      <pre><code>           service {
+               name = &quot;name_of_service&quot;;
+               protocol {
+                   name = &quot;fcgi&quot;;        (* or &quot;scgi&quot; or &quot;ajp&quot; *)
+                   address {
+                       type = &quot;internet&quot;;
+                       bind = &quot;localhost:&lt;port&gt;&quot;;
+                   };
+               };
+               (* ... several protocol sections allowed! *)
+               processor {
+                   type = &quot;netcgi&quot;;
+               };
+               workload_manager {
+                   type = &quot;dynamic&quot;;
+                   max_jobs_per_thread = 1;  (* only reasonable value *)
+                   min_free_job_capacity = &lt;n&gt;;
+                   max_free_job_capacity = &lt;n&gt;;
+                   max_threads = &lt;n&gt;;
+               };
+           }</code></pre>
+      <p>The processor calls the argument function of type <code>container -&gt; cgi -&gt; unit</code>
+for every incoming request.</p>
+      
+      <p>The <code>timeout</code> parameter specifies when inactive connections are
+timed out (in seconds). The <code>mount_dir</code> and <code>mount_at</code> parameters
+define which part of the URL is considered as <code>SCRIPT_NAME</code>:</p>
+      <ul><li>By default (if neither <code>mount_dir</code> nor <code>mount_at</code>) are given
+<code>SCRIPT_NAME</code> is determined in a protocol-dependent way. Usually,
+the server transmits <code>SCRIPT_NAME</code>, but see the note below.</li><li>If <code>mount_dir</code> is present, the processor accepts only URLs
+that have this path as true prefix directory, i.e. the URL path
+is <code>&lt;mount_dir&gt;/&lt;name&gt;&lt;rest&gt;</code>. The part <code>&lt;mount_dir&gt;/&lt;name&gt;</code>
+is taken as <code>SCRIPT_NAME</code>.</li><li>If <code>mount_at</code> is present, the processor accepts only URLs
+that have this path as prefix, i.e. the URL path is
+<code>&lt;mount_at&gt;&lt;rest&gt;</code>. <code>&lt;mount_at&gt;</code> is taken as <code>SCRIPT_NAME</code>.</li></ul>
+      <p>The background is that <code>SCRIPT_NAME</code> is commonly used to
+distinghuish between different web actions of the netcgi
+application. The actions are simply names in a directory like
+<code>/bin/&lt;name&gt;</code> or <code>/servlet/&lt;name&gt;</code>. Not all web servers/protocols
+transmit good values for <code>SCRIPT_NAME</code>, however. By specifying
+<code>mount_dir</code> or <code>mount_at</code> one can force to interpret a certain
+prefix of the request URL as <code>SCRIPT_NAME</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">config</span> The Netcgi configuration to use, default is
+[root:Netcgi].default_config
+  </div>
+  
+  <div class="tag param">
+    <span class="label">enable</span> Which protocols to support. Default is to
+support all protocols
+  </div>
+  
+  <div class="tag param">
+    <span class="label">name</span> Defines the name of the processor. Default is &quot;netcgi&quot;.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">output_type</span> Default: <code>`Direct &quot;&quot;</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">arg_store</span> Default: <code>`Automatic</code> for all arguments.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">exn_handler</span> See [root:Netcgi].exn_handler. Default: delegate
+all exceptions to the default handler.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">configure</span> Parameters are the netplex configuration file
+and the address of the <code>processor</code> section. The configure
+function can look for additional parameters. It returns
+service hooks that are added to the resulting processor.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Processors</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following functions create the processors directly</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:mountpoint">
+  <a href="index.html#/type:mountpoint" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mountpoint = [ <div class="cons">| `Mount_dir <span class="keyword">of</span> string</div><div class="cons">| `Mount_at <span class="keyword">of</span> string</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fcgi_processor">
+  <a href="index.html#/val:fcgi_processor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fcgi_processor : ?config:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> ?output_type:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> ?arg_store:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> ?exn_handler:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?mount:<a href="index.html#/type:mountpoint">mountpoint</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_fcgi/">Netcgi_fcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi_fcgi/#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor">processor</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:scgi_processor">
+  <a href="index.html#/val:scgi_processor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> scgi_processor : ?config:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> ?output_type:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> ?arg_store:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> ?exn_handler:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?mount:<a href="index.html#/type:mountpoint">mountpoint</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor">processor</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ajp_processor">
+  <a href="index.html#/val:ajp_processor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ajp_processor : ?config:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> ?output_type:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:output_type">output_type</a> <span class="rarr"><span>-&gt;</span></span> ?arg_store:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:arg_store">arg_store</a> <span class="rarr"><span>-&gt;</span></span> ?exn_handler:<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:exn_handler">exn_handler</a> <span class="rarr"><span>-&gt;</span></span> ?timeout:float <span class="rarr"><span>-&gt;</span></span> ?mount:<a href="index.html#/type:mountpoint">mountpoint</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor">processor</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

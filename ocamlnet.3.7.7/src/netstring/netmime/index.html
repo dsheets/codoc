@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmime</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmime</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Netmime contains high-level classes and functions to process
+mail and MIME messages.</p>
+      
+      <p><b>Contents</b></p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/label:types">types</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/label:classes">classes</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/label:parsing">parsing</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/label:printing">printing</a></li></ul>
+      <p>The tutorial has been moved to [root:Netmime_tut].</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:types">
+  <a href="index.html#/label:types" class="anchor">#</a>
+  
+    <h1 class="section level_1">Types</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:store">
+  <a href="index.html#/type:store" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> store = [ <div class="cons">| `Memory</div><div class="cons">| `File <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>Specifies where to store the body of a mail message. <code>`Memory</code>
+means in-memory, <code>`File name</code> means in the file <code>name</code>. The body
+is stored in decoded form (i.e. without transfer encoding).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Immutable">
+  <a href="index.html#/exn:Immutable" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Immutable <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Raised if it is tried to modify a read-only value. The string denotes
+the function or method where the incident happened.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>MIME headers and bodies are defined in two steps. First the subtype
+describing read access is defined (<code>mime_header_ro</code>, and <code>mime_body_ro</code>),
+and after that the full class type including write access is defined
+(<code>mime_header</code>, and <code>mime_body</code>).</p>
+      
+      <p>The idea is that you can write functions that take an ro value as
+input to indicate that they do not modify the value. For example:</p>
+      <pre><code>   let number_of_fields (h:#mime_header_ro) =
+     List.length (h#fields)</code></pre>
+      <p>This function accepts both <code>mime_header</code>, and <code>mime_header_ro</code> values as
+input, but the typing ensures that the function cannot mutate anything.</p>
+      
+      <p>There is another way to ensure that a header or body is not modified.
+The read-only flag can be set when creating the object, and this flag
+causes that all trials to modify the value will raise the exception
+<code>Immutable</code>. Of course, such trials of mutation are only detected at
+run-time.</p>
+      
+      <p>The advantage of the read-only flag is that it even works if
+mutation depends on a condition, but it can be ensured that this
+condition is never true. Furthermore, typing is much simpler (getting
+subtyping correct can be annoying).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:mime_header_ro">
+  <a href="index.html#/classtype:mime_header_ro" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mime_header_ro = 
+  <div class="region" id="/classtype:mime_header_ro/method:fields">
+  <a href="index.html#/classtype:mime_header_ro/method:fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> fields : (string * string) list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header_ro/method:field">
+  <a href="index.html#/classtype:mime_header_ro/method:field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> field : string <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header_ro/method:multiple_field">
+  <a href="index.html#/classtype:mime_header_ro/method:multiple_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_field : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>The current fields of the header. <code>fields</code> returns the complete
+header. <code>field name</code> returns the value of the field, or raises
+<code>Not_found</code>. <code>multiple_field name</code> returns all fields with the same
+name.</p>
+      
+      <p>Note that field names are case-insensitive; <code>field &quot;content-length&quot;</code>,
+and <code>field &quot;CONTENT-LENGTH&quot;</code> will return the same field. However,
+the method <code>fields</code> returns the original field names, without
+adjustment of the case.</p>
+      
+      <p>The order of the fields is preserved.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Access methods for frequent standard fields.</p>
+      
+      <p>These methods will raise <code>Not_found</code> if the fields are not
+present.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:mime_header_ro/method:content_length">
+  <a href="index.html#/classtype:mime_header_ro/method:content_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> content_length : unit <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>Returns the Content-length field as integer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header_ro/method:content_type">
+  <a href="index.html#/classtype:mime_header_ro/method:content_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> content_type : unit <span class="rarr"><span>-&gt;</span></span> string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list
+  
+      <div class="doc">
+        
+      <p>Returns the Content-type as parsed value. The left value of the
+pair is the main type, and the right value is the list of
+parameters. For example, for the field value
+<code>&quot;text/plain; charset=utf-8&quot;</code> this method returns
+<code>(&quot;text/plain&quot;, [&quot;charset&quot;, p])</code> where <code>p</code> is an opaque value
+with <code>Mimestring.param_value p = &quot;utf-8&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header_ro/method:content_disposition">
+  <a href="index.html#/classtype:mime_header_ro/method:content_disposition" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> content_disposition : unit <span class="rarr"><span>-&gt;</span></span> string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list
+  
+      <div class="doc">
+        
+      <p>Returns the Content-disposition field as parsed value. The
+left value is the main disposition, and the right value is the
+list of parameters. For example, for the field value
+<code>&quot;attachment; filename=xy.dat&quot;</code> this method returns
+<code>(&quot;attachment&quot;, [&quot;filename&quot;, p])</code> where <code>p</code> is an opaque value
+with <code>Mimestring.param_value p = &quot;xy.dat&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header_ro/method:content_transfer_encoding">
+  <a href="index.html#/classtype:mime_header_ro/method:content_transfer_encoding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> content_transfer_encoding : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Returns the Content-transfer-encoding as string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This is the read-only version of a MIME header. There are only methods
+to read the header fields.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header">
+  <a href="index.html#/classtype:mime_header" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mime_header = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:mime_header_ro">mime_header_ro</a>
+    </div>
+    
+  <div class="region" id="/classtype:mime_header/method:ro">
+  <a href="index.html#/classtype:mime_header/method:ro" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ro : bool
+  
+      <div class="doc">
+        
+      <p>whether the header is read-only or not</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header/method:set_fields">
+  <a href="index.html#/classtype:mime_header/method:set_fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_fields : (string * string) list <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header/method:update_field">
+  <a href="index.html#/classtype:mime_header/method:update_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> update_field : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header/method:update_multiple_field">
+  <a href="index.html#/classtype:mime_header/method:update_multiple_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> update_multiple_field : string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_header/method:delete_field">
+  <a href="index.html#/classtype:mime_header/method:delete_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> delete_field : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>These methods modify the fields of the header. If the header is
+read-only, the exception <code>Immutable</code> will be raised.</p>
+      
+      <p><code>set_fields</code> replaces the current fields with a new list of
+(name,value) pairs. <code>update_field name value</code> replaces all fields
+of the passed name with the single setting (name,value), or
+adds this setting to the list. <code>update_multiple_field name values</code>
+replaces all fields of the passed name with the list of values,
+or adds this list. Finally, <code>delete_field name</code> deletes all
+fields of the passed name. Nothing happens if there is no such
+field.</p>
+      
+      <p>Both <code>update_field</code> and <code>update_multiple_field</code> first replace
+existing values by the new ones without changing the order
+of the fields in the header. Additional values are inserted
+after the last existing value, or at the end of the header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A MIME header with both read and write method. It is still possible,
+however, to set the read-only flag to make this kind of header
+immutable, too.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_body_ro">
+  <a href="index.html#/classtype:mime_body_ro" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mime_body_ro = 
+  <div class="region" id="/classtype:mime_body_ro/method:value">
+  <a href="index.html#/classtype:mime_body_ro/method:value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> value : string
+  
+      <div class="doc">
+        
+      <p>The <code>value</code> method returns the _decoded_ body,
+i.e. transfer encodings are removed before the value is passed
+back.</p>
+      
+      <p>When the body is stored in an external file, this method
+reads the complete file into memory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_body_ro/method:store">
+  <a href="index.html#/classtype:mime_body_ro/method:store" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> store : <a href="index.html#/type:store">store</a>
+  
+      <div class="doc">
+        
+      <p>Where the body is actually stored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_body_ro/method:open_value_rd">
+  <a href="index.html#/classtype:mime_body_ro/method:open_value_rd" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> open_value_rd : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Opens the value for reading. This works independently of where
+the body is stored. For example, to read the body line by line:
+</p>
+      <pre><code>       let ch = body # open_value_rd () in
+       try
+         while true do
+           let line = ch # input_line() in
+           ... (* do something *)
+         done;
+         assert false; (* never reached *)
+       with
+         End_of_file -&gt;
+           ch # close_in()</code></pre>
+      <p>As <code>value</code>, this method returns the value in decoded form.
+This method is quite economical with the resources, and takes
+only as much memory as needed for the channel operations.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_body_ro/method:finalize">
+  <a href="index.html#/classtype:mime_body_ro/method:finalize" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> finalize : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>After the body has been finalized, it cannot be accessed any longer.
+External resources (files) are deallocated, if they are seen as
+temporary.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This is the read-only version of a MIME body. There are only methods
+to read the body contents.</p>
+      
+      <p>The value of the body can be returned either as <code>string</code>, or as
+object channel. Both ways are possible independently of where
+the value is stored, in-memory, or as external file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_body">
+  <a href="index.html#/classtype:mime_body" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mime_body = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:mime_body_ro">mime_body_ro</a>
+    </div>
+    
+  <div class="region" id="/classtype:mime_body/method:ro">
+  <a href="index.html#/classtype:mime_body/method:ro" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ro : bool
+  
+      <div class="doc">
+        
+      <p>whether this body is read-only or not</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_body/method:set_value">
+  <a href="index.html#/classtype:mime_body/method:set_value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_value : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the value. If the value is immutable, the exception
+<code>Immutable</code> will be raised.</p>
+      
+      <p>The passed string must be in decoded form. When the body is
+stored in an external file, the file is overwritten.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mime_body/method:open_value_wr">
+  <a href="index.html#/classtype:mime_body/method:open_value_wr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> open_value_wr : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Opens the value for writing. The current value is overwritten.
+If the value is immutable, the exception <code>Immutable</code> will be raised.</p>
+      
+      <p>For example, to copy the file <code>f</code> into the value:
+</p>
+      <pre><code>       let ch = body # open_value_wr() in
+       let f_ch = new Netchannels.input_file f in
+       ch # output_channel f_ch;
+       f_ch # close_in();
+       ch # close_out();</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A MIME body with both read and write method. It is still possible,
+however, to set the read-only flag to make this kind of body
+immutable, too.</p>
+      
+      <p>The value of the body can be set either by a <code>string</code>, or by writing
+to an object channel. Both ways are possible independently of where
+the value is stored, in-memory, or as external file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>One can consider the pair <code>(mime_header, mime_body)</code> as simple MIME
+message with one header and one body. Of course, this simple representation
+does not support multi-part messages (attachments). For that reason,
+the <code>complex_mime_message</code> was invented: The body can be further
+structured as a sequence of parts that are complex messages themselves.</p>
+      
+      <p>For example, a mail message with an attachment is usually
+represented as
+</p>
+      <pre><code>   (mail_header, `Parts [ (main_header, `Body main_body);
+                          (att_header, `Body att_body) ] )</code></pre>
+      <p>Here, <code>mail_header</code> is the real header of the mail message.
+<code>main_header</code> is the header of the main message, usually
+only containing the content type of <code>main_body</code>, the body
+of the main message. The attachment has also its own
+<code>att_header</code>, again usually only containing the content type,
+and the data of the attachment can be found in <code>att_body</code>.</p>
+      
+      <p>Nowadays, mails have often even a more complicated structure
+with <code>`Parts</code> containing nested <code>`Parts</code>. As <code>complex_mime_message</code>
+is recursive, any kind of nesting can be easily represented.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:complex_mime_message">
+  <a href="index.html#/type:complex_mime_message" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> complex_mime_message = <a href="index.html#/classtype:mime_header">mime_header</a> * <a href="index.html#/type:complex_mime_body">complex_mime_body</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:complex_mime_body">
+  <a href="index.html#/type:complex_mime_body" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> complex_mime_body = [ <div class="cons">| `Body <span class="keyword">of</span> <a href="index.html#/classtype:mime_body">mime_body</a></div><div class="cons">| `Parts <span class="keyword">of</span> <a href="index.html#/type:complex_mime_message">complex_mime_message</a> list</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:complex_mime_message_ro">
+  <a href="index.html#/type:complex_mime_message_ro" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> complex_mime_message_ro = <a href="index.html#/classtype:mime_header_ro">mime_header_ro</a> * <a href="index.html#/type:complex_mime_body_ro">complex_mime_body_ro</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:complex_mime_body_ro">
+  <a href="index.html#/type:complex_mime_body_ro" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> complex_mime_body_ro = [ <div class="cons">| `Body <span class="keyword">of</span> <a href="index.html#/classtype:mime_body_ro">mime_body_ro</a></div><div class="cons">| `Parts <span class="keyword">of</span> <a href="index.html#/type:complex_mime_message_ro">complex_mime_message_ro</a> list</div> ]
+    
+      <div class="doc">
+        
+      <p>The read-only view of a complex_mime_message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Note: <code>`Parts []</code>, i.e. <code>`Parts</code> together with an empty list, is
+considered as illegal. Such a value cannot be transformed into
+printable text.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:mime_message">
+  <a href="index.html#/type:mime_message" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mime_message = <a href="index.html#/classtype:mime_header">mime_header</a> * [ <div class="cons">| `Body <span class="keyword">of</span> <a href="index.html#/classtype:mime_body">mime_body</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Simple MIME message, in a form that is compatible with complex
+ones.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mime_message_ro">
+  <a href="index.html#/type:mime_message_ro" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mime_message_ro = <a href="index.html#/classtype:mime_header_ro">mime_header_ro</a> * [ <div class="cons">| `Body <span class="keyword">of</span> <a href="index.html#/classtype:mime_body_ro">mime_body_ro</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Read-only variant of simple messages</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:classes">
+  <a href="index.html#/label:classes" class="anchor">#</a>
+  
+    <h1 class="section level_1">Classes</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/class:basic_mime_header">
+  <a href="index.html#/class:basic_mime_header" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> basic_mime_header : 
+    ?ro:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    (string * string) list
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:mime_header">mime_header</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>An implementation of <code>mime_header</code>.</p>
+      
+      <p>The argument is the list of (name,value) pairs of the header.</p>
+      
+      <p>Example: Create a MIME header with only the field &quot;Content-type&quot;:
+</p>
+      <pre><code>let h = new basic_mime_header [&quot;content-type&quot;, &quot;text/plain&quot;]</code></pre>
+      <p>Example: Set the field &quot;Subject&quot;:
+</p>
+      <pre><code>h # update_field &quot;subject&quot; &quot;The value of this field&quot;</code></pre>
+      <p>This <code>mime_header</code> implementation bases on a mixture of a <code>Map</code> data
+structure and a doubly linked list. The efficiency of the operations
+(n=number of fields; m=average number of values per field;
+n*m=total number of values):</p>
+      <ul><li><code>new</code>, <code>set_fields</code>: O(m * n * log n), but the construction of the dictionary
+is deferred until the first real access</li><li><code>field</code>: O(log n)</li><li><code>multiple_field</code>: O(log n + m)</li><li><code>fields</code>: O(n * m)</li><li><code>update_field</code>, <code>update_multiple_field</code>: O(log n + m)</li><li><code>delete_field</code>: O(n + m)</li></ul>
+        
+  <div class="tag param">
+    <span class="label">ro</span> whether the header is read-only (default: false)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:memory_mime_body">
+  <a href="index.html#/class:memory_mime_body" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> memory_mime_body : 
+    ?ro:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:mime_body">mime_body</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>An implementation of <code>mime_body</code> where the value is stored
+in-memory.</p>
+      
+      <p>The argument is the initial (decoded) value of the body.
+The method <code>store</code> returns <code>`Memory</code>.</p>
+      
+      <p>Example: To create a body from a string, call
+</p>
+      <pre><code>new memory_mime_body &quot;The value as string&quot;</code></pre>
+        
+  <div class="tag param">
+    <span class="label">ro</span> whether the body is read-only (default: false)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:file_mime_body">
+  <a href="index.html#/class:file_mime_body" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> file_mime_body : 
+    ?ro:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?fin:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:mime_body">mime_body</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>An implementation of <code>mime_body</code> where the value is stored
+in an external file.</p>
+      
+      <p>The argument is the name of the file containing the (decoded) value.
+The method <code>store</code> returns <code>`File filename</code>.
+The method <code>value</code> loads the contents of the file and returns them
+as string.</p>
+      
+      <p>Example: To create a body from the file &quot;f&quot;, call
+</p>
+      <pre><code>new file_mime_body &quot;f&quot;</code></pre>
+        
+  <div class="tag param">
+    <span class="label">ro</span> whether the body is read-only (default: false)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">fin</span> whether to delete the file when the <code>finalize</code> method is called
+(default: false)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:parsing">
+  <a href="index.html#/label:parsing" class="anchor">#</a>
+  
+    <h1 class="section level_1">Parsing MIME messages</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/val:read_mime_header">
+  <a href="index.html#/val:read_mime_header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_mime_header : ?unfold:bool <span class="rarr"><span>-&gt;</span></span> ?strip:bool <span class="rarr"><span>-&gt;</span></span> ?ro:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netstream/">Netstream</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netstream/#/classtype:in_obj_stream">in_obj_stream</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mime_header">mime_header</a>
+    
+      <div class="doc">
+        
+      <p>Decodes the MIME header that begins at the current position of the
+netstream, and returns the header as class <code>basic_mime_header</code>.
+After returning, the stream is advanced to the byte following the
+empty line terminating the header.</p>
+      
+      <p>Example: To read the header at the beginning of the file &quot;f&quot;, use:
+</p>
+      <pre><code>     let ch = new Netchannels.input_channel (open_in &quot;f&quot;) in
+     let stream = new Netstream.input_stream ch in
+     let h = read_mime_header stream in
+     ...
+     stream#close_in();    (* no need to close ch *)</code></pre>
+      <p>Note that although the <code>stream</code> position after parsing is exactly
+known, the position of <code>ch</code> cannot be predicted.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">unfold</span> whether linefeeds are replaced by spaces in the values of the
+header fields (Note: defaults to <code>false</code> here in contrast to
+<code>Mimestring.scan_header</code>!)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">strip</span> whether whitespace at the beginning and at the end of the
+header fields is stripped
+  </div>
+  
+  <div class="tag param">
+    <span class="label">ro</span> whether the returned header is read-only (default: false)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Hint: To write the header <code>h</code> into the channel <code>ch</code>, use
+</p>
+      <pre><code>Mimestring.write_header ch h#fields</code></pre>
+      <p>Link: <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/val:write_header">write_header</a></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:multipart_style">
+  <a href="index.html#/type:multipart_style" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> multipart_style = [ <div class="cons">| `None</div><div class="cons">| `Flat</div><div class="cons">| `Deep</div> ]
+    
+      <div class="doc">
+        
+      <p>How to parse multipart messages:</p>
+      <ul><li><code>`None</code>: Do not handle multipart messages specially. Multipart bodies
+are not further decoded, and returned as <code>`Body b</code> where <code>b</code> is
+the transfer-encoded text representation.</li><li><code>`Flat</code>: If the top-level message is a multipart message, the parts
+are separated and returned as list. If the parts are again multipart
+messages, these inner multipart messages are not furher decoded
+and returned as <code>`Body b</code>.</li><li><code>`Deep</code>: Multipart messages are recursively decoded and returned as
+tree structure.</li></ul>
+      <p>This value determines how far the <code>complex_mime_message</code> structure
+is created for a parsed MIME message. <code>`None</code> means that no parts
+are decoded, and messages have always only a simple <code>`Body b</code>,
+even if <code>b</code> is in reality a multi-part body. With <code>`Flat</code>, the
+top-level multi-part bodies are decoded (if found), and messages
+can have a structured <code>`Parts [_, `Body b1; _, `Body b1; ...]</code>
+body. Finally, <code>`Deep</code> allows that inner multi-part bodies are
+recursively decoded, and messages can have an arbitrarily complex
+form.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decode_mime_body">
+  <a href="index.html#/val:decode_mime_body" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode_mime_body : <a href="index.html#/classtype:mime_header_ro">mime_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    
+      <div class="doc">
+        
+      <p><code>let ch' = decode_mime_body hdr ch</code>:
+According to the value of the Content-transfer-encoding header field
+in <code>hdr</code> the encoded MIME body written to <code>ch'</code> is decoded and transferred
+to <code>ch</code>.</p>
+      
+      <p>Handles 7bit, 8bit, binary, quoted-printable, base64.</p>
+      
+      <p>Example: The file &quot;f&quot; contains base64-encoded data, and is to be decoded
+and to be stored in &quot;g&quot;:</p>
+      <pre><code>     let ch_f = new Netchannels.input_channel (open_in &quot;f&quot;) in
+     let ch_g = new Netchannels.output_channel (open_out &quot;g&quot;) in
+     let hdr = new basic_mime_header [&quot;content-transfer-encoding&quot;, &quot;base64&quot; ] in
+     let ch = decode_mime_body hdr ch_g in
+     ch # output_channel ch_f;
+     ch # close_out();
+     ch_g # close_out();
+     ch_f # close_in();</code></pre>
+      <p>Note: This function is internally used by <code>read_mime_message</code> to
+decode bodies. There is usually no need to call it directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:storage">
+  <a href="index.html#/val:storage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> storage : ?ro:bool <span class="rarr"><span>-&gt;</span></span> ?fin:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:store">store</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mime_body">mime_body</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new storage facility for a mime body according to <code>store</code>.
+This function can be used to build the <code>storage_style</code> argument
+of the class <code>read_mime_message</code> (below). For example, this is
+useful to store large attachments in external files, as in:</p>
+      <pre><code>     let storage_style hdr = 
+       let filename = hdr ... (* extract from hdr *) in
+       storage (`File filename)</code></pre>
+        
+  <div class="tag param">
+    <span class="label">ro</span> whether the returned mime_bodies are read-only or not. Note that
+it is always possible to write into the body using the returned
+out_obj_channel regardless of the value of ~ro.
+Default: false
+  </div>
+  
+  <div class="tag param">
+    <span class="label">fin</span> whether to finalize bodies stored in files.
+Default: false
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_mime_message">
+  <a href="index.html#/val:read_mime_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_mime_message : ?unfold:bool <span class="rarr"><span>-&gt;</span></span> ?strip:bool <span class="rarr"><span>-&gt;</span></span> ?ro:bool <span class="rarr"><span>-&gt;</span></span> ?multipart_style:<a href="index.html#/type:multipart_style">multipart_style</a> <span class="rarr"><span>-&gt;</span></span> ?storage_style:(<a href="index.html#/classtype:mime_header">mime_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mime_body">mime_body</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netstream/">Netstream</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netstream/#/classtype:in_obj_stream">in_obj_stream</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:complex_mime_message">complex_mime_message</a>
+    
+      <div class="doc">
+        
+      <p>Decodes the MIME message that begins at the current position of the
+passed netstream. It is expected that the message continues until
+EOF of the netstream.</p>
+      
+      <p>Multipart messages are decoded as specified by <code>multipart_style</code> (see
+above).</p>
+      
+      <p>Message bodies with content-transfer-encodings of 7bit, 8bit, binary,
+base64, and quoted-printable can be processed. The bodies are stored
+without content-transfer-encoding (i.e. in decoded form), but the
+content-transfer-encoding header field is not removed from the header.</p>
+      
+      <p>The <code>storage_style</code> function determines where every message body is
+stored. The corresponding header of the body is passed to the function
+as argument; the result of the function is a pair of a new <code>mime_body</code>
+and an <code>out_obj_channel</code> writing into this body. You can create such a
+pair by calling <code>storage</code> (above).</p>
+      
+      <p>By default, the <code>storage_style</code> is <code>storage ?ro `Memory</code> for every header.
+Here, the designator <code>`Memory</code> means that the body will be stored in an
+O'Caml string. The designator <code>`File fn</code> would mean that the body will be stored in the
+file <code>fn</code>. The file would be created if it did not yet exist, and
+it would be overwritten if it did already exist.</p>
+      
+      <p>Note that the <code>storage_style</code> function is called for every non-multipart
+body part.</p>
+      
+      <p>Large message bodies (&gt; maximum string length) are supported if the
+bodies are stored in files. The memory consumption is optimized for
+this case, and usually only a small constant amount of memory is needed.</p>
+      
+      <p>Example:</p>
+      
+      <p>Parse the MIME message stored in the file f:</p>
+      <pre><code>     let m = read_mime_message 
+               (new input_stream (new input_channel (open_in f)))</code></pre>
+        
+  <div class="tag param">
+    <span class="label">unfold</span> whether linefeeds are replaced by spaces in the values of the
+header fields (Note: defaults to <code>false</code> here in contrast to
+[root:Mimestring].scan_header!)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">strip</span> whether whitespace at the beginning and at the end of the
+header fields is stripped
+  </div>
+  
+  <div class="tag param">
+    <span class="label">ro</span> Whether the created MIME headers are read-only or not. Furthermore,
+the default <code>storage_style</code> uses this parameter for the MIME bodies, too.
+However, the MIME bodies may have a different read-only flag in general.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:printing">
+  <a href="index.html#/label:printing" class="anchor">#</a>
+  
+    <h1 class="section level_1">Printing MIME Messages</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/val:encode_mime_body">
+  <a href="index.html#/val:encode_mime_body" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_mime_body : ?crlf:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mime_header_ro">mime_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    
+      <div class="doc">
+        
+      <p><code>let ch' = encode_mime_body hdr ch</code>:
+According to the value of the Content-transfer-encoding header field
+in <code>hdr</code> the unencoded MIME body written to ch' is encoded and transferred
+to ch.</p>
+      
+      <p>Handles 7bit, 8bit, binary, quoted-printable, base64.</p>
+      
+      <p>For an example, see <code>decode_mime_body</code> which works in a similar way
+but performs decoding instead of encoding.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">crlf</span> if set (this is by default the case) CR/LF will be used for
+end-of-line (eol) termination, if not set LF will be used. For 7bit, 8bit and
+binary encoding the existing eol delimiters are not rewritten, so this option
+has only an effect for quoted-printable and base64.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_mime_message">
+  <a href="index.html#/val:write_mime_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_mime_message : ?wr_header:bool <span class="rarr"><span>-&gt;</span></span> ?wr_body:bool <span class="rarr"><span>-&gt;</span></span> ?nr:int <span class="rarr"><span>-&gt;</span></span> ?ret_boundary:string <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> ?crlf:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:complex_mime_message">complex_mime_message</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Writes the MIME message to the output channel. The content-transfer-
+encoding of the leaves is respected, and their bodies are encoded
+accordingly. The content-transfer-encoding of multipart messages is
+always &quot;fixed&quot;, i.e. set to &quot;7bit&quot;, &quot;8bit&quot;, or &quot;binary&quot; depending
+on the contents.</p>
+      
+      <p>The function fails if multipart messages do not have a multipart
+content type field (i.e. the content type does not begin with &quot;multipart&quot;).
+If only the boundary parameter is missing, a good boundary parameter is
+added to the content type. &quot;Good&quot; means here that it is impossible
+that the boundary string occurs in the message body if the
+content-transfer-encoding is quoted-printable or base64, and that
+such an occurrence is very unlikely if the body is not encoded.
+If the whole content type field is missing, a &quot;multipart/mixed&quot; type
+with a boundary parameter is added to the printed header.</p>
+      
+      <p>Note that already existing boundaries are used, no matter whether
+they are of good quality or not.</p>
+      
+      <p>No other header fields are added, deleted or modified. The mentioned
+modifications are _not_ written back to the passed MIME message but
+only added to the generated message text.</p>
+      
+      <p>It is possible in some cases that the boundary does not work (both
+the existing boundary, and the added boundary). This causes that a wrong
+and unparseable MIME message is written. In order to ensure a correct
+MIME message, it is recommended to parse the written text, and to compare
+the structure of the message trees. It is, however, very unlikely that
+a problem arises.</p>
+      
+      <p>Note that if the passed message is a simple message like (_,`Body _),
+and if no content-transfer-encoding is set, the written message might
+not end with a linefeed character.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">wr_header</span> If true, the outermost header is written. Inner headers
+of the message parts are written unless ~wr_body=false.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">wr_body</span> If true, the body of the whole message is written; if false,
+no body is written at all.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">nr</span> This argument sets the counter that is included in generated
+boundaries to a certain minimum value.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">ret_boundary</span> if passed, the boundary of the outermost multipart
+message is written to this reference. (Internally used.)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">crlf</span> if set (this is by default the case) CR/LF will be used for
+end-of-line (eol) termination, if not set LF will be used. The eol
+separator is used for the header, the multipart framing, and for
+bodies encoded as quoted-printable or base64. Other eol separators are
+left untouched.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

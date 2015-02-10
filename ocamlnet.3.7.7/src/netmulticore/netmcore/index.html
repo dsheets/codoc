@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Multi-processing for compute jobs</p>
+      
+      <p>This library allows it to develop parallel algorithms that can take
+advantage of multiple CPU cores. It does not use Ocaml's multi-threading
+feature because this would implicitly serialize all computations.
+Instead, independent processes are created, and the communication
+between processes is made as cheap and unproblematic as possible.</p>
+      
+      <p>Please read [root:Netmcore_basics] for an introduction into using
+this module. There is also [root:Netmcore_tut] with more advanced
+techniques.</p>
+      
+      <p>Before using this library, it is required to call <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/val:startup">startup</a>.
+This turns the current process into the master process. The master
+process has only a supervising function, and is responsible for
+managing global resources, and for starting further worker processes.</p>
+      
+      <p>The worker processes can start more workers. This is different from
+creating a new thread, though: The new worker does not share memory
+with its creator. It is also different from calling <code>Unix.fork</code>,
+because new workers are always subprocesses of the master process.
+This means it is not initialized with a copy of the state of the
+logical creator, but with its real parent process which is always
+the master.</p>
+      
+      <p>Compatibility with multi-threading: You may run into big trouble
+when the master process starts further threads (after forking
+thread-related resources are in an uncontrolled state). There is
+no such problem in the worker processes. In this library,
+however, nothing is done to ease the multi-threaded life, so you
+should carefully check the compatibility first.</p>
+      
+      <p>[root:Netmcore] controls the lifetime of certain system resources in
+addition to worker processes:</p>
+      <ul><li>Temporary files</li><li>Shared memory objects</li><li>Named semaphores</li></ul>
+      <p>These objects have kernel persistence, and continue to exist when
+the program ends. Because of this, there are two mechanisms to
+control the lifetime, and to delete these objects finally: First,
+if all using processes terminate normally, an object is deleted.
+Second, in order to also catch abnormal terminations, these objects
+are also managed by storing their names into an external file
+&quot;netplex.pmanage&quot; (in the socket directory). When the program is
+started the next time with the same socket directory, the objects
+from the previous run are automatically deleted. The second mechanism
+can be disabled by setting the</p>
+      <ul><li><code>disable_pmanage</code> parameter for the <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/val:startup">startup</a> call, or by
+setting the</li><li><code>unlink</code> parameter in the same call. This second option only disables
+the deletion, but the management file is updated.</li></ul>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Types and exceptions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:res_id">
+  <a href="index.html#/type:res_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> res_id = [ <div class="cons">| `Resource <span class="keyword">of</span> int</div> ]
+    
+      <div class="doc">
+        
+      <p>This tagged integer identifies resources. This variant type will never
+be extended.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:process_id">
+  <a href="index.html#/type:process_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> process_id = [ <div class="cons">| `Process <span class="keyword">of</span> int</div> ]
+    
+      <div class="doc">
+        
+      <p>This tagged integer identifies processes. This variant type will never
+be extended.</p>
+      
+      <p>Note that the int argument is not the Unix PID, but just a self-generated
+identifier that is unique for the lifetime of the program.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:compute_resource_type">
+  <a href="index.html#/type:compute_resource_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> compute_resource_type = [ <div class="cons">| `File</div><div class="cons">| `Posix_shm</div><div class="cons">| `Posix_shm_sc</div><div class="cons">| `Posix_shm_preallocated</div><div class="cons">| `Posix_shm_preallocated_sc</div><div class="cons">| `Posix_sem</div><div class="cons">| `Fork_point</div><div class="cons">| `Join_point</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:inherit_request">
+  <a href="index.html#/type:inherit_request" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> inherit_request = [ <div class="cons">| `Resources <span class="keyword">of</span> <a href="index.html#/type:res_id">res_id</a> list</div><div class="cons">| `All</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:compute_resource_repr">
+  <a href="index.html#/type:compute_resource_repr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> compute_resource_repr = [ <div class="cons">| `File <span class="keyword">of</span> string</div><div class="cons">| `Posix_shm <span class="keyword">of</span> string</div><div class="cons">| `Posix_shm_sc <span class="keyword">of</span> string * <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:prefix">prefix</a></div><div class="cons">| `Posix_shm_preallocated <span class="keyword">of</span> string * <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a></div><div class="cons">| `Posix_shm_preallocated_sc <span class="keyword">of</span> string * <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> * <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:container">container</a></div><div class="cons">| `Posix_sem <span class="keyword">of</span> string</div><div class="cons">| `Fork_point <span class="keyword">of</span> <a href="index.html#/type:inherit_request">inherit_request</a> * <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/type:encap">encap</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a></div><div class="cons">| `Join_point <span class="keyword">of</span> <a href="index.html#/type:process_id">process_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/type:encap">encap</a> option</div> ]
+    
+      <div class="doc">
+        
+      <p>Centrally managed resources include:</p>
+      <ul><li><code>`File name</code>: (Temporary) file <code>name</code> (absolute name)</li><li><code>`Posix_shm name</code>: Shared memory objects with <code>name</code></li><li><code>`Posix_shm_sc(name,p)</code>: Shared memory objects with <code>name</code>, and
+attached container for semaphores with prefix <code>p</code></li><li><code>`Posix_shm_preallocated(name,m)</code>: Shared memory objects already
+allocated by the master process. These objects are passed over
+to the worker processes by inheritance, and are always mapped at
+the same address. <code>m</code> is the bigarray mapping the object.</li><li><code>`Posix_shm_preallocated_sc(name,m.p)</code>: Same, plus attached
+container for semaphores with prefix <code>p</code></li><li><code>`Posix_sem name</code>: Semaphores with <code>name</code></li><li><code>`Fork_point(inh,f)</code>: Fork points where <code>let pid=f arg</code> fork a new process
+with argument <code>arg</code>. <code>pid</code> is the process identifier. The list <code>inh</code>
+are resources inherited from the master.</li><li><code>`Joint_point f</code>: Joint points where <code>let res=f pid</code> wait until
+the process <code>pid</code> terminates. If <code>res</code> is non-<code>None</code> it is the
+result value. If it is <code>None</code>, no result was passed back
+(including all pathological cases like crashes)</li></ul>
+      <p>Except fork and join points, these resources are also added to
+the pmanage object of Netplex (see <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/val:pmanage">pmanage</a> and
+[root:Netsys_pmanage]).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:No_resource">
+  <a href="index.html#/exn:No_resource" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_resource <span class="keyword">of</span> <a href="index.html#/type:res_id">res_id</a>
+    
+      <div class="doc">
+        
+      <p>No such resource, or no resource of the expected type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compute_resource">
+  <a href="index.html#/classtype:compute_resource" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> compute_resource = 
+  <div class="region" id="/classtype:compute_resource/method:id">
+  <a href="index.html#/classtype:compute_resource/method:id" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> id : <a href="index.html#/type:res_id">res_id</a>
+  
+      <div class="doc">
+        
+      <p>an ID of the resource that is valid in the whole Netplex system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compute_resource/method:typ">
+  <a href="index.html#/classtype:compute_resource/method:typ" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> typ : <a href="index.html#/type:compute_resource_type">compute_resource_type</a>
+  
+      <div class="doc">
+        
+      <p>which type of resource</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compute_resource/method:repr">
+  <a href="index.html#/classtype:compute_resource/method:repr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> repr : <a href="index.html#/type:compute_resource_repr">compute_resource_repr</a>
+  
+      <div class="doc">
+        
+      <p>the resource detail</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compute_resource/method:release">
+  <a href="index.html#/classtype:compute_resource/method:release" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> release : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Notify the manager that the resource is not used any longer by this
+process. If all processes release the resource it will be finally
+destroyed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Defining processes</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>This is the lower-level version of the process API where arguments
+and results of processes are dynamically typed. It may have some
+uses when writing generic process managers, but for the
+normal application the statically typed API in [root:Netmcore_process]
+is easier to use (and less verbose).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:def_process">
+  <a href="index.html#/val:def_process" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> def_process : (<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/type:encap">encap</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/type:encap">encap</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:res_id">res_id</a> * <a href="index.html#/type:res_id">res_id</a>
+    
+      <div class="doc">
+        
+      <p><code>let fork_point, join_point = def_process f</code>:
+Defines process types, i.e. ways of starting and finishing processes.
+The definition must be done in the master process, e.g. before the first
+worker is started.</p>
+      
+      <p>Once the process type is defined, new processes can be started,
+and these processes will run the function <code>f</code>. When <code>f</code> is
+finished, the process will terminate. Starting processes is possible
+from other worker processes.</p>
+      
+      <p><code>f</code> is supplied with its argument by the process starter <code>start</code>.
+The result value of <code>f</code> can be retrieved with <code>join</code> (by any
+process, but only the first <code>join</code> for this process will be successful).</p>
+      
+      <p>If <code>f</code> throws exceptions, these will be caught and logged, but not
+be passed back to the caller (which just gets <code>None</code> as result
+of <code>join</code>). The same happens for any unplanned termination of the
+process.</p>
+      
+      <p>It is allowed to immediately release the <code>join_point</code> if there is
+no interest in catching the termination of started processes.</p>
+      
+      <p>Here is an example how to define a process that takes a <code>string</code>
+argument and returns an <code>int</code>:</p>
+      <pre><code>      module String_encap = Netplex_encap.Make_encap(struct type t=string end)
+      module Int_encap = Netplex_encap.Make_encap(struct type t=int end)
+
+      let my_process_fork, my_process_join =
+        Netmcore.def_process
+          (fun s_encap -&gt;
+            let (s:string) = String_encap.unwrap s_encap in
+            let (r:int) = ... in
+            Int_encap.wrap r
+          )</code></pre>
+      <p>The wrapping and unwrapping is required for ensuring type-safety
+(see [root:Netplex_encap] for the details of the idea).</p>
+      
+      <p>Calling this process is done with (also see below):</p>
+      <pre><code>      let pid = Netmcore.start my_process_fork (String_encap.wrap s) in
+      let r_encap_opt = Netmcore.join my_process_join pid in
+      match r_encap_opt with
+        | None -&gt; failwith &quot;Something went wrong&quot;
+        | Some r_encap -&gt; Int_encap.unwrap r_encap</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following functions can also be called from worker processes
+(i.e. Netplex containers)</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:start">
+  <a href="index.html#/val:start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> start : ?inherit_resources:<a href="index.html#/type:inherit_request">inherit_request</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/type:encap">encap</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a>
+    
+      <div class="doc">
+        
+      <p><code>let pid = start fork_point arg</code>: Starts the process with the
+given <code>fork_point</code> and the argument <code>arg</code>.</p>
+      
+      <p>Raises <code>No_resource</code> if there is no such resource.</p>
+      
+      <p>The function returns a process identifier. This is not the Unix
+PID, but a sequentially generated number that is unique for a
+running program.</p>
+      
+      <p>Option <code>inherit_resources</code>: Certain resources are only accessible by
+the process when they are inherited to it. This is the case for
+<code>`Posix_shm_preallocated</code>. This can be set to <code>`All</code> to inherit
+all inheritable resources, or to <code>`Resources l</code> to only inherit
+the resources of <code>l</code>. By default, all resources are inherited.
+(This changed in Ocamlnet-3.5 - before, no resources were inherited,
+which turned out to be quite dangerous as default.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:join">
+  <a href="index.html#/val:join" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> join : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/type:encap">encap</a> option
+    
+      <div class="doc">
+        
+      <p><code>let res_opt = join join_point pid</code>: Waits until the process <code>pid</code>
+is done, and returns the result value if any. You can only join
+(or <code>join_nowait</code>) once per process.</p>
+      
+      <p>Raises <code>No_resource</code> if there is no such resource.</p>
+      
+      <p>It is not possible to call <code>join</code> from the master process (as this
+process must not block). You can, however, get the result of an
+already terminated process with <code>join_nowait</code>, e.g. after
+<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/val:run">run</a> returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:join_nowait">
+  <a href="index.html#/val:join_nowait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> join_nowait : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/">Netplex_encap</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_encap/#/type:encap">encap</a> option
+    
+      <div class="doc">
+        
+      <p><code>let res_opt = join_nowait join_point pid</code>: Checks if the process <code>pid</code>
+is done, and returns the result value if so. Otherwise return <code>None</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Managing resources from worker processes</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following functions can also be called from worker processes
+(i.e. Netplex containers)</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:get_resource">
+  <a href="index.html#/val:get_resource" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_resource : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:compute_resource">compute_resource</a>
+    
+      <div class="doc">
+        
+      <p>Retrieves the resource by ID. This implicitly also marks this resource
+as being used by this process. Don't forget to call <code>release</code> when
+your are done with the resource.</p>
+      
+      <p>Raises <code>No_resource</code> if there is no such resource.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:release">
+  <a href="index.html#/val:release" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> release : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Release the resource with this ID. (Same as calling the <code>release</code>
+method on the object.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:manage_file">
+  <a href="index.html#/val:manage_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> manage_file : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:compute_resource">compute_resource</a>
+    
+      <div class="doc">
+        
+      <p>hands over a file to the manager</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_file">
+  <a href="index.html#/val:get_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_file : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Gets the file with this ID (or raises <code>No_resource</code>). As for
+<code>get_resource</code> the file is marked as being used by the process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:manage_shm">
+  <a href="index.html#/val:manage_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> manage_shm : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:compute_resource">compute_resource</a>
+    
+      <div class="doc">
+        
+      <p>hands over a named shm object to the manager</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:manage_shm_sc">
+  <a href="index.html#/val:manage_shm_sc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> manage_shm_sc : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:compute_resource">compute_resource</a>
+    
+      <div class="doc">
+        
+      <p>hands over a named shm object plus semaphore container to the manager</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_shm">
+  <a href="index.html#/val:get_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_shm : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Gets the shm object with this ID (or raises <code>No_resource</code>). As
+for <code>get_resource</code> the shm object is marked as being used by the process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_sem_container">
+  <a href="index.html#/val:get_sem_container" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_sem_container : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:container">container</a>
+    
+      <div class="doc">
+        
+      <p>Get the semaphore container</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Shared memory objects can be created with <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/val:shm_create">shm_create</a>,
+and opened with <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/val:shm_open">shm_open</a>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:create_preallocated_shm">
+  <a href="index.html#/val:create_preallocated_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_preallocated_shm : ?value_area:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:res_id">res_id</a> * string
+    
+      <div class="doc">
+        
+      <p><code>create_preallocated_shm prefix size</code>: Creates a new preallocated
+shm object with a unique name based on <code>prefix</code>, and a length of
+<code>size</code> bytes. The object is created and mapped into the master
+process, and will be available to any newly started process when
+the resource ID is inherited to the process.</p>
+      
+      <p>Returns <code>(res_id,shm_name)</code> where <code>res_id</code> identifies the new
+resource, and <code>shm_name</code> is the name of the POSIX shared memory
+object.</p>
+      
+      <p>Note that the process calling this function cannot look up this
+resource (using <code>get_shm</code> or <code>get_resource</code>) because the shm
+block cannot be mapped at the right address. Nevertheless, the calling
+process counts as a user of the object, and needs to release
+the object.</p>
+      
+      <p>Option <code>value_area</code>: if set, the new memory is marked as value
+area, so the ocaml runtime allows value comparisons in this
+memory area.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_preallocated_shm_sc">
+  <a href="index.html#/val:create_preallocated_shm_sc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_preallocated_shm_sc : ?value_area:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:res_id">res_id</a> * string * <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:container">container</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>create_preallocated_shm</code> with the extension that
+a semaphore container is also allocated and returned</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:manage_sem">
+  <a href="index.html#/val:manage_sem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> manage_sem : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:compute_resource">compute_resource</a>
+    
+      <div class="doc">
+        
+      <p>hands over a named semaphore to the manager</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_sem">
+  <a href="index.html#/val:get_sem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_sem : <a href="index.html#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>gets the semaphore with this ID (or raises <code>No_resource</code>). As
+for <code>get_resource</code> the semaphore is marked as being used by the process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Semaphores can be opened with <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/val:sem_open">sem_open</a>, and
+created with <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/val:sem_create">sem_create</a>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:self_process_id">
+  <a href="index.html#/val:self_process_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> self_process_id : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a>
+    
+      <div class="doc">
+        
+      <p>Returns the process ID of a worker</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Initialization and system start</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>This module can either be used as Netplex plugin and integrated into
+any existing Netplex program, or it can be started in stand-alone mode</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:add_plugins">
+  <a href="index.html#/val:add_plugins" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_plugins : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>To enable compute processes for any Netplex program, call this
+function with the controller object as argument. This can e.g.
+be done in the <code>post_add_hook</code> of the processor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:startup">
+  <a href="index.html#/val:startup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> startup : socket_directory:string <span class="rarr"><span>-&gt;</span></span> ?pidfile:string <span class="rarr"><span>-&gt;</span></span> ?init_ctrl:(<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?disable_pmanage:bool <span class="rarr"><span>-&gt;</span></span> ?no_unlink:bool <span class="rarr"><span>-&gt;</span></span> first_process:('a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a>) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>This function makes the current process the master process.
+It starts immediately a new worker process, called the
+first process. The <code>startup</code> function returns first when this
+process is finished, in which case the whole Netplex system is
+shut down (which may lead to killing the remaining processes,
+following the usual shutdown procedure).</p>
+      
+      <p>The first process is created by calling <code>first_process</code> at the
+right moment. This function normally just invokes <code>start</code>.</p>
+      
+      <p>Passing a <code>socket_directory</code> is mandatory. This directory will
+contain helper files. The must be a separate <code>socket_directory</code>
+for each running Computeplex instance.</p>
+      
+      <p><code>pidfile</code>: If passed, the Unix PID of the master process is written
+to this file.</p>
+      
+      <p><code>disable_pmanage</code>: Disable that persistent kernel objects are
+managed via the &quot;netplex.pmanage&quot; file in the socket directory.</p>
+      
+      <p><code>no_unlink</code>: Disable that old persistent kernel objects are deleted at
+startup. This may be useful when <code>startup</code> is called a second time
+from the same program.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run">
+  <a href="index.html#/val:run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run : socket_directory:string <span class="rarr"><span>-&gt;</span></span> ?pidfile:string <span class="rarr"><span>-&gt;</span></span> ?init_ctrl:(<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?disable_pmanage:bool <span class="rarr"><span>-&gt;</span></span> ?no_unlink:bool <span class="rarr"><span>-&gt;</span></span> first_process:('a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a>) <span class="rarr"><span>-&gt;</span></span> extract_result:(<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process_id">process_id</a> <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p>This function fixes a design error in <code>startup</code>, namely that it was
+difficult to get the result of the process(es) back. Here, the
+additional callback <code>extract_result</code> can be used to retrieve the
+results from processes, especially from the first process.</p>
+      
+      <p>You need to call <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/val:join_nowait">join_nowait</a> to get the results from
+processes.</p>
+      
+      <p>The result of <code>extract_result</code> is the result of <code>run</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy_resources">
+  <a href="index.html#/val:destroy_resources" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy_resources : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys all resources that may be left</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Pa_tyxml</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Pa_tyxml</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Syntax extension for HTML5 or SVG tree creation.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>To choose actual XML-implementation you have to provide a module named <code>Html5</code>
+(or <code>Svg</code>):</p>
+      
+      <p>For example, the following code:
+</p>
+      <pre><code>  let module Html5 = Html5.M in
+  &lt;&lt; &lt;html&gt;
+     &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+     &lt;body&gt;&lt;h1&gt;plop&lt;/h1&gt;&lt;/body&gt;
+   &lt;/html&gt; &gt;&gt;
+)</code></pre>
+      <p>
+is a caml value of type </p>
+      <pre>Html5_types.html Html5.elt</pre>
+      <p>.</p>
+      
+      <p>In the following, <code>Html5</code> is assumed to be an HTML5 implementation, such as
+<code>Html5.M</code>, but this could for example also be Eliom's <code>Eliom_content.Html5.F</code>.</p>
+      
+      <p>To compile a module containing this syntax, you need the camlp4 preprocessor:
+</p>
+      <pre><code>ocamlfind ocamlc -package tyxml.syntax -syntax camlp4o -c your_module.ml</code></pre>
+      <p>
+or
+</p>
+      <pre><code>ocamlc -pp &quot;camlp4o -I &lt;path/to/tyxml&gt; pa_tyxml.cmo&quot; -c your_module.ml</code></pre>
+      <p>You can insert OCaml expressions of type </p>
+      <pre>'a Html5.M.elt</pre>
+      <p> inside html using </p>
+      <pre>$...$</pre>
+      <p>, like this:
+</p>
+      <pre><code>let oc = &lt;&lt; &lt;em&gt;Ocsigen&lt;/em&gt; &gt;&gt; in
+&lt;&lt; &lt;p&gt;$oc$ will revolutionize web programming.&lt;/p&gt; &gt;&gt;</code></pre>
+      <p>
+You can insert OCaml expressions of type string inside html using </p>
+      <pre>$str:... $</pre>
+      <p>, like this:
+</p>
+      <pre><code>let i = 4 in
+&lt;&lt; &lt;p&gt;i is equal to $str:string_of_int i$&lt;/p&gt; &gt;&gt;</code></pre>
+      <p>
+If you want to use a dollar in your page, just write it twice.</p>
+      
+      <p>You can write a list of html5 expressions using the syntax </p>
+      <pre>&lt;:html5list&lt;...&gt;&gt;</pre>
+      <p>, for example:
+</p>
+      <pre><code>&lt;:html5list&lt; &lt;p&gt;hello&lt;/p&gt; &lt;div&gt;&lt;/div&gt; &gt;&gt;</code></pre>
+      <p>Here are some other examples showing what you can do:
+</p>
+      <pre><code>&lt;&lt; &lt;ul class=$ulclass$ $list:other_attrs$&gt;
+     $first_il$
+     $list:items$
+   &lt;/ul&gt; &gt;&gt;</code></pre>
+      <p>Warning: lists antiquotations are allowed only at the end (before a closing tag). For example, the following is not valid:
+</p>
+      <pre><code>&lt;&lt; &lt;ul $list:other_attrs$ class=$ulclass$&gt;
+     $list:items$
+     $last_il$
+   &lt;/ul&gt; &gt;&gt;</code></pre>
+      <p>The syntax extension is not allowed in patterns for the while.</p>
+      
+      <p>Additionnaly, you may use <code>svg</code> or <code>svglist</code>.</p>
+      
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

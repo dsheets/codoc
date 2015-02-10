@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Element</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Element</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Type-safe access to the XML formats.
+See:
+http://0install.net/interface-spec.html
+http://0install.net/selections-spec.html</p>
+      
+      <p>Internally, all <code>_ t</code> types are just <code>Support.Qdom.element</code>, but we add a
+phantom type parameter to avoid mix-ups. e.g. a <code>[`command] t</code> is an element
+that we know is a &lt;command&gt;.</p>
+      
+      <p>The type parameter is a polymorphic variant because many commands work on
+multiple element types. For example, many elements have an 'interface'
+attribute, so the <code>interface</code> function accepts multiple types.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> +'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:binding_node">
+  <a href="index.html#/type:binding_node" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> binding_node = [ <div class="cons">| `environment</div><div class="cons">| `executable_in_path</div><div class="cons">| `executable_in_var</div><div class="cons">| `binding</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:binding">
+  <a href="index.html#/type:binding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> binding = [ <div class="cons">| `environment <span class="keyword">of</span> [ <div class="cons">| `environment</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `executable_in_path <span class="keyword">of</span> [ <div class="cons">| `executable_in_path</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `executable_in_var <span class="keyword">of</span> [ <div class="cons">| `executable_in_var</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `binding <span class="keyword">of</span> [ <div class="cons">| `binding</div> ] <a href="index.html#/type:t">t</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:dependency_node">
+  <a href="index.html#/type:dependency_node" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> dependency_node = [ <div class="cons">| `requires</div><div class="cons">| `restricts</div><div class="cons">| `runner</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:dependency">
+  <a href="index.html#/type:dependency" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> dependency = [ <div class="cons">| `requires <span class="keyword">of</span> [ <div class="cons">| `requires</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `restricts <span class="keyword">of</span> [ <div class="cons">| `restricts</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `runner <span class="keyword">of</span> [ <div class="cons">| `runner</div> ] <a href="index.html#/type:t">t</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:attr_node">
+  <a href="index.html#/type:attr_node" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> attr_node = [ <div class="cons">| `group</div><div class="cons">| `implementation</div><div class="cons">| `package_impl</div> ]
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Selections</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:parse_selections">
+  <a href="index.html#/val:parse_selections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_selections : Support.Qdom.element <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `selections</div> ] <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:selections">
+  <a href="index.html#/val:selections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> selections : [ <div class="cons">| `selections</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:local_path">
+  <a href="index.html#/val:local_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> local_path : [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:deps_and_bindings">
+  <a href="index.html#/val:deps_and_bindings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> deps_and_bindings : [&lt; <div class="cons">| `selection</div><div class="cons">| <a href="index.html#/type:attr_node">attr_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `requires <span class="keyword">of</span> [&gt; <div class="cons">| `requires</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `restricts <span class="keyword">of</span> [&gt; <div class="cons">| `restricts</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `command <span class="keyword">of</span> [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| <a href="index.html#/type:binding">binding</a></div> ] list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:arch">
+  <a href="index.html#/val:arch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> arch : [&lt; <div class="cons">| `selection</div><div class="cons">| `feed_import</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:id">
+  <a href="index.html#/val:id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> id : [&lt; <div class="cons">| `selection</div><div class="cons">| `implementation</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:version">
+  <a href="index.html#/val:version" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> version : [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:version_opt">
+  <a href="index.html#/val:version_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> version_opt : [&lt; <div class="cons">| `selection</div><div class="cons">| <a href="index.html#/type:dependency_node">dependency_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compile_min_version">
+  <a href="index.html#/val:compile_min_version" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compile_min_version : [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:doc_dir">
+  <a href="index.html#/val:doc_dir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc_dir : [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:source">
+  <a href="index.html#/val:source" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> source : [&lt; <div class="cons">| `selections</div><div class="cons">| <a href="index.html#/type:dependency_node">dependency_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_feed">
+  <a href="index.html#/val:parse_feed" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_feed : Support.Qdom.element <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `feed</div> ] <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Feeds</h2>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uri">
+  <a href="index.html#/val:uri" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uri : [ <div class="cons">| `feed</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uri_exn">
+  <a href="index.html#/val:uri_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uri_exn : [ <div class="cons">| `feed</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:feed_metadata">
+  <a href="index.html#/val:feed_metadata" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> feed_metadata : [ <div class="cons">| `feed</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `name <span class="keyword">of</span> [ <div class="cons">| `name</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `replaced_by <span class="keyword">of</span> [ <div class="cons">| `replaced_by</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `feed_for <span class="keyword">of</span> [ <div class="cons">| `feed_for</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `category <span class="keyword">of</span> [ <div class="cons">| `category</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `needs_terminal <span class="keyword">of</span> [ <div class="cons">| `needs_terminal</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `homepage <span class="keyword">of</span> [ <div class="cons">| `homepage</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `icon <span class="keyword">of</span> [ <div class="cons">| `icon</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `feed_import <span class="keyword">of</span> [ <div class="cons">| `feed_import</div> ] <a href="index.html#/type:t">t</a></div> ] list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:langs">
+  <a href="index.html#/val:langs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> langs : [&lt; <div class="cons">| `feed_import</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:src">
+  <a href="index.html#/val:src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> src : [&lt; <div class="cons">| `feed_import</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:group_children">
+  <a href="index.html#/val:group_children" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> group_children : [&lt; <div class="cons">| `feed</div><div class="cons">| `group</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `group <span class="keyword">of</span> [ <div class="cons">| `group</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `implementation <span class="keyword">of</span> [ <div class="cons">| `implementation</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `package_impl <span class="keyword">of</span> [ <div class="cons">| `package_impl</div> ] <a href="index.html#/type:t">t</a></div> ] list
+    
+      <div class="doc">
+        
+      <p>Note: main on `feed is deprecated</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:main">
+  <a href="index.html#/val:main" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> main : [&lt; <div class="cons">| `feed</div><div class="cons">| <a href="index.html#/type:attr_node">attr_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:self_test">
+  <a href="index.html#/val:self_test" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> self_test : [&lt; <div class="cons">| <a href="index.html#/type:attr_node">attr_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compile_command">
+  <a href="index.html#/val:compile_command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compile_command : [&lt; <div class="cons">| <a href="index.html#/type:attr_node">attr_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:retrieval_methods">
+  <a href="index.html#/val:retrieval_methods" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> retrieval_methods : [ <div class="cons">| `implementation</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Support.Qdom.element list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:href">
+  <a href="index.html#/val:href" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> href : [ <div class="cons">| `icon</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:icon_type">
+  <a href="index.html#/val:icon_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> icon_type : [ <div class="cons">| `icon</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:distributions">
+  <a href="index.html#/val:distributions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> distributions : [&lt; <div class="cons">| `package_impl</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Commands</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:get_runner">
+  <a href="index.html#/val:get_runner" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_runner : [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `runner</div> ] <a href="index.html#/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p>Find the &lt;runner&gt; child of this element (selection or command), if any.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Safe_exception</code> if there are multiple runners.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make_command">
+  <a href="index.html#/val:make_command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_command : ?path:Support.Common.filepath <span class="rarr"><span>-&gt;</span></span> ?shell_command:string <span class="rarr"><span>-&gt;</span></span> source_hint:'a <a href="index.html#/type:t">t</a> option <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_command">
+  <a href="index.html#/val:get_command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_command : string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_command_ex">
+  <a href="index.html#/val:get_command_ex" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_command_ex : string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:path">
+  <a href="index.html#/val:path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> path : [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:arg_children">
+  <a href="index.html#/val:arg_children" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> arg_children : [&lt; <div class="cons">| `command</div><div class="cons">| `runner</div><div class="cons">| `for_each</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `arg <span class="keyword">of</span> [ <div class="cons">| `arg</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `for_each <span class="keyword">of</span> [&gt; <div class="cons">| `for_each</div> ] <a href="index.html#/type:t">t</a></div> ] list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:item_from">
+  <a href="index.html#/val:item_from" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> item_from : [ <div class="cons">| `for_each</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:separator">
+  <a href="index.html#/val:separator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> separator : [&lt; <div class="cons">| `for_each</div><div class="cons">| `environment</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:command">
+  <a href="index.html#/val:command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> command : [&lt; <div class="cons">| `runner</div><div class="cons">| `binding</div><div class="cons">| `executable_in_path</div><div class="cons">| `executable_in_var</div><div class="cons">| `selections</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:command_children">
+  <a href="index.html#/val:command_children" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> command_children : [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| <a href="index.html#/type:dependency">dependency</a></div><div class="cons">| <a href="index.html#/type:binding">binding</a></div> ] list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:command_name">
+  <a href="index.html#/val:command_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> command_name : [ <div class="cons">| `command</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:simple_content">
+  <a href="index.html#/val:simple_content" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> simple_content : [&lt; <div class="cons">| `name</div><div class="cons">| `arg</div><div class="cons">| `category</div><div class="cons">| `homepage</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:interface">
+  <a href="index.html#/val:interface" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> interface : [&lt; <div class="cons">| `selections</div><div class="cons">| `selection</div><div class="cons">| `requires</div><div class="cons">| `restricts</div><div class="cons">| `runner</div><div class="cons">| `replaced_by</div><div class="cons">| `feed_for</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> General.iface_uri
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Feeds and interfaces</h2>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_feed">
+  <a href="index.html#/val:from_feed" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_feed : [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_interface">
+  <a href="index.html#/val:with_interface" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_interface : General.iface_uri <span class="rarr"><span>-&gt;</span></span> ([&lt; <div class="cons">| <a href="index.html#/type:dependency_node">dependency_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="keyword">as</span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Copy element with a new interface. Used to make relative paths absolute.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:importance">
+  <a href="index.html#/val:importance" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> importance : [&lt; <div class="cons">| `requires</div><div class="cons">| `runner</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `essential</div><div class="cons">| `recommended</div> ]
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Dependencies</h2>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:classify_dep">
+  <a href="index.html#/val:classify_dep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> classify_dep : [&lt; <div class="cons">| `requires</div><div class="cons">| `restricts</div><div class="cons">| `runner</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `requires <span class="keyword">of</span> [&gt; <div class="cons">| `requires</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `restricts <span class="keyword">of</span> [&gt; <div class="cons">| `restricts</div> ] <a href="index.html#/type:t">t</a></div><div class="cons">| `runner <span class="keyword">of</span> [&gt; <div class="cons">| `runner</div> ] <a href="index.html#/type:t">t</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:restrictions">
+  <a href="index.html#/val:restrictions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> restrictions : [&lt; <div class="cons">| `requires</div><div class="cons">| `restricts</div><div class="cons">| `runner</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `version <span class="keyword">of</span> [ <div class="cons">| `version</div> ] <a href="index.html#/type:t">t</a></div> ] list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:before">
+  <a href="index.html#/val:before" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> before : [ <div class="cons">| `version</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:not_before">
+  <a href="index.html#/val:not_before" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> not_before : [ <div class="cons">| `version</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:os">
+  <a href="index.html#/val:os" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> os : [&lt; <div class="cons">| <a href="index.html#/type:dependency_node">dependency_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:use">
+  <a href="index.html#/val:use" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> use : [&lt; <div class="cons">| <a href="index.html#/type:dependency_node">dependency_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:distribution">
+  <a href="index.html#/val:distribution" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> distribution : [&lt; <div class="cons">| <a href="index.html#/type:dependency_node">dependency_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:element_of_dependency">
+  <a href="index.html#/val:element_of_dependency" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> element_of_dependency : <a href="index.html#/type:dependency">dependency</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dependency_node">dependency_node</a> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dummy_restricts">
+  <a href="index.html#/val:dummy_restricts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dummy_restricts : [&gt; <div class="cons">| `restricts</div> ] <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bindings">
+  <a href="index.html#/val:bindings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bindings : [&lt; <div class="cons">| `selection</div><div class="cons">| `command</div><div class="cons">| `requires</div><div class="cons">| `restricts</div><div class="cons">| `runner</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:binding">binding</a> list
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Bindings</h2>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:binding_name">
+  <a href="index.html#/val:binding_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> binding_name : [&lt; <div class="cons">| `environment</div><div class="cons">| `executable_in_path</div><div class="cons">| `executable_in_var</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:element_of_binding">
+  <a href="index.html#/val:element_of_binding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> element_of_binding : <a href="index.html#/type:binding">binding</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:binding_node">binding_node</a> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:classify_binding">
+  <a href="index.html#/val:classify_binding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> classify_binding : [&lt; <div class="cons">| <a href="index.html#/type:binding_node">binding_node</a></div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:binding">binding</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert">
+  <a href="index.html#/val:insert" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert : [ <div class="cons">| `environment</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:value">
+  <a href="index.html#/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : [ <div class="cons">| `environment</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mode">
+  <a href="index.html#/val:mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mode : [ <div class="cons">| `environment</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default">
+  <a href="index.html#/val:default" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default : [ <div class="cons">| `environment</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package">
+  <a href="index.html#/val:package" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package : [&lt; <div class="cons">| `selection</div><div class="cons">| `package_impl</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Distribution packages</h2>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:quick_test_file">
+  <a href="index.html#/val:quick_test_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> quick_test_file : [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:quick_test_mtime">
+  <a href="index.html#/val:quick_test_mtime" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> quick_test_mtime : [ <div class="cons">| `selection</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int64 option
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Error reporting</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:raise_elem">
+  <a href="index.html#/val:raise_elem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> raise_elem : ('a, unit, string, _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>raise_elem &quot;Problem with&quot; elem</code> raises a <code>Safe_exception</code> with the message &quot;Problem with &lt;element&gt; at ...&quot;</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:log_elem">
+  <a href="index.html#/val:log_elem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log_elem : Support.Logging.level <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Like <code>raise_elem</code>, but writing a log record rather than raising an exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:show_with_loc">
+  <a href="index.html#/val:show_with_loc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> show_with_loc : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Generate a string identifying this element for use in error messages. Includes the source location, if known.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fmt">
+  <a href="index.html#/val:fmt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fmt : unit <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>sprintf &quot;%a&quot;</code> formatter that uses <code>show_with_loc</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:as_xml">
+  <a href="index.html#/val:as_xml" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> as_xml : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Support.Qdom.element
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_summary">
+  <a href="index.html#/val:get_summary" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_summary : int Support.Locale.LangMap.t <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `feed</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_description">
+  <a href="index.html#/val:get_description" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_description : int Support.Locale.LangMap.t <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `feed</div> ] <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

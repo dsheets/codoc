@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_proxy</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_proxy</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>RPC proxies</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>The <code>Rpc_proxy</code> module provides an improved reliability layer on
+top of [root:Rpc_client]. This layer especially features:</p>
+      <ul><li>automatic connection management: TCP connections are started
+and terminated as needed</li><li>multiple connections can be held in parallel to a remote
+server to increase concurrency on the server</li><li>failover to other servers when the orignal servers time out</li><li>support for an initial ping at connection establishment time
+to test the availability of the connection</li><li>retransmission of idempotent RPC calls</li></ul>
+      <p>Proxies can only handle stream connections (TCP and Unix Domain).
+Also, the remote endpoints must already be specified by socket
+addresses. (No portmapper and other indirect lookup methods.)</p>
+      
+      <p>The proxy functionality is implemented in two layers, the managed
+clients, and the managed sets. The former layer can handle only
+one TCP connection (with reconnect), whereas the latter is able to
+manage a bunch of connections to the same service. Both layers
+can profit from a reliability cache that knows which services had
+errors in the past.</p>
+      
+      <p>See below for a tutorial.</p>
+      
+      <p>There is also a blog article explaining RPC proxies:
+<a href="http://blog.camlcity.org/blog/ocamlnet3_ha.html">The next server,
+please!</a></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:ReliabilityCache">
+  <a href="index.html#/module:ReliabilityCache" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> ReliabilityCache : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>The reliability cache stores information about the availability
+of remote servers. The managed clients put information about
+recent failures into the cache.</p>
+      
+      <p>It is advantegeous to have only one cache per process, because
+this maximizes the usefulness. The cache is thread-safe.</p>
+      
+      <p>A server endpoint is disabled when too many errors occur in
+sequence. For a disabled endpoint the functions <code>host_is_enabled</code>
+and/or <code>sockaddr_is_enabled</code> return <code>false</code>. The endpoint is
+automatically enabled again after some timeout; this is initially
+<code>disable_timeout_min</code>, but is increased exponentially until
+<code>disable_timeout_max</code> when further errors occur.</p>
+      
+      <p>Independently of this machinery the functions <code>host_is_enabled</code>
+and <code>sockaddr_is_enabled</code> may also return <code>false</code> when an
+external availability checker says that the endpoint is down.
+This information is not entered into the cache, and will also
+not trigger the disable timeout. Instead, the hook function
+getting the availability will be simply called again.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:ReliabilityCache/type:rcache">
+  <a href="index.html#/module:ReliabilityCache/type:rcache" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> rcache
+    
+      <div class="doc">
+        
+      <p>The cache</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/type:rcache_policy">
+  <a href="index.html#/module:ReliabilityCache/type:rcache_policy" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> rcache_policy = [ <div class="cons">| `Independent</div><div class="cons">| `Failing_port_disables_host <span class="keyword">of</span> int</div><div class="cons">| `Any_failing_port_disables_host</div><div class="cons">| `None</div> ]
+    
+      <div class="doc">
+        
+      <p>How failures of individual ports are interpreted:</p>
+      <ul><li><code>`Independent</code>: When a connection to a remote port repeatedly fails,
+only this port is disabled</li><li><code>`Failing_port_disables_host p</code>: When a connection to the TCP
+port <code>p</code> repeatedly fails, the whole remote host is disabled.
+Other ports do not disable the host, but are treated as in
+<code>`Independent</code>.</li><li><code>`Any_failing_port_disables_host</code>: When a connection to any TCP
+port repeatedly fails, the whole remote host is disabled</li><li><code>`None</code>: Nothing is disabled</li></ul>
+      <p>Note that the <code>rcache_availability</code> hook is not affected by the
+policy; this hook is called anyway. The policy only determines
+how the internal error counter is interpreted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/type:rcache_config">
+  <a href="index.html#/module:ReliabilityCache/type:rcache_config" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> rcache_config = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:ReliabilityCache/type:rcache_config/field:rcache_policy">
+  <a href="index.html#/module:ReliabilityCache/type:rcache_config/field:rcache_policy" class="anchor">#</a>
+  rcache_policy
+  </div>
+  </td><td>: <a href="index.html#/module:ReliabilityCache/type:rcache_policy">rcache_policy</a></td><td>;</td><td>(*</td><td class="doc">The policy, see above</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ReliabilityCache/type:rcache_config/field:rcache_disable_timeout_min">
+  <a href="index.html#/module:ReliabilityCache/type:rcache_config/field:rcache_disable_timeout_min" class="anchor">#</a>
+  rcache_disable_timeout_min
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">For how long ports and hosts
+are disabled</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ReliabilityCache/type:rcache_config/field:rcache_disable_timeout_max">
+  <a href="index.html#/module:ReliabilityCache/type:rcache_config/field:rcache_disable_timeout_max" class="anchor">#</a>
+  rcache_disable_timeout_max
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">For how long ports and hosts
+are disabled at most</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ReliabilityCache/type:rcache_config/field:rcache_threshold">
+  <a href="index.html#/module:ReliabilityCache/type:rcache_config/field:rcache_threshold" class="anchor">#</a>
+  rcache_threshold
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">How many errors are required
+for disabling a port</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ReliabilityCache/type:rcache_config/field:rcache_availability">
+  <a href="index.html#/module:ReliabilityCache/type:rcache_config/field:rcache_availability" class="anchor">#</a>
+  rcache_availability
+  </div>
+  </td><td>: <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> bool</td><td>;</td><td>(*</td><td class="doc">External
+availability checker. Called by <code>sockaddr_is_enabled</code> before
+the result is calculated</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:create_rcache_config">
+  <a href="index.html#/module:ReliabilityCache/val:create_rcache_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_rcache_config : ?policy:<a href="index.html#/module:ReliabilityCache/type:rcache_policy">rcache_policy</a> <span class="rarr"><span>-&gt;</span></span> ?disable_timeout_min:float <span class="rarr"><span>-&gt;</span></span> ?disable_timeout_max:float <span class="rarr"><span>-&gt;</span></span> ?threshold:int <span class="rarr"><span>-&gt;</span></span> ?availability:(<a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ReliabilityCache/type:rcache_config">rcache_config</a>
+    
+      <div class="doc">
+        
+      <p>Create a config record. The optional arguments set the config
+components with the same name. The arguments default to:</p>
+      <ul><li><code>policy = `None</code></li><li><code>disable_timeout_min = 1.0</code></li><li><code>disable_timeout_max = 64.0</code></li><li><code>threshold = 1</code></li><li><code>availability = fun _ _ -&gt; true</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:create_rcache">
+  <a href="index.html#/module:ReliabilityCache/val:create_rcache" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_rcache : <a href="index.html#/module:ReliabilityCache/type:rcache_config">rcache_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new cache object. The same cache can be used by several
+managed clients, even by totally unrelated ones</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:rcache_config">
+  <a href="index.html#/module:ReliabilityCache/val:rcache_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rcache_config : <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ReliabilityCache/type:rcache_config">rcache_config</a>
+    
+      <div class="doc">
+        
+      <p>Return the config</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:global_rcache_config">
+  <a href="index.html#/module:ReliabilityCache/val:global_rcache_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> global_rcache_config : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ReliabilityCache/type:rcache_config">rcache_config</a>
+    
+      <div class="doc">
+        
+      <p>Returns the global config:</p>
+      <ul><li><code>policy = `None</code></li><li><code>disable_timeout_min = 1.0</code></li><li><code>disable_timeout_max = 64.0</code></li><li><code>threshold = 1</code></li><li><code>availability = fun _ _ -&gt; true</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:set_global_rcache_config">
+  <a href="index.html#/module:ReliabilityCache/val:set_global_rcache_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_global_rcache_config : <a href="index.html#/module:ReliabilityCache/type:rcache_config">rcache_config</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the new global config. This is only possible as long as
+neither <code>default_global_config</code> nor <code>global_rcache</code> have been called.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:global_rcache">
+  <a href="index.html#/module:ReliabilityCache/val:global_rcache" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> global_rcache : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a>
+    
+      <div class="doc">
+        
+      <p>The global cache. Initially, this cache has the default config.
+It is possible to change the default config before using the
+global cache for the first time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:derive_rcache">
+  <a href="index.html#/module:ReliabilityCache/val:derive_rcache" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> derive_rcache : <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ReliabilityCache/type:rcache_config">rcache_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a>
+    
+      <div class="doc">
+        
+      <p><code>derive_cache parent config</code>: Returns a new cache that shares the
+error counters with <code>parent</code>. The interpretation of the counters,
+however, may be differently configured in <code>config</code>.</p>
+      
+      <p>Because it is advantageous to share the error information as much
+as possible, the recommended way to create a new cache object is
+to derive it from the global cache.</p>
+      
+      <p>What <code>derive_rcache</code> actually does (and this is not yet
+optimal): Any <code>incr</code> and <code>reset</code> of an error counter is also
+forwarded to the parent cache. The tests whether hosts and ports
+are enabled do an AND of the results for the cache and its parent
+(i.e. both must be ok to enable). This allows some information
+sharing, but only in vertical direction.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:incr_rcache_error_counter">
+  <a href="index.html#/module:ReliabilityCache/val:incr_rcache_error_counter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> incr_rcache_error_counter : <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Increase the error counter for this sockaddr. If the threshold
+is reached and there is a disable policy, the sockaddr will be disabled.</p>
+      
+      <p>This function is to be called after an RPC call times out, or
+runs into a socket error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:reset_rcache_error_counter">
+  <a href="index.html#/module:ReliabilityCache/val:reset_rcache_error_counter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reset_rcache_error_counter : <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Reset the error counter for this sockaddr. If disabled, the
+sockaddr is set to enabled again.</p>
+      
+      <p>This function is to be called when an RPC call is successful.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:sockaddr_is_enabled">
+  <a href="index.html#/module:ReliabilityCache/val:sockaddr_is_enabled" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sockaddr_is_enabled : <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the sockaddr is enabled. This also calls the
+<code>rcache_availability</code> hook.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ReliabilityCache/val:host_is_enabled">
+  <a href="index.html#/module:ReliabilityCache/val:host_is_enabled" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> host_is_enabled : <a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the host is enabled</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient">
+  <a href="index.html#/module:ManagedClient" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> ManagedClient : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Managed clients are [root:Rpc_client] clients with the ability to
+reconnect in the case of errors.</p>
+      
+      <p>Additional features:</p>
+      <ul><li>they can also be disabled, either based on a time criterion or
+a customizable hook. This encodes the assumption that failing
+servers need some time to recover</li><li>unused connections are closed (driven by a timeout)</li><li>support for the initial ping after establishing the connection</li></ul>
+      <p>Initial pings are useful to test whether the connection is
+really working. Servers normally accept new TCP connections without
+knowing whether there are resources for processing the connections
+(i.e. whether there is a process or thread waiting for serving
+it). Because of this, the client cannot assume that the TCP
+connection is really up only because the <code>connect</code> system call
+said the connection is there. The initial ping fixes this problem:
+The null procedure is once called after the TCP connection has
+been established. Only when this works the client believes the
+connection is really up. It is required that <code>mclient_programs</code>
+is configured with at least one program, and this program must
+have a procedure number 0 of type <code>void -&gt; void</code>.</p>
+      
+      <p>In multi-threaded programs, threads must not share managed clients.</p>
+      
+      <p>Managed clients can be used together with ocamlrpcgen-generated
+modules. Provided the generated module <code>M_clnt</code> contains the
+client code for program <code>P</code> and version <code>V</code>, one can do</p>
+      <pre><code>         module MC = M_clnt.Make'P(Rpc_proxy.ManagedClient)</code></pre>
+      <p>and call RPCs <code>f</code> as in</p>
+      <pre><code>         let res = MC.V.f mc arg</code></pre>
+      <p>(if <code>mc</code> is the managed client, and <code>arg</code> the argument).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:ManagedClient/type:mclient">
+  <a href="index.html#/module:ManagedClient/type:mclient" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mclient
+    
+      <div class="doc">
+        
+      <p>A managed client</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/type:mclient_config">
+  <a href="index.html#/module:ManagedClient/type:mclient_config" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mclient_config = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_rcache">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_rcache" class="anchor">#</a>
+  mclient_rcache
+  </div>
+  </td><td>: <a href="index.html#/module:ReliabilityCache">ReliabilityCache</a>.<a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a></td><td>;</td><td>(*</td><td class="doc">The rcache</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_socket_config">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_socket_config" class="anchor">#</a>
+  mclient_socket_config
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/classtype:socket_config">socket_config</a></td><td>;</td><td>(*</td><td class="doc">The socket configuration</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_idle_timeout">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_idle_timeout" class="anchor">#</a>
+  mclient_idle_timeout
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">After how many seconds unused connections are closed.
+A negative value means never. 0 means immediately. A positive
+value is a point in time in the future.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_programs">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_programs" class="anchor">#</a>
+  mclient_programs
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> list</td><td>;</td><td>(*</td><td class="doc">The programs to bind</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_msg_timeout">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_msg_timeout" class="anchor">#</a>
+  mclient_msg_timeout
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">After how many seconds the reply must have been arrived.
+A negative value means there is no timeout. 0 means immediately.
+A positive
+value is a point in time in the future.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_msg_timeout_is_fatal">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_msg_timeout_is_fatal" class="anchor">#</a>
+  mclient_msg_timeout_is_fatal
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether a message timeout is to be considered as fatal error
+(the client is shut down, and the error counter for the endpoint
+is increased)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_exception_handler">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_exception_handler" class="anchor">#</a>
+  mclient_exception_handler
+  </div>
+  </td><td>: (exn <span class="rarr"><span>-&gt;</span></span> unit) option</td><td>;</td><td>(*</td><td class="doc">Whether to call <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:set_exception_handler">set_exception_handler</a></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_auth_methods">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_auth_methods" class="anchor">#</a>
+  mclient_auth_methods
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/classtype:auth_method">auth_method</a> list</td><td>;</td><td>(*</td><td class="doc">Set these authentication methods in the client</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_user_name">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_user_name" class="anchor">#</a>
+  mclient_user_name
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">The user name for authentication, None = default user</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_initial_ping">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_initial_ping" class="anchor">#</a>
+  mclient_initial_ping
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether to call procedure 0 of the first program after
+connection establishment (see comments above)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_max_response_length">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_max_response_length" class="anchor">#</a>
+  mclient_max_response_length
+  </div>
+  </td><td>: int option</td><td>;</td><td>(*</td><td class="doc">The maximum response length. See
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:set_max_response_length">set_max_response_length</a>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedClient/type:mclient_config/field:mclient_mstring_factories">
+  <a href="index.html#/module:ManagedClient/type:mclient_config/field:mclient_mstring_factories" class="anchor">#</a>
+  mclient_mstring_factories
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/type:named_mstring_factories">named_mstring_factories</a> option</td><td>;</td><td>(*</td><td class="doc">The factories to use for decoding managed strings</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/exn:Service_unavailable">
+  <a href="index.html#/module:ManagedClient/exn:Service_unavailable" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Service_unavailable
+    
+      <div class="doc">
+        
+      <p>Procedure calls may end with this exception when the reliability
+cache disables the service</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:create_mclient_config">
+  <a href="index.html#/module:ManagedClient/val:create_mclient_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_mclient_config : ?rcache:<a href="index.html#/module:ReliabilityCache">ReliabilityCache</a>.<a href="index.html#/module:ReliabilityCache/type:rcache">rcache</a> <span class="rarr"><span>-&gt;</span></span> ?socket_config:<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/classtype:socket_config">socket_config</a> <span class="rarr"><span>-&gt;</span></span> ?idle_timeout:float <span class="rarr"><span>-&gt;</span></span> ?programs:<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> ?msg_timeout:float <span class="rarr"><span>-&gt;</span></span> ?msg_timeout_is_fatal:bool <span class="rarr"><span>-&gt;</span></span> ?exception_handler:(exn <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?auth_methods:<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/classtype:auth_method">auth_method</a> list <span class="rarr"><span>-&gt;</span></span> ?user_name:string option <span class="rarr"><span>-&gt;</span></span> ?initial_ping:bool <span class="rarr"><span>-&gt;</span></span> ?max_response_length:int <span class="rarr"><span>-&gt;</span></span> ?mstring_factories:<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/type:named_mstring_factories">named_mstring_factories</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedClient/type:mclient_config">mclient_config</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Create a config record. The optional arguments set the config
+components with the same name. The defaults are:</p>
+      <ul><li><code>rcache</code>: Use the global reliability cache</li><li><code>socket_config</code>: <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:default_socket_config">default_socket_config</a></li><li><code>programs</code>: The empty list. It is very advisable to fill this!</li><li><code>msg_timeout</code>: (-1), i.e. none</li><li><code>msg_timeout_is_fatal</code>: false</li><li><code>exception_handler</code>: None</li><li><code>auth_methods</code>: empty list</li><li><code>user_name</code>: None</li><li><code>initial_ping</code>: false</li><li><code>max_response_length</code>: None</li><li><code>mstring_factories</code>: None</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/module:ManagedClient/val:create_mclient">
+  <a href="index.html#/module:ManagedClient/val:create_mclient" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_mclient : <a href="index.html#/module:ManagedClient/type:mclient_config">mclient_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/type:connector">connector</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedClient/type:mclient">mclient</a>
+    
+      <div class="doc">
+        
+      <p>Create a managed client for this config connecting to this
+connector. Only <code>Internet</code> and <code>Unix</code> connectors are supported.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/type:state">
+  <a href="index.html#/module:ManagedClient/type:state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> state = [ <div class="cons">| `Down</div><div class="cons">| `Connecting</div><div class="cons">| `Up <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> option</div> ]
+    
+      <div class="doc">
+        
+      <p>The state:</p>
+      <ul><li><code>`Down</code>: The initial state, and also reached after a socket
+error, or after one of the shutdown functions is called.
+Although <code>`Down</code>, there might still some cleanup to do.
+When RPC functions are called, the client is automatically
+revived.</li><li><code>`Connecting</code>: This state is used while the initial ping is
+done. It does not reflect whether the client is really
+TCP-connected. Without initial ping, this state cannot occur.</li><li><code>`Up s</code>: The client is (so far known) up and can be used.
+<code>s</code> is the socket address of the local socket</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:mclient_state">
+  <a href="index.html#/module:ManagedClient/val:mclient_state" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mclient_state : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedClient/type:state">state</a>
+    
+      <div class="doc">
+        
+      <p>Get the state</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:mclient_serial">
+  <a href="index.html#/module:ManagedClient/val:mclient_serial" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mclient_serial : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Get the serial number of the connection. The serial number is
+increased when the client is reconnected. If the client is down
+the serial number of the next connection attempt is returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:pending_calls">
+  <a href="index.html#/module:ManagedClient/val:pending_calls" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pending_calls : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the number of pending calls</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:event_system">
+  <a href="index.html#/module:ManagedClient/val:event_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> event_system : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    
+      <div class="doc">
+        
+      <p>Return the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:shut_down">
+  <a href="index.html#/module:ManagedClient/val:shut_down" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shut_down : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:sync_shutdown">
+  <a href="index.html#/module:ManagedClient/val:sync_shutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sync_shutdown : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:trigger_shutdown">
+  <a href="index.html#/module:ManagedClient/val:trigger_shutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> trigger_shutdown : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Shut down the managed client. See the corresponding functions
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:shut_down">shut_down</a>, <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:sync_shutdown">sync_shutdown</a>, and
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:trigger_shutdown">trigger_shutdown</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:record_unavailability">
+  <a href="index.html#/module:ManagedClient/val:record_unavailability" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> record_unavailability : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Increases the error counter in the reliability cache for this
+connection. The only effect can be that the error counter
+exceeds the <code>rcache_threshold</code> so that the server endpoint
+is disabled for some time. However, this only affects new
+connections, not existing ones.</p>
+      
+      <p>For a stricter interpretation of errors see
+<code>enforce_unavailability</code>.</p>
+      
+      <p>The error counter is increased anyway when a socket error
+happens, or an RPC call times out and <code>msg_timeout_is_fatal</code>
+is set. This function can be used to also interpret other
+misbehaviors as fatal errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:enforce_unavailability">
+  <a href="index.html#/module:ManagedClient/val:enforce_unavailability" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enforce_unavailability : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Enforces that all pending procedure calls get the
+<code>Service_unavailable</code> exception, and that the client is shut down.
+The background is this: When the reliability cache discovers an
+unavailable port or host, only the new call is stopped with this
+exception, but older calls remain unaffected. This function
+can be used to change the policy, and to stop even pending calls.</p>
+      
+      <p>The difference to <code>trigger_shutdown</code> is that the pending RPC
+calls get the exception <code>Service_unavailable</code> instead of
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/exn:Message_lost">Message_lost</a>, and that it is enforced that the
+shutdown is recorded as fatal error in the reliability cache.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:set_batch_call">
+  <a href="index.html#/module:ManagedClient/val:set_batch_call" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_batch_call : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The next call is a batch call. See <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:set_batch_call">set_batch_call</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:rpc_engine">
+  <a href="index.html#/module:ManagedClient/val:rpc_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rpc_engine : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ((unit <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Call an RPC function in engine style:</p>
+      <pre><code>let e = rpc_engine mc f_rpc</code></pre>
+      <p>where <code>f_rpc</code> is one of the generated client functions (async
+signature). The engine reaches <code>`Done r</code> when the result <code>r</code>
+has arrived.</p>
+      
+      <p>The engine is not abortable (shut the client down instead).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedClient/val:compare">
+  <a href="index.html#/module:ManagedClient/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>ManagedClient</code> can be used with <code>Set.Make</code> and <code>Map.Make</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/modtype:USE_CLIENT">USE_CLIENT</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/modtype:USE_CLIENT/type:t">t</a> = <a href="index.html#/module:ManagedClient/type:mclient">mclient</a> 
+    </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet">
+  <a href="index.html#/module:ManagedSet" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> ManagedSet : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Manages a set of clients</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:ManagedSet/type:mset">
+  <a href="index.html#/module:ManagedSet/type:mset" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mset
+    
+      <div class="doc">
+        
+      <p>a managed set</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/type:mset_policy">
+  <a href="index.html#/module:ManagedSet/type:mset_policy" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mset_policy = [ <div class="cons">| `Failover</div><div class="cons">| `Balance_load</div> ]
+    
+      <div class="doc">
+        
+      <p>Sets in which order managed clients are picked from the
+<code>services</code> array passed to <code>create_mset</code>:</p>
+      <ul><li><code>`Failover</code>: Picks an element from the first service
+in <code>services</code> that is enabled and has free capacity.
+That means that the first service is preferred until it is
+maxed out or it fails, then the second service is preferred,
+and so on.</li><li><code>`Balance_load</code>: Picks an element from the service in
+<code>services</code> that is enabled and has the lowest load.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/type:mset_config">
+  <a href="index.html#/module:ManagedSet/type:mset_config" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mset_config = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedSet/type:mset_config/field:mset_mclient_config">
+  <a href="index.html#/module:ManagedSet/type:mset_config/field:mset_mclient_config" class="anchor">#</a>
+  mset_mclient_config
+  </div>
+  </td><td>: <a href="index.html#/module:ManagedClient">ManagedClient</a>.<a href="index.html#/module:ManagedClient/type:mclient_config">mclient_config</a></td><td>;</td><td>(*</td><td class="doc">The mclient config</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedSet/type:mset_config/field:mset_policy">
+  <a href="index.html#/module:ManagedSet/type:mset_config/field:mset_policy" class="anchor">#</a>
+  mset_policy
+  </div>
+  </td><td>: <a href="index.html#/module:ManagedSet/type:mset_policy">mset_policy</a></td><td>;</td><td>(*</td><td class="doc">The policy</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedSet/type:mset_config/field:mset_pending_calls_max">
+  <a href="index.html#/module:ManagedSet/type:mset_config/field:mset_pending_calls_max" class="anchor">#</a>
+  mset_pending_calls_max
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">When an mclient processes this number of calls at the same time,
+it is considered as fully busy. (Value must by &gt; 0).</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedSet/type:mset_config/field:mset_pending_calls_norm">
+  <a href="index.html#/module:ManagedSet/type:mset_config/field:mset_pending_calls_norm" class="anchor">#</a>
+  mset_pending_calls_norm
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">When an mclient processes less than this number of calls,
+its load is considered as too light, and it is tried to put
+more load on this client before opening another one</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedSet/type:mset_config/field:mset_idempotent_max">
+  <a href="index.html#/module:ManagedSet/type:mset_config/field:mset_idempotent_max" class="anchor">#</a>
+  mset_idempotent_max
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">How often idempotent procedures may be tried to be called.
+A negative value means infinite.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:ManagedSet/type:mset_config/field:mset_idempotent_wait">
+  <a href="index.html#/module:ManagedSet/type:mset_config/field:mset_idempotent_wait" class="anchor">#</a>
+  mset_idempotent_wait
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">Wait this number of seconds before trying again</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/exn:Cluster_service_unavailable">
+  <a href="index.html#/module:ManagedSet/exn:Cluster_service_unavailable" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Cluster_service_unavailable
+    
+      <div class="doc">
+        
+      <p>Raised by <code>mset_pick</code> when no available endpoint can be found,
+or all available endpoints have reached their maximum load.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:create_mset_config">
+  <a href="index.html#/module:ManagedSet/val:create_mset_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_mset_config : ?mclient_config:<a href="index.html#/module:ManagedClient">ManagedClient</a>.<a href="index.html#/module:ManagedClient/type:mclient_config">mclient_config</a> <span class="rarr"><span>-&gt;</span></span> ?policy:<a href="index.html#/module:ManagedSet/type:mset_policy">mset_policy</a> <span class="rarr"><span>-&gt;</span></span> ?pending_calls_max:int <span class="rarr"><span>-&gt;</span></span> ?pending_calls_norm:int <span class="rarr"><span>-&gt;</span></span> ?idempotent_max:int <span class="rarr"><span>-&gt;</span></span> ?idempotent_wait:float <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedSet/type:mset_config">mset_config</a>
+    
+      <div class="doc">
+        
+      <p>Create a config record. The optional arguments set the config
+components with the same name. The defaults are:</p>
+      <ul><li><code>mclient_config</code>: The default mclient config</li><li><code>policy</code>: <code>`Balance_load</code></li><li><code>pending_calls_max</code>: <code>max_int</code></li><li><code>pending_calls_norm</code>: 1</li><li><code>idempotent_max</code>: 3</li><li><code>idempotent_wait</code>: 5.0</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:create_mset">
+  <a href="index.html#/module:ManagedSet/val:create_mset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_mset : <a href="index.html#/module:ManagedSet/type:mset_config">mset_config</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/type:connector">connector</a> * int) array <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedSet/type:mset">mset</a>
+    
+      <div class="doc">
+        
+      <p><code>create_mset config services</code>: The mset is created with <code>config</code>,
+and the <code>services</code> array describes which ports are available,
+and how often each port may be contacted (i.e. max number of
+connections).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:mset_pick">
+  <a href="index.html#/module:ManagedSet/val:mset_pick" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mset_pick : ?from:int list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedClient">ManagedClient</a>.<a href="index.html#/module:ManagedClient/type:mclient">mclient</a> * int
+    
+      <div class="doc">
+        
+      <p>Pick an mclient for another call, or raise <code>Cluster_service_unavailable</code>.
+The returned int is the index in the <code>mset_services</code> array.</p>
+      
+      <p>If <code>from</code> is given, not all specified mclients qualify for this
+call. In <code>from</code> one can pass a list of indexes pointing into
+the <code>mset_services</code> array, and only from these mclients the
+mclient is picked. For <code>`Failover</code> policies, the order given
+in <code>from</code> is respected, and the mclients are checked from left
+to right.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:mset_services">
+  <a href="index.html#/module:ManagedSet/val:mset_services" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mset_services : <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/type:connector">connector</a> * int) array
+    
+      <div class="doc">
+        
+      <p>Returns the service array</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:mset_load">
+  <a href="index.html#/module:ManagedSet/val:mset_load" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mset_load : <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> int array
+    
+      <div class="doc">
+        
+      <p>Returns the number of pending calls per service</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:event_system">
+  <a href="index.html#/module:ManagedSet/val:event_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> event_system : <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    
+      <div class="doc">
+        
+      <p>Return the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:shut_down">
+  <a href="index.html#/module:ManagedSet/val:shut_down" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shut_down : <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:sync_shutdown">
+  <a href="index.html#/module:ManagedSet/val:sync_shutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sync_shutdown : <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:trigger_shutdown">
+  <a href="index.html#/module:ManagedSet/val:trigger_shutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> trigger_shutdown : <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Shut down the managed set. See the corresponding functions
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:shut_down">shut_down</a>, <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:sync_shutdown">sync_shutdown</a>, and
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/val:trigger_shutdown">trigger_shutdown</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:idempotent_async_call">
+  <a href="index.html#/module:ManagedSet/val:idempotent_async_call" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> idempotent_async_call : ?from:int list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:ManagedClient">ManagedClient</a>.<a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ((unit <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ((unit <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>idempotent_async_call
+           mset async_call arg emit</code>: Picks a new
+<code>mclient</code> and calls <code>async_call mclient arg emit</code>.
+If the call leads to a fatal error, a new <code>mclient</code>
+is picked, and the call is repeated. In total, the call may be
+tried <code>mset_idempotent_max</code> times. It is recommended to set
+<code>rcache_threshold</code> to 1 when using this function because this
+enforces that a different mclient is picked when the first one
+fails.</p>
+      
+      <p>Note that a timeout is not considered as a fatal error by default;
+one has to enable that by setting <code>mclient_msg_timeout_is_fatal</code>.</p>
+      
+      <p>Note that this form of function is compatible with the
+generated <code>foo'async</code> functions of the language mapping.</p>
+      
+      <p><code>from</code> has the same meaning as in <code>mset_pick</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ManagedSet/val:idempotent_sync_call">
+  <a href="index.html#/module:ManagedSet/val:idempotent_sync_call" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> idempotent_sync_call : ?from:int list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:ManagedSet/type:mset">mset</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:ManagedClient">ManagedClient</a>.<a href="index.html#/module:ManagedClient/type:mclient">mclient</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ((unit <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p>Synchronized version. Note that you have to pass an asynchronous
+function as second argument. The result is synchronous, however.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:tut">
+  <a href="index.html#/label:tut" class="anchor">#</a>
+  
+    <h1 class="section level_1">The <code>Rpc_proxy</code> tutorial</h1>
+    
+  </div>
+  
+  <div class="region" id="/label:mclient">
+  <a href="index.html#/label:mclient" class="anchor">#</a>
+  
+    <h2 class="section level_2">Managed clients</h2>
+    
+  </div>
+  
+      <p>A normal RPC client has a very limited lifecylce: It is created,
+then a connection is made to an RPC service, messages are exchanged,
+and finally the connection is terminated. After that the client
+becomes unusable. In short, it is &quot;use once&quot; client.</p>
+      
+      <p>In contrast to this, managed clients can be recycled. This is
+especially useful for dealing with socket errors, and
+connection terminations triggered by the RPC server.</p>
+      
+      <p><b>How to use managed clients:</b> For a <i>normal</i> RPC client the
+generator <code>ocamlrpcgen</code> creates all required glue code to easily
+start RPC calls. For example, if a file <code>proto.x</code> is taken as input
+for <code>ocamlrpcgen</code>, a piece of code doing a call could look like:</p>
+      <pre><code>      let client =
+        Proto_clnt.PROG.VERS.create_client connector protocol
+      let result =
+        Proto_clnt.PROG.VERS.procedure client argument</code></pre>
+      <p>(Here, <code>PROG</code>, <code>VERS</code>, <code>procedure</code> are just placeholders for the
+name of the program, the version identifier, and the procedure name.)</p>
+      
+      <p>For RPC proxies, however, this is slightly more complicated. <code>ocamlrpcgen</code>
+does not produce a managed client that is ready for use. Instead,
+only a functor is provided that can take the
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.ManagedlClient module as input:</p>
+      <pre><code>      module M = Proto_clnt.Make'PROG(Rpc_proxy.ManagedClient)
+
+      let esys =
+        Unixqueue.create_unix_event_system()
+      let mclient_config =
+        Rpc_proxy.ManagedClient.create_mclient_config
+          ~programs:[ Proto_clnt.PROG.VERS._program ]
+          () in
+      let mclient =
+        Rpc_proxy.ManagedClient.create_mclient mclient_config connector esys
+      let result =
+        M.VERS.procedure mclient argument</code></pre>
+      <p>(The functor approach has been chosen, because it gives the
+user more flexibility - it is possible to apply the functor
+on other implementations of improved clients than
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient">ManagedClient</a>.)</p>
+      
+      <p>Note that <code>esys</code> is always explicit, even in the case the
+user only performs synchronous calls - the user should create
+a new <code>esys</code> then, pass it to <code>mclient</code>, and ignore it otherwise.</p>
+      
+      <p>Now, how does the recycling feature work? The managed client can be
+in one of three states:</p>
+      <ul><li><code>`Down</code>: The client is not connected. This is the initial state,
+and the state after errors and terminated connections (no matter
+whether triggered by the client or by the server)</li><li><code>`Connecting</code>: The client is busy (re)connecting (only used in
+some cases)</li><li><code>`Up sockaddr</code>: The client is connected and has the socket address
+<code>sockaddr</code></li></ul>
+      <p>The state can be queried with <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient">ManagedClient</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient/val:mclient_state">mclient_state</a>.
+When it is <code>`Down</code>, the next RPC call automatically starts the
+reconnect to the service. When the connection is established, the
+call is done, and the messages are exchanged that are representing
+the call. After that, the state remains <code>`Up</code> after the call.</p>
+      
+      <p>When the call stops because of an error, the error is reported to
+the user in the normal way, and the client is shut down, i.e. after
+an error the state is <code>`Down</code>. If the user decides to try the call
+again, the client automatically reconnects following the outlined
+rules. Note that managed clients never automatically retry calls
+by themselves.</p>
+      
+      <p>When the TCP connection is regularly shut down (either by the server
+or by the client calling <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient">ManagedClient</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient/val:shut_down">shut_down</a>), the
+client state is changed to <code>`Down</code> at the next opportunity. Especially
+a server-driven shutdown may first be detected when the next RPC call
+is tried on the connection. This may or may not lead to an error
+depending on the exact timing. In any way, the connection is finally
+established again.</p>
+      
+      <p>Of course, managed clients must be shut down after use, because
+there is no other (automatic) way of recognizing that they are no
+longer used. Call <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient">ManagedClient</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient/val:shut_down">shut_down</a> for this.</p>
+      
+      <p>Managed client also have a few more features that can be
+enabled in <code>mclient_config</code>, especially:</p>
+      <ul><li><b>Initial ping</b>: This means that the TCP connection is tested
+before being used for user operations. The test is done by pinging
+the service once (via the RPC null procedure). This is recommended
+because some connectivity problems can first be detected when the
+TCP connection is actually used.</li><li><b>Idle timeout</b>: The TCP connection is closed after it is
+idle for some period of time. &quot;Idle&quot; means here that nothing is
+being transmitted, and that no response from the server is expected.
+The connection is closed at the first opportunity. The user should
+be aware that this can only happen when the event loop for <code>esys</code>
+is running. Especially for synchronous calls this is typically
+not the case, so one would have to call <code>Unixqueue.run esys</code> now
+and then to create opportunities for detecting the idle timeout.</li><li><b>Reliability cache</b>: The cache object counts errors, and can
+disable certain service endpoints if they only produce errors.
+This mostly makes sense when there are alternative endpoints,
+i.e. in the context of a managed set (see below).</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Managed Sets</h2>
+    </div>
+      <p>Managed sets are another layer on top of the managed
+clients. These sets are able to manage several connections where
+each is implemented as managed client. The connections can go to
+the same server endpoint in order to parallelize RPCs at the
+client side, or to several server endpoints that provide the same
+service. The latter can be used for client-driven load balancing,
+and for client-driven failover management of HA setups (HA = high
+availability).</p>
+      
+      <p>For creating a managed set, the code looks like</p>
+      <pre><code>      module M = Proto_clnt.Make'PROG(Rpc_proxy.ManagedClient)
+
+      let esys =
+        Unixqueue.create_unix_event_system()
+      let mclient_config =
+        Rpc_proxy.ManagedClient.create_mclient_config
+          ~programs:[ Proto_clnt.PROG.VERS._program ]
+          () in
+      let mset_config =
+        Rpc_proxy.ManagedSet.create_mset_config
+          ~mclient_config
+          () in
+      let services =
+        [| connector, n_connections; ... |] in
+      let mset =
+        Rpc_proxy.ManagedSet.create_mset 
+          mset_config 
+          services
+          esys in
+      let mclient, idx =
+        Rpc_proxy.ManagedSet.mset_pick mset in
+      let result =
+        M.VERS.procedure mclient argument</code></pre>
+      <p>The managed clients are internally created by the set - one
+only should pass in <code>mclient_config</code> so the set knows what kind of
+client is preferred. For the simple application of maintaining
+several connections to the same server, one would create the <code>mset</code>
+with a one-element service array:</p>
+      <pre><code>       let services =
+          [| connector, n_connections |]</code></pre>
+      <p>where <code>connector</code> describes the server port, and <code>n_connections</code> is
+the maximum number of connections to create and maintain.
+The <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet">ManagedSet</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet/val:mset_pick">mset_pick</a>
+function creates internally up to <code>n_connections</code> managed clients,
+and returns one of them. By default, it is not guaranteed that the
+client is idle (meaning no previous call is pending) -
+if the connections are all already busy, <code>mset_pick</code>
+starts returning busy connections (but the least busy one first).</p>
+      
+      <p>There are a number of options allowing to modify the default
+behavior:</p>
+      <ul><li>One can enforce that only idle clients are returned by <code>mset_pick</code>.
+To do this, pass the argument <code>~mset_pending_calls_max:1</code> to
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet">ManagedSet</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet/val:create_mset_config">create_mset_config</a>. It can then happen
+that no client is idle, and <code>mset_pick</code> will raise
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet">ManagedSet</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet/exn:Cluster_service_unavailable">Cluster_service_unavailable</a>.</li><li>If the <code>services</code> array has more than one element, they are
+considered as equivalent service endpoints. <code>mset_pick</code> will
+pick one of the endpoints. There are two policies controlling
+the selection: With <code>~policy:`Balance_load</code> it is aimed at
+sending roughly the same number of calls to all endpoints. With
+<code>~policy:`Failover</code> the services are assigned precedences by the position
+in the array (i.e. the first service is used as long as possible,
+then the second service is used, etc.). The <code>policy</code> argument
+is again to be passed to <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet">ManagedSet</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet/val:create_mset_config">create_mset_config</a>.</li></ul>
+      <p>Of course, managed sets must be shut down after use, because
+there is no other (automatic) way of recognizing that they are no
+longer used. Call <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet">ManagedSet</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet/val:shut_down">shut_down</a> for this.</p>
+      <div class="region">
+    <h2 class="section level_2">Caching reliability data</h2>
+    </div>
+      <p>The cache allows to disable certain hosts or ports when the error
+counter reaches a limit. The service is disabled for a limited time span.
+This is especially useful when there is an alternate port that can
+jump in for the failing one, i.e. when the <code>services</code> array of a
+managed set has two or more elements.</p>
+      
+      <p>There is a single global cache object, but one can also create
+specific cache objects. Generally, cache objects can be shared by
+many managed clients and managed sets. The hope is that sharing
+is useful because more data can be made available to users of
+services. If you do not want to use the global cache object, you
+can create your own, and configure it in <code>mclient_config</code>.</p>
+      
+      <p>The global cache object is automatically used when nothing else
+is specified. The global cache object is by default configured in
+a way so it does not have any effect, though. So we have to
+change this in order to enable the cache:</p>
+      <pre><code>     let rcache_config =
+       Rpc_proxy.ReliabilityCache.create_rcache_config
+        ~policy:`Independent
+        ~threshold:3
+        () in
+     Rpc_proxy.ReliabilityCache.set_global_rcache_config rcache_config</code></pre>
+      <p>This means that 3 errors in sequence disable a service port. <code>`Independent</code>
+means that each port is handled independently in this respect.</p>
+      
+      <p>At the first time, the port is only disabled for one second. The
+duration of the time span is increased by each additional error
+until it reaches 64 seconds. These durations can be changed, of
+course.</p>
+      
+      <p>As the impact of changing the global cache object is sometimes
+unpredictable, one can also create a private cache object
+(<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ReliabilityCache">ReliabilityCache</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ReliabilityCache/val:create_rcache">create_rcache</a>). Another way is
+to derive a semi-private object from the global one. This means
+that the error counters are global, but the interpretation can
+be set individually in each use. This would look like:</p>
+      <pre><code>    let rcache_config =
+      Rpc_proxy.ReliabilityCache.create_rcache_config
+        ~policy:`Independent
+        ~threshold:3
+        () in
+    let rcache =
+      Rpc_proxy.ReliabilityCache.derive_rcache
+        (Rpc_proxy.ReliabilityCache.global_rcache())
+        rcache_config in
+    ...
+    let mclient_config =
+      Rpc_proxy.ManagedClient.create_mclient_config
+        ...
+        ~rcache
+        ...
+        ()</code></pre><div class="region">
+    <h2 class="section level_2">Idempotent calls</h2>
+    </div>
+      <p>In the layer of managed sets there is some limited support for
+automatically repeating failing idempotent RPC calls.</p>
+      
+      <p>Instead of calling the RPC with</p>
+      <pre><code>      let mclient, idx =
+        Rpc_proxy.ManagedSet.mset_pick mset in
+      let result =
+        M.VERS.procedure mclient argument</code></pre>
+      <p>one uses</p>
+      <pre><code>      let result =
+        Rpc_proxy.ManagedSet.idempotent_sync_call
+          mset
+          M.VERS.procedure'async
+          argument</code></pre>
+      <p>The effet is that <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet">ManagedSet</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet/val:idempotent_sync_call">idempotent_sync_call</a>
+repeats automatically the call when an error occurs. It is
+assumed that the call is idempotent so it can be repeated
+without changing the meaning.</p>
+      
+      <p>The call may be repeated several times. This is configured in
+the managed set <code>mset</code> (parameter <code>mset_idempotent_max</code>).</p>
+      
+      <p>Note that one has to pass the asynchronous version (suffix <code>'async</code>)
+of the RPC wrapper even when doing a synchronous call.</p>
+      
+      <p>Also see the documentation for
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet">ManagedSet</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedSet/val:idempotent_async_call">idempotent_async_call</a>.</p>
+      
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

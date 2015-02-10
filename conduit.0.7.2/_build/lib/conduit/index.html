@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Conduit</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Conduit</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Interface for establishing reliable stream-oriented connections.</p>
+      
+      <p>This library abstracts the concerns of establishing connections to
+peers that may be running within the same host (e.g. in another
+virtual machine) or on a remote host via TCP. It consists of one
+library that is responsible for <a href="index.html#/label:transport">establishing individual
+connections</a>, and a <a href="index.html#/label:resolution">name resolver</a> that maps URIs
+to endpoints.</p>
+      
+  <div class="region" id="/label:transport">
+  <a href="index.html#/label:transport" class="anchor">#</a>
+  
+    <h2 class="section level_2">Connection Establishment</h2>
+    
+  </div>
+  
+      <p>Connections are created by identifying remote nodes using an
+<a href="index.html#/type:endp">endp</a> value. To ensure portability, the <a href="index.html#/type:endp">endp</a> values
+are translated into concrete connections by separate modules that
+target <code>Lwt_unix</code>, <code>Async</code> and <code>Mirage</code>. This lets those backends
+use the appropriate local technique for creating the connection
+(such as using OpenSSL on Unix, or a pure OCaml TLS+TCP
+implementation on Mirage, or some other combination).</p>
+      
+      <p>The modules dealing with connection establishment are:
+</p>
+      
+    <table class="module_index">
+    <tr><td><a href="../../../../conduit.0.7.2/_build/lib/conduit_lwt_unix/">Conduit_lwt_unix</a></td></tr><tr><td>[root:Conduit_async]</td></tr><tr><td>[root:Conduit_mirage]</td></tr>
+    </table>
+    
+  <div class="region" id="/label:resolution">
+  <a href="index.html#/label:resolution" class="anchor">#</a>
+  
+    <h2 class="section level_2">Name Resolution</h2>
+    
+  </div>
+  
+      <p>This deals with resolving URIs into a list of <a href="index.html#/type:endp">endp</a> addresses that can
+then be connected to by the <a href="index.html#/label:transport">connection establishment</a> modules.</p>
+      
+      <p>All of the name resolvers conform to the [root:RESOLVER] module type.
+The OS-specific implementations of this interface are:
+</p>
+      
+    <table class="module_index">
+    <tr><td><a href="../../../../conduit.0.7.2/_build/lib/resolver_lwt/">Resolver_lwt</a></td></tr><tr><td><a href="../../../../conduit.0.7.2/_build/lib/resolver_lwt_unix/">Resolver_lwt_unix</a></td></tr><tr><td>[root:Resolver_mirage]</td></tr>
+    </table>
+    
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:endp">
+  <a href="index.html#/type:endp" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> endp = [ <div class="cons">| `TCP <span class="keyword">of</span> <a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/">Ipaddr</a>.<a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/#/type:t">t</a> * int</div><div class="cons">| `Unix_domain_socket <span class="keyword">of</span> string</div><div class="cons">| `Vchan_direct <span class="keyword">of</span> int * string</div><div class="cons">| `Vchan_domain_socket <span class="keyword">of</span> string * string</div><div class="cons">| `TLS <span class="keyword">of</span> string * <a href="index.html#/type:endp">endp</a></div><div class="cons">| `Unknown <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>End points that can potentially be connected to.
+These are typically returned by a call to a <a href="index.html#/label:resolution">resolver</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:IO">
+  <a href="index.html#/modtype:IO" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> IO = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Module type for cooperative threading that can be satisfied by
+Lwt or Async</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:IO/type:t">
+  <a href="index.html#/modtype:IO/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> +'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:IO/val:(&gt;&gt;=)">
+  <a href="index.html#/modtype:IO/val:(%3E%3E=)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&gt;&gt;=) : 'a <a href="index.html#/modtype:IO/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/modtype:IO/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/modtype:IO/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:IO/val:return">
+  <a href="index.html#/modtype:IO/val:return" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> return : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/modtype:IO/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:endp_of_sexp">
+  <a href="index.html#/val:endp_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> endp_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:endp">endp</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__endp_of_sexp__">
+  <a href="index.html#/val:__endp_of_sexp__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __endp_of_sexp__ : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:endp">endp</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_endp">
+  <a href="index.html#/val:sexp_of_endp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_endp : <a href="index.html#/type:endp">endp</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

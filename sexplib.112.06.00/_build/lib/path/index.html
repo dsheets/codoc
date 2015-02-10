@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Path</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Path</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Path: Module for Substitutions within S-expressions</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Types</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:el">
+  <a href="index.html#/type:el" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> el = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:el/cons:Pos">
+  <a href="index.html#/type:el/cons:Pos" class="anchor">#</a>
+  | Pos <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc"><code>Pos n</code> denotes <code>n</code>th element in a tuple</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:el/cons:Match">
+  <a href="index.html#/type:el/cons:Match" class="anchor">#</a>
+  | Match <span class="keyword">of</span> string * int
+  </div>
+  </td><td>(*</td><td class="doc"><code>Match (tag, n)</code> denotes <code>n</code>th argument of sum matching <code>tag</code></td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:el/cons:Rec">
+  <a href="index.html#/type:el/cons:Rec" class="anchor">#</a>
+  | Rec <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc"><code>Rec name</code> denotes the record field having <code>name</code></td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Type of substitution elements</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="index.html#/type:el">el</a> list
+    
+      <div class="doc">
+        
+      <p>Type of substitution paths</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">High-level functions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:parse">
+  <a href="index.html#/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>parse str</code></p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> a substitution path represented by string <code>str</code>.<br/>Syntax:<br/>&quot;.&quot; -&gt;
+separates path elements; must be present at start of string.<br/>&quot;[4]&quot; -&gt;
+specifies the 4th element in a tuple.<br/>&quot;some_tag[4]&quot; -&gt;
+tries to match <code>some_tag</code>, then denotes its 4th argument.<br/>&quot;name&quot; -&gt;
+denotes record field having <code>name</code><br/>Example from test code:<br/>&quot;.t.x.B<code>1</code>&quot; -&gt; choose record field with name <code>t</code>, then subfield
+<code>x</code>. Match this value against <code>B</code>, and denote its first argument.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if the path is syntactically invalid.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : ?path:<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?str:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t
+    
+      <div class="doc">
+        
+      <p><code>get ?path ?str sexp</code> if <code>path</code> is provided, use it as path.
+Otherwise, if <code>str</code> is provided, parse it as a path. If neither
+is provided, assume an empty path.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the sub-expression from
+S-expression <code>sexp</code> denoted by the path.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if path is syntactically invalid or if the path
+structure clashes with the structure of the data.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace">
+  <a href="index.html#/val:replace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace : ?path:<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?str:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> subst:<a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t
+    
+      <div class="doc">
+        
+      <p><code>replace ?path ?str sexp ~subst</code> like <code>get</code>, but does not extract
+a sub-expression but substitutes it with <code>subst</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> resulting
+S-expression.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if path is syntactically invalid or if the path
+structure clashes with the structure of the data.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace_no_path">
+  <a href="index.html#/val:replace_no_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace_no_path : str:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> subst:<a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t
+    
+      <div class="doc">
+        
+      <p><code>replace_no_path ~str sexp ~subst</code> like <code>replace</code>, but does not take
+optional arguments. <code>str</code> must be specified.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if path is syntactically invalid or if the path
+structure clashes with the structure of the data.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:subst_path">
+  <a href="index.html#/val:subst_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> subst_path : <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t) * <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t
+    
+      <div class="doc">
+        
+      <p><code>subst_path sexp path</code></p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the tuple <code>(subst, sub)</code>, where <code>subst</code>
+is a function that returns an S-expression in which the subexpression
+denoted by <code>path</code> in <code>sexp</code> has been substituted by its argument.
+<code>sub</code> is the denoted subexpression. Note that <code>subst sub = sexp</code>.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if path is syntactically invalid or if the path
+structure clashes with the structure of the data.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Low-level functions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:extract_pos">
+  <a href="index.html#/val:extract_pos" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract_pos : int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t option <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t) * <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t
+    
+      <div class="doc">
+        
+      <p><code>extract_pos n sexp</code></p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the tuple <code>(subst, sub)</code>, where <code>subst</code>
+is a function that returns an S-expression in which the subexpression
+denoted at position <code>n</code> in <code>sexp</code>, which must be a list, has been
+substituted by <code>value</code> if the optional argument is <code>Some value</code>, or
+removes the denoted subexpression if the optional argument is <code>None</code>.
+<code>sub</code> is the denoted subexpression. Note that <code>subst (Some sub) =
+    sexp</code>.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if the position cannot be resolved within the given
+S-expression.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract_match">
+  <a href="index.html#/val:extract_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract_match : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t option <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t) * <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t
+    
+      <div class="doc">
+        
+      <p><code>extract_match tag n sexp</code></p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the tuple <code>(subst, sub)</code>, where
+<code>subst</code> is a function that returns an S-expression in which the
+subexpression denoted by matching <code>tag</code> and taking its <code>n</code>th argument
+in <code>sexp</code> has been substituted by <code>value</code> if the argument is <code>Some
+    value</code>, or removes the denoted subexpression if the optional argument
+is <code>None</code>. <code>sub</code> is the denoted subexpression. Note that <code>subst
+    (Some sub) = sexp</code>.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if the S-expression does not represent a sum tag.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract_rec">
+  <a href="index.html#/val:extract_rec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract_rec : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t) * <a href="../../../../sexplib.112.06.00/_build/lib/sexp/">Sexp</a>.t
+    
+      <div class="doc">
+        
+      <p><code>extract_rec name sexp</code></p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the tuple <code>(subst, sub)</code>, where
+<code>subst</code> is a function that returns an S-expression in which the
+subexpression denoted by matching field name <code>name</code> in <code>sexp</code> has
+been substituted by its argument. <code>sub</code> is the denoted subexpression.
+Note that <code>subst (Some sub) = sexp</code>.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Failure</code> if the S-expression does not represent a record.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,4274 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Http_client</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Http_client</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>HTTP 1.1 client</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p><b>Note for beginners:</b> There is a simplified interface called
+<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/module:Convenience">Convenience</a>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Thread safety</b></p>
+      
+      <p>The module can be compiled such that it is thread-safe. In particular,
+one has to link the http_client_mt.cm<code>xo</code> object, and thread-safety is
+restricted to the following kinds of usage:</p>
+      <ul><li>The golden rule is that threads must not share pipeline objects.
+If every thread uses its own pipeline, every thread will have its own
+set of state variables.
+It is not detected if two threads errornously share a pipeline,
+neither by an error message nor by implicit serialization. Strange
+things may happen.</li><li>The same applies to the other objects, e.g. http_call objects</li><li>The <code>Convenience</code> module even serializes; see below.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Types and Exceptions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Bad_message">
+  <a href="index.html#/exn:Bad_message" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Bad_message <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>The server sent a message which cannot be interpreted. The string
+indicates the reason.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:No_reply">
+  <a href="index.html#/exn:No_reply" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_reply
+    
+      <div class="doc">
+        
+      <p>There was no response to the request because some other request failed
+earlier and it was not allowed to send the request again.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Too_many_redirections">
+  <a href="index.html#/exn:Too_many_redirections" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Too_many_redirections
+    
+      <div class="doc">
+        
+      <p>While following redirections the limit has been reached</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Name_resolution_error">
+  <a href="index.html#/exn:Name_resolution_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Name_resolution_error <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Could not resolve this name - same as <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.Host_not_found</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:URL_syntax_error">
+  <a href="index.html#/exn:URL_syntax_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> URL_syntax_error <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>This URL cannot be parsed after a redirection has been followed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Timeout">
+  <a href="index.html#/exn:Timeout" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Timeout <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>A timeout. The string explains which connection is affected.
+<b>New since Ocamlnet-3.3.</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Proxy_error">
+  <a href="index.html#/exn:Proxy_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Proxy_error <span class="keyword">of</span> int
+    
+      <div class="doc">
+        
+      <p>An error status from a proxy. This is only used when extra proxy messages
+are used to configure the proxy (e.g. the CONNECT message).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Response_too_large">
+  <a href="index.html#/exn:Response_too_large" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Response_too_large
+    
+      <div class="doc">
+        
+      <p>The length of the response exceeds the configured maximum</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Http_protocol">
+  <a href="index.html#/exn:Http_protocol" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Http_protocol <span class="keyword">of</span> exn
+    
+      <div class="doc">
+        
+      <p>The request could not be processed because the exception condition
+was raised. The inner exception is one of the above defined.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Http_error">
+  <a href="index.html#/exn:Http_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Http_error <span class="keyword">of</span> (int * string)
+    
+      <div class="doc">
+        
+      <p><b>Deprecated.</b>
+The server sent an error message. The left component of the pair is
+the error code, the right component is the error text.
+This exception is only used by <code>get_resp_body</code>, and by the
+<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/module:Convenience">Convenience</a> module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:status">
+  <a href="index.html#/type:status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> status = [ <div class="cons">| `Unserved</div><div class="cons">| `Http_protocol_error <span class="keyword">of</span> exn</div><div class="cons">| `Successful</div><div class="cons">| `Redirection</div><div class="cons">| `Client_error</div><div class="cons">| `Server_error</div> ]
+    
+      <div class="doc">
+        
+      <p>Condensed status information of a HTTP call:</p>
+      <ul><li><code>`Unserved</code>: The call has not yet been finished</li><li><code>`HTTP_protocol_error e</code>: An error on HTTP level occurred. Corresponds
+to the exception <code>Http_protocol</code>.</li><li><code>`Successful</code>: The call is successful, and the response code is between
+200 and 299.</li><li><code>`Redirection</code>: The call is successful, and the response code is
+between 300 and 399.</li><li><code>`Client_error</code>: The call failed with a response code between 400 and
+499.</li><li><code>`Server_error</code>: The call failed for any other reason.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:how_to_reconnect">
+  <a href="index.html#/type:how_to_reconnect" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'message_class how_to_reconnect = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:how_to_reconnect/cons:Send_again">
+  <a href="index.html#/type:how_to_reconnect/cons:Send_again" class="anchor">#</a>
+  | Send_again
+  </div>
+  </td><td>(*</td><td class="doc">Send the request automatically again</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:how_to_reconnect/cons:Request_fails">
+  <a href="index.html#/type:how_to_reconnect/cons:Request_fails" class="anchor">#</a>
+  | Request_fails
+  </div>
+  </td><td>(*</td><td class="doc">Drop the request</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:how_to_reconnect/cons:Inquire">
+  <a href="index.html#/type:how_to_reconnect/cons:Inquire" class="anchor">#</a>
+  | Inquire <span class="keyword">of</span> 'message_class <span class="rarr"><span>-&gt;</span></span> bool
+  </div>
+  </td><td>(*</td><td class="doc">If the function return <code>true</code> send again, otherwise
+drop the request.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:how_to_reconnect/cons:Send_again_if_idem">
+  <a href="index.html#/type:how_to_reconnect/cons:Send_again_if_idem" class="anchor">#</a>
+  | Send_again_if_idem
+  </div>
+  </td><td>(*</td><td class="doc">Default behaviour: <code>Send_again</code> for idempotent
+methods (GET, HEAD), <code>Request_fails</code> for the rest</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>How to deal with automatic reconnections, especially when the
+connection crashes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:how_to_redirect">
+  <a href="index.html#/type:how_to_redirect" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'message_class how_to_redirect = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:how_to_redirect/cons:Redirect">
+  <a href="index.html#/type:how_to_redirect/cons:Redirect" class="anchor">#</a>
+  | Redirect
+  </div>
+  </td><td>(*</td><td class="doc">Perform the redirection</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:how_to_redirect/cons:Do_not_redirect">
+  <a href="index.html#/type:how_to_redirect/cons:Do_not_redirect" class="anchor">#</a>
+  | Do_not_redirect
+  </div>
+  </td><td>(*</td><td class="doc">No redirection</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:how_to_redirect/cons:Redirect_inquire">
+  <a href="index.html#/type:how_to_redirect/cons:Redirect_inquire" class="anchor">#</a>
+  | Redirect_inquire <span class="keyword">of</span> 'message_class <span class="rarr"><span>-&gt;</span></span> bool
+  </div>
+  </td><td>(*</td><td class="doc">If the function return <code>true</code> redirect, otherwise
+do not redirect. It is legal to set the <code>Location</code>
+header as part of the action performed by the
+function. (Should be an absolute http URL.)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:how_to_redirect/cons:Redirect_if_idem">
+  <a href="index.html#/type:how_to_redirect/cons:Redirect_if_idem" class="anchor">#</a>
+  | Redirect_if_idem
+  </div>
+  </td><td>(*</td><td class="doc">Default behaviour: <code>Redirect</code> for idempotent
+methods (GET, HEAD), <code>Do_not_redirect</code> for the rest</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:private_api">
+  <a href="index.html#/type:private_api" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> private_api
+    
+      <div class="doc">
+        
+      <p>The private part of the <code>http_call</code> class type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:response_body_storage">
+  <a href="index.html#/type:response_body_storage" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> response_body_storage = [ <div class="cons">| `Memory</div><div class="cons">| `File <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> string</div><div class="cons">| `Body <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_body">mime_body</a></div><div class="cons">| `Device <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/">Uq_io</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/#/type:out_device">out_device</a></div> ]
+    
+      <div class="doc">
+        
+      <p>How to create the response body:</p>
+      <ul><li><code>`Memory</code>: The response body is in-memory</li><li><code>`File f</code>: The response body is stored into the file whose name
+is returned by <code>f()</code></li><li><code>`Body f</code>: The response body is stored into the object returned
+by <code>f()</code></li><li><code>`Device f</code>: The response is directly forwarded to the device
+obtained by <code>f()</code> (new since Ocamlnet-3.3)</li></ul>
+      <p>When the function <code>f</code> is called in the latter cases the response
+header has already been received, and can be retrieved with the
+<code>response_header</code> method of the call object. Also, <code>response_status_text</code>,
+<code>response_status_code</code>, and <code>response_status</code> return meaningful
+values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:synchronization">
+  <a href="index.html#/type:synchronization" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> synchronization = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:synchronization/cons:Sync">
+  <a href="index.html#/type:synchronization/cons:Sync" class="anchor">#</a>
+  | Sync
+  </div>
+  </td><td>(*</td><td class="doc">The next request begins after the response of the last request has
+been received.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:synchronization/cons:Pipeline">
+  <a href="index.html#/type:synchronization/cons:Pipeline" class="anchor">#</a>
+  | Pipeline <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">The client is allowed to send several requests without waiting
+for responses. The number is the maximum number of unreplied
+requests that are allowed. A typical value: 5.
+If you increase this value, the risk becomes higher that requests
+must be repeatedly sent to the server in the case the connection
+crashes. Increasing is recommended if you send a bigger number of
+GET or HEAD requests to the server. Decreasing is recommended if you
+send large POST or PUT requests to the server.<br/>Values &gt; 8 are interpreted as 8.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>This type determines whether to keep requests and responses
+synchronized or not.</p>
+      
+      <p>The first request/response round is always done in
+Sync mode, because the protocol version of the other side
+is not known at that moment. <code>Pipeline</code> requires HTTP/1.1.</p>
+      
+      <p>In previous versions of netclient there was a third option,
+<code>Sync_with_handshake_before_request_body</code>. This option is no
+longer necessary because the HTTP specification has been updated
+in the meantime, and there is a better mechanism now (the
+<code>Expect</code> header is set).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:resolver">
+  <a href="index.html#/type:resolver" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> resolver = <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/class:unix_event_system">unix_event_system</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> option <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>A name resolver is a function <code>r</code> called as <code>r esys name reply</code>.
+As <code>name</code> the name to resolve is passed. The resolver must
+finally call <code>reply</code> with either the resolved address or
+with <code>None</code>, indicating an error in the latter case.
+The event system <code>esys</code> can be used to carry out the resolution
+process in an asynchronous way, but this is optional.</p>
+      
+      <p>Only 1:1 resolution is supported, 1:n resolution not.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:channel_binding_id">
+  <a href="index.html#/type:channel_binding_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> channel_binding_id = int
+    
+      <div class="doc">
+        
+      <p>A channel binding identifies a requirement for the transport
+channel, especially whether plain HTTP is sufficient, or HTTPS
+needs to be used, and if so, whether there are further requirements
+for the SSL context. There are the predefined IDs:</p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/val:http_cb_id">http_cb_id</a> for HTTP connections</li><li><a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/val:https_cb_id">https_cb_id</a> for HTTPS connections without user
+certificates</li><li><a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/val:proxy_only_cb_id">proxy_only_cb_id</a> for the restriction that this
+protocol can only be used via a web proxy</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:http_options">
+  <a href="index.html#/type:http_options" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> http_options = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:synchronization">
+  <a href="index.html#/type:http_options/field:synchronization" class="anchor">#</a>
+  synchronization
+  </div>
+  </td><td>: <a href="index.html#/type:synchronization">synchronization</a></td><td>;</td><td>(*</td><td class="doc">Default: <code>Pipeline 5</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:maximum_connection_failures">
+  <a href="index.html#/type:http_options/field:maximum_connection_failures" class="anchor">#</a>
+  maximum_connection_failures
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">This option limits the number of connection attempts.
+Default: 2</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:maximum_message_errors">
+  <a href="index.html#/type:http_options/field:maximum_message_errors" class="anchor">#</a>
+  maximum_message_errors
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">This option limits the number of protocol errors tolerated per
+request. If a request leads to a protocol error, the connection
+is shut down, the server is connected again, and the request is
+tried again (if the kind of the message allows retransmission).
+If a request repeatedly fails, this option limits the number
+of retransmissions.
+Default: 2</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:inhibit_persistency">
+  <a href="index.html#/type:http_options/field:inhibit_persistency" class="anchor">#</a>
+  inhibit_persistency
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">This option turns persistent connections off.
+Default: <code>false</code>
+It is normally not necessary to change this option.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:connection_timeout">
+  <a href="index.html#/type:http_options/field:connection_timeout" class="anchor">#</a>
+  connection_timeout
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">If there is no network transmission for this period of time,
+the connection is shut down, and tried again.
+Default: 300.0 (seconds)
+It may be necessary to increase this value if HTTP is used for
+batch applications that contact extremely slow services.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:number_of_parallel_connections">
+  <a href="index.html#/type:http_options/field:number_of_parallel_connections" class="anchor">#</a>
+  number_of_parallel_connections
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The client keeps up to this number of parallel connections to
+a single content server or proxy.
+Default: 2
+You may increase this value if you are mainly connected with
+an HTTP/1.0 proxy.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:maximum_redirections">
+  <a href="index.html#/type:http_options/field:maximum_redirections" class="anchor">#</a>
+  maximum_redirections
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The maximum number of redirections per message</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:handshake_timeout">
+  <a href="index.html#/type:http_options/field:handshake_timeout" class="anchor">#</a>
+  handshake_timeout
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">The timeout when waiting for &quot;100 Continue&quot;. Default: 1.0</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:resolver">
+  <a href="index.html#/type:http_options/field:resolver" class="anchor">#</a>
+  resolver
+  </div>
+  </td><td>: <a href="index.html#/type:resolver">resolver</a></td><td>;</td><td>(*</td><td class="doc">The function for name resolution</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:configure_socket">
+  <a href="index.html#/type:http_options/field:configure_socket" class="anchor">#</a>
+  configure_socket
+  </div>
+  </td><td>: <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">A function to configure socket options</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:schemes">
+  <a href="index.html#/type:http_options/field:schemes" class="anchor">#</a>
+  schemes
+  </div>
+  </td><td>: (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/">Neturl</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/#/type:url_syntax">url_syntax</a> * int option * <a href="index.html#/type:channel_binding_id">channel_binding_id</a>) list</td><td>;</td><td>(*</td><td class="doc">The list of supported URL schemes. The tuples mean
+<code>(scheme, syntax, default_port, cb)</code>. By default, the
+schemes &quot;http&quot;, &quot;https&quot;, and &quot;ipp&quot; are supported.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:verbose_status">
+  <a href="index.html#/type:http_options/field:verbose_status" class="anchor">#</a>
+  verbose_status
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:verbose_request_header">
+  <a href="index.html#/type:http_options/field:verbose_request_header" class="anchor">#</a>
+  verbose_request_header
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:verbose_response_header">
+  <a href="index.html#/type:http_options/field:verbose_response_header" class="anchor">#</a>
+  verbose_response_header
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:verbose_request_contents">
+  <a href="index.html#/type:http_options/field:verbose_request_contents" class="anchor">#</a>
+  verbose_request_contents
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:verbose_response_contents">
+  <a href="index.html#/type:http_options/field:verbose_response_contents" class="anchor">#</a>
+  verbose_response_contents
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:verbose_connection">
+  <a href="index.html#/type:http_options/field:verbose_connection" class="anchor">#</a>
+  verbose_connection
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:http_options/field:verbose_events">
+  <a href="index.html#/type:http_options/field:verbose_events" class="anchor">#</a>
+  verbose_events
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Enable various debugging message types.<ul><li><code>verbose_status</code>: reports about status of received documents</li><li><code>verbose_request_header</code>: prints the header sent to the server</li><li><code>verbose_request_contents</code>: prints the document sent to the server</li><li><code>verbose_response_header</code>: prints the header of the answer from the server</li><li><code>verbose_response_contents</code>: prints the document received from the server</li><li><code>verbose_connection</code>: reports many connection events; authentication,
+too.</li><li><code>verbose_events</code>: everything about the interaction with <code>Unixqueue</code></li></ul>By default, <code>verbose_status</code> and <code>verbose_connection</code> are enabled.
+Note that you also have to set <code>Debug.enable</code> to <code>true</code> to see
+any log message at all!</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Options for the whole pipeline. It is recommended to change options
+the following way:
+</p>
+      <pre><code>	     let opts = pipeline # get_options in
+             let new_opts = { opts with &lt;field&gt; = &lt;value&gt;; ... } in
+             pipeline # set_options new_opts</code></pre>
+      <p>New fields can be added anytime to this record, and this style
+of changing options is transparent to field additions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:header_kind">
+  <a href="index.html#/type:header_kind" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> header_kind = [ <div class="cons">| `Base</div><div class="cons">| `Effective</div> ]
+    
+      <div class="doc">
+        
+      <p>The <code>`Base</code> header is set by the user of <code>http_call</code> and is never
+changed during processing the call. The <code>`Effective</code> header is a copy
+of the base header at the time the request is sent. The effective header
+contains additions like <code>Content-length</code> and authentication info.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call">
+  <a href="index.html#/classtype:http_call" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_call = 
+      <div class="doc">
+        
+      <p><code>http_call</code> is the runtime container for HTTP method calls. It contains
+the request message, the response message, and the current transmission
+status.</p>
+      
+      <p>In previous versions of netclient, this class type was called
+<code>message</code>. This was quite inexact because this class embraces both
+messages that are part of a call.</p>
+      
+      <p><b>Incompatible changes</b>:</p>
+      <ul><li><code>using_proxy</code> has been removed. This simply isn't a property of
+an individual call.</li><li><code>get_req_uri</code> has been removed from the public interface for similar
+reasons.</li><li>The request and response messages are now primarily stored as
+<code>Netmime.mime_header</code> and <code>Netmime.mime_body</code> objects. The old
+style access methods remain in the API for now. The advantage is
+that it is possible to use external files as body containers.</li><li>There are two request headers, <code>`Base</code> and <code>`Effective</code>.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Call State</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:is_served">
+  <a href="index.html#/classtype:http_call/method:is_served" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> is_served : bool
+  
+      <div class="doc">
+        
+      <p><code>true</code> if request/response cycle(s) have been finished, i.e. the
+call was successful, or a final error state has been reached.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:status">
+  <a href="index.html#/classtype:http_call/method:status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> status : <a href="index.html#/type:status">status</a>
+  
+      <div class="doc">
+        
+      <p>The condensed status</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Accessing the request message (new style)</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:request_method">
+  <a href="index.html#/classtype:http_call/method:request_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_method : string
+  
+      <div class="doc">
+        
+      <p>The HTTP method as string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:request_uri">
+  <a href="index.html#/classtype:http_call/method:request_uri" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_uri : string
+  
+      <div class="doc">
+        
+      <p>The request URI as string. This is always an absolute URI in the
+form &quot;http://server/path&quot; or &quot;https://server/path&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_request_uri">
+  <a href="index.html#/classtype:http_call/method:set_request_uri" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_request_uri : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the request URI. This implicitly also sets the channel binding
+ID (see below).</p>
+      
+      <p><b>Changed in Ocamlnet-3.3:</b> The URI is no longer immediately parsed,
+but first when the call is submitted to a pipeline. This means that
+parsing errors will first be reported by the <code>add</code> method. The
+background is that parsing now depends on pipeline options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:request_header">
+  <a href="index.html#/classtype:http_call/method:request_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_header : <a href="index.html#/type:header_kind">header_kind</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+  
+      <div class="doc">
+        
+      <p>The whole header of the request. Users of this class should only
+modify the <code>`Base</code> header. After the call has been processed,
+the <code>`Effective</code> header contains the version of the header that has
+actually been transmitted.</p>
+      
+      <p>The user should set the following headers:</p>
+      <ul><li><code>Content-length</code>: Set this to the length of the request body
+if known. (The client falls back to HTTP 1.0 if not set!)</li><li><code>Content-type</code>: Set this to the media type of the request body</li><li><code>Expect</code>: Set this to &quot;100-continue&quot; to enable a handshake before
+the body is sent. Recommended for large bodies. (See also
+<code>set_expect_handshake</code> below.)</li></ul>
+      <p>The following headers may be set, but there are reasonable defaults:</p>
+      <ul><li><code>Date</code></li><li><code>User-agent</code></li></ul>
+      <p>The following headers must not be set:</p>
+      <ul><li><code>Connection</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_request_header">
+  <a href="index.html#/classtype:http_call/method:set_request_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_request_header : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Replaces the whole <code>`Base</code> header object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_expect_handshake">
+  <a href="index.html#/classtype:http_call/method:set_expect_handshake" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_expect_handshake : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Configures that a handshake is done before sending the request body.
+This is useful when the request body can be large, and
+authentication or response indirections are possible.
+<b>New since Ocamlnet-3.3.</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_chunked_request">
+  <a href="index.html#/classtype:http_call/method:set_chunked_request" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_chunked_request : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Configures that the request is transmitted using chunked encoding.
+This has advantages when the size of the request is not known
+in advance. However, this works only for true HTTP/1.1 servers.
+<b>New since Ocamlnet-3.3.</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:effective_request_uri">
+  <a href="index.html#/classtype:http_call/method:effective_request_uri" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> effective_request_uri : string
+  
+      <div class="doc">
+        
+      <p>The URI actually sent to the server in the request line of the
+protocol.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:request_body">
+  <a href="index.html#/classtype:http_call/method:request_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_body : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_body">mime_body</a>
+  
+      <div class="doc">
+        
+      <p>The whole body of the request. This method fails after
+<code>set_request_device</code> has been called (no body then).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_request_body">
+  <a href="index.html#/classtype:http_call/method:set_request_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_request_body : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_body">mime_body</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Replaces the whole body object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_request_device">
+  <a href="index.html#/classtype:http_call/method:set_request_device" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_request_device : (unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/">Uq_io</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/#/type:in_device">in_device</a>) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets that the request data is read from the passed device instead
+of taking it from a body object. The device must be connected with
+the same event loop as the HTTP client.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_accept_encoding">
+  <a href="index.html#/classtype:http_call/method:set_accept_encoding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_accept_encoding : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the <code>Accept-Encoding</code> field in the request header, and
+includes all decompression algorithms registered in
+[root:Netcompression]. Additionally, the automatic decompression of
+the response body is enabled.</p>
+      
+      <p>Note that you need to ensure that the algorithms are really
+registered at [root:Netcompression]. For example, to get <code>gzip</code>
+support, run </p>
+      <pre><code>Netgzip.init()</code></pre>
+      <p>, and include <code>netzip</code> as
+library.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Accessing the response message (new style)</h2>
+    </div>
+      <p>These methods will fail if the call has not yet been served!
+If the call has been finished, but a hard error (e.g. socket error)
+occurred, the
+exception <code>Http_protocol</code> is raised. When the server only
+sent an error code, no exception is raised - but the user can
+manually test for such codes (e.g. with <code>repsonse_status</code> or
+<code>status</code>).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:response_status_code">
+  <a href="index.html#/classtype:http_call/method:response_status_code" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response_status_code : int
+  
+      <div class="doc">
+        
+      <p>The three-digit status code</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:response_status_text">
+  <a href="index.html#/classtype:http_call/method:response_status_text" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response_status_text : string
+  
+      <div class="doc">
+        
+      <p>The text transmitted along with the code</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:response_status">
+  <a href="index.html#/classtype:http_call/method:response_status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response_status : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a>
+  
+      <div class="doc">
+        
+      <p>The decoded code. Unknown codes are mapped to the generic status
+values <code>`Ok</code>, <code>`Multiple_choices</code>, <code>`Bad_request</code>, and
+<code>`Internal_server_error</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:response_protocol">
+  <a href="index.html#/classtype:http_call/method:response_protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response_protocol : string
+  
+      <div class="doc">
+        
+      <p>The HTTP version indicated in the response</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:response_header">
+  <a href="index.html#/classtype:http_call/method:response_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response_header : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+  
+      <div class="doc">
+        
+      <p>The whole header of the response. If the call has not succeeded,
+<code>Http_protocol</code> will be raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:response_body">
+  <a href="index.html#/classtype:http_call/method:response_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response_body : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_body">mime_body</a>
+  
+      <div class="doc">
+        
+      <p>The whole body of the response. If the call has not succeeded,
+<code>Http_protocol</code> will be raised. If the call has succeeded,
+but no body has been transmitted, the empty body is substituted.</p>
+      
+      <p>If the response is directly forwarded to a device (after
+calling <code>set_response_body_storage (`Device d)</code>), there is
+no accessible response body, and this method will fail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Options</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:response_body_storage">
+  <a href="index.html#/classtype:http_call/method:response_body_storage" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> response_body_storage : <a href="index.html#/type:response_body_storage">response_body_storage</a>
+  
+      <div class="doc">
+        
+      <p>How to create the response body. Defaults to <code>`Memory</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_response_body_storage">
+  <a href="index.html#/classtype:http_call/method:set_response_body_storage" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_response_body_storage : <a href="index.html#/type:response_body_storage">response_body_storage</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets how to create the response body</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:max_response_body_length">
+  <a href="index.html#/classtype:http_call/method:max_response_body_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> max_response_body_length : int64
+  
+      <div class="doc">
+        
+      <p>Returns the current maximum length (initially <code>Int64.max_int</code>)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_max_response_body_length">
+  <a href="index.html#/classtype:http_call/method:set_max_response_body_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_max_response_body_length : int64 <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets a new maximum length. When the body exceeds this maximum
+by more than the size of the internal buffer, the reception of
+the response is interrupted, and the error is set to
+<code>Response_too_large</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_reconnect_mode">
+  <a href="index.html#/classtype:http_call/method:get_reconnect_mode" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_reconnect_mode : <a href="index.html#/classtype:http_call">http_call</a> <a href="index.html#/type:how_to_reconnect">how_to_reconnect</a>
+  
+      <div class="doc">
+        
+      <p>Get what to do if the server needs to be reconnected, i.e.
+if the request must be sent repeatedly.
+By default, this is <code>Send_again_if_idem</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_reconnect_mode">
+  <a href="index.html#/classtype:http_call/method:set_reconnect_mode" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_reconnect_mode : <a href="index.html#/classtype:http_call">http_call</a> <a href="index.html#/type:how_to_reconnect">how_to_reconnect</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the reconnect mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_redirect_mode">
+  <a href="index.html#/classtype:http_call/method:get_redirect_mode" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_redirect_mode : <a href="index.html#/classtype:http_call">http_call</a> <a href="index.html#/type:how_to_redirect">how_to_redirect</a>
+  
+      <div class="doc">
+        
+      <p>By default, the redirect mode is <code>Redirect_if_idem</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_redirect_mode">
+  <a href="index.html#/classtype:http_call/method:set_redirect_mode" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_redirect_mode : <a href="index.html#/classtype:http_call">http_call</a> <a href="index.html#/type:how_to_redirect">how_to_redirect</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the redirect mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:proxy_enabled">
+  <a href="index.html#/classtype:http_call/method:proxy_enabled" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> proxy_enabled : bool
+  
+      <div class="doc">
+        
+      <p>Returns the proxy mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_proxy_enabled">
+  <a href="index.html#/classtype:http_call/method:set_proxy_enabled" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_proxy_enabled : bool <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the proxy mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:no_proxy">
+  <a href="index.html#/classtype:http_call/method:no_proxy" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> no_proxy : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Same as <code>set_proxy_enabled false</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:is_proxy_allowed">
+  <a href="index.html#/classtype:http_call/method:is_proxy_allowed" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> is_proxy_allowed : unit <span class="rarr"><span>-&gt;</span></span> bool
+  
+      <div class="doc">
+        
+      <p><b>Deprecated.</b> Same as <code>proxy_enabled</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Method characteristics</h2>
+    </div>
+      <p>These properties describe the HTTP method</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:proxy_use_connect">
+  <a href="index.html#/classtype:http_call/method:proxy_use_connect" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> proxy_use_connect : bool
+  
+      <div class="doc">
+        
+      <p>Whether to use the CONNECT method if the connection is made via a
+web proxy. This is normally true if the channel binding is
+<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/val:https_cb_id">https_cb_id</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:empty_path_replacement">
+  <a href="index.html#/classtype:http_call/method:empty_path_replacement" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> empty_path_replacement : string
+  
+      <div class="doc">
+        
+      <p>The string to substitute in the request line for the empty
+path. This is usually &quot;/&quot;, and for OPTIONS it is &quot;*&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:is_idempotent">
+  <a href="index.html#/classtype:http_call/method:is_idempotent" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> is_idempotent : bool
+  
+      <div class="doc">
+        
+      <p>Whether the method is to be considered as idempotent ( = repeated
+invocations have the same result and no side effect). This is
+true for GET and HEAD.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:has_req_body">
+  <a href="index.html#/classtype:http_call/method:has_req_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> has_req_body : bool
+  
+      <div class="doc">
+        
+      <p>Whether the method allows to send a request body</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:has_resp_body">
+  <a href="index.html#/classtype:http_call/method:has_resp_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> has_resp_body : bool
+  
+      <div class="doc">
+        
+      <p>Whether the method allows to reply with a body. This is true
+except for HEAD.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Channel bindings</h2>
+    </div>
+      <p>Channel bindings are used to distinguish between security requirements.
+There are normally only two types of requirements:</p>
+      <ul><li>The ID <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/val:http_cb_id">http_cb_id</a> is used for messages that can only
+be sent over HTTP connections, i.e. unencrypted TCP. It is automatically
+set when the URL of the message starts with &quot;http://&quot;.</li><li>The ID <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/val:https_cb_id">https_cb_id</a> describes the requirement that the
+message can only be sent over HTTPS connections, i.e. TLS-protected
+TCP. It is automatically set when the URL of the message starts with
+&quot;https://&quot;.</li></ul>
+      <p>It is possible to change the channel binding to establish further
+types of security requirements (e.g. that certain client certificates
+are used), or even other details of the transport connection.</p>
+      
+      <p>The method <code>channel_binding</code> is gone from this object type.
+It is now available as part of <code>pipeline</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:set_channel_binding">
+  <a href="index.html#/classtype:http_call/method:set_channel_binding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_channel_binding : <a href="index.html#/type:channel_binding_id">channel_binding_id</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the channel binding. Note that <code>set_request_uri</code> also sets
+the channel binding, but always to the default for the type of URL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Repeating calls</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:same_call">
+  <a href="index.html#/classtype:http_call/method:same_call" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> same_call : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_call">http_call</a>
+  
+      <div class="doc">
+        
+      <p>This method returns a new object that will perform the same call
+as this object (this function is called &quot;reload&quot; in browsers).
+The new object is initialized as follows:</p>
+      <ul><li>The state is set to <code>`Unserved</code></li><li>The request method remains the same (the class of the returned
+object remains the same)</li><li>The request URI is the same string as the original URI</li><li>The channel binding ID is the same</li><li>The base request header is the same object</li><li>The request body is the same object</li><li>Options like reconnect, redirect mode, and proxy mode are
+copied.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Old style access methods</h2>
+    </div>
+      <p>These method were introduced in previous versions of netclient,
+but are quite limited. Some questionable methods are now deprecated
+and will be removed in future versions of netclient.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:get_req_method">
+  <a href="index.html#/classtype:http_call/method:get_req_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_req_method : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Get the name of the request method. Same as <code>request_method</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_host">
+  <a href="index.html#/classtype:http_call/method:get_host" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_host : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>The host name of the content server, extracted from the URI.</p>
+      
+      <p><b>Changed in Ocamlnet-3.3:</b> The host can first be extracted after
+the call is submitted to a pipeline.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_port">
+  <a href="index.html#/classtype:http_call/method:get_port" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_port : unit <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>The port number of the content server, extracted from the URI.</p>
+      
+      <p><b>Changed in Ocamlnet-3.3:</b> The port can first be extracted after
+the call is submitted to a pipeline.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_path">
+  <a href="index.html#/classtype:http_call/method:get_path" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_path : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>The path (incl. query, if any) extracted from the URI.</p>
+      
+      <p><b>Changed in Ocamlnet-3.3:</b> The path can first be extracted after
+the call is submitted to a pipeline.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_uri">
+  <a href="index.html#/classtype:http_call/method:get_uri" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_uri : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>the full URI of this message: http://server:port/path. If the
+path is empty, it is omitted. - Same as <code>request_uri</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_req_body">
+  <a href="index.html#/classtype:http_call/method:get_req_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_req_body : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>What has been sent as body in the (last) request. Same as
+<code>request_body # value</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_req_header">
+  <a href="index.html#/classtype:http_call/method:get_req_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_req_header : unit <span class="rarr"><span>-&gt;</span></span> (string * string) list
+  
+      <div class="doc">
+        
+      <p><b>Deprecated.</b>
+What has been sent as header in the (last) request. Returns
+(key, value) pairs, where the keys are all in lowercase.</p>
+      
+      <p>In new code, the <code>request_header</code> object should be accessed instead.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:assoc_req_header">
+  <a href="index.html#/classtype:http_call/method:assoc_req_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> assoc_req_header : string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Query a specific header entry, or raise <code>Not_found</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:assoc_multi_req_header">
+  <a href="index.html#/classtype:http_call/method:assoc_multi_req_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> assoc_multi_req_header : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Return all header values for a given field name (header entries
+which allow several values separated by commas can also be
+transmitted by several header lines with the same name).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:set_req_header">
+  <a href="index.html#/classtype:http_call/method:set_req_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_req_header : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_resp_header">
+  <a href="index.html#/classtype:http_call/method:get_resp_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_resp_header : unit <span class="rarr"><span>-&gt;</span></span> (string * string) list
+  
+      <div class="doc">
+        
+      <p><b>Deprecated.</b>
+Get the header of the last response. The keys are in lowercase
+characters again.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:assoc_resp_header">
+  <a href="index.html#/classtype:http_call/method:assoc_resp_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> assoc_resp_header : string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Query a specific header entry of the response.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:assoc_multi_resp_header">
+  <a href="index.html#/classtype:http_call/method:assoc_multi_resp_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> assoc_multi_resp_header : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Return all response header values for a given field name (header
+entries which allow several values separated by commas can also be
+transmitted by several header lines with the same name).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:get_resp_body">
+  <a href="index.html#/classtype:http_call/method:get_resp_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_resp_body : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p><b>Deprecated.</b>
+Returns the body of the last response if the response status
+is OK (i.e. the code is in the range 200 to 299).</p>
+      
+      <p>Otherwise, Http_error (code, body) is raised where 'code' is
+the response code and 'body' is the body of the (errorneous)
+response.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_call/method:dest_status">
+  <a href="index.html#/classtype:http_call/method:dest_status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> dest_status : unit <span class="rarr"><span>-&gt;</span></span> string * int * string
+  
+      <div class="doc">
+        
+      <p>Returns the status line of the last response (but status lines
+with code 100 are ignored).
+The returned triple is (http_string, code, text)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Private</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_call/method:private_api">
+  <a href="index.html#/classtype:http_call/method:private_api" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> private_api : <a href="index.html#/type:private_api">private_api</a>
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>The container for HTTP calls</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:transport_channel_type">
+  <a href="index.html#/classtype:transport_channel_type" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> transport_channel_type = 
+  <div class="region" id="/classtype:transport_channel_type/method:setup_e">
+  <a href="index.html#/classtype:transport_channel_type/method:setup_e" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> setup_e : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:channel_binding_id">channel_binding_id</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> exn <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:multiplex_controller">multiplex_controller</a> * <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client_conncache/">Http_client_conncache</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client_conncache/#/type:private_data">private_data</a>) <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p><code>setup fd cb tmo tmo_x host port esys</code>: Create or configure a communication
+circuit over the file descriptor <code>fd</code> that can be driven by the
+returned multiplex controller object. Since OCamlnet-3.8, the method
+can also return private data for the connection cache.</p>
+      
+      <p><code>tmo</code> is the timeout. After inactivity the exception <code>tmo_x</code> must be
+raised.</p>
+      
+      <p><code>host</code> is the name of the machine to connect to. <code>port</code> is the port
+number. The descriptor <code>fd</code> is already connected to this port, directly
+or via a proxy.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:transport_channel_type/method:continue">
+  <a href="index.html#/classtype:transport_channel_type/method:continue" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> continue : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:channel_binding_id">channel_binding_id</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> exn <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client_conncache/">Http_client_conncache</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client_conncache/#/type:private_data">private_data</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:multiplex_controller">multiplex_controller</a>
+  
+      <div class="doc">
+        
+      <p><code>continue</code> is called when an already established circuit needs to
+be continued.</p>
+      
+      <p>Note that the event system can be different now.</p>
+      
+      <p>If it is not possible to continue, the method may raise <code>Not_found</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:transport_channel_type/method:default_port">
+  <a href="index.html#/classtype:transport_channel_type/method:default_port" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> default_port : int option
+  
+      <div class="doc">
+        
+      <p>If set, the <code>Host</code> header omits this port number</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">HTTP methods</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:generic_call">
+  <a href="index.html#/class:generic_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> generic_call : 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:http_call">http_call</a>
+    </div>
+    
+  <div class="region" id="/class:generic_call/method:fixup_request">
+  <a href="index.html#/class:generic_call/method:fixup_request" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> fixup_request : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>This method is called just before sending the request. It can
+fix up things in the <code>`Effective</code> request header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:generic_call/method:def_request_method">
+  <a href="index.html#/class:generic_call/method:def_request_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> def_request_method : string
+  
+      <div class="doc">
+        
+      <p>The following methods define the values for the corresponding
+methods without the <code>def_</code> prefix:</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:generic_call/method:def_empty_path_replacement">
+  <a href="index.html#/class:generic_call/method:def_empty_path_replacement" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> def_empty_path_replacement : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:generic_call/method:def_is_idempotent">
+  <a href="index.html#/class:generic_call/method:def_is_idempotent" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> def_is_idempotent : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:generic_call/method:def_has_req_body">
+  <a href="index.html#/class:generic_call/method:def_has_req_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> def_has_req_body : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:generic_call/method:def_has_resp_body">
+  <a href="index.html#/class:generic_call/method:def_has_resp_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> <span class="keyword">virtual</span> def_has_resp_body : bool
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This class is an implementation of <code>http_call</code>. A subclass must
+define the virtual methods that mostly define the general properties
+of the HTTP method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following classes are implementations for the various HTTP
+methods. These classes do not initialize the call object.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:get_call">
+  <a href="index.html#/class:get_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> get_call : <a href="index.html#/classtype:http_call">http_call</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:trace_call">
+  <a href="index.html#/class:trace_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> trace_call : <a href="index.html#/classtype:http_call">http_call</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:options_call">
+  <a href="index.html#/class:options_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> options_call : <a href="index.html#/classtype:http_call">http_call</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:head_call">
+  <a href="index.html#/class:head_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> head_call : <a href="index.html#/classtype:http_call">http_call</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:post_call">
+  <a href="index.html#/class:post_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> post_call : <a href="index.html#/classtype:http_call">http_call</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:put_call">
+  <a href="index.html#/class:put_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> put_call : <a href="index.html#/classtype:http_call">http_call</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:delete_call">
+  <a href="index.html#/class:delete_call" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> delete_call : <a href="index.html#/classtype:http_call">http_call</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following classes initialize the request message of the
+call (header and body).
+These classes are also backward compatible to the classes
+found in earlier versions of netclient.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:get">
+  <a href="index.html#/class:get" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> get : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+      <div class="doc">
+        
+      <p>Argument: URI</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:trace">
+  <a href="index.html#/class:trace" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> trace : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    int
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Arguments: URI, maximum number of hops</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:options">
+  <a href="index.html#/class:options" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> options : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+      <div class="doc">
+        
+      <p>Argument: URI or &quot;*&quot;</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:head">
+  <a href="index.html#/class:head" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> head : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+      <div class="doc">
+        
+      <p>Argument: URI</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:post">
+  <a href="index.html#/class:post" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> post : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    (string * string) list
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Arguments: URI, parameter list to be transferred as
+application/x-www-form-urlencoded body</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:post_raw">
+  <a href="index.html#/class:post_raw" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> post_raw : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Arguments: URI, body</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:put">
+  <a href="index.html#/class:put" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> put : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Arguments: URI, body</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:delete">
+  <a href="index.html#/class:delete" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> delete : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_call">http_call</a>
+    
+    
+      <div class="doc">
+        
+      <p>Argument: URI</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Authentication</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:key">
+  <a href="index.html#/classtype:key" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> key = 
+  <div class="region" id="/classtype:key/method:user">
+  <a href="index.html#/classtype:key/method:user" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> user : string
+  
+      <div class="doc">
+        
+      <p>The user name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:key/method:password">
+  <a href="index.html#/classtype:key/method:password" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> password : string
+  
+      <div class="doc">
+        
+      <p>The password in cleartext</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:key/method:realm">
+  <a href="index.html#/classtype:key/method:realm" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> realm : string
+  
+      <div class="doc">
+        
+      <p>The realm</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:key/method:domain">
+  <a href="index.html#/classtype:key/method:domain" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> domain : string list
+  
+      <div class="doc">
+        
+      <p>The domain URIs defining the protection space. The domain URIs
+are absolute URIs. The list must not be empty for content accesses.
+For proxy keys the list must be empty.</p>
+      
+      <p>Normally, this is just a list with one element. The URI must include
+the protocol scheme, the host name, and &quot;/&quot; as path. The port number
+is optional. Example: &quot;http://localhost/&quot;. If the key is applicable
+to all domains, set this to <code>&quot;*&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A <code>key</code> is a user/password combination for a certain realm</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:key">
+  <a href="index.html#/val:key" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> key : user:string <span class="rarr"><span>-&gt;</span></span> password:string <span class="rarr"><span>-&gt;</span></span> realm:string <span class="rarr"><span>-&gt;</span></span> domain:string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:key">key</a>
+    
+      <div class="doc">
+        
+      <p>Create a key object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:key_handler">
+  <a href="index.html#/classtype:key_handler" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> key_handler = 
+  <div class="region" id="/classtype:key_handler/method:inquire_key">
+  <a href="index.html#/classtype:key_handler/method:inquire_key" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inquire_key : domain:string list <span class="rarr"><span>-&gt;</span></span> realms:string list <span class="rarr"><span>-&gt;</span></span> auth:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:key">key</a>
+  
+      <div class="doc">
+        
+      <p>The method is called when a new session must be authenticated.
+The <code>domain</code> is the URI list describing the protection space. URIs
+currently have the form &quot;http://host:port/path&quot;, i.e. the port is
+always written out. The <code>realms</code> parameter is a list
+of realm identifiers. In <code>auth</code> the name of the authentication
+method is passed (lowercase characters). The method must
+search (or query for) a key, and return it. The key must refer to
+one of the passed realms. The domain of the key must be exactly
+the same as the passed <code>domain</code> (unless <code>domain=[&quot;*&quot;]</code>).
+If the method raises <code>Not_found</code>,
+authentication will fail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:key_handler/method:invalidate_key">
+  <a href="index.html#/classtype:key_handler/method:invalidate_key" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> invalidate_key : <a href="index.html#/classtype:key">key</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>The handler is notified that authentication failed for this key</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:key_ring">
+  <a href="index.html#/class:key_ring" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> key_ring : 
+    ?uplink:<a href="index.html#/classtype:key_handler">key_handler</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:key_handler">key_handler</a>
+    </div>
+    
+  <div class="region" id="/class:key_ring/method:clear">
+  <a href="index.html#/class:key_ring/method:clear" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> clear : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Deletes all keys from this key ring</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:key_ring/method:add_key">
+  <a href="index.html#/class:key_ring/method:add_key" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_key : <a href="index.html#/classtype:key">key</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Adds a key to the ring</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:key_ring/method:keys">
+  <a href="index.html#/class:key_ring/method:keys" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> keys : <a href="index.html#/classtype:key">key</a> list
+  
+      <div class="doc">
+        
+      <p>List of all known keys</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>The <code>key_ring</code> is a cache for keys. The optional <code>uplink</code> handler
+is invoked when no matching key is found in the cache.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_session">
+  <a href="index.html#/classtype:auth_session" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> auth_session = 
+  <div class="region" id="/classtype:auth_session/method:auth_scheme">
+  <a href="index.html#/classtype:auth_session/method:auth_scheme" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> auth_scheme : string
+  
+      <div class="doc">
+        
+      <p>The authentication scheme, e.g. &quot;basic&quot;</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_session/method:auth_domain">
+  <a href="index.html#/classtype:auth_session/method:auth_domain" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> auth_domain : <a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/">Neturl</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/#/type:url">url</a> list
+  
+      <div class="doc">
+        
+      <p>The list of domain URIs defines the protection space.</p>
+      
+      <p><b>Change:</b> Since Ocamlnet-3.3, this is a list of <a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/">Neturl</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/#/type:url">url</a>,
+and no longer a list of strings.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_session/method:auth_realm">
+  <a href="index.html#/classtype:auth_session/method:auth_realm" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> auth_realm : string
+  
+      <div class="doc">
+        
+      <p>The realm</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_session/method:auth_user">
+  <a href="index.html#/classtype:auth_session/method:auth_user" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> auth_user : string
+  
+      <div class="doc">
+        
+      <p>The user identifier</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_session/method:auth_in_advance">
+  <a href="index.html#/classtype:auth_session/method:auth_in_advance" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> auth_in_advance : bool
+  
+      <div class="doc">
+        
+      <p>Whether &quot;authentication in advance&quot; is enabled</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_session/method:authenticate">
+  <a href="index.html#/classtype:auth_session/method:authenticate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> authenticate : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> (string * string) list
+  
+      <div class="doc">
+        
+      <p>Returns a list of additional headers that will authenticate
+the passed call for this session. (This is usually only one
+header, <code>authorization</code>.)</p>
+      
+      <p>If the call is authenticated in advance, it does not contain
+any authentication information. If the call is authenticated
+in reaction to a 401 status, the response header contains
+the <code>www-authenticate</code> field(s).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_session/method:invalidate">
+  <a href="index.html#/classtype:auth_session/method:invalidate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> invalidate : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> bool
+  
+      <div class="doc">
+        
+      <p>The session is notified that authentication failed. (This
+method is not called for authentication-in-advance, but only
+if an authentication attempt after a 401 status failed.)
+The method can return <code>true</code> if another authentication should
+be started immediately.</p>
+      
+      <p>Note: By returning <code>true</code> the session can indicate a &quot;stale&quot;
+condition in the sense of RFC 2617.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>An <code>auth_session</code> represents an authenticated session</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_handler">
+  <a href="index.html#/classtype:auth_handler" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> auth_handler = 
+  <div class="region" id="/classtype:auth_handler/method:create_session">
+  <a href="index.html#/classtype:auth_handler/method:create_session" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_session : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:http_options">http_options</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:auth_session">auth_session</a> option
+  
+      <div class="doc">
+        
+      <p>Create a new authentication session. The passed call has status 401.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_handler/method:create_proxy_session">
+  <a href="index.html#/classtype:auth_handler/method:create_proxy_session" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_proxy_session : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:http_options">http_options</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:auth_session">auth_session</a> option
+  
+      <div class="doc">
+        
+      <p>Same for proxy authentication</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_handler/method:skip_challenge">
+  <a href="index.html#/classtype:auth_handler/method:skip_challenge" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> skip_challenge : string option
+  
+      <div class="doc">
+        
+      <p>If non-None, this method allows to skip the challenge entirely
+for authentication. This means that the credentials are added to
+the HTTP request before any previous response was seen from the
+server. This adds additional security risks, and may cause that
+credentials are sent to servers that forge their identity.
+This is <b>only</b> supported for basic authentication. The string
+describes the URL space to which this applies (e.g.
+&quot;http://the-server/subdir&quot;). Set the string to &quot;*&quot; to enable
+everywhere. As no challenge is known, the realm string is
+simply assumed to be &quot;anywhere&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_handler/method:skip_challenge_session">
+  <a href="index.html#/classtype:auth_handler/method:skip_challenge_session" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> skip_challenge_session : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:http_options">http_options</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:auth_session">auth_session</a> option
+  
+      <div class="doc">
+        
+      <p>Create a session for the case that the challenge was skipped</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>An authentication handler has the capability of adding the necessary
+headers to messages.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:basic_auth_handler">
+  <a href="index.html#/class:basic_auth_handler" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> basic_auth_handler : 
+    ?enable_auth_in_advance:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?skip_challenge:string option option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:key_handler">key_handler</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:auth_handler">auth_handler</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Basic authentication. Authentication information is obtained by
+the passed key_handler.</p>
+      
+      <p><code>enable_auth_in_advance</code>: If set to <code>true</code>, a quicker authentication
+mode is enabled: when a request is sent out, it is checked whether
+a previous request/response cycle exists that needed authentication.
+If so, the same credentials are added to the request. Normally,
+the request would be sent without credentials first, and only after
+getting the authentication challenge the request is resent with the
+credentials.</p>
+      
+      <p><code>skip_challenge</code>: This option enables a mode so that the credentials
+are added to HTTP requests even before any response has been seen
+by the server.
+This adds additional security risks, and may cause that
+credentials are sent to servers that forge their identity.
+The string
+describes the URL space to which this applies (e.g.
+&quot;http://the-server/subdir&quot;). Set the string to &quot;*&quot; to enable
+everywhere. As no challenge is known, the realm string is
+simply assumed to be &quot;anywhere&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:digest_auth_handler">
+  <a href="index.html#/class:digest_auth_handler" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> digest_auth_handler : 
+    ?enable_auth_in_advance:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:key_handler">key_handler</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:auth_handler">auth_handler</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Digest authentication. Authentication information is obtained by
+the passed key_handler.</p>
+      
+      <p>This handler is compatible with RFC 2069 and RFC 2617. In particular,
+the following protocol options are available:</p>
+      <ul><li>The algorithms MD5 and MD5-sess are implemented</li><li>The quality of protection mode &quot;auth&quot; is implemented. The optional
+mode &quot;auth-int&quot; has been omitted.</li><li>The information of the <code>Authentication-Info</code> header is completely
+ignored</li></ul>
+      <p><code>enable_auth_in_advance</code>: If set to <code>true</code>, authentication can be
+done in advance, i.e. before the server requests authentication.
+This reduces the number of messages exchanged with the server, but
+may be an additional security risk.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:unified_auth_handler">
+  <a href="index.html#/class:unified_auth_handler" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> unified_auth_handler : 
+    <a href="index.html#/classtype:key_handler">key_handler</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:auth_handler">auth_handler</a>
+    
+    
+      <div class="doc">
+        
+      <p>Support both digest and basic authentication, with preference to
+digest.</p>
+      
+      <p>Note that there is no way of authenticating in advance, as it is
+not known in advance which mechanism is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:basic_auth_method">
+  <a href="index.html#/class:basic_auth_method" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> basic_auth_method : 
+  <div class="region" id="/class:basic_auth_method/method:name">
+  <a href="index.html#/class:basic_auth_method/method:name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> name : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:basic_auth_method/method:set_realm">
+  <a href="index.html#/class:basic_auth_method/method:set_realm" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_realm : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:basic_auth_method/method:as_auth_handler">
+  <a href="index.html#/class:basic_auth_method/method:as_auth_handler" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> as_auth_handler : <a href="index.html#/classtype:auth_handler">auth_handler</a>
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p><b>Deprecated.</b> For (limited) backwards compatibility:</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:digest_auth_method">
+  <a href="index.html#/class:digest_auth_method" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> digest_auth_method : <a href="index.html#/class:basic_auth_method">basic_auth_method</a>
+    
+      <div class="doc">
+        
+      <p><b>Deprecated.</b> For (limited) backwards compatibility:</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Transport</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>A connection cache is an object that keeps connections open that
+are currently unused. A connection cache can be shared by several
+pipelines.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:connection_cache">
+  <a href="index.html#/type:connection_cache" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> connection_cache = <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client_conncache/">Http_client_conncache</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client_conncache/#/classtype:connection_cache">connection_cache</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_connection_cache">
+  <a href="index.html#/val:close_connection_cache" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_connection_cache : <a href="index.html#/type:connection_cache">connection_cache</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Closes all descriptors known to the cache</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_restrictive_cache">
+  <a href="index.html#/val:create_restrictive_cache" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_restrictive_cache : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connection_cache">connection_cache</a>
+    
+      <div class="doc">
+        
+      <p>A restrictive cache closes connections as soon as there are no
+pending requests.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_aggressive_cache">
+  <a href="index.html#/val:create_aggressive_cache" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_aggressive_cache : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connection_cache">connection_cache</a>
+    
+      <div class="doc">
+        
+      <p>This type of cache tries to keep connections as long open as
+possible. The consequence is that users are responsible for
+closing the descriptors (by calling <code>close_connection_cache</code>) when the
+cache is no longer in use.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:http_cb_id">
+  <a href="index.html#/val:http_cb_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_cb_id : <a href="index.html#/type:channel_binding_id">channel_binding_id</a>
+    
+      <div class="doc">
+        
+      <p>Identifies a channel binding to pure HTTP (without SSL), with or
+without web proxies</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:https_cb_id">
+  <a href="index.html#/val:https_cb_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> https_cb_id : <a href="index.html#/type:channel_binding_id">channel_binding_id</a>
+    
+      <div class="doc">
+        
+      <p>Identifies a channel binding to anonymous HTTPS (i.e. no client
+certificates), with or without web proxies.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:proxy_only_cb_id">
+  <a href="index.html#/val:proxy_only_cb_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> proxy_only_cb_id : <a href="index.html#/type:channel_binding_id">channel_binding_id</a>
+    
+      <div class="doc">
+        
+      <p>Identifies a channel binding to web proxy connections. Use this to
+e.g. send an FTP URL to a web proxy via HTTP</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:new_cb_id">
+  <a href="index.html#/val:new_cb_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_cb_id : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:channel_binding_id">channel_binding_id</a>
+    
+      <div class="doc">
+        
+      <p>Allocates and returns a new ID</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:http_transport_channel_type">
+  <a href="index.html#/val:http_transport_channel_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_transport_channel_type : <a href="index.html#/classtype:transport_channel_type">transport_channel_type</a>
+    
+      <div class="doc">
+        
+      <p>Transport via HTTP</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:proxy_type">
+  <a href="index.html#/type:proxy_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> proxy_type = [ <div class="cons">| `Http_proxy</div><div class="cons">| `Socks5</div> ]
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Pipelines</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:pipeline">
+  <a href="index.html#/class:pipeline" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> pipeline : 
+      <div class="doc">
+        
+      <p>A <code>pipeline</code> object is a FIFO queue of HTTP calls. It is called
+&quot;pipeline&quot; because it is processed asynchronously: Requests may be
+sent to the HTTP server independently of whether responses of the
+previous requests already arrived or not.</p>
+      
+      <p>Furthermore, a <code>pipeline</code> object may keep connections to several
+servers at once. (More exactly, it has a FIFO queue for every
+server it is connected with.)</p>
+      
+      <p>The <code>pipeline</code> object keeps track what is happening, so you need
+not to care about the details of communications. The API is
+simple: Create a <code>pipeline</code> object, do some setup (add authentication
+methods; configure the proxy to use), add the requests, and
+<code>run</code> the pipeline. The rest is done automatically. To get the results,
+you can either memorize the requests you wanted to know yourself
+and ask every request object about the reply of the server; or
+you can specify that a callback function should be called once
+the request is processed (with positive or negative result).
+It is possible to add further requests to the pipeline from within
+these callback functions.</p>
+      
+      <p>If you want to have several pipelines, or some cooperation with
+other network services, you may specify a <code>Unixqueue.event_system</code>.
+For example, to have two pipelines working concurrently:</p>
+      <pre><code>       let ues = Unixqueue.create_unix_event_system() in
+       let p1 = new pipeline in
+       let p2 = new pipeline in
+       p1 # set_event_system ues;
+       p2 # set_event_system ues;
+       Unixqueue.run ues             (* run p1 and p2 in parallel *)</code></pre>
+      <p>This works not only with pipelines, but with every network client
+or server which is compatible with the <code>Unixqueue</code> design.</p>
+      
+      <p>By default, the pipeline only supports &quot;http&quot; URLs. You can configure
+&quot;https&quot; support via [root:Https_client].</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:pipeline/method:event_system">
+  <a href="index.html#/class:pipeline/method:event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+  
+      <div class="doc">
+        
+      <p>Returns the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_event_system">
+  <a href="index.html#/class:pipeline/method:set_event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the event system. Must be called before the first call
+is added</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:connection_cache">
+  <a href="index.html#/class:pipeline/method:connection_cache" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> connection_cache : <a href="index.html#/type:connection_cache">connection_cache</a>
+  
+      <div class="doc">
+        
+      <p>The current connection cache. By default, a private
+restrictive cache is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_connection_cache">
+  <a href="index.html#/class:pipeline/method:set_connection_cache" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_connection_cache : <a href="index.html#/type:connection_cache">connection_cache</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Set the connection cache. This must happen before the first
+call is added.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:add_authentication_method">
+  <a href="index.html#/class:pipeline/method:add_authentication_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_authentication_method : <a href="index.html#/class:basic_auth_method">basic_auth_method</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>adds an old-style authentication method</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:add_auth_handler">
+  <a href="index.html#/class:pipeline/method:add_auth_handler" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_auth_handler : <a href="index.html#/classtype:auth_handler">auth_handler</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>adds a new-style authentication handler</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_proxy">
+  <a href="index.html#/class:pipeline/method:set_proxy" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_proxy : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>set_proxy name port</code>:
+sets that an HTTP proxy <code>name</code> listening on <code>port</code> is to be used</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_proxy_auth">
+  <a href="index.html#/class:pipeline/method:set_proxy_auth" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_proxy_auth : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>sets user and password for the proxy. Works for both &quot;digest&quot;
+and &quot;basic&quot; mechanisms. Any realm is acceptable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:avoid_proxy_for">
+  <a href="index.html#/class:pipeline/method:avoid_proxy_for" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> avoid_proxy_for : string list <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>sets a list of host names or domain suffixes for which no proxy
+should be used.
+e.g. <code>&quot;localhost&quot;; &quot;.our.net&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_proxy_from_environment">
+  <a href="index.html#/class:pipeline/method:set_proxy_from_environment" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_proxy_from_environment : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Inspect the environment variables <code>http_proxy</code> and <code>no_proxy</code>
+and set the proxy options from them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_socks5_proxy">
+  <a href="index.html#/class:pipeline/method:set_socks5_proxy" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_socks5_proxy : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets that a SOCKS version 5 proxy is used at this host and port.
+There is no authentication. The <code>avoid_proxy_for</code> setting is
+honoured.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:configure_transport">
+  <a href="index.html#/class:pipeline/method:configure_transport" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> configure_transport : <a href="index.html#/type:channel_binding_id">channel_binding_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:transport_channel_type">transport_channel_type</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>configure_transport id transport</code>: Configures that messages with
+channel binding ID <code>id</code> are exchanged on <code>transport</code>.</p>
+      
+      <p>By default, there is only a configuration for
+<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/val:http_cb_id">http_cb_id</a>, i.e. for normal unencrypted channels.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_transport_proxy">
+  <a href="index.html#/class:pipeline/method:set_transport_proxy" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_transport_proxy : <a href="index.html#/type:channel_binding_id">channel_binding_id</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (string * string) option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:proxy_type">proxy_type</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>set_transport_proxy id host port auth ptype</code>: Sets a special
+proxy for the transport identified by <code>id</code>. This overrides
+<code>set_proxy</code>, <code>set_proxy_auth</code>, and <code>set_socks5_proxy</code> for the
+given transport.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_transport_proxy_from_environment">
+  <a href="index.html#/class:pipeline/method:set_transport_proxy_from_environment" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_transport_proxy_from_environment : (string * <a href="index.html#/type:channel_binding_id">channel_binding_id</a>) list <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Like <code>set_proxy_from_environment</code>, this method inspects environment
+variables and configures the proxy settings. This function, however,
+is more flexible, and can use different environment variables for
+different transports.</p>
+      
+      <p>The argument list has pairs <code>(var_name, id)</code> meaning that the
+environment variable <code>var_name</code> configures the proxy for <code>id</code>.
+For instance,
+</p>
+      <pre><code>[(&quot;http_proxy&quot;, http_cb_id); (&quot;https_proxy&quot;, https_cb_id)]</code></pre>
+      <p>
+means that these two variables are used for the respective
+transports.</p>
+      
+      <p>The variable <code>&quot;no_proxy&quot;</code> is interpreted anyway.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:reset">
+  <a href="index.html#/class:pipeline/method:reset" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reset : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Empties the pipeline and inactivates any open connection.
+The currently active operation is interrupted, and every request
+with response is set to <code>No_reply</code> (i.e. you get the exception
+<code>No_reply</code> if you try to access the response).
+If there are callbacks for these requests, the callback
+functions are invoked.
+The queues of open requests and replies are cleared. All
+connections to all servers are inactivated.</p>
+      
+      <p>Inactivation means that open connections are given back
+to the connection cache for further reuse if the state
+of the connection allows this; otherwise the connections are
+closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:add">
+  <a href="index.html#/class:pipeline/method:add" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Adds the call to the end of the pipeline.
+One must not add calls that have already been served.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:add_with_callback">
+  <a href="index.html#/class:pipeline/method:add_with_callback" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_with_callback : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Adds the call to the end of the pipeline.</p>
+      
+      <p>After the call has been processed, the callback function
+is called. This function is called for every call that
+leaves the pipeline, it does not matter whether processing
+was successful or not. Invoke <code>status</code> on the message
+to get what happened; either some status information from the
+server is available (perhaps OK status), or an exception is
+indicated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:add_e">
+  <a href="index.html#/class:pipeline/method:add_e" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> add_e : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_call">http_call</a> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>The same as engine: The call <code>c</code> is added to the pipeline, and
+when it is processed, the returned engine transitions to the
+state <code>`Done c</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:proxy_type">
+  <a href="index.html#/class:pipeline/method:proxy_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> proxy_type : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:proxy_type">proxy_type</a> option
+  
+      <div class="doc">
+        
+      <p><code>proxy_type url</code> returns <code>Some pt</code> if a proxy would be used for this
+<code>url</code>, and <code>None</code> if a direct connection would be made.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:proxy_type_of_call">
+  <a href="index.html#/class:pipeline/method:proxy_type_of_call" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> proxy_type_of_call : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:proxy_type">proxy_type</a> option
+  
+      <div class="doc">
+        
+      <p>Same for an already created call object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:channel_binding">
+  <a href="index.html#/class:pipeline/method:channel_binding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> channel_binding : <a href="index.html#/classtype:http_call">http_call</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:channel_binding_id">channel_binding_id</a>
+  
+      <div class="doc">
+        
+      <p>Reports the current channel binding of this call</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:run">
+  <a href="index.html#/class:pipeline/method:run" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> run : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Runs through the requests in the pipeline. If a request can be
+fulfilled, i.e. the server sends a response, the state of the
+request is set and the request is removed from the pipeline.
+If a request cannot be fulfilled (no response, bad response,
+network error), the exception is stored in the <code>http_call</code>
+object and will be raised once the state of the object is
+queried.</p>
+      
+      <p>Under certain conditions (serious network errors) <code>run</code> does
+not catch the exception; it simply cleans its own state up
+(aborting the errorneous network connection). In this case,
+simply invoke <code>run</code> again to continue.
+<code>run</code> terminates normally if the pipeline becomes empty.</p>
+      
+      <p>The engine handles the following HTTP return codes itself:</p>
+      <ul><li>100: This is an intermediate return code</li><li>301: The redirection is followed if configured</li><li>302: The redirection is followed if configured</li><li>401: Content server authentication</li><li>407: Proxy server authentication</li></ul>
+      <p>All other return codes remain uninterpreted, it is up to the
+caller of this function to react on them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:get_options">
+  <a href="index.html#/class:pipeline/method:get_options" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_options : <a href="index.html#/type:http_options">http_options</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:set_options">
+  <a href="index.html#/class:pipeline/method:set_options" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_options : <a href="index.html#/type:http_options">http_options</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Get/Set the available options for the HTTP engine.
+The new options will take into effect immediately.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:number_of_open_messages">
+  <a href="index.html#/class:pipeline/method:number_of_open_messages" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> number_of_open_messages : int
+  
+      <div class="doc">
+        
+      <p>Returns the number of messages which are still in the pipeline.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:number_of_open_connections">
+  <a href="index.html#/class:pipeline/method:number_of_open_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> number_of_open_connections : int
+  
+      <div class="doc">
+        
+      <p>Returns the number of connections which are open at the same time
+and currently being used by this object (i.e. connections
+returned to the cache do not count)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:connections">
+  <a href="index.html#/class:pipeline/method:connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> connections : (string * int * int) list
+  
+      <div class="doc">
+        
+      <p>Reports which connections exist: <code>(host, port, queue_length)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:cnt_new_connections">
+  <a href="index.html#/class:pipeline/method:cnt_new_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cnt_new_connections : int
+  
+      <div class="doc">
+        
+      <p>Counts new connections (or better: attempts to establish connections)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:cnt_timed_out_connections">
+  <a href="index.html#/class:pipeline/method:cnt_timed_out_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cnt_timed_out_connections : int
+  
+      <div class="doc">
+        
+      <p>Counts connections given up because of timeouts</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:cnt_crashed_connections">
+  <a href="index.html#/class:pipeline/method:cnt_crashed_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cnt_crashed_connections : int
+  
+      <div class="doc">
+        
+      <p>Counts connections with network or protocol errors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:cnt_server_eof_connections">
+  <a href="index.html#/class:pipeline/method:cnt_server_eof_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cnt_server_eof_connections : int
+  
+      <div class="doc">
+        
+      <p>Counts connections the server terminated with EOF</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:cnt_successful_connections">
+  <a href="index.html#/class:pipeline/method:cnt_successful_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cnt_successful_connections : int
+  
+      <div class="doc">
+        
+      <p>Counts connections closed because pipelines become empty</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:cnt_failed_connections">
+  <a href="index.html#/class:pipeline/method:cnt_failed_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cnt_failed_connections : int
+  
+      <div class="doc">
+        
+      <p>Counts totally failed connections (no more reconnects allowed)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pipeline/method:reset_counters">
+  <a href="index.html#/class:pipeline/method:reset_counters" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reset_counters : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Notes on counters:</p>
+      <ul><li><code>cnt_new_connections</code>: Is increased when a new connection attempt
+is started (that may fail or timeout in the future). Reconnects
+do not count.</li><li><code>cnt_timed_out_connections</code>: Is increased whenever an established
+connection times out. Usually, it is immediately reconnected.</li><li><code>cnt_crashed_connections</code>: Is increased whenever an established
+connection crashes. Usually, it is immediately reconnected.</li><li><code>cnt_failed_connections</code>: Is increased when a timed out or
+crashed connection exceeds the maximum number of errors, and it is
+not tried to reconnect.</li><li><code>cnt_successful_connections</code>: Is increased when all HTTP calls
+have been replied.</li></ul>
+      <p>When the client has done all of its jobs, we have</p>
+      <pre><code>cnt_new_connections = cnt_failed_connections + cnt_successful_connections</code></pre>
+        
+      </div>
+    
+    
+      <div class="doc">
+        
+      <p>A pipeline is a queue of HTTP calls to perform</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Example using the pipeline:</b></p>
+      <pre><code>    let call = new get &quot;http://server/path&quot; in
+    let pipeline = new pipeline in
+    pipeline # add call;
+    pipeline # run();    (* Now the HTTP client is working... *)
+    match call # status with
+    | `Successful -&gt; ...
+    | ...</code></pre>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Auxiliary pipeline functions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:parse_proxy_setting">
+  <a href="index.html#/val:parse_proxy_setting" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_proxy_setting : string <span class="rarr"><span>-&gt;</span></span> string * int * (string * string) option
+    
+      <div class="doc">
+        
+      <p>Parses the value of an environment variable like <code>http_proxy</code>,
+i.e. an HTTP URL. The argument is the URL.
+Returns <code>(host,port,auth)</code> where <code>auth</code> may include user name and
+password.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_no_proxy">
+  <a href="index.html#/val:parse_no_proxy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_no_proxy : string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Parses the value of an environment variable like <code>no_proxy</code>. Returns
+the list of domains.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Convenience module for simple applications</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Do <code>open Http_client.Convenience</code> for simple applications.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Convenience">
+  <a href="index.html#/module:Convenience" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Convenience : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Convenience module for simple applications</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Do <code>open Http_client.Convenience</code> for simple applications.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The functions of this module share the following behaviour:</p>
+      
+      <p>The environment variables <code>http_proxy</code> and <code>no_proxy</code> determine
+the proxy settings. <code>http_proxy</code> must be an http-URL that contains
+the proxy's name, its port, and optionally user and password.
+E.g. &quot;http://eric:ericspassword@proxy:8080/&quot;.
+The variable <code>no_proxy</code> is a comma-separated list of hosts and
+domains for which no proxy must be used.
+E.g. &quot;localhost, sun, moon, .intra.net&quot;</p>
+      
+      <p>There is a default behaviour for authentication. Both &quot;basic&quot; and
+&quot;digest&quot; methods are enabled. Two global variables, <code>http_user</code> and
+<code>http_password</code> set the user and password if the URL does not specify
+them. In the case that user and password are included in the URL,
+these values are always
+used.</p>
+      
+      <p>There is a default error behaviour. If a request fails, it is
+automatically repeated. The variable <code>http_trials</code> specifies the number
+of times a request is submitted at most.
+Requests are not repeated if there is a HTTP return code that indicates
+a normal operating condition.
+POST and DELETE requests are never repeated.</p>
+      
+      <p>Error codes are reported as <a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/">Http_client</a>.<a href="../../../../ocamlnet.3.7.7/src/netclient/http_client/#/exn:Http_error">Http_error</a>. Note that
+this is different than what the pipeline core does.</p>
+      
+      <p>&quot;https&quot; support can be additionally configured via [root:Https_client].</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Thread safety</b></p>
+      
+      <p>The Convenience module is fully thread-safe with the exception of the
+exported variables (http_trials, http_user, and http_password). Note
+that all threads share the same pipeline, and access to the pipeline
+is serialized.
+The latter simply means that it always works, but that threads may
+block each other (i.e. the program slows down if more than one thread
+wants to open http connections at the same time).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Convenience/val:http_trials">
+  <a href="index.html#/module:Convenience/val:http_trials" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_trials : int <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>number of times every request is tried. Default: 3</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_user">
+  <a href="index.html#/module:Convenience/val:http_user" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_user : string <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The default user if authentication is required</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_password">
+  <a href="index.html#/module:Convenience/val:http_password" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_password : string <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The default password if authentication is required</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:configure_pipeline">
+  <a href="index.html#/module:Convenience/val:configure_pipeline" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> configure_pipeline : (<a href="index.html#/class:pipeline">pipeline</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>This function will be called before the pipeline is used. This
+is intended for fine-grained configuration.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_get_message">
+  <a href="index.html#/module:Convenience/val:http_get_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_get_message : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_call">http_call</a>
+    
+      <div class="doc">
+        
+      <p>Does a &quot;GET&quot; request with the given URL and returns the message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_head_message">
+  <a href="index.html#/module:Convenience/val:http_head_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_head_message : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_call">http_call</a>
+    
+      <div class="doc">
+        
+      <p>Does a &quot;HEAD&quot; request with the given URL and returns the reply.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_post_message">
+  <a href="index.html#/module:Convenience/val:http_post_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_post_message : string <span class="rarr"><span>-&gt;</span></span> (string * string) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_call">http_call</a>
+    
+      <div class="doc">
+        
+      <p>Does a &quot;POST&quot; request with the given URL and returns the reply.
+The list contains the parameters sent with the POST request.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_put_message">
+  <a href="index.html#/module:Convenience/val:http_put_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_put_message : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_call">http_call</a>
+    
+      <div class="doc">
+        
+      <p>Does a &quot;PUT&quot; request with the given URL and returns the reply.
+The second argument contains the contents to be put.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_delete_message">
+  <a href="index.html#/module:Convenience/val:http_delete_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_delete_message : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_call">http_call</a>
+    
+      <div class="doc">
+        
+      <p>Does a &quot;DELETE&quot; request with the given URL and returns the reply.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_get">
+  <a href="index.html#/module:Convenience/val:http_get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_get : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Does a &quot;GET&quot; request with the given URL and returns the message
+body</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_post">
+  <a href="index.html#/module:Convenience/val:http_post" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_post : string <span class="rarr"><span>-&gt;</span></span> (string * string) list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Does a &quot;POST&quot; request with the given URL and returns the response body.
+The list contains the parameters send with the POST request.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_put">
+  <a href="index.html#/module:Convenience/val:http_put" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_put : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Does a &quot;PUT&quot; request with the given URL and returns the response body.
+The second argument contains the contents to be put.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_delete">
+  <a href="index.html#/module:Convenience/val:http_delete" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_delete : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Does a &quot;DELETE&quot; request with the given URL and returns the response
+body.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Convenience/val:http_verbose">
+  <a href="index.html#/module:Convenience/val:http_verbose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_verbose : ?verbose_status:bool <span class="rarr"><span>-&gt;</span></span> ?verbose_request_header:bool <span class="rarr"><span>-&gt;</span></span> ?verbose_response_header:bool <span class="rarr"><span>-&gt;</span></span> ?verbose_request_contents:bool <span class="rarr"><span>-&gt;</span></span> ?verbose_response_contents:bool <span class="rarr"><span>-&gt;</span></span> ?verbose_connection:bool <span class="rarr"><span>-&gt;</span></span> ?verbose_events:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Turns on debug messages on stderr. By default, all options are
+turned on.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

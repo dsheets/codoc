@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Cstruct</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Cstruct</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Manipulate external memory buffers as C-like structures.</p>
+      
+      <p>Cstruct is a library and syntax extension to make it easier to access C-like
+structures directly from OCaml. It supports both reading and writing to these
+memory buffers, and they are accessed via the <code>Bigarray</code> module.</p>
+      
+      <p>The library interface below is intended to be used in conjunction with the
+<code>pa_cstruct</code> camlp4 syntax extension that is also supplied with this library
+(in the <code>cstruct.syntax</code> ocamlfind package).</p>
+      
+      <p>An example description for the pcap packet format is:</p>
+      <pre><code>cstruct pcap_header {
+  uint32_t magic_number;   (* magic number *)
+  uint16_t version_major;  (* major version number *)
+  uint16_t version_minor;  (* minor version number *)
+  uint32_t thiszone;       (* GMT to local correction *)
+  uint32_t sigfigs;        (* accuracy of timestamps *)
+  uint32_t snaplen;        (* max length of captured packets, in octets *)
+  uint32_t network         (* data link type *)
+} as little_endian
+
+cstruct pcap_packet {
+  uint32_t ts_sec;         (* timestamp seconds *)
+  uint32_t ts_usec;        (* timestamp microseconds *)
+  uint32_t incl_len;       (* number of octets of packet saved in file *)
+  uint32_t orig_len        (* actual length of packet *)
+} as little_endian
+
+cstruct ethernet {
+  uint8_t        dst[6];
+  uint8_t        src[6];
+  uint16_t       ethertype
+} as big_endian
+
+cstruct ipv4 {
+  uint8_t        hlen_version;
+  uint8_t        tos;
+  uint16_t       len;
+  uint16_t       id;
+  uint16_t       off;
+  uint8_t        ttl;
+  uint8_t        proto;
+  uint16_t       csum;
+  uint8_t        src[4];
+  uint8_t        dst[4]
+} as big_endian</code></pre>
+      <p>These will expand to get and set functions for every field, with types
+appropriate to the particular definition. For instance:</p>
+      <pre><code>val get_pcap_packet_ts_sec : Cstruct.t -&gt; Cstruct.uint32
+val set_pcap_packet_ts_sec : Cstruct.t -&gt; Cstruct.uint32 -&gt; unit
+val get_pcap_packet_ts_usec : Cstruct.t -&gt; Cstruct.uint32
+val set_pcap_packet_ts_usec : Cstruct.t -&gt; Cstruct.uint32 -&gt; unit
+val get_pcap_packet_incl_len : Cstruct.t -&gt; Cstruct.uint32
+val set_pcap_packet_incl_len : Cstruct.t -&gt; Cstruct.uint32 -&gt; unit
+val get_pcap_packet_orig_len : Cstruct.t -&gt; Cstruct.uint32
+val set_pcap_packet_orig_len : Cstruct.t -&gt; Cstruct.uint32 -&gt; unit
+val hexdump_pcap_packet_to_buffer : Buffer.t -&gt; Cstruct.t -&gt; unit</code></pre>
+      <p>The buffers generate a different set of functions. For the <code>ethernet</code>
+definitions, we have:</p>
+      <pre><code>val sizeof_ethernet : int
+val get_ethernet_dst : Cstruct.t -&gt; Cstruct.t
+val copy_ethernet_dst : Cstruct.t -&gt; string
+val set_ethernet_dst : string -&gt; int -&gt; Cstruct.t -&gt; unit
+val blit_ethernet_dst : Cstruct.t -&gt; int -&gt; Cstruct.t -&gt; unit
+val get_ethernet_src : Cstruct.t -&gt; Cstruct.t
+val copy_ethernet_src : Cstruct.t -&gt; string</code></pre>
+      <p>You can also declare C-like enums:</p>
+      <pre><code>cenum foo32 {
+  ONE32;
+  TWO32 = 0xfffffffel;
+  THREE32
+} as uint32_t
+
+cenum bar16 {
+  ONE = 1;
+  TWO;
+  FOUR = 4;
+  FIVE
+} as uint16_t</code></pre>
+      <p>This generates signatures of the form:</p>
+      <pre><code>type foo32 = | ONE32 | TWO32 | THREE32
+val int_to_foo32 : int32 -&gt; foo32 option
+val foo32_to_int : foo32 -&gt; int32
+val foo32_to_string : foo32 -&gt; string
+val string_to_foo32 : string -&gt; foo32 option
+type bar16 = | ONE | TWO | FOUR | FIVE
+val int_to_bar16 : int -&gt; bar16 option
+val bar16_to_int : bar16 -&gt; int
+val bar16_to_string : bar16 -&gt; string
+val string_to_bar16 : string -&gt; bar16 option</code></pre>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Base types</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:buffer">
+  <a href="index.html#/type:buffer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> buffer = (char, <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:int8_unsigned_elt">int8_unsigned_elt</a>, <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:c_layout">c_layout</a>) <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1">Array1</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Type of a buffer. A cstruct is composed of an underlying buffer
+and position/length within this buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:buffer">
+  <a href="index.html#/type:t/field:buffer" class="anchor">#</a>
+  buffer
+  </div>
+  </td><td>: <a href="index.html#/type:buffer">buffer</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:off">
+  <a href="index.html#/type:t/field:off" class="anchor">#</a>
+  off
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:len">
+  <a href="index.html#/type:t/field:len" class="anchor">#</a>
+  len
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Type of a cstruct.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:byte">
+  <a href="index.html#/type:byte" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> byte = char
+    
+      <div class="doc">
+        
+      <p>A single byte type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:byte">
+  <a href="index.html#/val:byte" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> byte : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:byte">byte</a>
+    
+      <div class="doc">
+        
+      <p><code>byte v</code> convert <code>v</code> to a single byte.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>v</code> is negative or greater than 255.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:uint8">
+  <a href="index.html#/type:uint8" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> uint8 = int
+    
+      <div class="doc">
+        
+      <p>8-bit unsigned integer. The representation is currently an
+unboxed OCaml integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:uint16">
+  <a href="index.html#/type:uint16" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> uint16 = int
+    
+      <div class="doc">
+        
+      <p>16-bit unsigned integer. The representation is currently an
+unboxed OCaml integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:uint32">
+  <a href="index.html#/type:uint32" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> uint32 = int32
+    
+      <div class="doc">
+        
+      <p>32-bit unsigned integer. The representation is currently a
+boxed OCaml int32.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:uint64">
+  <a href="index.html#/type:uint64" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> uint64 = int64
+    
+      <div class="doc">
+        
+      <p>64-bit unsigned integer. The representation is currently a
+boxed OCaml int64.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Creation and conversion</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:of_bigarray">
+  <a href="index.html#/val:of_bigarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_bigarray : ?off:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_bigarray ~off ~len b</code> is the cstruct contained in <code>b</code> starting
+at <code>off</code>, of length <code>len</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_bigarray">
+  <a href="index.html#/val:to_bigarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_bigarray : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:buffer">buffer</a>
+    
+      <div class="doc">
+        
+      <p><code>to_bigarray t</code> converts a <a href="index.html#/type:t">t</a> into a <a href="index.html#/type:buffer">buffer</a> Bigarray, using
+the Bigarray slicing to allocate a fresh array that preserves
+sharing of the underlying buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create len</code> is a cstruct of size <code>len</code> with an offset of 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_string">
+  <a href="index.html#/val:of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_string : ?allocator:(int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_string ~allocator str</code> is the cstruct representation of <code>str</code>,
+with the underlying buffer allocated by <code>alloc</code>. If <code>allocator</code> is not
+provided, <code>create</code> is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Getters and Setters</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:byte_to_int">
+  <a href="index.html#/val:byte_to_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> byte_to_int : <a href="index.html#/type:byte">byte</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Convert a byte to an integer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:check_bounds">
+  <a href="index.html#/val:check_bounds" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check_bounds : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>check_bounds cstr len</code> is <code>true</code> if <code>cstr.buffer</code>'s size is
+greater or equal than <code>len</code>, <code>false</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_char">
+  <a href="index.html#/val:get_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_char : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> char
+    
+      <div class="doc">
+        
+      <p><code>get_char t off</code> returns the character contained in the cstruct
+at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the offset exceeds cstruct length.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_uint8">
+  <a href="index.html#/val:get_uint8" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_uint8 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint8">uint8</a>
+    
+      <div class="doc">
+        
+      <p><code>get_uint8 t off</code> returns the byte contained in the cstruct
+at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the offset exceeds cstruct length.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_char">
+  <a href="index.html#/val:set_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_char : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_char t off c</code> sets the byte contained in the cstruct
+at offset <code>off</code> to character <code>c</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the offset exceeds cstruct length.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_uint8">
+  <a href="index.html#/val:set_uint8" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_uint8 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint8">uint8</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_uint8 t off c</code> sets the byte contained in the cstruct
+at offset <code>off</code> to byte <code>c</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the offset exceeds cstruct length.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sub">
+  <a href="index.html#/val:sub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sub : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>sub cstr off len</code> is <code>{ t with off = t.off + off; len }</code></p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the offset exceeds cstruct length.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shift">
+  <a href="index.html#/val:shift" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shift : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>shift cstr len</code> is <code>{ t with off=t.off+off; len=t.len-off }</code></p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the offset exceeds cstruct length.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy">
+  <a href="index.html#/val:copy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>copy cstr off len</code> is the string representation of the segment of
+<code>t</code> starting at <code>off</code> of size <code>len</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>off</code> and <code>len</code> do not designate a
+valid segment of <code>t</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit">
+  <a href="index.html#/val:blit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>blit src srcoff dst dstoff len</code> copies <code>len</code> characters from
+cstruct <code>src</code>, starting at index <code>srcoff</code>, to cstruct <code>dst</code>,
+starting at index <code>dstoff</code>. It works correctly even if <code>src</code> and
+<code>dst</code> are the same string, and the source and destination
+intervals overlap.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>srcoff</code> and <code>len</code> do not designate a
+valid segment of <code>src</code>, or if <code>dstoff</code> and <code>len</code> do not designate
+a valid segment of <code>dst</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_from_string">
+  <a href="index.html#/val:blit_from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_from_string : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>blit_from_string src srcoff dst dstoff len</code> copies <code>len</code>
+characters from string <code>src</code>, starting at index <code>srcoff</code>, to
+string <code>dst</code>, starting at index <code>dstoff</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>srcoff</code> and <code>len</code> do not designate a
+valid substring of <code>src</code>, or if <code>dstoff</code> and <code>len</code> do not
+designate a valid segment of <code>dst</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_to_string">
+  <a href="index.html#/val:blit_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_to_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>blit_to_string src srcoff dst dstoff len</code> copies <code>len</code> characters
+from cstruct <code>src</code>, starting at index <code>srcoff</code>, to string <code>dst</code>,
+starting at index <code>dstoff</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>srcoff</code> and <code>len</code> do not designate a
+valid segment of <code>src</code>, or if <code>dstoff</code> and <code>len</code> do not designate
+a valid substring of <code>dst</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:len">
+  <a href="index.html#/val:len" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> len : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the length of the current cstruct view. Note that this
+length is potentially smaller than the actual size of the underlying
+buffer, as the <code>sub</code> or <code>set_len</code> functions can construct a smaller view.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_len">
+  <a href="index.html#/val:set_len" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_len : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>set_len t len</code> sets the length of the cstruct <code>t</code> to a new absolute
+value, and returns a fresh cstruct with these settings.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>len</code> exceeds the size of the buffer.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_len">
+  <a href="index.html#/val:add_len" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_len : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>add_len t l</code> will add <code>l</code> bytes to the length of the buffer, and return
+a fresh cstruct with these settings.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>len</code> exceeds the size of the buffer.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:split">
+  <a href="index.html#/val:split" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> split : ?start:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>split ~start cstr len</code> is a tuple containing the cstruct
+extracted from <code>cstr</code> at offset <code>start</code> (default: 0) of length
+<code>len</code> as first element, and the rest of <code>cstr</code> as second
+element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string">
+  <a href="index.html#/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>to_string t</code> will allocate a fresh OCaml <code>string</code> and copy the
+contents of the cstruct into it, and return that string copy.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Debugging</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:hexdump">
+  <a href="index.html#/val:hexdump" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hexdump : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>When the going gets tough, the tough hexdump their cstructs
+and peer at it until the bug disappears. This will directly
+prettyprint the contents of the cstruct to the standard output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hexdump_to_buffer">
+  <a href="index.html#/val:hexdump_to_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hexdump_to_buffer : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>hexdump_to_buffer buf c</code> will append the pretty-printed hexdump
+of the cstruct <code>c</code> to the buffer <code>buf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug">
+  <a href="index.html#/val:debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>debug t</code> will print out the internal details of a cstruct such
+as its base offset and the length, and raise an assertion failure
+if invariants have been violated. Not intended for casual use.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BE">
+  <a href="index.html#/module:BE" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> BE : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Get/set big-endian integers of various sizes. The second
+argument of those functions is the position relative to the
+current offset of the cstruct.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:BE/val:get_uint16">
+  <a href="index.html#/module:BE/val:get_uint16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_uint16 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint16">uint16</a>
+    
+      <div class="doc">
+        
+      <p><code>get_uint16 cstr off</code> is the 16 bit long big-endian unsigned
+integer stored in <code>cstr</code> at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BE/val:get_uint32">
+  <a href="index.html#/module:BE/val:get_uint32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_uint32 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint32">uint32</a>
+    
+      <div class="doc">
+        
+      <p><code>get_uint32 cstr off</code> is the 32 bit long big-endian unsigned
+integer stored in <code>cstr</code> at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BE/val:get_uint64">
+  <a href="index.html#/module:BE/val:get_uint64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_uint64 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint64">uint64</a>
+    
+      <div class="doc">
+        
+      <p><code>get_uint64 cstr off</code> is the 64 bit long big-endian unsigned
+integer stored in <code>cstr</code> at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BE/val:set_uint16">
+  <a href="index.html#/module:BE/val:set_uint16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_uint16 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint16">uint16</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_uint16 cstr off i</code> writes the 16 bit long big-endian
+unsigned integer <code>i</code> at offset <code>off</code> of <code>cstr</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BE/val:set_uint32">
+  <a href="index.html#/module:BE/val:set_uint32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_uint32 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint32">uint32</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_uint32 cstr off i</code> writes the 32 bit long big-endian
+unsigned integer <code>i</code> at offset <code>off</code> of <code>cstr</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BE/val:set_uint64">
+  <a href="index.html#/module:BE/val:set_uint64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_uint64 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint64">uint64</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_uint64 cstr off i</code> writes the 64 bit long big-endian
+unsigned integer <code>i</code> at offset <code>off</code> of <code>cstr</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LE">
+  <a href="index.html#/module:LE" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> LE : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Get/set little-endian integers of various sizes. The second
+argument of those functions is the position relative to the
+current offset of the cstruct.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:LE/val:get_uint16">
+  <a href="index.html#/module:LE/val:get_uint16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_uint16 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint16">uint16</a>
+    
+      <div class="doc">
+        
+      <p><code>get_uint16 cstr off</code> is the 16 bit long little-endian unsigned
+integer stored in <code>cstr</code> at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LE/val:get_uint32">
+  <a href="index.html#/module:LE/val:get_uint32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_uint32 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint32">uint32</a>
+    
+      <div class="doc">
+        
+      <p><code>get_uint32 cstr off</code> is the 32 bit long little-endian unsigned
+integer stored in <code>cstr</code> at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LE/val:get_uint64">
+  <a href="index.html#/module:LE/val:get_uint64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_uint64 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint64">uint64</a>
+    
+      <div class="doc">
+        
+      <p><code>get_uint64 cstr off</code> is the 64 bit long little-endian unsigned
+integer stored in <code>cstr</code> at offset <code>off</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LE/val:set_uint16">
+  <a href="index.html#/module:LE/val:set_uint16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_uint16 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint16">uint16</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_uint16 cstr off i</code> writes the 16 bit long little-endian
+unsigned integer <code>i</code> at offset <code>off</code> of <code>cstr</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LE/val:set_uint32">
+  <a href="index.html#/module:LE/val:set_uint32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_uint32 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint32">uint32</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_uint32 cstr off i</code> writes the 32 bit long little-endian
+unsigned integer <code>i</code> at offset <code>off</code> of <code>cstr</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:LE/val:set_uint64">
+  <a href="index.html#/module:LE/val:set_uint64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_uint64 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uint64">uint64</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_uint64 cstr off i</code> writes the 64 bit long little-endian
+unsigned integer <code>i</code> at offset <code>off</code> of <code>cstr</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the buffer is too small.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">List of buffers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:lenv">
+  <a href="index.html#/val:lenv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lenv : <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>lenv cstrs</code> is the combined length of all cstructs in <code>cstrs</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copyv">
+  <a href="index.html#/val:copyv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copyv : <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>copyv cstrs</code> is the string representation of the concatenation of
+all cstructs in <code>cstrs</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Iterations</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:iter">
+  <a href="index.html#/type:iter" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a iter = unit <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p>Type of an iterator.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : (<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option) <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:iter">iter</a>
+    
+      <div class="doc">
+        
+      <p><code>iter lenf of_cstr cstr</code> is an iterator over <code>cstr</code> that returns
+elements of size <code>lenf cstr</code> and type <code>of_cstr cstr</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('b <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:iter">iter</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>fold f iter acc</code> is <code>(f iterN accN ... (f iter acc)...)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:buffer_of_sexp">
+  <a href="index.html#/val:buffer_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffer_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:buffer">buffer</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_buffer">
+  <a href="index.html#/val:sexp_of_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_buffer : <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

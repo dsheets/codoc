@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Z</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Z</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Integers.</p>
+      
+      <p>This modules provides arbitrary-precision integers.
+Small integers internally use a regular OCaml <code>int</code>.
+When numbers grow too large, we switch transparently to GMP numbers
+(<code>mpn</code> numbers fully allocated on the OCaml heap).</p>
+      
+      <p>This interface is rather similar to that of <code>Int32</code> and <code>Int64</code>,
+with some additional functions provided natively by GMP
+(GCD, square root, pop-count, etc.).</p>
+      
+      <p>This file is part of the Zarith library
+http://forge.ocamlcore.org/projects/zarith .
+It is distributed under LGPL 2 licensing, with static linking exception.
+See the LICENSE file included in the distribution.</p>
+      
+      <p>Copyright (c) 2010-2011 Antoine Miné, Abstraction project.
+Abstraction is part of the LIENS (Laboratoire d'Informatique de l'ENS),
+a joint laboratory by:
+CNRS (Centre national de la recherche scientifique, France),
+ENS (École normale supérieure, Paris, France),
+INRIA Rocquencourt (Institut national de recherche en informatique, France).</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Toplevel</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>For an optimal experience with the <code>ocaml</code> interactive toplevel,
+the magic commands are:</p>
+      <pre><code>    #load &quot;zarith.cma&quot;;;
+    #install_printer Z.pp_print;;</code></pre>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Types</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Type of integers of arbitrary length.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Overflow">
+  <a href="index.html#/exn:Overflow" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Overflow
+    
+      <div class="doc">
+        
+      <p>Raised by conversion functions when the value cannot be represented in
+the destination type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Construction</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:zero">
+  <a href="index.html#/val:zero" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> zero : <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>The number 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:one">
+  <a href="index.html#/val:one" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> one : <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>The number 1.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:minus_one">
+  <a href="index.html#/val:minus_one" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minus_one : <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>The number -1.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_int">
+  <a href="index.html#/val:of_int" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> of_int : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_int&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts from a base integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_int32">
+  <a href="index.html#/val:of_int32" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> of_int32 : int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_int32&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts from a 32-bit integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_int64">
+  <a href="index.html#/val:of_int64" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> of_int64 : int64 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_int64&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts from a 64-bit integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_nativeint">
+  <a href="index.html#/val:of_nativeint" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> of_nativeint : nativeint <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_nativeint&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts from a native integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_float">
+  <a href="index.html#/val:of_float" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> of_float : float <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_float&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts from a floating-point value.
+The value is truncated.
+Raises <code>Overflow</code> on infinity and NaN arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_string">
+  <a href="index.html#/val:of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Converts a string to an integer.
+An optional <code>-</code> prefix indicates a negative number, while a <code>+</code>
+prefix is ignored.
+An optional prefix <code>0x</code>, <code>0o</code>, or <code>0b</code> (following the optional <code>-</code>
+or <code>+</code> prefix) indicates that the number is,
+represented, in hexadecimal, octal, or binary, respectively.
+Otherwise, base 10 is assumed.
+(Unlike C, a lone <code>0</code> prefix does not denote octal.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_string_base">
+  <a href="index.html#/val:of_string_base" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> of_string_base : int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_string_base&quot; 
+    
+      <div class="doc">
+        
+      <p>Parses a number represented as a string in the specified base,
+with optional <code>-</code> or <code>+</code> prefix.
+The base must be between 2 and 16.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Basic arithmetic operations</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:succ">
+  <a href="index.html#/val:succ" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> succ : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_succ&quot; &quot;ml_as_z_succ&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns its argument plus one.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pred">
+  <a href="index.html#/val:pred" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> pred : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_pred&quot; &quot;ml_as_z_pred&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns its argument minus one.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abs">
+  <a href="index.html#/val:abs" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> abs : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_abs&quot; &quot;ml_as_z_abs&quot; 
+    
+      <div class="doc">
+        
+      <p>Absolute value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:neg">
+  <a href="index.html#/val:neg" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> neg : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_neg&quot; &quot;ml_as_z_neg&quot; 
+    
+      <div class="doc">
+        
+      <p>Unary negation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> add : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_add&quot; &quot;ml_as_z_add&quot; 
+    
+      <div class="doc">
+        
+      <p>Addition.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sub">
+  <a href="index.html#/val:sub" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> sub : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_sub&quot; &quot;ml_as_z_sub&quot; 
+    
+      <div class="doc">
+        
+      <p>Subtraction.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mul">
+  <a href="index.html#/val:mul" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> mul : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_mul&quot; &quot;ml_as_z_mul&quot; 
+    
+      <div class="doc">
+        
+      <p>Multiplication.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:div">
+  <a href="index.html#/val:div" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> div : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_div&quot; &quot;ml_as_z_div&quot; 
+    
+      <div class="doc">
+        
+      <p>Integer division. The result is truncated towards zero
+and obeys the rule of signs.
+Raises <code>Division_by_zero</code> if the divisor (second argument) is 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rem">
+  <a href="index.html#/val:rem" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> rem : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_rem&quot; &quot;ml_as_z_rem&quot; 
+    
+      <div class="doc">
+        
+      <p>Integer remainder. Can raise a <code>Division_by_zero</code>.
+The result of <code>rem a b</code> has the sign of <code>a</code>, and its absolute value is
+strictly smaller than the absolute value of <code>b</code>.
+The result satisfies the equality <code>a = b * div a b + rem a b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:div_rem">
+  <a href="index.html#/val:div_rem" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> div_rem : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_div_rem&quot; 
+    
+      <div class="doc">
+        
+      <p>Computes both the integer quotient and the remainder.
+<code>div_rem a b</code> is equal to <code>(div a b, rem a b)</code>.
+Raises <code>Division_by_zero</code> if <code>b = 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cdiv">
+  <a href="index.html#/val:cdiv" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> cdiv : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_cdiv&quot; 
+    
+      <div class="doc">
+        
+      <p>Integer division with rounding towards +oo (ceiling).
+Can raise a <code>Division_by_zero</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fdiv">
+  <a href="index.html#/val:fdiv" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fdiv : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_fdiv&quot; 
+    
+      <div class="doc">
+        
+      <p>Integer division with rounding towards -oo (floor).
+Can raise a <code>Division_by_zero</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ediv_rem">
+  <a href="index.html#/val:ediv_rem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ediv_rem : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Euclidean division and remainder. <code>ediv_rem a b</code> returns a pair <code>(q, r)</code>
+such that <code>a = b * q + r</code> and <code>0 &lt;= r &lt; |b|</code>.
+Raises <code>Division_by_zero</code> if <code>b = 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ediv">
+  <a href="index.html#/val:ediv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ediv : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Euclidean division. <code>ediv a b</code> is equal to <code>fst (ediv_rem a b)</code>.
+The result satisfies <code>0 &lt;= a - b * ediv a b &lt; |b|</code>.
+Raises <code>Division_by_zero</code> if <code>b = 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:erem">
+  <a href="index.html#/val:erem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> erem : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Euclidean remainder. <code>erem a b</code> is equal to <code>snd (ediv_rem a b)</code>.
+The result satisfies <code>0 &lt;= erem a b &lt; |b|</code> and
+<code>a = b * ediv a b + erem a b</code>. Raises <code>Division_by_zero</code> if <code>b = 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:divexact">
+  <a href="index.html#/val:divexact" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> divexact : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_divexact&quot; 
+    
+      <div class="doc">
+        
+      <p><code>divexact a b</code> divides <code>a</code> by <code>b</code>, only producing correct result when the
+division is exact, i.e., when <code>b</code> evenly divides <code>a</code>.
+It should be faster than general division.
+Can raise a <code>Division_by_zero</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Bit-level operations</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>For all bit-level operations, negative numbers are considered in 2's
+complement representation, starting with a virtual infinite number of
+1s.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:logand">
+  <a href="index.html#/val:logand" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> logand : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_logand&quot; &quot;ml_as_z_logand&quot; 
+    
+      <div class="doc">
+        
+      <p>Bitwise logical and.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:logor">
+  <a href="index.html#/val:logor" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> logor : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_logor&quot; &quot;ml_as_z_logor&quot; 
+    
+      <div class="doc">
+        
+      <p>Bitwise logical or.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:logxor">
+  <a href="index.html#/val:logxor" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> logxor : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_logxor&quot; &quot;ml_as_z_logxor&quot; 
+    
+      <div class="doc">
+        
+      <p>Bitwise logical exclusive or.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lognot">
+  <a href="index.html#/val:lognot" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> lognot : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_lognot&quot; &quot;ml_as_z_lognot&quot; 
+    
+      <div class="doc">
+        
+      <p>Bitwise logical negation.
+The identity <code>lognot a</code>=<code>-a-1</code> always hold.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shift_left">
+  <a href="index.html#/val:shift_left" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> shift_left : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_shift_left&quot; &quot;ml_as_z_shift_left&quot; 
+    
+      <div class="doc">
+        
+      <p>Shifts to the left.
+Equivalent to a multiplication by a power of 2.
+The second argument must be non-negative.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shift_right">
+  <a href="index.html#/val:shift_right" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> shift_right : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_shift_right&quot; &quot;ml_as_z_shift_right&quot; 
+    
+      <div class="doc">
+        
+      <p>Shifts to the right.
+This is an arithmetic shift,
+equivalent to a division by a power of 2 with rounding towards -oo.
+The second argument must be non-negative.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shift_right_trunc">
+  <a href="index.html#/val:shift_right_trunc" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> shift_right_trunc : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_shift_right_trunc&quot; 
+    
+      <div class="doc">
+        
+      <p>Shifts to the right, rounding towards 0.
+This is equivalent to a division by a power of 2, with truncation.
+The second argument must be non-negative.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:popcount">
+  <a href="index.html#/val:popcount" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> popcount : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;ml_z_popcount&quot; 
+    
+      <div class="doc">
+        
+      <p>Counts the number of bits set.
+Raises <code>Overflow</code> for negative arguments, as those have an infinite
+number of bits set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hamdist">
+  <a href="index.html#/val:hamdist" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> hamdist : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;ml_z_hamdist&quot; 
+    
+      <div class="doc">
+        
+      <p>Counts the number of different bits.
+Raises <code>Overflow</code> if the arguments have different signs
+(in which case the distance is infinite).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Conversions</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Note that, when converting to an integer type that cannot represent the
+converted value, an <code>Overflow</code> exception is raised.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:to_int">
+  <a href="index.html#/val:to_int" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> to_int : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;ml_z_to_int&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts to a base integer. May raise an <code>Overflow</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_int32">
+  <a href="index.html#/val:to_int32" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> to_int32 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int32
+    = &quot;ml_z_to_int32&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts to a 32-bit integer. May raise an <code>Overflow</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_int64">
+  <a href="index.html#/val:to_int64" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> to_int64 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int64
+    = &quot;ml_z_to_int64&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts to a 64-bit integer. May raise <code>Overflow</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_nativeint">
+  <a href="index.html#/val:to_nativeint" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> to_nativeint : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> nativeint
+    = &quot;ml_z_to_nativeint&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts to a native integer. May raise an <code>Overflow</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_float">
+  <a href="index.html#/val:to_float" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> to_float : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float
+    = &quot;ml_z_to_float&quot; 
+    
+      <div class="doc">
+        
+      <p>Converts to a floating-point value.
+This function is designed explicitly for the case where the FPU
+rounds towards +oo, in which case the resulting float always
+over-approximates the argument.
+It is not guaranteed to be the least over-approximation though.
+In the (default) case where the FPU does not round towards +oo, it is
+only guaranteed that the result approximates the argument (but it may
+not be the nearest float).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string">
+  <a href="index.html#/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Gives a human-readable, decimal string representation of the argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format">
+  <a href="index.html#/val:format" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> format : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    = &quot;ml_z_format&quot; 
+    
+      <div class="doc">
+        
+      <p>Gives a string representation of the argument in the specified
+printf-like format.
+The general specification has the following form:</p>
+      
+      <p><code>% [flags] [width] type</code></p>
+      
+      <p>Where the type actually indicates the base:</p>
+      <ul><li><code>i</code>, <code>d</code>, <code>u</code>: decimal</li><li><code>b</code>: binary</li><li><code>o</code>: octal</li><li><code>x</code>: lowercase hexadecimal</li><li><code>X</code>: uppercase hexadecimal</li></ul>
+      <p>Supported flags are:</p>
+      <ul><li><code>+</code>: prefix positive numbers with a <code>+</code> sign</li><li>space: prefix positive numbers with a space</li><li><code>-</code>: left-justify (default is right justification)</li><li><code>0</code>: pad with zeroes (instead of spaces)</li><li><code>#</code>: alternate formatting (actually, simply output a literal-like prefix: <code>0x</code>, <code>0b</code>, <code>0o</code>)</li></ul>
+      <p>Unlike the classic <code>printf</code>, all numbers are signed (even hexadecimal ones),
+there is no precision field, and characters that are not part of the format
+are simply ignored (and not copied in the output).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fits_int">
+  <a href="index.html#/val:fits_int" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fits_int : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;ml_z_fits_int&quot; &quot;noalloc&quot; 
+    
+      <div class="doc">
+        
+      <p>Whether the argument fits in a regular <code>int</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fits_int32">
+  <a href="index.html#/val:fits_int32" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fits_int32 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;ml_z_fits_int32&quot; &quot;noalloc&quot; 
+    
+      <div class="doc">
+        
+      <p>Whether the argument fits in an <code>int32</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fits_int64">
+  <a href="index.html#/val:fits_int64" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fits_int64 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;ml_z_fits_int64&quot; &quot;noalloc&quot; 
+    
+      <div class="doc">
+        
+      <p>Whether the argument fits in an <code>int64</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fits_nativeint">
+  <a href="index.html#/val:fits_nativeint" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fits_nativeint : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;ml_z_fits_nativeint&quot; &quot;noalloc&quot; 
+    
+      <div class="doc">
+        
+      <p>Whether the argument fits in a <code>nativeint</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Printing</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:print">
+  <a href="index.html#/val:print" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Prints the argument on the standard output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output">
+  <a href="index.html#/val:output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output : <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Prints the argument on the specified channel.
+Also intended to be used as <code>%a</code> format printer in <code>Printf.printf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sprint">
+  <a href="index.html#/val:sprint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sprint : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>To be used as <code>%a</code> format printer in <code>Printf.sprintf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bprint">
+  <a href="index.html#/val:bprint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bprint : <a href="../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>To be used as <code>%a</code> format printer in <code>Printf.bprintf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_print">
+  <a href="index.html#/val:pp_print" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_print : <a href="../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Prints the argument on the specified formatter.
+Can be used as <code>%a</code> format printer in <code>Format.printf</code> and as
+argument to <code>#install_printer</code> in the top-level.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Ordering</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:compare">
+  <a href="index.html#/val:compare" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> compare : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;ml_z_compare&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:equal">
+  <a href="index.html#/val:equal" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> equal : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;ml_z_equal&quot; &quot;noalloc&quot; 
+    
+      <div class="doc">
+        
+      <p>Equality test.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:leq">
+  <a href="index.html#/val:leq" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> leq : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Less than or equal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:geq">
+  <a href="index.html#/val:geq" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> geq : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Greater than or equal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lt">
+  <a href="index.html#/val:lt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lt : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Less than (and not equal).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gt">
+  <a href="index.html#/val:gt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gt : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Greater than (and not equal).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sign">
+  <a href="index.html#/val:sign" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> sign : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;ml_z_sign&quot; &quot;noalloc&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns -1, 0, or 1 when the argument is respectively negative, null, or
+positive.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:min">
+  <a href="index.html#/val:min" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> min : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the minimum of its arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:max">
+  <a href="index.html#/val:max" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the maximum of its arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hash">
+  <a href="index.html#/val:hash" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hash : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Hashes a number.
+This functions gives the same result as OCaml's polymorphic hashing
+function.
+The result is consistent with equality: if <code>a</code> = <code>b</code>, then <code>hash a</code> =
+<code>hash b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Elementary number theory</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:gcd">
+  <a href="index.html#/val:gcd" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> gcd : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_gcd&quot; 
+    
+      <div class="doc">
+        
+      <p>Greatest common divisor.
+The result is always positive.
+Raises a <code>Division_by_zero</code> is either argument is null.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gcdext">
+  <a href="index.html#/val:gcdext" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gcdext : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * <a href="index.html#/type:t">t</a> * <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>gcd_ext u v</code> returns <code>(g,s,t)</code> where <code>g</code> is the greatest common divisor
+and <code>g=us+vt</code>.
+<code>g</code> is always positive.
+Raises a <code>Division_by_zero</code> is either argument is null.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lcm">
+  <a href="index.html#/val:lcm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lcm : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Least common multiple.
+The result is always positive.
+Raises a <code>Division_by_zero</code> is either argument is null.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:powm">
+  <a href="index.html#/val:powm" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> powm : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_powm&quot; 
+    
+      <div class="doc">
+        
+      <p><code>powm base exp mod</code> computes <code>base</code>^<code>exp</code> modulo <code>mod</code>.
+Negative <code>exp</code> are supported, in which case (<code>base</code>^-1)^(-<code>exp</code>) modulo
+<code>mod</code> is computed.
+However, if <code>exp</code> is negative but <code>base</code> has no inverse modulo <code>mod</code>, then
+a <code>Division_by_zero</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:invert">
+  <a href="index.html#/val:invert" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> invert : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_invert&quot; 
+    
+      <div class="doc">
+        
+      <p><code>invert base mod</code> returns the inverse of <code>base</code> modulo <code>mod</code>.
+Raises a <code>Division_by_zero</code> if <code>base</code> is not invertible modulo <code>mod</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:probab_prime">
+  <a href="index.html#/val:probab_prime" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> probab_prime : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;ml_z_probab_prime&quot; 
+    
+      <div class="doc">
+        
+      <p><code>probab_prime x r</code> returns 0 if <code>x</code> is definitely composite,
+1 if <code>x</code> is probably prime, and 2 if <code>x</code> is definitely prime.
+The <code>r</code> argument controls how many Miller-Rabin probabilistic
+primality tests are performed (5 to 10 is a reasonable value).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nextprime">
+  <a href="index.html#/val:nextprime" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> nextprime : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_nextprime&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns the next prime greater than the argument.
+The result is only prime with very high probability.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Powers</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pow">
+  <a href="index.html#/val:pow" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> pow : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_pow&quot; 
+    
+      <div class="doc">
+        
+      <p><code>pow base exp</code> raises <code>base</code> to the <code>exp</code> power.
+<code>exp</code> must be non-negative.
+Note that only exponents fitting in a machine integer are supported, as
+larger exponents would surely make the result's size overflow the
+address space.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sqrt">
+  <a href="index.html#/val:sqrt" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> sqrt : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_sqrt&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns the square root. The result is truncated.
+Raises an <code>Invalid_argument</code> on negative arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sqrt_rem">
+  <a href="index.html#/val:sqrt_rem" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> sqrt_rem : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_sqrt_rem&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns the square root truncated, and the remainder.
+Raises an <code>Invalid_argument</code> on negative arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:root">
+  <a href="index.html#/val:root" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> root : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_root&quot; 
+    
+      <div class="doc">
+        
+      <p><code>root base n</code> computes the <code>n</code>-th root of <code>exp</code>.
+<code>n</code> must be non-negative.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:perfect_power">
+  <a href="index.html#/val:perfect_power" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> perfect_power : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;ml_z_perfect_power&quot; 
+    
+      <div class="doc">
+        
+      <p>True if the argument has the form <code>a^b</code>, with <code>b&gt;1</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:perfect_square">
+  <a href="index.html#/val:perfect_square" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> perfect_square : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;ml_z_perfect_square&quot; 
+    
+      <div class="doc">
+        
+      <p>True if the argument has the form <code>a^2</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Representation</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:size">
+  <a href="index.html#/val:size" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> size : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;ml_z_size&quot; &quot;noalloc&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns the number of machine words used to represent the number.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract">
+  <a href="index.html#/val:extract" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> extract : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_extract&quot; 
+    
+      <div class="doc">
+        
+      <p><code>extract a off len</code> returns a non-negative number corresponding to bits
+<code>off</code> to <code>off</code>+<code>len</code>-1 of <code>b</code>.
+Negative <code>a</code> are considered in infinite-length 2's complement
+representation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:signed_extract">
+  <a href="index.html#/val:signed_extract" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> signed_extract : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>signed_extract a off len</code> extracts bits <code>off</code> to <code>off</code>+<code>len</code>-1 of <code>b</code>,
+as <code>extract</code> does, then sign-extends bit <code>len-1</code> of the result
+(that is, bit <code>off + len - 1</code> of <code>a</code>). The result is between
+<code>- 2{^[len]-1}</code> (included) and <code>2{^[len]-1}</code> excluded,
+and equal to <code>extract a off len</code> modulo <code>2{^len}</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_bits">
+  <a href="index.html#/val:to_bits" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> to_bits : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    = &quot;ml_z_to_bits&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns a binary representation of the argument.
+The string result should be interpreted as a sequence of bytes,
+corresponding to the binary representation of the absolute value of
+the argument in little endian ordering.
+The sign is not stored in the string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_bits">
+  <a href="index.html#/val:of_bits" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> of_bits : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_bits&quot; 
+    
+      <div class="doc">
+        
+      <p>Constructs a number from a binary string representation.
+The string is interpreted as a sequence of bytes in little endian order,
+and the result is always positive.
+We have the identity: <code>of_bits (to_bits x) = abs x</code>.
+However, we can have <code>to_bits (of_bits s) &lt;&gt; s</code> due to the presence of
+trailing zeros in s.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Prefix and infix operators</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Classic (and less classic) prefix and infix <code>int</code> operators are
+redefined on <code>t</code>.</p>
+      
+      <p>This makes it easy to typeset expressions.
+Using OCaml 3.12's local open, you can simply write
+<code>Z.(~$2 + ~$5 * ~$10)</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:(~-)">
+  <a href="index.html#/val:(~-)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (~-) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_neg&quot; &quot;ml_as_z_neg&quot; 
+    
+      <div class="doc">
+        
+      <p>Negation <code>neg</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(~+)">
+  <a href="index.html#/val:(~%2B)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (~+) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Identity.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(+)">
+  <a href="index.html#/val:(%2B)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (+) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_add&quot; &quot;ml_as_z_add&quot; 
+    
+      <div class="doc">
+        
+      <p>Addition <code>add</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(-)">
+  <a href="index.html#/val:(-)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (-) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_sub&quot; &quot;ml_as_z_sub&quot; 
+    
+      <div class="doc">
+        
+      <p>Subtraction <code>sub</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(*)">
+  <a href="index.html#/val:(*)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (*) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_mul&quot; &quot;ml_as_z_mul&quot; 
+    
+      <div class="doc">
+        
+      <p>Multiplication <code>mul</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(/)">
+  <a href="index.html#/val:(/)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (/) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_div&quot; &quot;ml_as_z_div&quot; 
+    
+      <div class="doc">
+        
+      <p>Truncated division <code>div</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(/&gt;)">
+  <a href="index.html#/val:(/%3E)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (/&gt;) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_cdiv&quot; 
+    
+      <div class="doc">
+        
+      <p>Ceiling division <code>cdiv</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(/&lt;)">
+  <a href="index.html#/val:(/%3C)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (/&lt;) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_fdiv&quot; 
+    
+      <div class="doc">
+        
+      <p>Flooring division <code>fdiv</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(/|)">
+  <a href="index.html#/val:(/%7C)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (/|) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_divexact&quot; 
+    
+      <div class="doc">
+        
+      <p>Exact division <code>div_exact</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mod">
+  <a href="index.html#/val:mod" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> mod : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_rem&quot; &quot;ml_as_z_rem&quot; 
+    
+      <div class="doc">
+        
+      <p>Remainder <code>rem</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:land">
+  <a href="index.html#/val:land" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> land : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_logand&quot; &quot;ml_as_z_logand&quot; 
+    
+      <div class="doc">
+        
+      <p>Bit-wise logical and <code>logand</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lor">
+  <a href="index.html#/val:lor" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> lor : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_logor&quot; &quot;ml_as_z_logor&quot; 
+    
+      <div class="doc">
+        
+      <p>Bit-wise logical inclusive or <code>logor</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lxor">
+  <a href="index.html#/val:lxor" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> lxor : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_logxor&quot; &quot;ml_as_z_logxor&quot; 
+    
+      <div class="doc">
+        
+      <p>Bit-wise logical exclusive or <code>logxor</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(~!)">
+  <a href="index.html#/val:(~!)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (~!) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_lognot&quot; &quot;ml_as_z_lognot&quot; 
+    
+      <div class="doc">
+        
+      <p>Bit-wise logical negation <code>lognot</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lsl">
+  <a href="index.html#/val:lsl" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> lsl : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_shift_left&quot; &quot;ml_as_z_shift_left&quot; 
+    
+      <div class="doc">
+        
+      <p>Bit-wise shift to the left <code>shift_left</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:asr">
+  <a href="index.html#/val:asr" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> asr : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_shift_right&quot; &quot;ml_as_z_shift_right&quot; 
+    
+      <div class="doc">
+        
+      <p>Bit-wise shift to the right <code>shift_right</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(~$)">
+  <a href="index.html#/val:(~$)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (~$) : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_of_int&quot; 
+    
+      <div class="doc">
+        
+      <p>Conversion from <code>int</code> <code>of_int</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(**)">
+  <a href="index.html#/val:(**)" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> (**) : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;ml_z_pow&quot; 
+    
+      <div class="doc">
+        
+      <p>Power <code>pow</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Miscellaneous</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:version">
+  <a href="index.html#/val:version" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> version : string
+    
+      <div class="doc">
+        
+      <p>Library version (this file refers to version <code>&quot;1.3&quot;</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Conduit_lwt_unix</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Conduit_lwt_unix</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Connection establishment using the
+<a href="http://ocsigen.org/lwt/api/Lwt_unix">Lwt_unix</a> library</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Core types</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:client_tls_config">
+  <a href="index.html#/type:client_tls_config" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> client_tls_config = [ <div class="cons">| `Hostname <span class="keyword">of</span> string</div> ] * [ <div class="cons">| `IP <span class="keyword">of</span> <a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/">Ipaddr</a>.<a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/#/type:t">t</a></div> ] * [ <div class="cons">| `Port <span class="keyword">of</span> int</div> ]
+    
+      <div class="doc">
+        
+      <p>Configuration fragment for a TLS client connecting to a remote endpoint</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:client">
+  <a href="index.html#/type:client" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> client = [ <div class="cons">| `TLS <span class="keyword">of</span> <a href="index.html#/type:client_tls_config">client_tls_config</a></div><div class="cons">| `TLS_native <span class="keyword">of</span> <a href="index.html#/type:client_tls_config">client_tls_config</a></div><div class="cons">| `OpenSSL <span class="keyword">of</span> <a href="index.html#/type:client_tls_config">client_tls_config</a></div><div class="cons">| `TCP <span class="keyword">of</span> [ <div class="cons">| `IP <span class="keyword">of</span> <a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/">Ipaddr</a>.<a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/#/type:t">t</a></div> ] * [ <div class="cons">| `Port <span class="keyword">of</span> int</div> ]</div><div class="cons">| `Unix_domain_socket <span class="keyword">of</span> [ <div class="cons">| `File <span class="keyword">of</span> string</div> ]</div><div class="cons">| `Vchan_direct <span class="keyword">of</span> [ <div class="cons">| `Domid <span class="keyword">of</span> int</div> ] * [ <div class="cons">| `Port <span class="keyword">of</span> string</div> ]</div><div class="cons">| `Vchan_domain_socket <span class="keyword">of</span> [ <div class="cons">| `Domain_name <span class="keyword">of</span> string</div> ] * [ <div class="cons">| `Port <span class="keyword">of</span> string</div> ]</div> ]
+    
+      <div class="doc">
+        
+      <p>Set of supported client connections that are supported by this module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:server_tls_config">
+  <a href="index.html#/type:server_tls_config" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> server_tls_config = [ <div class="cons">| `Crt_file_path <span class="keyword">of</span> string</div> ] * [ <div class="cons">| `Key_file_path <span class="keyword">of</span> string</div> ] * [ <div class="cons">| `Password <span class="keyword">of</span> bool <span class="rarr"><span>-&gt;</span></span> string</div><div class="cons">| `No_password</div> ] * [ <div class="cons">| `Port <span class="keyword">of</span> int</div> ]
+    
+      <div class="doc">
+        
+      <p>Configuration fragment for a listening TLS server</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:server">
+  <a href="index.html#/type:server" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> server = [ <div class="cons">| `TLS <span class="keyword">of</span> <a href="index.html#/type:server_tls_config">server_tls_config</a></div><div class="cons">| `OpenSSL <span class="keyword">of</span> <a href="index.html#/type:server_tls_config">server_tls_config</a></div><div class="cons">| `TLS_native <span class="keyword">of</span> <a href="index.html#/type:server_tls_config">server_tls_config</a></div><div class="cons">| `TCP <span class="keyword">of</span> [ <div class="cons">| `Port <span class="keyword">of</span> int</div> ]</div><div class="cons">| `Unix_domain_socket <span class="keyword">of</span> [ <div class="cons">| `File <span class="keyword">of</span> string</div> ]</div><div class="cons">| `Vchan_direct <span class="keyword">of</span> int * string</div><div class="cons">| `Vchan_domain_socket <span class="keyword">of</span> string * string</div> ]
+    
+      <div class="doc">
+        
+      <p>Set of supported listening mechanisms that are supported by this module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:io">
+  <a href="index.html#/type:io" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a io = 'a <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ic">
+  <a href="index.html#/type:ic" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ic = <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:input_channel">input_channel</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:oc">
+  <a href="index.html#/type:oc" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> oc = <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/">Lwt_io</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_io/#/type:output_channel">output_channel</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:tcp_flow">
+  <a href="index.html#/type:tcp_flow" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> tcp_flow = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:tcp_flow/field:fd">
+  <a href="index.html#/type:tcp_flow/field:fd" class="anchor">#</a>
+  fd
+  </div>
+  </td><td>: <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> Sexplib.Conv.sexp_opaque</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:tcp_flow/field:ip">
+  <a href="index.html#/type:tcp_flow/field:ip" class="anchor">#</a>
+  ip
+  </div>
+  </td><td>: <a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/">Ipaddr</a>.<a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/#/type:t">t</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:tcp_flow/field:port">
+  <a href="index.html#/type:tcp_flow/field:port" class="anchor">#</a>
+  port
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p><code>tcp_flow</code> contains the state of a single TCP connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:domain_flow">
+  <a href="index.html#/type:domain_flow" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> domain_flow = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:domain_flow/field:fd">
+  <a href="index.html#/type:domain_flow/field:fd" class="anchor">#</a>
+  fd
+  </div>
+  </td><td>: <a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/">Lwt_unix</a>.<a href="../../../../lwt.2.4.6/_build/src/unix/lwt_unix/#/type:file_descr">file_descr</a> Sexplib.Conv.sexp_opaque</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:domain_flow/field:path">
+  <a href="index.html#/type:domain_flow/field:path" class="anchor">#</a>
+  path
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p><code>domain_flow</code> contains the state of a single Unix domain socket
+connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:vchan_flow">
+  <a href="index.html#/type:vchan_flow" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vchan_flow = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:vchan_flow/field:domid">
+  <a href="index.html#/type:vchan_flow/field:domid" class="anchor">#</a>
+  domid
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:vchan_flow/field:port">
+  <a href="index.html#/type:vchan_flow/field:port" class="anchor">#</a>
+  port
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p><code>vchan_flow</code> contains the state of a single Vchan shared memory
+connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:flow">
+  <a href="index.html#/type:flow" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> flow = <span class="keyword">private</span> <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:flow/cons:TCP">
+  <a href="index.html#/type:flow/cons:TCP" class="anchor">#</a>
+  | TCP <span class="keyword">of</span> <a href="index.html#/type:tcp_flow">tcp_flow</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:flow/cons:Domain_socket">
+  <a href="index.html#/type:flow/cons:Domain_socket" class="anchor">#</a>
+  | Domain_socket <span class="keyword">of</span> <a href="index.html#/type:domain_flow">domain_flow</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:flow/cons:Vchan">
+  <a href="index.html#/type:flow/cons:Vchan" class="anchor">#</a>
+  | Vchan <span class="keyword">of</span> <a href="index.html#/type:vchan_flow">vchan_flow</a>
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>A <code>flow</code> contains the state of a single connection, over a specific
+transport method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:tls_server_key">
+  <a href="index.html#/type:tls_server_key" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> tls_server_key = [ <div class="cons">| `None</div><div class="cons">| `TLS <span class="keyword">of</span> [ <div class="cons">| `Crt_file_path <span class="keyword">of</span> string</div> ] * [ <div class="cons">| `Key_file_path <span class="keyword">of</span> string</div> ] * [ <div class="cons">| `Password <span class="keyword">of</span> bool <span class="rarr"><span>-&gt;</span></span> string</div><div class="cons">| `No_password</div> ]</div> ]
+    
+      <div class="doc">
+        
+      <p>Type describing where to locate a PEM key in the filesystem</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ctx">
+  <a href="index.html#/type:ctx" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ctx
+    
+      <div class="doc">
+        
+      <p>State handler for an active conduit</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Connection and listening</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:default_ctx">
+  <a href="index.html#/val:default_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_ctx : <a href="index.html#/type:ctx">ctx</a>
+    
+      <div class="doc">
+        
+      <p>Default context that listens on all source addresses with
+no TLS certificate associated with the Conduit</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : ?src:string <span class="rarr"><span>-&gt;</span></span> ?tls_server_key:<a href="index.html#/type:tls_server_key">tls_server_key</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:ctx">ctx</a> <a href="index.html#/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p><code>init ?src ?tls_server_key ()</code> will initialize a Unix conduit
+that binds to the <code>src</code> interface if specified. If TLS server
+connections are used, then <code>tls_server_key</code> must contain a
+valid certificate to be used to advertise a TLS connection</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:connect">
+  <a href="index.html#/val:connect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connect : ctx:<a href="index.html#/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:client">client</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:flow">flow</a> * <a href="index.html#/type:ic">ic</a> * <a href="index.html#/type:oc">oc</a>) <a href="index.html#/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p><code>connect ~ctx client</code> establishes an outgoing connection
+via the <code>ctx</code> context to the endpoint described by <code>client</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:serve">
+  <a href="index.html#/val:serve" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> serve : ?timeout:int <span class="rarr"><span>-&gt;</span></span> ?stop:unit <a href="index.html#/type:io">io</a> <span class="rarr"><span>-&gt;</span></span> ctx:<a href="index.html#/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> mode:<a href="index.html#/type:server">server</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:flow">flow</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:ic">ic</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:oc">oc</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:io">io</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p><code>serve ?timeout ?stop ~ctx ~mode fn</code> establishes a listening
+connection of type <code>mode</code>, using the <code>ctx</code> context. The
+<code>stop</code> thread will terminate the server if it ever becomes
+determined. Every connection will be served in a new
+lightweight thread that is invoked via the <code>fn</code> callback</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:endp_of_flow">
+  <a href="index.html#/val:endp_of_flow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> endp_of_flow : <a href="index.html#/type:flow">flow</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/type:endp">endp</a>
+    
+      <div class="doc">
+        
+      <p><code>endp_of_flow flow</code> retrieves the original <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/type:endp">endp</a>
+from the established <code>flow</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:endp_to_client">
+  <a href="index.html#/val:endp_to_client" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> endp_to_client : ctx:<a href="index.html#/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/type:endp">endp</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:client">client</a> <a href="index.html#/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p><code>endp_to_client ~ctx endp</code> converts an <code>endp</code> into a
+a concrete connection mechanism of type <code>client</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:endp_to_server">
+  <a href="index.html#/val:endp_to_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> endp_to_server : ctx:<a href="index.html#/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/type:endp">endp</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:server">server</a> <a href="index.html#/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p><code>endp_to_server ~ctx endp</code> converts an <code>endp</code> into a
+a concrete connection mechanism of type <code>client</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">TLS library selection</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:tls_lib">
+  <a href="index.html#/type:tls_lib" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> tls_lib = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:tls_lib/cons:OpenSSL">
+  <a href="index.html#/type:tls_lib/cons:OpenSSL" class="anchor">#</a>
+  | OpenSSL
+  </div>
+  </td><td>(*</td><td class="doc">The <code>Lwt_ssl</code> bindings to the C OpenSSL library</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:tls_lib/cons:Native">
+  <a href="index.html#/type:tls_lib/cons:Native" class="anchor">#</a>
+  | Native
+  </div>
+  </td><td>(*</td><td class="doc">A pure OCaml TLS implementation</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:tls_lib/cons:No_tls">
+  <a href="index.html#/type:tls_lib/cons:No_tls" class="anchor">#</a>
+  | No_tls
+  </div>
+  </td><td>(*</td><td class="doc">No TLS implementation available, so any connections will fail</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Currently selected method of using TLS for client and servers</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tls_library">
+  <a href="index.html#/val:tls_library" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tls_library : <a href="index.html#/type:tls_lib">tls_lib</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The default selection is to select <a href="index.html#/type:tls_lib/cons:OpenSSL">OpenSSL</a>, <a href="index.html#/type:tls_lib/cons:Native">Native</a> and <a href="index.html#/type:tls_lib/cons:No_tls">No_tls</a> in
+decreasing order of priority. The native OCaml stack can be forced by
+setting the <code>CONDUIT_TLS</code> Unix environment variable to <code>native</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:client_tls_config_of_sexp">
+  <a href="index.html#/val:client_tls_config_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> client_tls_config_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:client_tls_config">client_tls_config</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_client_tls_config">
+  <a href="index.html#/val:sexp_of_client_tls_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_client_tls_config : <a href="index.html#/type:client_tls_config">client_tls_config</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:client_of_sexp">
+  <a href="index.html#/val:client_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> client_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:client">client</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__client_of_sexp__">
+  <a href="index.html#/val:__client_of_sexp__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __client_of_sexp__ : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:client">client</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_client">
+  <a href="index.html#/val:sexp_of_client" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_client : <a href="index.html#/type:client">client</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:server_tls_config_of_sexp">
+  <a href="index.html#/val:server_tls_config_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> server_tls_config_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:server_tls_config">server_tls_config</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_server_tls_config">
+  <a href="index.html#/val:sexp_of_server_tls_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_server_tls_config : <a href="index.html#/type:server_tls_config">server_tls_config</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:server_of_sexp">
+  <a href="index.html#/val:server_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> server_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:server">server</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__server_of_sexp__">
+  <a href="index.html#/val:__server_of_sexp__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __server_of_sexp__ : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:server">server</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_server">
+  <a href="index.html#/val:sexp_of_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_server : <a href="index.html#/type:server">server</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_tcp_flow">
+  <a href="index.html#/val:sexp_of_tcp_flow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_tcp_flow : <a href="index.html#/type:tcp_flow">tcp_flow</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_domain_flow">
+  <a href="index.html#/val:sexp_of_domain_flow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_domain_flow : <a href="index.html#/type:domain_flow">domain_flow</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_vchan_flow">
+  <a href="index.html#/val:sexp_of_vchan_flow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_vchan_flow : <a href="index.html#/type:vchan_flow">vchan_flow</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_flow">
+  <a href="index.html#/val:sexp_of_flow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_flow : <a href="index.html#/type:flow">flow</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tls_server_key_of_sexp">
+  <a href="index.html#/val:tls_server_key_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tls_server_key_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:tls_server_key">tls_server_key</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__tls_server_key_of_sexp__">
+  <a href="index.html#/val:__tls_server_key_of_sexp__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __tls_server_key_of_sexp__ : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:tls_server_key">tls_server_key</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_tls_server_key">
+  <a href="index.html#/val:sexp_of_tls_server_key" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_tls_server_key : <a href="index.html#/type:tls_server_key">tls_server_key</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_ctx">
+  <a href="index.html#/val:sexp_of_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_ctx : <a href="index.html#/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

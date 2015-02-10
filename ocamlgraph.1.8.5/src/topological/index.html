@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>Topological</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Topological</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Topological order.</p>
+      
+      <p>This functor provides functions which allow iterating over a graph in
+topological order. Cycles in graphs are allowed. Specification is the
+following:
+if vertex <code>x</code> is visited before vertex <code>y</code>
+then either there is a path from <code>x</code> to <code>y</code>,
+or there is no path from <code>y</code> to <code>x</code>.
+In the particular case of a DAG, this simplifies to:
+if there is an edge from <code>x</code> to <code>y</code>, then <code>x</code> is visited before <code>y</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/modtype:G">
+  <a href="index.html#/modtype:G" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> G = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Minimal graph signature to provide.
+Sub-signature of <a href="../../../ocamlgraph.1.8.5/src/sig/">Sig</a>.<a href="../../../ocamlgraph.1.8.5/src/sig/#/modtype:G">G</a>.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:G/type:t">
+  <a href="index.html#/modtype:G/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/module:V">
+  <a href="index.html#/modtype:G/module:V" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V : <a href="../../../ocamlgraph.1.8.5/src/sig/">Sig</a>.<a href="../../../ocamlgraph.1.8.5/src/sig/#/modtype:COMPARABLE">COMPARABLE</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:iter_vertex">
+  <a href="index.html#/modtype:G/val:iter_vertex" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_vertex : (<a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:iter_succ">
+  <a href="index.html#/modtype:G/val:iter_succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_succ : (<a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (G : <a href="index.html#/modtype:G">G</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Functor providing topological iterators over a graph.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Make/val:fold">
+  <a href="index.html#/module:Make/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : (<a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make/modarg:1:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>fold action g seed</code> allows iterating over the graph <code>g</code>
+in topological order. <code>action node accu</code> is called repeatedly,
+where <code>node</code> is the node being visited, and <code>accu</code> is the result of
+the <code>action</code>'s previous invocation, if any, and <code>seed</code> otherwise.
+If <code>g</code> contains cycles, the order is unspecified inside the cycles and
+every node in the cycles will be presented exactly once.</p>
+      
+      <p>Not tail-recursive. Complexity: O(V+E)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:iter">
+  <a href="index.html#/module:Make/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : (<a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make/modarg:1:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/modarg:1:G">G</a>.<a href="index.html#/module:Make/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter action</code> calls <code>action node</code> repeatedly. Nodes are (again)
+presented to <code>action</code> in topological order.
+The order is the same as for <code>fold</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_stable">
+  <a href="index.html#/module:Make_stable" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_stable : <span class="keyword">functor</span> (G : <span class="keyword">sig</span>
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> <a href="index.html#/modtype:G">G</a> 
+    </div>
+  
+  <div class="region" id="/module:Make_stable/modarg:1:G/val:in_degree">
+  <a href="index.html#/module:Make_stable/modarg:1:G/val:in_degree" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> in_degree : <a href="index.html#/module:Make_stable/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make_stable/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make_stable/modarg:1:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Provide the same features than <a href="index.html#/module:Make">Make</a>, except that the resulting
+topological ordering is stable according to vertices comparison: if two
+vertices <code>v1</code> and <code>v2</code> are topologically equal, <code>v1</code> is presented first to
+the iterator if and only if <code>G.V.compare v1 v2 &lt;= 0</code>. In particular, the
+resulting order is not dependent on the provided hash function. This
+property is not guaranteed by the functor <a href="index.html#/module:Make">Make</a>. The counterpart is a less
+efficient implementation: worst time complexity is O(E*V*ln(V)) instead of
+O(E*V) (with E = number of edges and V = number of vertices.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Make_stable/val:fold">
+  <a href="index.html#/module:Make_stable/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : (<a href="index.html#/module:Make_stable/modarg:1:G">G</a>.<a href="index.html#/module:Make_stable/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make_stable/modarg:1:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make_stable/modarg:1:G">G</a>.<a href="index.html#/module:Make_stable/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_stable/val:iter">
+  <a href="index.html#/module:Make_stable/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : (<a href="index.html#/module:Make_stable/modarg:1:G">G</a>.<a href="index.html#/module:Make_stable/modarg:1:G/module:V">V</a>.<a href="index.html#/module:Make_stable/modarg:1:G/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make_stable/modarg:1:G">G</a>.<a href="index.html#/module:Make_stable/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

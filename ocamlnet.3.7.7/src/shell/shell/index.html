@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Shell</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Shell</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Calls external programs, creates pipelines, etc. (simplified interface)</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p><b>Signal handlers:</b> When you call the function <code>call</code>, signal handlers
+are automatically installed by <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/val:install_job_handlers">install_job_handlers</a>, unless
+this installation has already been performed. You can configure these
+handlers by <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/val:configure_job_handlers">configure_job_handlers</a>. The handlers remain
+in effect even after <code>call</code> returns.</p>
+      
+      <p>Note that this has a global side effect on the whole process, because
+there is only one set of signal handlers.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Calling commands and pipelines</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following functions are simplified versions of the
+<code>Shell_sys.job</code> abstraction.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Subprocess_error">
+  <a href="index.html#/exn:Subprocess_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Subprocess_error <span class="keyword">of</span> (string * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a>) list
+    
+      <div class="doc">
+        
+      <p>The string contains the called commands in a readable representation.
+The list enumerates the return codes of the processes that have
+been started for the commands.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:producer">
+  <a href="index.html#/type:producer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> producer
+    
+      <div class="doc">
+        
+      <p>A producer generates data sent to a called process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:consumer">
+  <a href="index.html#/type:consumer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> consumer
+    
+      <div class="doc">
+        
+      <p>A consumer receives data from a called process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:assignment">
+  <a href="index.html#/type:assignment" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> assignment
+    
+      <div class="doc">
+        
+      <p>An assignment redirects file descriptors while calling a process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:command">
+  <a href="index.html#/val:command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> command : ?cmdname:string <span class="rarr"><span>-&gt;</span></span> ?arguments:string array <span class="rarr"><span>-&gt;</span></span> ?chdir:string <span class="rarr"><span>-&gt;</span></span> ?environment:<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> ?descriptors:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> ?assignments:<a href="index.html#/type:assignment">assignment</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:command">command</a>
+    
+      <div class="doc">
+        
+      <p>Creates a command descriptor, to be used in <code>call</code>. The anonymous
+string argument is the name of the executable to invoke. If the name
+contains a '/', it is simply interpreted as the filename of the
+executable. Otherwise the command is searched in the current PATH.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">cmdname</span> The name of the command passed in <code>argv[0]</code>. By
+default, this argument is derived from the name of the executable.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">arguments</span> The arguments of the command (starting with the
+first real argument, skipping <code>cmdname</code>). By default <code>[]</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">chdir</span> Before the command is executed it is changed to
+this directory.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">environment</span> The environment of the command. By default, the
+current environment
+  </div>
+  
+  <div class="tag param">
+    <span class="label">descriptors</span> The list of file descriptors to share with the
+current process; all other file descriptors will be closed.
+By default, <code>[stdin; stdout; stderr]</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">assignments</span> The list of descriptor assignments. The assignments
+are applied one after the other. By default empty.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cmd">
+  <a href="index.html#/val:cmd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cmd : ?cmdname:string <span class="rarr"><span>-&gt;</span></span> ?chdir:string <span class="rarr"><span>-&gt;</span></span> ?environment:<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> ?descriptors:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> ?assignments:<a href="index.html#/type:assignment">assignment</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:command">command</a>
+    
+      <div class="doc">
+        
+      <p>The same as <code>command</code> but with a slightly different interface: Use
+</p>
+      <pre><code>cmd &quot;ls&quot; [ &quot;/dir/file&quot; ]</code></pre>
+      <p>
+instead of
+</p>
+      <pre><code>command ~arguments:[|&quot;/dir/file&quot;|] &quot;ls&quot;</code></pre>
+      <p>The named arguments have the same meanings as in <code>command</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:call">
+  <a href="index.html#/val:call" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> call : ?ignore_error_code:bool <span class="rarr"><span>-&gt;</span></span> ?mode:<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:group_mode">group_mode</a> <span class="rarr"><span>-&gt;</span></span> ?stdin:<a href="index.html#/type:producer">producer</a> <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:consumer">consumer</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:consumer">consumer</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:command">command</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Starts the pipeline represented by the list of commands; i.e.
+if <code>[c1;c2;...;cN]</code> is passed, this corresponds to the pipeline
+<code>c1 | c2 | ... | cN</code> (in shell notation).</p>
+      
+      <p>The function returns normally if all processes can be started and
+terminate regularly with exit code 0. If a process terminates with
+some other exit code, and <code>ignore_error_code</code> is set, the function
+returns normally, too. The latter does not apply if a process terminates
+because of a signal (which triggers always the exception
+<code>Subprocess_error</code>).</p>
+      
+      <p>If a process terminates with an exit code other than 0 and
+<code>ignore_error_code</code> is not set (the default), or if a process is
+terminated because of a signal, the exception <code>Subprocess_error</code>
+will be raised. For every command the process result is included
+in the exception argument.</p>
+      
+      <p>If a process cannot be started (e.g. because of insufficient
+resources), the function will try to shut down the already running
+part of the pipeline by sending SIGTERM to these processes.
+It is not checked whether the processes actually terminate (no
+&quot;wait&quot; for them); an appropriate exception will be raised.
+In the case that it is not even possible to perform these cleanup
+actions, the exception <code>Shell_sys.Fatal_error</code> will be raised.</p>
+      
+      <p>When the function raises an exception other than <code>Subprocess_error</code>,
+a serious error condition has happened, and it is recommended
+to exit the program as soon as possible.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">ignore_error_code</span> If <code>true</code>, exit codes other than 0 of the
+subprocesses are ignored. This does not apply to signals, however.
+By default <code>false</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">mode</span> See [root:Shell_sys].run_job for a detailed description
+of this parameter. By default <code>Same_as_caller</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">stdin</span> If present, the first process of the pipeline reads
+input data from this procucer. By default, there is no such
+producer.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">stdout</span> If present, the last process of the pipeline writes
+output data to this consumer. By default, there is no such
+consumer.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">stderr</span> If present, all processes of the pipeline write
+their error messages to this consumer. By default, there is no
+such consumer.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setup_job">
+  <a href="index.html#/val:setup_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setup_job : ?stdin:<a href="index.html#/type:producer">producer</a> <span class="rarr"><span>-&gt;</span></span> ?stdout:<a href="index.html#/type:consumer">consumer</a> <span class="rarr"><span>-&gt;</span></span> ?stderr:<a href="index.html#/type:consumer">consumer</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:command">command</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:job">job</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list
+    
+      <div class="doc">
+        
+      <p>Creates a job like <code>call</code>, but does not execute it. In addition to
+the job, the file descriptors are returned that must be closed
+when the job is done.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:postprocess_job">
+  <a href="index.html#/val:postprocess_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> postprocess_job : ?ignore_error_code:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Looks at the error codes of the job, and raises
+<code>Subprocess_error</code> when there is an error that cannot be ignored.
+As error conditions are considered non-zero exit codes of any
+called processes, or signals terminating any of the called processes.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">ignore_error_code</span> If <code>true</code>, exit codes other than 0 of the
+subprocesses are ignored. This does not apply to signals, however.
+By default <code>false</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:assign">
+  <a href="index.html#/val:assign" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> assign : src:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> target:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:assignment">assignment</a>
+    
+      <div class="doc">
+        
+      <p>Arranges a redirection such that writing to <code>src</code> or reading from <code>src</code>
+will actually write to <code>target</code> or read from <code>target</code>
+(i.e., the <code>target</code> descriptor is duplicated and replaces
+the <code>src</code> descriptor just before the process is launched.)</p>
+      
+      <p>Note that assignments work only if the descriptors are shared
+with the called process, so they must also be contained in the
+<code>descriptors</code> list of <code>command</code> or <code>cmd</code>. Furthermore, the
+close-on-exec flag must not be set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(&gt;&amp;)">
+  <a href="index.html#/val:(%3E%26)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&gt;&amp;) : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:assignment">assignment</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>assign</code>, but infix notation. For example,
+<code>stdout &gt;&amp; stderr</code> creates an assignment such that all output
+to stdout is redirected to stderr.</p>
+      
+      <p><code>f &gt;&amp; g</code> is the same as <code>assign ~src:f target:g</code>. It should
+be used for output assignments (as in the Bourne shell).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(&lt;&amp;)">
+  <a href="index.html#/val:(%3C%26)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&lt;&amp;) : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:assignment">assignment</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>assign</code>, but infix notation. For example,
+<code>stdin &lt;&amp; f</code> creates an assignment such that the called process
+reads from the open file descriptor <code>f</code>.</p>
+      
+      <p><code>f &lt;&amp; g</code> is the same as <code>assign ~src:f target:g</code>. It should
+be used for input assignments (as in the Bourne shell).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:assigned_pair">
+  <a href="index.html#/val:assigned_pair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> assigned_pair : <a href="index.html#/type:assignment">assignment</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the target and the source of the assignment as
+pair of descriptors <code>(target,src)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stdin">
+  <a href="index.html#/val:stdin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stdin : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stdout">
+  <a href="index.html#/val:stdout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stdout : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stderr">
+  <a href="index.html#/val:stderr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stderr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>The standard descriptors; defined here for convenience.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_string">
+  <a href="index.html#/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?epipe:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:producer">producer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a producer taking the data from a string <code>s</code>. After these data
+are sent, the pipeline is closed.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">pos</span> The position in <code>s</code> where the data slice to transfer begins.
+By default <code>0</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> The length of the data slice to transfer. By default,
+all bytes from the start position <code>pos</code> to the end of the
+string are taken.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">epipe</span> This function is called when the pipeline breaks
+(EPIPE). Default: the empty function. EPIPE exceptions are
+always caught, and implicitly handled by closing the pipeline.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_stream">
+  <a href="index.html#/val:from_stream" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_stream : ?epipe:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:producer">producer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a producer taking the data from a stream of strings.
+After the data are sent, the pipeline is closed.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">epipe</span> This function is called when the pipeline breaks
+(EPIPE). Default: the empty function. EPIPE exceptions are
+always caught, and implicitly handled by closing the pipeline.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_function">
+  <a href="index.html#/val:from_function" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_function : producer:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:producer">producer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a producer taking the data from a function. See
+<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/val:add_producer">add_producer</a> for the meaning of the <code>producer</code>
+function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_file">
+  <a href="index.html#/val:from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_file : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:producer">producer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a producer taking the data from the file whose name is
+passed to this function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_fd">
+  <a href="index.html#/val:from_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_fd : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:producer">producer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a producer taking the data from the file descriptor passed
+to this function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_dev_null">
+  <a href="index.html#/val:from_dev_null" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_dev_null : <a href="index.html#/type:producer">producer</a>
+    
+      <div class="doc">
+        
+      <p>A producer taking the data from <code>/dev/null</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_buffer">
+  <a href="index.html#/val:to_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_buffer : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:consumer">consumer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a consumer writing the data into the passed buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_function">
+  <a href="index.html#/val:to_function" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_function : consumer:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:consumer">consumer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a consumer writing the data by calling a function. See
+<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/val:add_consumer">add_consumer</a> for the meaning of the <code>consumer</code>
+function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_file">
+  <a href="index.html#/val:to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_file : ?append:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:consumer">consumer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a consumer writing the data into the file whose name is
+passed to this function. Unless <code>append</code> is given, the file is
+truncated and overwritten. If <code>append</code> is <code>true</code>, the data are
+appended to the file. By default, <code>append</code> is <code>false</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_fd">
+  <a href="index.html#/val:to_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_fd : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:consumer">consumer</a>
+    
+      <div class="doc">
+        
+      <p>Creates a consumer redirecting the data to the file descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_dev_null">
+  <a href="index.html#/val:to_dev_null" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_dev_null : <a href="index.html#/type:consumer">consumer</a>
+    
+      <div class="doc">
+        
+      <p>A consumer redirecting the data to <code>/dev/null</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Examples</h1>
+    </div>
+      <p>The following examples show toploop sessions using <code>Shell</code>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Invoking simple commands</h2>
+    </div>
+      <p>Call the command &quot;ls&quot; without redirection:
+</p>
+      <pre><code>   # call [ command &quot;ls&quot; ];;
+   IDEAS       s1.ml~      shell.mli~      shell_sys.ml~  unix_exts.ml
+   META        shell.a     shell.ml~       shell_sys.o    unix_exts.mli
+   Makefile    shell.cma   shell_sys.cmi   t              unix_exts.mli~
+   Makefile~   shell.cmi   shell_sys.cmo   testjob        unix_exts.ml~
+   depend      shell.cmo   shell_sys.cmx   testjob~       unix_exts.o
+   libshell.a  shell.cmxa  shell_sys.ml    unix_exts.cmi  unix_exts_c.c
+   log         shell.ml    shell_sys.mli   unix_exts.cmo  unix_exts_c.c~
+   s1.ml       shell.mli   shell_sys.mli~  unix_exts.cmx  unix_exts_c.o
+   \- : unit = ()</code></pre><div class="region">
+    <h2 class="section level_2">Redirecting stdout to a buffer</h2>
+    </div>
+      <p>The output of &quot;ls&quot; is collected in the buffer <code>b</code>:
+</p>
+      <pre><code>   # let b = Buffer.create 10;;
+   val b : Buffer.t = &lt;abstr&gt;
+   # call ~stdout:(to_buffer b) [ command &quot;ls&quot; ];;
+   \- : unit = ()
+   # Buffer.contents b;;
+   \- : string =
+   &quot;IDEAS\nMETA\nMakefile\nMakefile~\ndepend\n...&quot;</code></pre><div class="region">
+    <h2 class="section level_2">Subprocess errors are caught and propagated to the caller</h2>
+    </div>
+      <p>Because &quot;/a&quot; does not exist, &quot;ls&quot; will fail. The command writes the
+message to stderr (not redirected here), and returns with an exit
+code of 1, triggering an exception:
+</p>
+      <pre><code>   # call [ command ~arguments:[| &quot;/a&quot; |] &quot;ls&quot; ];;
+   /bin/ls: /a: No such file or directory
+   Uncaught exception: Shell.Subprocess_error [&quot;/bin/ls&quot;, Unix.WEXITED 1].</code></pre><div class="region">
+    <h2 class="section level_2">Redirecting stderr, too</h2>
+    </div>
+      <p>Here, the message written to stderr is collected in <code>b</code>:
+</p>
+      <pre><code>   # Buffer.clear b;;
+   \- : unit = ()
+   # call ~stderr:(to_buffer b) [ command ~arguments:[| &quot;/a&quot; |] &quot;ls&quot; ];;
+   Uncaught exception: Shell.Subprocess_error [&quot;/bin/ls&quot;, Unix.WEXITED 1].
+   # Buffer.contents b;;
+   \- : string = &quot;/bin/ls: /a: No such file or directory\n&quot;</code></pre><div class="region">
+    <h2 class="section level_2">Pipelines</h2>
+    </div>
+      <p>Here, the output of &quot;cat&quot; becomes the input of &quot;sort&quot;:
+</p>
+      <pre><code>   # call [ command ~arguments:[|&quot;META&quot;|] &quot;cat&quot;; command &quot;sort&quot; ];;
+   archive(byte) = &quot;shell.cma&quot;
+   archive(native) = &quot;shell.cmxa&quot;
+   description = &quot;Unix shell functions&quot;
+   linkopts = &quot;-cclib -lshell&quot;
+   requires = &quot;unix str&quot;
+   version = &quot;0.0&quot;
+   \- : unit = ()</code></pre><div class="region">
+    <h2 class="section level_2">Combining pipelines and redirections</h2>
+    </div>
+      <p>The same, but the output of &quot;sort&quot; is collected in the buffer <code>b</code>:
+</p>
+      <pre><code>   # Buffer.clear b;;
+   \- : unit = ()
+   # call ~stdout:(to_buffer b) [ command ~arguments:[|&quot;META&quot;|] &quot;cat&quot;; command &quot;sort&quot; ];;
+   \- : unit = ()
+   # Buffer.contents b;;
+   \- : string =
+   &quot;archive(byte) = \&quot;shell.cma\&quot;\narchive(native) = \&quot;shell.cmxa\&quot;\ndescription = \&quot;Unix shell functions\&quot;\nlinkopts = \&quot;-cclib -lshell\&quot;\nrequires = \&quot;unix str\&quot;\nversion = \&quot;0.0\&quot;\n&quot;</code></pre><div class="region">
+    <h2 class="section level_2">Redirection from a string</h2>
+    </div>
+      <p>The contents of the string <code>s</code> are written to the input of &quot;sort&quot;:
+</p>
+      <pre><code>   # let s = &quot;f\na\nd\nc\n&quot;;;
+   val s : string = &quot;f\na\nd\nc\n&quot;
+   # call ~stdin:(from_string s) [ command &quot;sort&quot; ];;
+   a
+   c
+   d
+   f
+   \- : unit = ()</code></pre><div class="region">
+    <h2 class="section level_2">Combined redirections</h2>
+    </div>
+      <p>It is possible to have several redirections. Here, the string <code>s</code> is
+sorted by &quot;sort&quot;, and the output is collected in the buffer <code>b</code>:
+</p>
+      <pre><code>   # Buffer.clear b;;
+   \- : unit = ()
+   # call ~stdout:(to_buffer b) ~stdin:(from_string s) [ command &quot;sort&quot; ];;
+   \- : unit = ()
+   # Buffer.contents b;;
+   \- : string = &quot;a\nc\nd\nf\n&quot;</code></pre><div class="region">
+    <h2 class="section level_2">Redirections combined with assignments</h2>
+    </div>
+      <p>Here, the output and errors of &quot;ls&quot; are both collected in the buffer
+<code>b</code>:
+</p>
+      <pre><code>   # Buffer.clear b;;
+   \- : unit = ()
+   # call ~stdout:(to_buffer b) 
+          [ command 
+              ~assignments:[ stderr &gt;&amp; stdout ] 
+              ~arguments:[| &quot;/a&quot; |] 
+              &quot;ls&quot; ];;
+   Uncaught exception: Shell.Subprocess_error [&quot;/bin/ls&quot;, Unix.WEXITED 1].
+   # Buffer.contents b;;
+   \- : string = &quot;/bin/ls: /a: No such file or directory\n&quot;</code></pre><div class="region">
+    <h2 class="section level_2">Final notes</h2>
+    </div>
+      <p>Of course, all features can be combined arbitrarily.</p>
+      
+      <p>Note that error reporting is better than in a traditional shell, because
+the exit codes of all started commands are returned. (Shells usually only
+return the exit code of the last command of a pipeline.)</p>
+      
+      <p>For non-standard pipelines, you can also use the functions in
+Shell_sys. &quot;call&quot; is a simple concatenation of Shell_sys invocations.</p>
+      
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

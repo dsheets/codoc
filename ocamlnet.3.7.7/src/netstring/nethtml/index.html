@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Nethtml</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Nethtml</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Parsing of HTML</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:document">
+  <a href="index.html#/type:document" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> document = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:document/cons:Element">
+  <a href="index.html#/type:document/cons:Element" class="anchor">#</a>
+  | Element <span class="keyword">of</span> (string * (string * string) list * <a href="index.html#/type:document">document</a> list)
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:document/cons:Data">
+  <a href="index.html#/type:document/cons:Data" class="anchor">#</a>
+  | Data <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>The type <code>document</code> represents parsed HTML documents:</p>
+      <ul><li><code>Element (name, args, subnodes)</code> is an element node for an element of
+type <code>name</code> (i.e. written <code>&lt;name ...&gt;...&lt;/name&gt;</code>) with arguments <code>args</code>
+and subnodes <code>subnodes</code> (the material within the element). The arguments
+are simply name/value pairs. Entity references (something like <code>&amp;xy;</code>)
+occuring in the values are <b>not</b> resolved.<br/>Arguments without values (e.g. <code>&lt;select name=&quot;x&quot; multiple&gt;</code>: here,
+<code>multiple</code> is such an argument) are represented as <code>(name,name)</code>, i.e. the
+name is also returned as value.<br/>As argument names are case-insensitive, the names are all lowercase.</li><li><code>Data s</code> is a character data node. Again, entity references are contained
+as such and not as what they mean.</li></ul>
+      <p>Character encodings: The parser is restricted to ASCII-compatible
+encodings (see the function <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/val:is_ascii_compatible">is_ascii_compatible</a> for
+a definition). In order to read other encodings, the text must be
+first recoded to an ASCII-compatible encoding (example below).
+Names of elements and attributes must additionally be ASCII-only.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>We also need a type that declares how to handle the various tags.
+This is called a &quot;simplified DTD&quot;, as it is derived from SGML DTDs,
+but simplified to the extent used in the HTML definition.</p>
+      
+      <p>The HTML specification (http://www.w3.org/TR/1999/REC-html401-19991224)
+is the reference for the HTML DTD. You can see there that
+most HTML elements are either an inline element, a block element, or
+both (&quot;flow&quot; element). The grammar of HTML is described in terms of
+these classes. For instance, a <code>P</code> tag (paragraph) is a block element and
+contains block elements whereas <code>B</code> (bold) is an inline element and
+contains inline elements. From this follows that you cannot put a <code>P</code>
+inside a <code>B</code>: <code>&lt;B&gt;&lt;P&gt;something&lt;/P&gt;&lt;/B&gt;</code> is illegal.</p>
+      
+      <p>The parser needs this information to resolve such input, i.e. do
+something with bad HTML. As HTML allows tag minimization (many end tags
+can be omitted), the parser can read this as: <code>&lt;B&gt;&lt;/B&gt;&lt;P&gt;something&lt;/P&gt;</code>
+(and the <code>&lt;/B&gt;</code> in the input is ignored).</p>
+      
+      <p>If all start and all end tags are written out, changing the
+simplified_dtd does not make any difference.</p>
+      
+      <p>There is no normative text that says how to read bad HTML. Because of
+this, it is - to a large degree - an interpretation of HTML what you put
+into <code>simplified_dtd</code>. We provide two versions:</p>
+      <ul><li><code>html40_dtd</code>: tries to be close to the official spec</li><li><code>relaxed_html40_dtd</code>: tries to be close to what common web browsers
+implement</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/type:element_class">
+  <a href="index.html#/type:element_class" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> element_class = [ <div class="cons">| `Inline</div><div class="cons">| `Block</div><div class="cons">| `Essential_block</div><div class="cons">| `None</div><div class="cons">| `Everywhere</div> ]
+    
+      <div class="doc">
+        
+      <p>Element classes are a property used in the HTML DTD. For our purposes,
+we define element classes simply as an enumeration:</p>
+      <ul><li><code>`Inline</code> is the class of inline HTML elements</li><li><code>`Block</code> is the class of block HTML elements</li><li><code>`Essential_block</code> is a sub-class of <code>`Block</code> with the additional
+property that every start tag must be explicitly ended</li><li><code>`None</code> means that the members of the class are neither block nor
+inline elements, but have to be handled specially</li><li><code>`Everywhere</code> means that the members of the class can occur everywhere,
+regardless of whether a constraint allows it or not.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:model_constraint">
+  <a href="index.html#/type:model_constraint" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> model_constraint = [ <div class="cons">| `Inline</div><div class="cons">| `Block</div><div class="cons">| `Flow</div><div class="cons">| `Empty</div><div class="cons">| `Any</div><div class="cons">| `Special</div><div class="cons">| `Elements <span class="keyword">of</span> string list</div><div class="cons">| `Or <span class="keyword">of</span> <a href="index.html#/type:model_constraint">model_constraint</a> * <a href="index.html#/type:model_constraint">model_constraint</a></div><div class="cons">| `Except <span class="keyword">of</span> <a href="index.html#/type:model_constraint">model_constraint</a> * <a href="index.html#/type:model_constraint">model_constraint</a></div><div class="cons">| `Sub_exclusions <span class="keyword">of</span> string list * <a href="index.html#/type:model_constraint">model_constraint</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Model constraints define the possible sub elements of an element:</p>
+      <ul><li><code>`Inline</code>: The sub elements must belong to the class <code>`Inline</code></li><li><code>`Block</code>: The sub elements must be members of the classes <code>`Block</code> or
+<code>`Essential_block</code></li><li><code>`Flow</code>: The sub elements must belong to the classes <code>`Inline</code>, <code>`Block</code>,
+or <code>`Essential_block</code></li><li><code>`Empty</code>: There are no sub elements</li><li><code>`Any</code>: Any sub element is allowed</li><li><code>`Special</code>: The element has special content (e.g. <code>&lt;script&gt;</code>).
+Functionally equivalent to <code>`Empty</code></li><li><code>`Elements l</code>: Only these enumerated elements may occur as sub elements</li><li><code>`Or(m1,m2)</code>: One of the constraints <code>m1</code> or <code>m2</code> must hold</li><li><code>`Except(m1,m2)</code>: The constraint <code>m1</code> must hold, and <code>m2</code> must not hold</li><li><code>`Sub_exclusions(l,m)</code>: The constraint <code>m</code> must hold; furthermore,
+the elements enumerated in list <code>l</code> are not allowed as direct or
+indirect subelements, even if <code>m</code> or the model of a subelement would
+allow them. The difference to <code>`Except(m, `Elements l)</code> is that the
+exclusion is inherited to the subelements. The <code>`Sub_exclusions</code>
+expression must be toplevel, i.e. it must not occur within an <code>`Or</code>,
+<code>`Except</code>, or another <code>'Sub_exclusions</code> expression.</li></ul>
+      <p>Note that the members of the class <code>`Everywhere</code> are allowed everywhere,
+regardless of whether the model constraint allows them or not.</p>
+      
+      <p>Note that certain aspects are not modeled:</p>
+      <ul><li><code>#PCDATA</code>: We do not specify where PCDATA is allowed and where not.</li><li>Order, Number: We do neither specify in which order the sub elements must
+occur nor how often they can occur</li><li>Inclusions: DTDs may describe that an element extraordinarily
+allows a list of elements in all sub elements.</li><li>Optional tags: Whether start or end tags can be omitted (to some extent,
+this can be expressed with <code>`Essential_block</code>, however)</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:simplified_dtd">
+  <a href="index.html#/type:simplified_dtd" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> simplified_dtd = (string * (<a href="index.html#/type:element_class">element_class</a> * <a href="index.html#/type:model_constraint">model_constraint</a>)) list
+    
+      <div class="doc">
+        
+      <p>A <code>simplified_dtd</code> is an associative list of tuples
+<code>(element_name, (element_class, constraint))</code>: For every <code>element_name</code>
+it is declared that it is a member of <code>element_class</code>, and that
+the sub elements must satisfy <code>constraint</code>.</p>
+      
+      <p>It is not allowed to have several entries for the same element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:html40_dtd">
+  <a href="index.html#/val:html40_dtd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> html40_dtd : <a href="index.html#/type:simplified_dtd">simplified_dtd</a>
+    
+      <div class="doc">
+        
+      <p>The (transitional) HTML 4.0 DTD, expressed as <code>simplified_dtd</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:relaxed_html40_dtd">
+  <a href="index.html#/val:relaxed_html40_dtd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> relaxed_html40_dtd : <a href="index.html#/type:simplified_dtd">simplified_dtd</a>
+    
+      <div class="doc">
+        
+      <p>A relaxed version of the HTML 4.0 DTD that matches better common
+practice. In particular, this DTD additionally allows that inline
+elements may span blocks. For example,
+</p>
+      <pre><code>&lt;B&gt;text1 &lt;P&gt;text2</code></pre>
+      <p>
+is parsed as
+</p>
+      <pre><code>&lt;B&gt;text1 &lt;P&gt;text2&lt;/P&gt;&lt;/B&gt;</code></pre>
+      <p>
+and not as
+</p>
+      <pre><code>&lt;B&gt;text1 &lt;/B&gt;&lt;P&gt;text2&lt;/P&gt;</code></pre>
+      <p>
+\- the latter is more correct (and parsed by <code>html40_dtd</code>), but is not what
+users expect.</p>
+      
+      <p>Note that this is still not what many browsers implement. For example,
+Netscape treats most inline tags specially: <code>&lt;B&gt;</code> switches bold on,
+<code>&lt;/B&gt;</code> switches bold off. For example,
+</p>
+      <pre><code>&lt;A href='a'&gt;text1&lt;B&gt;text2&lt;A href='b'&gt;text3</code></pre>
+      <p>
+is parsed as
+</p>
+      <pre><code>&lt;A href='a'&gt;text1&lt;B&gt;text2&lt;/B&gt;&lt;/A&gt;&lt;B&gt;&lt;A href='b'&gt;text3&lt;/A&gt;&lt;/B&gt;</code></pre>
+      <p>
+\- there is an extra <code>B</code> element around the second anchor! (You can
+see what Netscape parses by loading a page into the &quot;Composer&quot;.)
+IMHO it is questionable to consider inline tags as switches because
+this is totally outside of the HTML specification, and browsers may
+differ in that point.</p>
+      
+      <p>Furthermore, several elements are turned into essential blocks:
+<code>TABLE</code>, <code>UL</code>, <code>OL</code>, and <code>DL</code>. David Fox reported a problem with structures
+like:
+</p>
+      <pre><code>&lt;TABLE&gt;&lt;TR&gt;&lt;TD&gt;&lt;TABLE&gt;&lt;TR&gt;&lt;TD&gt;x&lt;/TD&gt;&lt;/TD&gt;&lt;/TR&gt;&lt;/TABLE&gt;y&lt;/TD&gt;&lt;/TR&gt;&lt;/TABLE&gt;</code></pre>
+      <p>
+i.e. the <code>TD</code> of the inner table has two end tags. Without additional
+help, the second <code>&lt;/TD&gt;</code> would close the outer table cell. Because of
+this problem, tables are now essential meaning that it is not allowed
+to implicitly add a missing <code>&lt;/TABLE&gt;</code>; every table element has to
+be explicitly ended. This rule seems to be what many browsers implement.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_document">
+  <a href="index.html#/val:parse_document" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_document : ?dtd:<a href="index.html#/type:simplified_dtd">simplified_dtd</a> <span class="rarr"><span>-&gt;</span></span> ?return_declarations:bool <span class="rarr"><span>-&gt;</span></span> ?return_pis:bool <span class="rarr"><span>-&gt;</span></span> ?return_comments:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list
+    
+      <div class="doc">
+        
+      <p>Parses the HTML document from a <code>lexbuf</code> and returns it.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">dtd</span> specifies the DTD to use. By default, <code>html40_dtd</code> is used which
+bases on the transitional HTML 4.0 DTD
+  </div>
+  
+  <div class="tag param">
+    <span class="label">return_declarations</span> if set, the parser returns <code>&lt;!...&gt;</code> declarations
+as <code>Element(&quot;!&quot;,[&quot;contents&quot;,c],[])</code> nodes, where <code>c</code> is the string inside
+<code>&lt;!</code> and <code>&gt;</code>. - By default, declarations are skipped.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">return_pis</span> if set, the parser returns <code>&lt;?...&gt;</code> (or <code>&lt;?...?&gt;</code>) processing
+instructions as <code>Element(&quot;?&quot;,[&quot;contents&quot;,c],[])</code> nodes, where <code>c</code> is the
+string inside <code>&lt;?</code> and <code>&gt;</code> (or <code>?&gt;</code>). - By default, processing instructions
+are skipped.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">return_comments</span> if set, the parser returns <code>&lt;!--</code> .... <code>--&gt;</code> comments
+as <code>Element(&quot;--&quot;,[&quot;contents&quot;,c],[])</code> nodes, where <code>c</code> is the string inside
+<code>&lt;!--</code> and <code>--&gt;</code>. - By default, comments are skipped.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse">
+  <a href="index.html#/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : ?dtd:<a href="index.html#/type:simplified_dtd">simplified_dtd</a> <span class="rarr"><span>-&gt;</span></span> ?return_declarations:bool <span class="rarr"><span>-&gt;</span></span> ?return_pis:bool <span class="rarr"><span>-&gt;</span></span> ?return_comments:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list
+    
+      <div class="doc">
+        
+      <p>Parses the HTML document from an object channel and returns it.
+For example, to parse the HTML string <code>s</code>:
+</p>
+      <pre><code>     let ch = Netchannels.input_string s in
+     let doc = parse ch</code></pre>
+      <p>Arguments are the same as in <code>parse_document</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Note on XHTML</b></p>
+      
+      <p>The parser can read XHTML, as long as the following XML features are not
+used:</p>
+      <ul><li>Internal DTD subset, i.e. <code>&lt;!DOCTYPE html ... [ ... ]&gt;</code></li><li>External entities</li><li><code>&lt;![CDATA[</code></li><li><code>&lt;![INCLUDE[</code></li><li><code>&lt;![IGNORE[</code></li></ul>
+      <p>The following XML features are ok:</p>
+      <ul><li>Processing instructions</li><li>Empty elements (e.g. <code>&lt;br/&gt;</code>) as long as the element is declared as
+<code>`Empty</code>.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Note on Character Encodings</b></p>
+      
+      <p>The parser can only read character streams that are encoded in an ASCII-
+compatible way. For example, it is possible to read a UTF-8-encoded
+stream, but not a UTF-16-encoded stream. All bytes between 1 and 127
+are taken as ASCII, and other bytes are ignored (copied from input
+to output).</p>
+      
+      <p>Non-ASCII-compatible streams must be recoded first. For example, to
+read a UTF-16-encoded netchannel <code>ch</code>, use:</p>
+      <pre><code>   let p = 
+     new Netconversion.recoding_pipe ~in_enc:`Enc_utf16 ~out_enc:`Enc_utf8 () in
+   let ch' =
+     new Netchannels.input_filter ch p in
+   let doc =
+     Nethtml.parse ch' in
+   ch' # close_in();
+   ch # close_in();</code></pre>
+        
+      </div>
+    
+  <div class="region" id="/val:decode">
+  <a href="index.html#/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : ?enc:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ?entity_base:[ <div class="cons">| `Html</div><div class="cons">| `Xml</div><div class="cons">| `Empty</div> ] <span class="rarr"><span>-&gt;</span></span> ?lookup:(string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ?dtd:<a href="index.html#/type:simplified_dtd">simplified_dtd</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list
+    
+      <div class="doc">
+        
+      <p>Converts entities <code>&amp;name;</code> and <code>&amp;#num;</code> into the corresponding
+characters. The argument <code>enc</code> must indicate the character set of
+the document (by default ISO-8859-1 for backwards compatibility).
+If a character cannot be represented in this encoding, the function
+<code>subst</code> is called (input is the Unicode code point, output is the
+substituted string). By default, the function fails if such a
+character is found.</p>
+      
+      <p>The arg <code>entity_base</code> selects which entities can be converted
+(see <a href="../../../../ocamlnet.3.7.7/src/netstring/netencoding/">Netencoding</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netencoding/#/module:Html">Html</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netencoding/#/module:Html/val:decode">decode</a>). The function <code>lookup</code> is called
+for all unknown <code>&amp;name;</code> entities. By default, this function fails.</p>
+      
+      <p>Declarations, processing instructions, and comments are not
+decoded. The same also applies to elements declared as <code>`Special</code>
+in the DTD. The <code>dtd</code> argument determines the DTD, by default
+<code>html40_dtd</code> is assumed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode">
+  <a href="index.html#/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : ?enc:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?prefer_name:bool <span class="rarr"><span>-&gt;</span></span> ?dtd:<a href="index.html#/type:simplified_dtd">simplified_dtd</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list
+    
+      <div class="doc">
+        
+      <p>Converts problematic characters to their corresponding
+entities. The argument <code>enc</code> must indicate the character set of
+the document (by default ISO-8859-1 for backwards compatibility).
+If <code>prefer_name</code>, the algorithm tries to find the named entities
+(<code>&amp;name;</code>); otherwise only numeric entities (<code>&amp;#num;</code>) are generated.
+Names are preferred by default.</p>
+      
+      <p>Declarations, processing instructions, and comments are not
+encoded. The same also applies to elements declared as <code>`Special</code>
+in the DTD. The <code>dtd</code> argument determines the DTD, by default
+<code>html40_dtd</code> is assumed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_list">
+  <a href="index.html#/val:map_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_list : (string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list
+    
+      <div class="doc">
+        
+      <p><code>map_list f doclst</code>:
+Applies <code>f</code> to all attribute values and data strings (except
+the attributes of &quot;?&quot;, &quot;!&quot;, or &quot;--&quot; nodes).</p>
+      
+      <p>This can be used to change the text encoding of a parsed document:
+</p>
+      <pre><code>     let doc' = map_list String.lowercase doc</code></pre>
+      <p>
+converts all text data to lowercase characters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:xmap_value">
+  <a href="index.html#/type:xmap_value" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> xmap_value = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:xmap_value/cons:Xmap_attribute">
+  <a href="index.html#/type:xmap_value/cons:Xmap_attribute" class="anchor">#</a>
+  | Xmap_attribute <span class="keyword">of</span> string * string * string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xmap_value/cons:Xmap_data">
+  <a href="index.html#/type:xmap_value/cons:Xmap_data" class="anchor">#</a>
+  | Xmap_data <span class="keyword">of</span> string option * string
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:xmap_list">
+  <a href="index.html#/val:xmap_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xmap_list : (<a href="index.html#/type:xmap_value">xmap_value</a> <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list
+    
+      <div class="doc">
+        
+      <p><code>xmap_list f surrounding_element_opt doclst</code>: Similar to <code>map_list</code>,
+the function <code>f</code> is applied to all attribute values and data strings.
+Unlike <code>map_list</code>, more information is passed to the callback function
+<code>f</code>. This function is called with an <code>xmap_value</code> argument:</p>
+      <ul><li><code>Xmap_attribute(ename,aname,aval)</code>: The function is called for an
+attribute value of element <code>ename</code>. The attribute is <code>aname</code> and
+has the value <code>aval</code>. The function must return the new value of
+the attribute (i.e. <code>aval'</code>).</li><li><code>Xmap_data(ename_opt,data)</code>: The function is called for a data
+node surrounded by an element <code>ename_opt</code> (which is <code>None</code> if the
+data node is the outermost node). The string <code>data</code> is the value
+of the data node. The function must return the new value of the
+data node (i.e. <code>data'</code>).</li></ul>
+      <p><code>xmap_list</code> is invoked with <code>surrounding_element_opt</code> which is the
+name of the surrounding element, or <code>None</code> if such an element does
+not exist, or is unknown.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write">
+  <a href="index.html#/val:write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write : ?dtd:<a href="index.html#/type:simplified_dtd">simplified_dtd</a> <span class="rarr"><span>-&gt;</span></span> ?xhtml:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:document">document</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Writes the document to the output channel. No additional encoding or
+decoding happens.</p>
+      
+      <p>Empty elements are written without end tag (see also optional argument
+<code>xhtml</code>); the rest is written unabbreviated.</p>
+      
+      <p>Example: To write the document to a file:
+</p>
+      <pre><code>     let f = open_out &quot;filename&quot; in
+     let ch = new Netchannels.output_channel f in
+     write ch doc;
+     ch # close_out()</code></pre>
+        
+  <div class="tag param">
+    <span class="label">dtd</span> The assumed simplified DTD, by default <code>html40_dtd</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">xhtml</span> makes the output compatible with XHTML 1.0 Strict by
+closing <code>`Empty</code> tags with &quot;/&gt;&quot; (<code>true</code> by default).
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

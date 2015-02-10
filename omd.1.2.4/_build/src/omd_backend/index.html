@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Omd_backend</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Omd_backend</a></h1> : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/type:code_stylist">
+  <a href="index.html#/type:code_stylist" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> code_stylist = lang:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Function that takes a language name and some code and returns
+that code with style.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_language">
+  <a href="index.html#/val:default_language" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_language : string <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>default language for code blocks can be set to any name,
+by default it is the empty string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:html_of_md">
+  <a href="index.html#/val:html_of_md" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> html_of_md : ?override:(<a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:element">element</a> <span class="rarr"><span>-&gt;</span></span> string option) <span class="rarr"><span>-&gt;</span></span> ?pindent:bool <span class="rarr"><span>-&gt;</span></span> ?nl2br:bool <span class="rarr"><span>-&gt;</span></span> ?cs:<a href="index.html#/type:code_stylist">code_stylist</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>html_of_md md</code> returns a string containing the HTML version of
+<code>md</code>. Note that <code>md</code> uses the internal representation of
+Markdown.</p>
+      
+      <p>The optional parameter <code>override</code> allows to override an precise
+behaviour for a constructor of Omd_representation.element,
+as in the following example:</p>
+      
+      <p>let customized_to_html =
+Omd.html_of_md
+~override:(function
+| Url (href,s,title) -&gt;
+Some(&quot;&lt;a href='&quot;
+^ (Omd_utils.htmlentities ~md:true href) ^ &quot;'&quot;
+^ (if title &lt;&gt; &quot;&quot; then
+&quot; title='&quot; ^ (Omd_utils.htmlentities ~md:true title) ^ &quot;'&quot;
+else &quot;&quot;)
+^ &quot;&gt;&quot;
+^ Omd_backend.html_of_md s ^ &quot; target='_blank'&lt;/a&gt;&quot;)
+| _ -&gt; None)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:headers_of_md">
+  <a href="index.html#/val:headers_of_md" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> headers_of_md : <a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:element">element</a> * string * string) list
+    
+      <div class="doc">
+        
+      <p><code>headers_of_md md</code> returns a list of 3-tuples; in each of them the
+first element is the header (e.g., <code>H1(foo)</code>), the second is the
+HTML id (as produced by <code>html_of_md</code>), and the third element is
+the HTML version of <code>foo</code>. The third elements of those 3-tuples
+exist because if you use <code>html_and_headers_of_md</code>, then you have
+the guarantee that the HTML version of <code>foo</code> is the same for
+both the headers and the HTML version of <code>md</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:html_and_headers_of_md">
+  <a href="index.html#/val:html_and_headers_of_md" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> html_and_headers_of_md : ?override:(<a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:element">element</a> <span class="rarr"><span>-&gt;</span></span> string option) <span class="rarr"><span>-&gt;</span></span> ?pindent:bool <span class="rarr"><span>-&gt;</span></span> ?nl2br:bool <span class="rarr"><span>-&gt;</span></span> ?cs:<a href="index.html#/type:code_stylist">code_stylist</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string * (<a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:element">element</a> * <a href="../../../../omd.1.2.4/_build/src/omd_utils/">Omd_utils</a>.<a href="../../../../omd.1.2.4/_build/src/omd_utils/#/module:StringSet">StringSet</a>.<a href="../../../../omd.1.2.4/_build/src/omd_utils/#/module:StringSet/type:elt">elt</a> * string) list
+    
+      <div class="doc">
+        
+      <p><code>html_and_headers_of_md md</code> is the same as <code>(html_of_md md,
+    headers_of_md md)</code> except that it's two times faster.
+If you need both headers and html, don't use <code>html_of_md</code>
+and <code>headers_of_md</code> but this function instead.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:escape_markdown_characters">
+  <a href="index.html#/val:escape_markdown_characters" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> escape_markdown_characters : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>escape_markdown_characters s</code> returns a string where
+markdown-significant characters in <code>s</code> have been
+backslash-escaped. Note that <code>escape_markdown_characters</code> takes a
+&quot;raw&quot; string, therefore it doesn't have the whole context in which
+the string appears, thus the escaping cannot really be
+minimal. However the implementation tries to minimalise the extra
+escaping.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:text_of_md">
+  <a href="index.html#/val:text_of_md" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> text_of_md : <a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>text_of_md md</code> is basically the same as <code>html_of_md md</code> but without
+the HTML tags in the output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:markdown_of_md">
+  <a href="index.html#/val:markdown_of_md" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> markdown_of_md : <a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>markdown_of_md md</code> is basically the same as <code>html_of_md md</code> but
+with the output in Markdown syntax rather than HTML.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexpr_of_md">
+  <a href="index.html#/val:sexpr_of_md" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexpr_of_md : <a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>sexpr_of_md md</code> is basically the same as <code>html_of_md md</code> but with
+the output in s-expressions rather than HTML. This is mainly used
+for debugging.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

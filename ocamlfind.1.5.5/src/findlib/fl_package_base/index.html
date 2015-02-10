@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Fl_package_base</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Fl_package_base</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Direct access to the package graph and package files</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:package">
+  <a href="index.html#/type:package" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> package = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:package/field:package_name">
+  <a href="index.html#/type:package/field:package_name" class="anchor">#</a>
+  package_name
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The fully qualified package name, i.e. for subpackages the
+names of the containing packages are prepended and the name
+components are separated by '.'</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:package/field:package_dir">
+  <a href="index.html#/type:package/field:package_dir" class="anchor">#</a>
+  package_dir
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The directory where to lookup package files</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:package/field:package_defs">
+  <a href="index.html#/type:package/field:package_defs" class="anchor">#</a>
+  package_defs
+  </div>
+  </td><td>: <a href="../../../../ocamlfind.1.5.5/src/findlib/fl_metascanner/">Fl_metascanner</a>.<a href="../../../../ocamlfind.1.5.5/src/findlib/fl_metascanner/#/type:pkg_definition">pkg_definition</a> list</td><td>;</td><td>(*</td><td class="doc">The definitions in the META file</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:package/field:package_priv">
+  <a href="index.html#/type:package/field:package_priv" class="anchor">#</a>
+  package_priv
+  </div>
+  </td><td>: <a href="index.html#/type:package_priv">package_priv</a></td><td>;</td><td>(*</td><td class="doc">Private part of the definition</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>The definition of a package</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:package_priv">
+  <a href="index.html#/type:package_priv" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> package_priv
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>This function must be called before <code>Fl_package_base</code> can be used.
+The first string corresponds to the <code>OCAMLPATH</code> setting, the second
+string is the location of the standard library.</p>
+      
+      <p>This function is called by <a href="../../../../ocamlfind.1.5.5/src/findlib/findlib/">Findlib</a>.<a href="../../../../ocamlfind.1.5.5/src/findlib/findlib/#/val:init">init</a> and <a href="../../../../ocamlfind.1.5.5/src/findlib/findlib/">Findlib</a>.<a href="../../../../ocamlfind.1.5.5/src/findlib/findlib/#/val:init_manually">init_manually</a>,
+so it is already sufficient to initialize the <code>Findlib</code> module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">The package graph</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The functions in this section operate on a representation of the
+package graph in memory. The graph is usually only partially available,
+as only packages are loaded that are queried for.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:No_such_package">
+  <a href="index.html#/exn:No_such_package" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_such_package <span class="keyword">of</span> string * string
+    
+      <div class="doc">
+        
+      <p>First arg is the package name not found, second arg contains additional
+info for the user. - This is the same exception as in <code>Findlib</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Package_loop">
+  <a href="index.html#/exn:Package_loop" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Package_loop <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>A package is required by itself. The arg is the name of the
+package. - This is the same exception as in <code>Findlib</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:query">
+  <a href="index.html#/val:query" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> query : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:package">package</a>
+    
+      <div class="doc">
+        
+      <p>Returns the <code>package</code> definition for the fully-qualified package name,
+or raises <code>No_such_package</code>. It is allowed to query for subpackages.</p>
+      
+      <p>This function loads package definitions into the graph kept in memory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:requires">
+  <a href="index.html#/val:requires" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> requires : preds:string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Analyzes the direct requirements of the package whose name is passed as
+second argument under the assumption that the predicates <code>preds</code>
+hold. The function returns the names of the required packages.
+It is checked whether these packages exist.</p>
+      
+      <p>If there is the &quot;mt&quot; predicate, missing dependencies on &quot;threads&quot;
+are silently added.</p>
+      
+      <p>The function may raise <code>No_such_package</code> or <code>Package_loop</code>.</p>
+      
+      <p>This function loads package definitions into the graph kept in memory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:requires_deeply">
+  <a href="index.html#/val:requires_deeply" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> requires_deeply : preds:string list <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Analyzes the direct or indirect requirements of the packages whose names
+are passed as second argument under the assumption that the predicates
+<code>preds</code> hold. The function returns the names of the required packages.
+It is checked whether these packages exist.</p>
+      
+      <p>If there is the &quot;mt&quot; predicate, missing dependencies on &quot;threads&quot;
+are silently added.</p>
+      
+      <p>The function may raise <code>No_such_package</code> or <code>Package_loop</code>.</p>
+      
+      <p>This function loads package definitions into the graph kept in memory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package_conflict_report">
+  <a href="index.html#/val:package_conflict_report" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package_conflict_report : ?identify_dir:(string <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Checks whether there are several META files for the same main
+packages. Complaints are printed to stderr.</p>
+      
+      <p>Only packages in the loaded part of the package graph are checked (i.e.
+packages for which there was a query).</p>
+      
+      <p>It is recommended to pass the ~identify_dir function whose task
+it is to return a unique value for every existing directory.
+For example,
+</p>
+      <pre><code>fun d -&gt; 
+            let s = Unix.stat d in
+            (s.Unix.st_dev, s.Unix.st_ino)</code></pre>
+      <p>
+could be an implementation for this function. The default is
+the identity (and not this nice implementation to avoid dependencies
+on the Unix module).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:module_conflict_report">
+  <a href="index.html#/val:module_conflict_report" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> module_conflict_report : ?identify_dir:(string <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Checks whether there are cmi files for the same modules. The
+directories passed as first argument are checked. (Note:
+Neither the '+' nor the '@' notation are recognized.)
+Complaints about double cmi files are printed to stderr.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">identify_dir</span> See <code>package_conflict_report</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_base">
+  <a href="index.html#/val:load_base" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_base : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Ensures that the complete package graph is loaded into memory.
+This is a time-consuming operation. Warnings may be printed to
+stderr.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:list_packages">
+  <a href="index.html#/val:list_packages" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list_packages : unit <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Ensures that the complete package graph is loaded into memory
+(like <code>load_base</code>), and returns the (unsorted) list of all
+packages.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package_users">
+  <a href="index.html#/val:package_users" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package_users : preds:string list <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Ensures that the complete package graph is loaded into memory
+(like <code>load_base</code>), and determines the packages using one of
+the packages passed as second argument. The <code>preds</code> are assumed
+for the evaluation of the <code>requires</code> directives.
+The returned list is sorted in ascending order.</p>
+      
+      <p>If there is the &quot;mt&quot; predicate, missing dependencies on &quot;threads&quot;
+are silently added.</p>
+      
+      <p>Raises <code>No_such_package</code> if one of the passed packages cannot
+be found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Parsing META files</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The functions in this section access directly files and directories.
+The package graph is unknown.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:packages_in_meta_file">
+  <a href="index.html#/val:packages_in_meta_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> packages_in_meta_file : ?directory_required:bool <span class="rarr"><span>-&gt;</span></span> name:string <span class="rarr"><span>-&gt;</span></span> dir:string <span class="rarr"><span>-&gt;</span></span> meta_file:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:package">package</a> list
+    
+      <div class="doc">
+        
+      <p>Parses the META file whose name is <code>meta_file</code>. In <code>name</code>, the
+name of the main package must be passed. <code>dir</code> is the
+directory associated with the package by default (i.e. before
+it is overriden by the &quot;directory&quot; directive).</p>
+      
+      <p>Returns the package records found in this file. The &quot;directory&quot;
+directive is already applied.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">directory_required</span> If true, it is checked whether there is a
+&quot;directory&quot; directive in the main package. If this directive is missing,
+the function will fail.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package_definitions">
+  <a href="index.html#/val:package_definitions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package_definitions : search_path:string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Return all META files defining this package that occur in the
+directories mentioned in <code>search_path</code>. The package name must be
+fully-qualified. For simplicity, however, only the name of the main
+package is taken into account (so it is a good idea to call this
+function only for main packages).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Easy_format</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Easy_format</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Easy_format: indentation made easy.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module provides a functional, simplified layer over
+the Format module of the standard library.</p>
+      
+      <p>Input data must be first modelled as a tree using 3 kinds of nodes:</p>
+      <ul><li>atoms</li><li>lists</li><li>labelled nodes</li></ul>
+      <p>Atoms represent any text that is guaranteed to be printed as-is.
+Lists can model any sequence of items such as arrays of data
+or lists of definitions that are labelled with something
+like &quot;int main&quot;, &quot;let x =&quot; or &quot;x:&quot;.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:wrap">
+  <a href="index.html#/type:wrap" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> wrap = [ <div class="cons">| `Wrap_atoms</div><div class="cons">| `Always_wrap</div><div class="cons">| `Never_wrap</div><div class="cons">| `Force_breaks</div><div class="cons">| `No_breaks</div> ]
+    
+      <div class="doc">
+        
+      <p>List wrapping conditions:</p>
+      <ul><li><code>`Wrap_atoms</code>: wrap if the list contains only atoms</li><li><code>`Always_wrap</code>: always wrap when needed</li><li><code>`Never_wrap</code>: never wrap,
+i.e. the list is either horizontal or vertical</li><li><code>`Force_breaks</code>: align vertically,
+i.e. always break line between list items and
+align the left edge of each item.</li><li><code>`No_breaks</code>: align horizontally,
+i.e. never break line between list items</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:style_name">
+  <a href="index.html#/type:style_name" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> style_name = string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:style">
+  <a href="index.html#/type:style" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> style = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:style/field:tag_open">
+  <a href="index.html#/type:style/field:tag_open" class="anchor">#</a>
+  tag_open
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:style/field:tag_close">
+  <a href="index.html#/type:style/field:tag_close" class="anchor">#</a>
+  tag_close
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Pair of opening and closing tags that are inserted around
+text after pretty-printing.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:atom_param">
+  <a href="index.html#/type:atom_param" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> atom_param = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:atom_param/field:atom_style">
+  <a href="index.html#/type:atom_param/field:atom_style" class="anchor">#</a>
+  atom_style
+  </div>
+  </td><td>: <a href="index.html#/type:style_name">style_name</a> option</td><td>;</td><td>(*</td><td class="doc">Default: <code>None</code></td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:atom">
+  <a href="index.html#/val:atom" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> atom : <a href="index.html#/type:atom_param">atom_param</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:list_param">
+  <a href="index.html#/type:list_param" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> list_param = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:space_after_opening">
+  <a href="index.html#/type:list_param/field:space_after_opening" class="anchor">#</a>
+  space_after_opening
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether there must be some whitespace
+after the opening string.
+Default: <code>true</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:space_after_separator">
+  <a href="index.html#/type:list_param/field:space_after_separator" class="anchor">#</a>
+  space_after_separator
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether there must be some whitespace
+after the item separators.
+Default: <code>true</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:space_before_separator">
+  <a href="index.html#/type:list_param/field:space_before_separator" class="anchor">#</a>
+  space_before_separator
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether there must be some whitespace
+before the item separators.
+Default: <code>false</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:separators_stick_left">
+  <a href="index.html#/type:list_param/field:separators_stick_left" class="anchor">#</a>
+  separators_stick_left
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether the separators must
+stick to the item on the left.
+Default: <code>true</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:space_before_closing">
+  <a href="index.html#/type:list_param/field:space_before_closing" class="anchor">#</a>
+  space_before_closing
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether there must be some whitespace
+before the closing string.
+Default: <code>true</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:stick_to_label">
+  <a href="index.html#/type:list_param/field:stick_to_label" class="anchor">#</a>
+  stick_to_label
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether the opening string should be fused
+with the preceding label.
+Default: <code>true</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:align_closing">
+  <a href="index.html#/type:list_param/field:align_closing" class="anchor">#</a>
+  align_closing
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether the beginning of the
+closing string must be aligned
+with the beginning of the opening string
+(stick_to_label = false) or
+with the beginning of the label if any
+(stick_to_label = true).
+Default: <code>true</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:wrap_body">
+  <a href="index.html#/type:list_param/field:wrap_body" class="anchor">#</a>
+  wrap_body
+  </div>
+  </td><td>: <a href="index.html#/type:wrap">wrap</a></td><td>;</td><td>(*</td><td class="doc">Defines under which conditions the list body
+may be wrapped, i.e. allow several lines
+and several list items per line.
+Default: <code>`Wrap_atom_list</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:indent_body">
+  <a href="index.html#/type:list_param/field:indent_body" class="anchor">#</a>
+  indent_body
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Extra indentation of the list body.
+Default: <code>2</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:list_style">
+  <a href="index.html#/type:list_param/field:list_style" class="anchor">#</a>
+  list_style
+  </div>
+  </td><td>: <a href="index.html#/type:style_name">style_name</a> option</td><td>;</td><td>(*</td><td class="doc">Default: <code>None</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:opening_style">
+  <a href="index.html#/type:list_param/field:opening_style" class="anchor">#</a>
+  opening_style
+  </div>
+  </td><td>: <a href="index.html#/type:style_name">style_name</a> option</td><td>;</td><td>(*</td><td class="doc">Default: <code>None</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:body_style">
+  <a href="index.html#/type:list_param/field:body_style" class="anchor">#</a>
+  body_style
+  </div>
+  </td><td>: <a href="index.html#/type:style_name">style_name</a> option</td><td>;</td><td>(*</td><td class="doc">Default: <code>None</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:separator_style">
+  <a href="index.html#/type:list_param/field:separator_style" class="anchor">#</a>
+  separator_style
+  </div>
+  </td><td>: <a href="index.html#/type:style_name">style_name</a> option</td><td>;</td><td>(*</td><td class="doc">Default: <code>None</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:list_param/field:closing_style">
+  <a href="index.html#/type:list_param/field:closing_style" class="anchor">#</a>
+  closing_style
+  </div>
+  </td><td>: <a href="index.html#/type:style_name">style_name</a> option</td><td>;</td><td>(*</td><td class="doc">Default: <code>None</code></td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>List-formatting parameters.
+Always derive a new set of parameters from an existing record.
+See <a href="../../easy-format.1.0.2/easy_format/">Easy_format</a>.<a href="../../easy-format.1.0.2/easy_format/#/val:list">list</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:list">
+  <a href="index.html#/val:list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list : <a href="index.html#/type:list_param">list_param</a>
+    
+      <div class="doc">
+        
+      <p>Default list-formatting parameters, using the default values
+described in the type definition above.</p>
+      
+      <p>In order to make code compatible with future versions of the library,
+the record inheritance syntax should be used, e.g.
+<code>{ list with align_closing = false }</code>.
+If new record fields are added, the program would still compile
+and work as before.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:label_param">
+  <a href="index.html#/type:label_param" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> label_param = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:label_param/field:space_after_label">
+  <a href="index.html#/type:label_param/field:space_after_label" class="anchor">#</a>
+  space_after_label
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether there must be some whitespace
+after the label.
+Default: <code>true</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:label_param/field:indent_after_label">
+  <a href="index.html#/type:label_param/field:indent_after_label" class="anchor">#</a>
+  indent_after_label
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Extra indentation before the item
+that comes after a label.
+Default: <code>2</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:label_param/field:label_style">
+  <a href="index.html#/type:label_param/field:label_style" class="anchor">#</a>
+  label_style
+  </div>
+  </td><td>: <a href="index.html#/type:style_name">style_name</a> option</td><td>;</td><td>(*</td><td class="doc">Default: <code>None</code></td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Label-formatting parameters.
+Always derive a new set of parameters from an existing record.
+See <a href="../../easy-format.1.0.2/easy_format/">Easy_format</a>.<a href="../../easy-format.1.0.2/easy_format/#/val:label">label</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:label">
+  <a href="index.html#/val:label" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> label : <a href="index.html#/type:label_param">label_param</a>
+    
+      <div class="doc">
+        
+      <p>Default label-formatting parameters, using the default values
+described in the type definition above.</p>
+      
+      <p>In order to make code compatible with future versions of the library,
+the record inheritance syntax should be used, e.g.
+<code>{ label with indent_after_label = 0 }</code>.
+If new record fields are added, the program would still compile
+and work as before.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Atom">
+  <a href="index.html#/type:t/cons:Atom" class="anchor">#</a>
+  | Atom <span class="keyword">of</span> string * <a href="index.html#/type:atom_param">atom_param</a>
+  </div>
+  </td><td>(*</td><td class="doc">Plain string normally
+without line breaks.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:List">
+  <a href="index.html#/type:t/cons:List" class="anchor">#</a>
+  | List <span class="keyword">of</span> (string * string * string * <a href="index.html#/type:list_param">list_param</a>) * <a href="index.html#/type:t">t</a> list
+  </div>
+  </td><td>(*</td><td class="doc"><code>List ((opening, separator, closing, param), nodes)</code></td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Label">
+  <a href="index.html#/type:t/cons:Label" class="anchor">#</a>
+  | Label <span class="keyword">of</span> (<a href="index.html#/type:t">t</a> * <a href="index.html#/type:label_param">label_param</a>) * <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc"><code>Label ((label, param), node)</code>: labelled node.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Custom">
+  <a href="index.html#/type:t/cons:Custom" class="anchor">#</a>
+  | Custom <span class="keyword">of</span> <a href="../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> unit
+  </div>
+  </td><td>(*</td><td class="doc">User-defined printing function that allows to use the
+Format module directly if necessary. It is responsible
+for leaving the formatter in a clean state.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>The type of the tree to be pretty-printed. Each node contains
+its own formatting parameters.</p>
+      
+      <p>Detail of a list node
+<code>List ((opening, separator, closing, param), nodes)</code>:</p>
+      <ul><li><code>opening</code>: opening string such as <code>&quot;{&quot;</code> <code>&quot;[&quot;</code> <code>&quot;(&quot;</code> <code>&quot;begin&quot;</code> <code>&quot;&quot;</code> etc.</li><li><code>separator</code>: node separator such as <code>&quot;;&quot;</code> <code>&quot;,&quot;</code> <code>&quot;&quot;</code> <code>&quot;+&quot;</code> <code>&quot;|&quot;</code> etc.</li><li><code>closing</code>: closing string such as <code>&quot;}&quot;</code> <code>&quot;]&quot;</code> <code>&quot;)&quot;</code> <code>&quot;end&quot;</code> <code>&quot;&quot;</code> etc.</li><li><code>nodes</code>: elements of the list.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:escape">
+  <a href="index.html#/type:escape" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> escape = [ <div class="cons">| `None</div><div class="cons">| `Escape <span class="keyword">of</span> (string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit</div><div class="cons">| `Escape_string <span class="keyword">of</span> string <span class="rarr"><span>-&gt;</span></span> string</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:styles">
+  <a href="index.html#/type:styles" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> styles = (<a href="index.html#/type:style_name">style_name</a> * <a href="index.html#/type:style">style</a>) list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Pretty">
+  <a href="index.html#/module:Pretty" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Pretty : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The regular pretty-printing functions</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Pretty/val:define_styles">
+  <a href="index.html#/module:Pretty/val:define_styles" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> define_styles : <a href="../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:escape">escape</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:styles">styles</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Pretty/val:to_formatter">
+  <a href="index.html#/module:Pretty/val:to_formatter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_formatter : <a href="../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Pretty/val:to_buffer">
+  <a href="index.html#/module:Pretty/val:to_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_buffer : ?escape:<a href="index.html#/type:escape">escape</a> <span class="rarr"><span>-&gt;</span></span> ?styles:<a href="index.html#/type:styles">styles</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Pretty/val:to_string">
+  <a href="index.html#/module:Pretty/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : ?escape:<a href="index.html#/type:escape">escape</a> <span class="rarr"><span>-&gt;</span></span> ?styles:<a href="index.html#/type:styles">styles</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Pretty/val:to_channel">
+  <a href="index.html#/module:Pretty/val:to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_channel : ?escape:<a href="index.html#/type:escape">escape</a> <span class="rarr"><span>-&gt;</span></span> ?styles:<a href="index.html#/type:styles">styles</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Pretty/val:to_stdout">
+  <a href="index.html#/module:Pretty/val:to_stdout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_stdout : ?escape:<a href="index.html#/type:escape">escape</a> <span class="rarr"><span>-&gt;</span></span> ?styles:<a href="index.html#/type:styles">styles</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Pretty/val:to_stderr">
+  <a href="index.html#/module:Pretty/val:to_stderr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_stderr : ?escape:<a href="index.html#/type:escape">escape</a> <span class="rarr"><span>-&gt;</span></span> ?styles:<a href="index.html#/type:styles">styles</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Compact">
+  <a href="index.html#/module:Compact" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Compact : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>No spacing or newlines other than those in the input data
+or those produced by <code>Custom</code> printing.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Compact/val:to_buffer">
+  <a href="index.html#/module:Compact/val:to_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_buffer : <a href="../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Compact/val:to_string">
+  <a href="index.html#/module:Compact/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Compact/val:to_channel">
+  <a href="index.html#/module:Compact/val:to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_channel : <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Compact/val:to_stdout">
+  <a href="index.html#/module:Compact/val:to_stdout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_stdout : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Compact/val:to_stderr">
+  <a href="index.html#/module:Compact/val:to_stderr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_stderr : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Compact/val:to_formatter">
+  <a href="index.html#/module:Compact/val:to_formatter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_formatter : <a href="../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

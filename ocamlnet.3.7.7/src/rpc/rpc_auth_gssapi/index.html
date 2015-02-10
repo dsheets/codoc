@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_auth_gssapi</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_auth_gssapi</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>GSS-API for RPC authentication</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:user_name_format">
+  <a href="index.html#/type:user_name_format" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> user_name_format = [ <div class="cons">| `Exported_name</div><div class="cons">| `Prefixed_name</div><div class="cons">| `Plain_name</div> ]
+    
+      <div class="doc">
+        
+      <p>What to return as user name:</p>
+      <ul><li><code>`Exported_name</code>: the exported name in binary format (as described
+in RFC 2078, section 3.2). This format can only be read back by
+the <code>gss_api</code> object generating the name.</li><li><code>`Prefixed_name</code>: the display name in a text format
+&quot;<code>{&lt;oid&gt;}&lt;namestring&gt;</code>&quot;.</li><li><code>`Plain_name</code>: the string part of the display name</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:server_auth_method">
+  <a href="index.html#/val:server_auth_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> server_auth_method : ?require_privacy:bool <span class="rarr"><span>-&gt;</span></span> ?require_integrity:bool <span class="rarr"><span>-&gt;</span></span> ?shared_context:bool <span class="rarr"><span>-&gt;</span></span> ?acceptor_cred:<a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/">Netgssapi</a>.<a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/#/type:credential">credential</a> <span class="rarr"><span>-&gt;</span></span> ?user_name_format:<a href="index.html#/type:user_name_format">user_name_format</a> <span class="rarr"><span>-&gt;</span></span> ?seq_number_window:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/">Netgssapi</a>.<a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/#/classtype:gss_api">gss_api</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/">Netgssapi</a>.<a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/">Rpc_server</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>Creates an authentication method from a GSS-API interface.
+The OID selects the desired authentication method.</p>
+      
+      <p>Options:</p>
+      <ul><li><code>require_privacy</code>: Whether the messages must be
+encrypted. If not enabled, the server also accepts non-encrypted
+messages that are authenticated via GSS-API.</li><li><code>require_integrity</code>: Whether integrity checksums must be
+included. If not enabled, the server also accepts non-signed
+messages that are authenticated via GSS-API.</li><li><code>shared_context</code>: Whether this method maintains only one
+security context for all connections. By default,
+each connection has a security context of its own. For UDP,
+this option needs to be set, because each UDP request is
+considered as creating a new connection.</li><li><code>acceptor_cred</code>: Overrides the credentials of the server. By
+default, it is left to <code>gss_api</code> which credential is
+assumed.</li><li><code>user_name_format</code>: Defaults to <code>`Prefixed_name</code>.</li><li><code>seq_number_window</code>: If set, the server checks for replayed
+requests. The integer is the length of the check window (see
+RFC 2203 section 5.3.3.1). If omitted, no such checks are
+performed (the default).</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:support_level">
+  <a href="index.html#/type:support_level" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> support_level = [ <div class="cons">| `Required</div><div class="cons">| `If_possible</div><div class="cons">| `None</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:user_name_interpretation">
+  <a href="index.html#/type:user_name_interpretation" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> user_name_interpretation = [ <div class="cons">| `Exported_name</div><div class="cons">| `Prefixed_name</div><div class="cons">| `Plain_name <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/">Netgssapi</a>.<a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/#/type:oid">oid</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:client_auth_method">
+  <a href="index.html#/val:client_auth_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> client_auth_method : ?privacy:<a href="index.html#/type:support_level">support_level</a> <span class="rarr"><span>-&gt;</span></span> ?integrity:<a href="index.html#/type:support_level">support_level</a> <span class="rarr"><span>-&gt;</span></span> ?user_name_interpretation:<a href="index.html#/type:user_name_interpretation">user_name_interpretation</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/">Netgssapi</a>.<a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/#/classtype:gss_api">gss_api</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/">Netgssapi</a>.<a href="../../../../ocamlnet.3.7.7/src/netgssapi/netgssapi/#/type:oid">oid</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>Creates an authentication method from a GSS-API interface.
+The OID selects the desired authentication method.</p>
+      
+      <p>Options:</p>
+      <ul><li><code>privacy</code>: Selects whether messages are encrypted. If <code>`Required</code>,
+the authentication method fails if the GSS-API does not support
+encryption, and it enables encryption if GSS-API supports it.
+If <code>`If_possible</code> encryption is enabled if GSS-API supports it
+(the default). If <code>`None</code>, the messages are not encrypted.</li><li><code>integrity</code>: Selects whether messages are signed. If <code>`Required</code>,
+the authentication method fails if the GSS-API does not support
+integrity protection, and it enables this feature if GSS-API supports
+it. If <code>`If_possible</code> integrity protection is enabled if GSS-API
+supports it (the default). If <code>`None</code>, the messages are not signed.</li><li><code>user_name_format</code>: Defaults to <code>`Prefixed_name</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

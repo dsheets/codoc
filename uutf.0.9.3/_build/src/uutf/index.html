@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Uutf</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Uutf</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Non-blocking streaming Unicode codec.</p>
+      
+      <p><code>Uutf</code> is a non-blocking streaming codec to <a href="#decode">decode</a> and
+<a href="#encode">encode</a> the <a href="http://www.ietf.org/rfc/rfc3629.txt">UTF-8</a>, <a href="http://www.ietf.org/rfc/rfc2781.txt">UTF-16</a>, UTF-16LE
+and UTF-16BE encoding schemes. It can efficiently work character by
+character without blocking on IO. Decoders perform
+character position tracking and support <a href="index.html#/type:nln">newline normalization</a>.</p>
+      
+      <p>Functions are also provided to <a href="index.html#/module:String">fold over</a> the
+characters of UTF encoded OCaml string values and to
+<a href="index.html#/module:Buffer">directly encode</a> characters in OCaml <a href="index.html#/module:Buffer">Buffer</a>.t
+values.</p>
+      
+      <p>See <a href="#examples">examples</a> of use.</p>
+      
+      <p><em>Release 0.9.3 - Daniel Bünzli &lt;daniel.buenzl i@erratique.ch&gt;</em></p>
+      <div class="region">
+    <h3 class="section level_3">References</h3>
+    </div>
+      <p>
+</p>
+      <ul><li>The Unicode Consortium.
+<em><a href="http://www.unicode.org/versions/latest">The Unicode Standard</a></em>.
+(latest version)</li></ul>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:basic">
+  <a href="index.html#/label:basic" class="anchor">#</a>
+  
+    <h1 class="section level_1">Unicode characters</h1>
+    
+  </div>
+  
+      <p><code>Uutf</code> uses the term character for a Unicode
+<a href="http://unicode.org/glossary/#unicode_scalar_value">scalar
+value</a> which is an integer value in the ranges <code>0x0000</code>
+... <code>0xD7FF</code> and <code>0xE000</code> ... <code>0x10FFFF</code>. This should not be
+confused with a Unicode
+<a href="http://unicode.org/glossary/#code_point">code point</a>, which is
+a scalar value or a (textually meaningless)
+<a href="http://unicode.org/glossary/#surrogate_code_point">surrogate
+code point</a>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:uchar">
+  <a href="index.html#/type:uchar" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> uchar = int
+    
+      <div class="doc">
+        
+      <p>The type for Unicode characters. Any value of this type returned
+by <code>Uutf</code> is a Unicode
+<a href="http://unicode.org/glossary/#unicode_scalar_value">scalar value</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:u_bom">
+  <a href="index.html#/val:u_bom" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> u_bom : <a href="index.html#/type:uchar">uchar</a>
+    
+      <div class="doc">
+        
+      <p><code>u_bom</code> is the <a href="http://unicode.org/glossary/#byte_order_mark">byte
+order mark</a> (BOM) character (<code>U+FEFF</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:u_rep">
+  <a href="index.html#/val:u_rep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> u_rep : <a href="index.html#/type:uchar">uchar</a>
+    
+      <div class="doc">
+        
+      <p><code>u_rep</code> is the
+<a href="http://unicode.org/glossary/#replacement_character">replacement</a>
+character (<code>U+FFFD</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_uchar">
+  <a href="index.html#/val:is_uchar" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_uchar : int <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>is_uchar cp</code> is <code>true</code> iff <code>cp</code> is a Unicode
+<a href="http://unicode.org/glossary/#unicode_scalar_value">scalar value</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cp_to_string">
+  <a href="index.html#/val:cp_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cp_to_string : int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>cp_to_string cp</code> represents the
+<a href="http://unicode.org/glossary/#code_point">code point</a> <code>cp</code> in
+ASCII according to the Unicode notational convention
+(see Appendix A in Unicode 6.1.0).
+If <code>cp</code> is not a valid code point <code>&quot;U+Invalid(X)&quot;</code> is
+returned where <code>X</code> is the hexadecimal integer value.</p>
+      
+      <p><b>Warning.</b> Not thread safe. Use <a href="index.html#/val:pp_cp">pp_cp</a> for thread safety.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_cp">
+  <a href="index.html#/val:pp_cp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_cp : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>pp_cp ppf cp</code> prints <code>cp</code> on <code>ppf</code>. See <a href="index.html#/val:cp_to_string">cp_to_string</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:schemes">
+  <a href="index.html#/label:schemes" class="anchor">#</a>
+  
+    <h1 class="section level_1">Unicode encoding schemes</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:encoding">
+  <a href="index.html#/type:encoding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encoding = [ <div class="cons">| `UTF_16</div><div class="cons">| `UTF_16BE</div><div class="cons">| `UTF_16LE</div><div class="cons">| `UTF_8</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for Unicode
+<a href="http://unicode.org/glossary/#character_encoding_scheme">encoding
+schemes</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:decoder_encoding">
+  <a href="index.html#/type:decoder_encoding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> decoder_encoding = [ <div class="cons">| <a href="index.html#/type:encoding">encoding</a></div><div class="cons">| `US_ASCII</div><div class="cons">| `ISO_8859_1</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for encoding schemes <em>decoded</em> by <code>Uutf</code>. Unicode encoding
+schemes plus <a href="http://tools.ietf.org/html/rfc20">US-ASCII</a> and
+<a href="http://www.ecma-international.org/publications/standards/Ecma-094.htm">ISO/IEC 8859-1</a> (latin-1).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoding_of_string">
+  <a href="index.html#/val:encoding_of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoding_of_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:decoder_encoding">decoder_encoding</a> option
+    
+      <div class="doc">
+        
+      <p><code>encoding_of_string s</code> converts a (case insensitive)
+<a href="http://www.iana.org/assignments/character-sets">IANA character set name</a>
+to an encoding.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoding_to_string">
+  <a href="index.html#/val:encoding_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoding_to_string : [&lt; <div class="cons">| <a href="index.html#/type:decoder_encoding">decoder_encoding</a></div> ] <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>encoding_to_string e</code> is a
+<a href="http://www.iana.org/assignments/character-sets">IANA character set name</a>
+for <code>e</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:decode">
+  <a href="index.html#/label:decode" class="anchor">#</a>
+  
+    <h1 class="section level_1">Decode</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:src">
+  <a href="index.html#/type:src" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> src = [ <div class="cons">| `Channel <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a></div><div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Manual</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for input sources. With a <code>`Manual</code> source the client
+must provide input with <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:src">src</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:nln">
+  <a href="index.html#/type:nln" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> nln = [ <div class="cons">| `ASCII <span class="keyword">of</span> <a href="index.html#/type:uchar">uchar</a></div><div class="cons">| `NLF <span class="keyword">of</span> <a href="index.html#/type:uchar">uchar</a></div><div class="cons">| `Readline <span class="keyword">of</span> <a href="index.html#/type:uchar">uchar</a></div> ]
+    
+      <div class="doc">
+        
+      <p>The type for newline normalizations. The variant argument is the
+normalization character.
+</p>
+      <ul><li><code>`ASCII</code>, normalizes CR (<code>U+000D</code>), LF (<code>U+000A</code>) and CRLF
+(&lt;<code>U+000D</code>, <code>U+000A</code>&gt;).</li><li><code>`NLF</code>, normalizes the Unicode newline function (NLF). This is
+NEL (<code>U+0085</code>) and the normalizations of <code>`ASCII</code>.</li><li><code>`Readline</code>, normalizes for a Unicode readline function. This is FF
+(<code>U+000C</code>), LS (<code>U+2028</code>), PS (<code>U+2029</code>), and the normalizations
+of <code>`NLF</code>.</li></ul>
+      <p>
+Used with an appropriate normalization character the <code>`NLF</code> and
+<code>`Readline</code> normalizations allow to implement all the different
+recommendations of Unicode's newline guidelines (section 5.8 in
+Unicode 6.1.0).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:decoder">
+  <a href="index.html#/type:decoder" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> decoder
+    
+      <div class="doc">
+        
+      <p>The type for decoders.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder">
+  <a href="index.html#/val:decoder" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder : ?nln:[&lt; <div class="cons">| <a href="index.html#/type:nln">nln</a></div> ] <span class="rarr"><span>-&gt;</span></span> ?encoding:[&lt; <div class="cons">| <a href="index.html#/type:decoder_encoding">decoder_encoding</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:src">src</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:decoder">decoder</a>
+    
+      <div class="doc">
+        
+      <p><code>decoder nln encoding src</code> is a decoder that inputs from <code>src</code>.</p>
+      
+      <p><b>Byte order mark.</b>
+<a href="http://unicode.org/glossary/#byte_order_mark">Byte order mark</a>
+(BOM) constraints are application dependent and prone to
+misunderstandings (see the
+<a href="http://www.unicode.org/faq/utf_bom.html#BOM">FAQ</a>). Hence,
+<code>Uutf</code> decoders have a simple rule: an <em>initial BOM is always
+removed from the input and not counted in character position
+tracking</em>. The function <a href="index.html#/val:decoder_removed_bom">decoder_removed_bom</a> does however return
+<code>true</code> if a BOM was removed so that all the information can be
+recovered if needed.</p>
+      
+      <p>For UTF-16BE and UTF-16LE the above rule is a violation of
+conformance D96 and D97 of the standard. <code>Uutf</code> favors the idea
+that if there's a BOM, decoding with <code>`UTF_16</code> or the <code>`UTF_16XX</code>
+corresponding to the BOM should decode the same character sequence
+(this is not the case if you stick to the standard). The client
+can however regain conformance by consulting the result of
+<a href="index.html#/val:decoder_removed_bom">decoder_removed_bom</a> and take appropriate action.</p>
+      
+      <p><b>Encoding.</b> <code>encoding</code> specifies the decoded encoding
+scheme. If <code>`UTF_16</code> is used the endianness is determined
+according to the standard: from a
+<a href="http://unicode.org/glossary/#byte_order_mark">BOM</a>
+if there is one, <code>`UTF_16BE</code> otherwise.</p>
+      
+      <p>If <code>encoding</code> is unspecified it is guessed. The result of a guess
+can only be <code>`UTF_8</code>, <code>`UTF_16BE</code> or <code>`UTF_16LE</code>. The heuristic
+looks at the first three bytes of input (or less if impossible)
+and takes the <em>first</em> matching byte pattern in the table below.
+</p>
+      <pre><code>xx = any byte
+.. = any byte or no byte (input too small)
+pp = positive byte 
+uu = valid UTF-8 first byte
+
+Bytes    | Guess     | Rationale
+---------+-----------+-----------------------------------------------
+EF BB BF | `UTF_8    | UTF-8 BOM
+FE FF .. | `UTF_16BE | UTF-16BE BOM
+FF FE .. | `UTF_16LE | UTF-16LE BOM
+00 pp .. | `UTF_16BE | ASCII UTF-16BE and U+0000 is often forbidden
+pp 00 .. | `UTF_16LE | ASCII UTF-16LE and U+0000 is often forbidden
+uu .. .. | `UTF_8    | ASCII UTF-8 or valid UTF-8 first byte.
+xx xx .. | `UTF_16BE | Not UTF-8 =&gt; UTF-16, no BOM =&gt; UTF-16BE
+.. .. .. | `UTF_8    | Single malformed UTF-8 byte or no input. </code></pre>
+      <p>
+This heuristic is compatible both with BOM based
+recognitition and
+<a href="http://tools.ietf.org/html/rfc4627#section-3">JSON-like encoding
+recognition</a> that relies on ASCII being present at the beginning
+of the stream. Also, <a href="index.html#/val:decoder_removed_bom">decoder_removed_bom</a> will tell the client
+if the guess was BOM based.</p>
+      
+      <p><b>Newline normalization.</b> If <code>nln</code> is specified, the given
+newline normalization is performed, see <a href="index.html#/type:nln">nln</a>. Otherwise
+all newlines are returned as found in the input.</p>
+      
+      <p><b>Character position.</b> The line number, column number and
+character count of the last decoded character (including
+<code>`Malformed</code> ones) are respectively returned by <a href="index.html#/val:decoder_line">decoder_line</a>,
+<a href="index.html#/val:decoder_col">decoder_col</a> and <a href="index.html#/val:decoder_count">decoder_count</a>. Before the first call to
+<a href="index.html#/label:decode">decode</a> the line number is <code>1</code> and the column is <code>0</code>. Each
+<a href="index.html#/label:decode">decode</a> returning <code>`Uchar</code> or <code>`Malformed</code> increments the column
+until a newline. On a newline, the line number is incremented and
+the column set to zero. For example the line is <code>2</code> and column <code>0</code>
+after the first newline was decoded. This can be understood as if <a href="index.html#/label:decode">decode</a>
+was moving an insertion point to the right in the data. A <em>newline</em> is anything normalized by <code>`Readline</code>, see <a href="index.html#/type:nln">nln</a>.</p>
+      
+      <p><code>Uutf</code> assumes that each Unicode scalar value has a column width
+of 1. The same assumption may not be made by the display program
+(e.g. for <code>emacs</code>' compilation mode you need to set
+<code>compilation-error-screen-columns</code> to <code>nil</code>). For implementing
+more involved column width increments yourself, look into
+<a href="http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c"><code>wcwidth</code></a> and
+<a href="http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries">grapheme cluster boundaries</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decode">
+  <a href="index.html#/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Await</div><div class="cons">| `Uchar <span class="keyword">of</span> <a href="index.html#/type:uchar">uchar</a></div><div class="cons">| `End</div><div class="cons">| `Malformed <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p><code>decode d</code> is:
+</p>
+      <ul><li><code>`Await</code> if <code>d</code> has a <code>`Manual</code> input source and awaits
+for more input. The client must use <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:src">src</a> to provide it.</li><li><code>`Uchar u</code> if a Unicode scalar value <code>u</code> was decoded.</li><li><code>`End</code> if the end of input was reached.</li><li><code>`Malformed bytes</code> if the <code>bytes</code> sequence is malformed according to
+the decoded encoding scheme. If you are interested in a best-effort
+decoding you can still continue to decode after an error until the
+decoder synchronizes again on valid bytes. It may however be a good
+idea to signal the malformed characters by adding an <a href="index.html#/val:u_rep">u_rep</a>
+character to the parsed data, see the <a href="#examples">examples</a>.</li></ul>
+      <p><b>Note.</b> Repeated invocation always eventually returns <code>`End</code>, even
+in case of errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_encoding">
+  <a href="index.html#/val:decoder_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_encoding : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:decoder_encoding">decoder_encoding</a>
+    
+      <div class="doc">
+        
+      <p><code>decoder_encoding d</code> is <code>d</code>'s the decoded encoding scheme of <code>d</code>.</p>
+      
+      <p><b>Warning.</b> If the decoder guesses the encoding or uses <code>`UTF_16</code>,
+rely on this value only after the first <code>`Uchar</code> was decoded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_line">
+  <a href="index.html#/val:decoder_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_line : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>decoder_line d</code> is the line number of the last
+decoded (or malformed) character. See <a href="index.html#/type:decoder">decoder</a> for details.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_col">
+  <a href="index.html#/val:decoder_col" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_col : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>decoder_col d</code> is the column number of the last decoded
+(or malformed) character. See <a href="index.html#/type:decoder">decoder</a> for details.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_count">
+  <a href="index.html#/val:decoder_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_count : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>decoder_count d</code> is the number of characters already decoded on <code>d</code>
+(including malformed ones). See <a href="index.html#/type:decoder">decoder</a> for details.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_removed_bom">
+  <a href="index.html#/val:decoder_removed_bom" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_removed_bom : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>decoder_removed_bom d</code> is <code>true</code> iff an <em>initial</em>
+<a href="http://unicode.org/glossary/#byte_order_mark">BOM</a> was
+removed from the input stream. See <a href="index.html#/type:decoder">decoder</a> for details.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_src">
+  <a href="index.html#/val:decoder_src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_src : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:src">src</a>
+    
+      <div class="doc">
+        
+      <p><code>decoder_src d</code> is <code>d</code>'s input source.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decoder_nln">
+  <a href="index.html#/val:decoder_nln" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decoder_nln : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:nln">nln</a> option
+    
+      <div class="doc">
+        
+      <p><code>decoder_nln d</code> returns <code>d</code>'s newline normalization (if any).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_decode">
+  <a href="index.html#/val:pp_decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_decode : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| `Await</div><div class="cons">| `Uchar <span class="keyword">of</span> <a href="index.html#/type:uchar">uchar</a></div><div class="cons">| `End</div><div class="cons">| `Malformed <span class="keyword">of</span> string</div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>pp_decode ppf v</code> prints an unspecified representation of <code>v</code> on
+<code>ppf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:encode">
+  <a href="index.html#/label:encode" class="anchor">#</a>
+  
+    <h1 class="section level_1">Encode</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:dst">
+  <a href="index.html#/type:dst" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> dst = [ <div class="cons">| `Channel <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a></div><div class="cons">| `Buffer <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a></div><div class="cons">| `Manual</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for output destinations. With a <code>`Manual</code> destination the client
+must provide output storage with <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst">dst</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:encoder">
+  <a href="index.html#/type:encoder" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encoder
+    
+      <div class="doc">
+        
+      <p>The type for Unicode encoders.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoder">
+  <a href="index.html#/val:encoder" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoder : [&lt; <div class="cons">| <a href="index.html#/type:encoding">encoding</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:dst">dst</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoder">encoder</a>
+    
+      <div class="doc">
+        
+      <p><code>encoder encoding dst</code> is an encoder for <code>encoding</code> that outputs
+to <code>dst</code>.</p>
+      
+      <p><b>Note.</b> No initial
+<a href="http://unicode.org/glossary/#byte_order_mark">BOM</a>
+is encoded. If needed, this duty is left to the client.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode">
+  <a href="index.html#/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| `Await</div><div class="cons">| `End</div><div class="cons">| `Uchar <span class="keyword">of</span> <a href="index.html#/type:uchar">uchar</a></div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Ok</div><div class="cons">| `Partial</div> ]
+    
+      <div class="doc">
+        
+      <p><code>encode e v</code> is :
+</p>
+      <ul><li><code>`Partial</code> iff <code>e</code> has a <code>`Manual</code> destination and needs more output
+storage. The client must use <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst">dst</a> to provide a new buffer
+and then call <a href="index.html#/label:encode">encode</a> with <code>`Await</code> until <code>`Ok</code> is returned.</li><li><code>`Ok</code> when the encoder is ready to encode a new <code>`Uchar</code> or <code>`End</code></li></ul>
+      <p>For <code>`Manual</code> destination, encoding <code>`End</code> always returns
+<code>`Partial</code>, the client should continue as usual with <code>`Await</code>
+until <code>`Ok</code> is returned at which point <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst_rem">dst_rem</a> <code>e</code> is
+guaranteed to be the size of the last provided buffer (i.e. nothing
+was written).</p>
+      
+      <p><b>Warning.</b> The function assumes that <code>u</code> is a Unicode
+<a href="http://unicode.org/glossary/#unicode_scalar_value">scalar value</a>.
+If you are handling foreign data you can use <a href="index.html#/val:is_uchar">is_uchar</a> to assert that.</p>
+      
+      <p><b>Raises.</b> <code>Invalid_argument</code> if an <code>`Uchar</code> or <code>`End</code> is encoded
+after a <code>`Partial</code> encode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoder_encoding">
+  <a href="index.html#/val:encoder_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoder_encoding : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a>
+    
+      <div class="doc">
+        
+      <p><code>encoder_encoding e</code> is <code>e</code>'s encoding.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoder_dst">
+  <a href="index.html#/val:encoder_dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoder_dst : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:dst">dst</a>
+    
+      <div class="doc">
+        
+      <p><code>encoder_dst e</code> is <code>e</code>'s output destination.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:manual">
+  <a href="index.html#/label:manual" class="anchor">#</a>
+  
+    <h1 class="section level_1">Manual sources and destinations.</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Manual">
+  <a href="index.html#/module:Manual" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Manual : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Manual sources and destinations.</p>
+      
+      <p><b>Warning.</b> Use only with <code>`Manual</code> decoder and encoders.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Manual/val:src">
+  <a href="index.html#/module:Manual/val:src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> src : <a href="index.html#/type:decoder">decoder</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>src d s j l</code> provides <code>d</code> with <code>l</code> bytes to read, starting at
+<code>j</code> in <code>s</code>. This byte range is read by calls to <a href="index.html#/label:decode">decode</a> with <code>d</code>
+until <code>`Await</code> is returned. To signal the end of input call the function
+with <code>l = 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Manual/val:dst">
+  <a href="index.html#/module:Manual/val:dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dst : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>dst e s j l</code> provides <code>e</code> with <code>l</code> bytes to write, starting
+at <code>j</code> in <code>s</code>. This byte range is written by calls to <a href="index.html#/label:encode">encode</a> with <code>e</code>
+until <code>`Partial</code> is returned. Use <a href="index.html#/module:Manual/val:dst_rem">dst_rem</a> to know the remaining
+number of non-written free bytes in <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Manual/val:dst_rem">
+  <a href="index.html#/module:Manual/val:dst_rem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dst_rem : <a href="index.html#/type:encoder">encoder</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>dst_rem e</code> is the remaining number of non-written, free bytes
+in the last buffer provided with <a href="index.html#/module:Manual">Manual</a>.<a href="index.html#/module:Manual/val:dst">dst</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:strbuf">
+  <a href="index.html#/label:strbuf" class="anchor">#</a>
+  
+    <h1 class="section level_1">String folders and Buffer encoders</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:String">
+  <a href="index.html#/module:String" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> String : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Fold over the characters of UTF encoded OCaml <code>string</code> values.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Encoding guess</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:String/val:encoding_guess">
+  <a href="index.html#/module:String/val:encoding_guess" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoding_guess : string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `UTF_8</div><div class="cons">| `UTF_16BE</div><div class="cons">| `UTF_16LE</div> ] * bool
+    
+      <div class="doc">
+        
+      <p><code>encoding_guess s</code> is the encoding guessed for <code>s</code> coupled with
+<code>true</code> iff there's an initial
+<a href="http://unicode.org/glossary/#byte_order_mark">BOM</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">String folders</h1>
+    </div>
+      <p><b>Note.</b> Initial <a href="http://unicode.org/glossary/#byte_order_mark">BOM</a>s
+are also folded over.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:String/type:folder">
+  <a href="index.html#/module:String/type:folder" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a folder = 'a <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Uchar <span class="keyword">of</span> <a href="index.html#/type:uchar">uchar</a></div><div class="cons">| `Malformed <span class="keyword">of</span> string</div> ] <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>The type for character folders. The integer is the index in the
+string where the <code>`Uchar</code> or <code>`Malformed</code> starts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:String/val:fold_utf_8">
+  <a href="index.html#/module:String/val:fold_utf_8" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_utf_8 : 'a <a href="index.html#/module:String/type:folder">folder</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>fold_utf_8 f a s</code> is
+<code>f (</code> ... <code>(f (f a 0 u</code><sub>0</sub><code>) j</code><sub>1</sub><code>u</code><sub>1</sub><code>)</code> ... <code>)</code> ... <code>) 
+      j</code><sub>n</sub><code>u</code><sub>n</sub>
+where <code>u</code><sub>i</sub>, <code>j</code><sub>i</sub> are the Unicode
+<a href="http://unicode.org/glossary/#unicode_scalar_value">scalar value</a>
+and the starting position of the characters in the
+UTF-8 encoded string <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:String/val:fold_utf_16be">
+  <a href="index.html#/module:String/val:fold_utf_16be" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_utf_16be : 'a <a href="index.html#/module:String/type:folder">folder</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>fold_utf_16be f a s</code> is
+<code>f (</code> ... <code>(f (f a 0 u</code><sub>0</sub><code>) j</code><sub>1</sub><code>u</code><sub>1</sub><code>)</code> ... <code>)</code> ... <code>)
+      j</code><sub>n</sub><code>u</code><sub>n</sub>
+where <code>u</code><sub>i</sub>, <code>j</code><sub>i</sub> are the Unicode
+<a href="http://unicode.org/glossary/#unicode_scalar_value">scalar value</a>
+and the starting position of the characters in the
+UTF-16BE encoded string <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:String/val:fold_utf_16le">
+  <a href="index.html#/module:String/val:fold_utf_16le" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_utf_16le : 'a <a href="index.html#/module:String/type:folder">folder</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>fold_utf_16le f a s</code> is
+<code>f (</code> ... <code>(f (f a 0 u</code><sub>0</sub><code>) j</code><sub>1</sub><code>u</code><sub>1</sub><code>)</code> ... <code>)</code> ... <code>)
+      j</code><sub>n</sub><code>u</code><sub>n</sub>
+where <code>u</code><sub>i</sub>, <code>j</code><sub>i</sub> are the Unicode
+<a href="http://unicode.org/glossary/#unicode_scalar_value">scalar value</a>
+and the starting position of the characters in the
+UTF-16LE encoded string <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Buffer">
+  <a href="index.html#/module:Buffer" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Buffer : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>UTF encode characters in OCaml <a href="index.html#/module:Buffer">Buffer</a>.t values.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Buffer encoders</h1>
+    </div>
+      <p><b>Warning.</b> All the functions below assumes that <code>u</code> is a
+<a href="http://unicode.org/glossary/#unicode_scalar_value">unicode
+scalar value</a>. If you are handling foreign data you
+can use <a href="index.html#/val:is_uchar">is_uchar</a> to assert that.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Buffer/val:add_utf_8">
+  <a href="index.html#/module:Buffer/val:add_utf_8" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_utf_8 : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uchar">uchar</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_utf_8 b u</code> adds the UTF-8 encoding of the
+<a href="http://unicode.org/glossary/#unicode_scalar_value">unicode
+scalar value</a> <code>u</code> to <code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Buffer/val:add_utf_16be">
+  <a href="index.html#/module:Buffer/val:add_utf_16be" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_utf_16be : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uchar">uchar</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_utf_16be b u</code> adds the UTF-16BE encoding of the
+<a href="http://unicode.org/glossary/#unicode_scalar_value">unicode
+scalar value</a> <code>u</code> to <code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Buffer/val:add_utf_16le">
+  <a href="index.html#/module:Buffer/val:add_utf_16le" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_utf_16le : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:uchar">uchar</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_utf_16le b u</code> adds the UTF-16LE encoding of the
+<a href="http://unicode.org/glossary/#unicode_scalar_value">unicode
+scalar value</a> <code>u</code> to <code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:examples">
+  <a href="index.html#/label:examples" class="anchor">#</a>
+  
+    <h1 class="section level_1">Examples</h1>
+    
+  </div>
+  
+  <div class="region" id="/label:readlines">
+  <a href="index.html#/label:readlines" class="anchor">#</a>
+  
+    <h2 class="section level_2">Read lines</h2>
+    
+  </div>
+  
+      <p>The value of <code>lines src</code> is the list of lines in <code>src</code> as UTF-8
+encoded OCaml strings. Line breaks are determined according to the
+recommendation R4 for a <code>readline</code> function in section 5.8 of
+Unicode 6.1.0. If a decoding error occurs we silently replace the
+malformed sequence by the replacement character <a href="index.html#/val:u_rep">u_rep</a> and continue.
+</p>
+      <pre><code>let lines ?encoding (src : [`Channel of in_channel | `String of string]) =
+  let rec loop d buf acc = match Uutf.decode d with 
+  | `Uchar 0x000A -&gt; 
+      let line = Buffer.contents buf in
+      Buffer.clear buf; loop d buf (line :: acc)
+  | `Uchar u -&gt; Uutf.Buffer.add_utf_8 buf u; loop d buf acc
+  | `End -&gt; List.rev (Buffer.contents buf :: acc)  
+  | `Malformed _ -&gt; Uutf.Buffer.add_utf_8 buf Uutf.u_rep; loop d buf acc
+  | `Await -&gt; assert false
+  in
+  let nln = `Readline 0x000A in
+  loop (Uutf.decoder ~nln ?encoding src) (Buffer.create 512) []</code></pre>
+      <p>Using the <code>`Manual</code> interface, <code>lines_fd</code> does the same but on a Unix file
+descriptor.
+</p>
+      <pre><code>let lines_fd ?encoding (fd : Unix.file_descr) =
+  let rec loop fd s d buf acc = match Uutf.decode d with 
+  | `Uchar 0x000A -&gt; 
+      let line = Buffer.contents buf in
+      Buffer.clear buf; loop fd s d buf (line :: acc)
+  | `Uchar u -&gt; Uutf.Buffer.add_utf_8 buf u; loop fd s d buf acc
+  | `End -&gt; List.rev (Buffer.contents buf :: acc)
+  | `Malformed _ -&gt; Uutf.Buffer.add_utf_8 buf Uutf.u_rep; loop fd s d buf acc
+  | `Await -&gt;
+      let rec unix_read fd s j l = try Unix.read fd s j l with 
+      | Unix.Unix_error (Unix.EINTR, _, _) -&gt; unix_read fd s j l 
+      in
+      let rc = unix_read fd s 0 (String.length s) in 
+      Uutf.Manual.src d s 0 rc; loop fd s d buf acc
+  in
+  let s = String.create 65536 (* UNIX_BUFFER_SIZE in 4.0.0 *) in
+  let nln = `Readline 0x000A in
+  loop fd s (Uutf.decoder ~nln ?encoding `Manual) (Buffer.create 512) []</code></pre>
+  <div class="region" id="/label:recode">
+  <a href="index.html#/label:recode" class="anchor">#</a>
+  
+    <h2 class="section level_2">Recode</h2>
+    
+  </div>
+  
+      <p>The result of <code>recode src out_encoding dst</code> has the characters of
+<code>src</code> written on <code>dst</code> with encoding <code>out_encoding</code>. If a
+decoding error occurs we silently replace the malformed sequence
+by the replacement character <a href="index.html#/val:u_rep">u_rep</a> and continue. Note that we
+don't add an initial
+<a href="http://unicode.org/glossary/#byte_order_mark">BOM</a> to <code>dst</code>,
+recoding will thus loose the initial BOM <code>src</code> may have. Whether
+this is a problem or not depends on the context.
+</p>
+      <pre><code>let recode ?nln ?encoding out_encoding 
+    (src : [`Channel of in_channel | `String of string])
+    (dst : [`Channel of out_channel | `Buffer of Buffer.t])
+  = 
+  let rec loop d e = match Uutf.decode d with 
+  | `Uchar _ as u -&gt; ignore (Uutf.encode e u); loop d e 
+  | `End -&gt; ignore (Uutf.encode e `End)
+  | `Malformed _ -&gt; ignore (Uutf.encode e (`Uchar Uutf.u_rep)); loop d e 
+  | `Await -&gt; assert false
+  in
+  let d = Uutf.decoder ?nln ?encoding src in 
+  let e = Uutf.encoder out_encoding dst in
+  loop d e</code></pre>
+      <p>
+Using the <code>`Manual</code> interface, <code>recode_fd</code> does the same but between
+Unix file descriptors.
+</p>
+      <pre><code>let recode_fd ?nln ?encoding out_encoding 
+    (fdi : Unix.file_descr) 
+    (fdo : Unix.file_descr) 
+  = 
+  let rec encode fd s e v = match Uutf.encode e v with `Ok -&gt; () 
+  | `Partial -&gt; 
+      let rec unix_write fd s j l = 
+        let rec write fd s j l = try Unix.single_write fd s j l with 
+        | Unix.Unix_error (Unix.EINTR, _, _) -&gt; write fd s j l 
+        in
+        let wc = write fd s j l in 
+        if wc &lt; l then unix_write fd s (j + wc) (l - wc) else ()
+      in
+      unix_write fd s 0 (String.length s - Uutf.Manual.dst_rem e); 
+      Uutf.Manual.dst e s 0 (String.length s);
+      encode fd s e `Await
+  in
+  let rec loop fdi fdo ds es d e = match Uutf.decode d with 
+  | `Uchar _ as u -&gt; encode fdo es e u; loop fdi fdo ds es d e 
+  | `End -&gt; encode fdo es e `End
+  | `Malformed _ -&gt; encode fdo es e (`Uchar Uutf.u_rep); loop fdi fdo ds es d e 
+  | `Await -&gt;
+      let rec unix_read fd s j l = try Unix.read fd s j l with 
+      | Unix.Unix_error (Unix.EINTR, _, _) -&gt; unix_read fd s j l 
+      in
+      let rc = unix_read fdi ds 0 (String.length ds) in 
+      Uutf.Manual.src d ds 0 rc; loop fdi fdo ds es d e 
+  in
+  let ds = String.create 65536 (* UNIX_BUFFER_SIZE in 4.0.0 *) in
+  let es = String.create 65536 (* UNIX_BUFFER_SIZE in 4.0.0 *) in
+  let d = Uutf.decoder ?nln ?encoding `Manual in 
+  let e = Uutf.encoder out_encoding `Manual in
+  Uutf.Manual.dst e es 0 (String.length es);
+  loop fdi fdo ds es d e</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

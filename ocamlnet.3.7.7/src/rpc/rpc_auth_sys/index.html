@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_auth_sys</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_auth_sys</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Authentication module AUTH_SYS</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module implements system authentication (AUTH_SYS, also known as
+AUTH_UNIX).</p>
+      
+      <p>***********************************************************************
+WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!</p>
+      
+      <p>This authentication method is insecure because it does not use any
+verifier. I strongly dissuade everybody from using this authentication
+method for newly written RPC systems. I include it here only for
+compatibility with older systems.</p>
+      
+      <p>WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+***********************************************************************</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:identity">
+  <a href="index.html#/type:identity" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> identity = [ <div class="cons">| `Effective_user</div><div class="cons">| `Real_user</div><div class="cons">| `This_user <span class="keyword">of</span> int * int * int array * string</div> ]
+    
+      <div class="doc">
+        
+      <p>Specifies the user:</p>
+      <ul><li><code>`Effective_user</code>: Take the effective user of the process</li><li><code>`Real_user</code>: Take the real user of the process</li><li><code>`This_user(uid,gid,sup_groups,hostname)</code>: Pretend to be
+this user</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:client_auth_method">
+  <a href="index.html#/val:client_auth_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> client_auth_method : ?identity:<a href="index.html#/type:identity">identity</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/">Rpc_client</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_client/#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>Pass the result of this function to <code>Rpc_client.set_auth_methods</code> to
+configure client authentication.</p>
+      
+      <p><code>identity</code>: As whom the clients authenticates.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:user_name_format">
+  <a href="index.html#/type:user_name_format" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> user_name_format = [ <div class="cons">| `Full</div><div class="cons">| `UID</div><div class="cons">| `Custom <span class="keyword">of</span> int32 <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> int32 array <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>How <code>Rpc_server.get_user</code> returns the user as string:</p>
+      <ul><li><code>`Full</code>: The format includes all transmitted details:
+<code>&quot;&lt;uid&gt;.&lt;gid&gt;.&lt;gid1&gt;.&lt;gid2&gt;...@&lt;hostname&gt;&quot;</code>.
+All user and group IDs are numeric. The first two numbers, &lt;uid&gt; and
+&lt;gid&gt; are always present. The other numbers are the supplementary
+group IDs and can be omitted. The &lt;hostname&gt; is the name passed in
+the credentials.</li><li><code>`UID</code>: The string is the numeric user ID</li><li><code>`Custom f</code>: The string is returned by the function <code>f</code>. The
+arguments are <code>uid</code>, <code>gid</code>, the array of the supplementary
+group IDs and the hostname.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:server_auth_method">
+  <a href="index.html#/val:server_auth_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> server_auth_method : ?lookup_hostname:bool <span class="rarr"><span>-&gt;</span></span> ?require_privileged_port:bool <span class="rarr"><span>-&gt;</span></span> ?user_name_as:<a href="index.html#/type:user_name_format">user_name_format</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/">Rpc_server</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>Pass the result of this function to <code>Rpc_server.set_auth_methods</code> to
+configure authentication.</p>
+      
+      <p><code>lookup_hostname</code>: if true, the hostname contained in the credentials
+is checked (by gethostbyname)</p>
+      
+      <p><code>require_privileged_port</code>: if true, the client must use a privileged
+port. Note that Unix domain sockets are rejected in this mode.</p>
+      
+      <p>User name strings as formatted as specified by <code>user_name_as</code>.
+This defaults to <code>`Full</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_user_name">
+  <a href="index.html#/val:parse_user_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_user_name : string <span class="rarr"><span>-&gt;</span></span> int * int * int array * string
+    
+      <div class="doc">
+        
+      <p>Parses a user name as returned by <code>Rpc_server.get_user</code> in conjunction
+with the AUTH_SYS authentication and <code>`Full</code> formatting.
+Returns <code>(uid,gid,sup_groups,hostname)</code>.1</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

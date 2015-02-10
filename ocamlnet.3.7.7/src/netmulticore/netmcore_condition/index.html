@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_condition</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_condition</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Condition variables</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Condition variables are here defined as values that reside in shared heaps
+([root:Netmcore_heap]), for example in the header field of
+[root:Netmcore_array] or somewhere else in heap-allocated
+data structures.</p>
+      
+      <p>In order to ensure that the condition variable is in the heap, the
+special function <code>create_condition</code> must be used to initialize it
+there. As <code>create_condition</code> requires a mutator as argument, this is
+only possible by calling <code>create_condition</code> from the callback of
+<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/val:modify">modify</a>.</p>
+      
+      <p>Condition variables are special values, and cannot be copied or moved.</p>
+      
+      <p>Condition variables are implemented on top of semaphores. Compared to
+the <code>pthreads</code> version of condition variables, the user needs here to
+allocate special <code>wait_entry</code> slots, one for each process. An entry
+can be used for all condition variables a process needs to wait for.
+(Actually, such entries also exist in typical <code>pthreads</code> implementations,
+but are hidden from the user in the thread control block. We just
+don't have here a place where we could allocate process-specific
+shared memory.)</p>
+      
+      <p>Since Ocamlnet-3.5, there are also special wait entries <code>wait_entry_e</code>
+which can be used to wait from within a running Unixqueue. For each
+such wait entry, however, a named pipe needs to be allocated.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:condition">
+  <a href="index.html#/type:condition" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> condition
+    
+      <div class="doc">
+        
+      <p>The condition variable</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:wait_entry">
+  <a href="index.html#/type:wait_entry" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> wait_entry
+    
+      <div class="doc">
+        
+      <p>Each process that wants to <code>wait</code> needs a <code>wait_entry</code>. These entries
+can be used for several condition variables, so typically each process
+has only one entry for each heap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:wait_entry_e">
+  <a href="index.html#/type:wait_entry_e" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> wait_entry_e
+    
+      <div class="doc">
+        
+      <p>A special kind of <code>wait_entry</code> for intergration into an event
+loop</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:wait_set">
+  <a href="index.html#/type:wait_set" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> wait_set
+    
+      <div class="doc">
+        
+      <p>A set of <code>wait_entry</code>, for easier management. This set can e.g. be
+stored side by side with the condition variable(s). It is important
+that the <code>wait_set</code> resides in the same shared heap as the
+condition variable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dummy_condition">
+  <a href="index.html#/val:dummy_condition" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dummy_condition : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:condition">condition</a>
+    
+      <div class="doc">
+        
+      <p>A dummy condition is non-functional, but can be used to put something
+into <code>condition</code>-typed variables</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dummy_wait_set">
+  <a href="index.html#/val:dummy_wait_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dummy_wait_set : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_set">wait_set</a>
+    
+      <div class="doc">
+        
+      <p>A dummy <code>wait_set</code> is non-functional, but can be used to put something
+into <code>wait_set</code>-typed variables</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_condition">
+  <a href="index.html#/val:create_condition" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_condition : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:condition">condition</a>
+    
+      <div class="doc">
+        
+      <p><code>create m</code>: Creates a condition variable, and
+pushes it to the heap, using the mutator <code>m</code>.</p>
+      
+      <p>After being pushed to the heap, the variable can be used. It is
+nonsense to copy it outside the heap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_wait_set">
+  <a href="index.html#/val:create_wait_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_wait_set : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_set">wait_set</a>
+    
+      <div class="doc">
+        
+      <p>Creates a <code>wait_set</code> in the heap designated by the mutator</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:alloc_wait_entry">
+  <a href="index.html#/val:alloc_wait_entry" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> alloc_wait_entry : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_set">wait_set</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_entry">wait_entry</a>
+    
+      <div class="doc">
+        
+      <p>Allocates a <code>wait_entry</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:free_wait_entry">
+  <a href="index.html#/val:free_wait_entry" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> free_wait_entry : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_set">wait_set</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_entry">wait_entry</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Frees a <code>wait_entry</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:alloc_wait_entry_e">
+  <a href="index.html#/val:alloc_wait_entry_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> alloc_wait_entry_e : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_set">wait_set</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_entry_e">wait_entry_e</a>
+    
+      <div class="doc">
+        
+      <p><code>alloc_wait_entry_e mut set filename</code>: Allocates a new wait entry
+with notification via named pipe. The <code>filename</code> must refer to an
+existing named pipe.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:free_wait_entry_e">
+  <a href="index.html#/val:free_wait_entry_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> free_wait_entry_e : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_set">wait_set</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_entry_e">wait_entry_e</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Frees a <code>wait_entry_e</code>. The named pipe is deleted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait">
+  <a href="index.html#/val:wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait : <a href="index.html#/type:wait_entry">wait_entry</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:condition">condition</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_mutex/">Netmcore_mutex</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_mutex/#/type:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>wait we c m</code> atomically unlocks the mutex <code>m</code> and suspends the
+calling process on the condition variable <code>c</code>. The process will
+restart after the condition variable <code>c</code> has been signalled.
+The mutex <code>m</code> is locked again before <code>wait</code> returns.</p>
+      
+      <p>At the time of calling, the <code>wait_entry</code> <code>we</code> must not be used to
+manage another <code>wait</code>. When allocating a separate <code>wait_entry</code>
+per process this problem does not occur.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_e">
+  <a href="index.html#/val:wait_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_e : ?debug_name:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:wait_entry_e">wait_entry_e</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:condition">condition</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_mutex/">Netmcore_mutex</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_mutex/#/type:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Like <code>wait</code>, but the suspension is done by waiting on a
+named pipe event (i.e. &quot;nonblocking suspension&quot;):</p>
+      
+      <p><code>wait_e we c m esys cont</code> atomically unlocks the mutex <code>m</code> and suspends
+the calling engine on the condition variable <code>c</code>. The engine will
+restart after the condition variable <code>c</code> has been signalled.
+The mutex <code>m</code> is locked again, at which time <code>cont</code> is called.
+The result of <code>cont()</code> is the result of <code>wait_e</code>.</p>
+      
+      <p>At the time of calling, the <code>wait_entry_e</code> <code>we</code> must not be used to
+manage another <code>wait_e</code>. When allocating a separate <code>wait_entry_e</code>
+per process (or thread within the process) this problem does not occur.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:signal">
+  <a href="index.html#/val:signal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> signal : <a href="index.html#/type:condition">condition</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>signal c</code> restarts one of the processes waiting on the
+condition variable <code>c</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:broadcast">
+  <a href="index.html#/val:broadcast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> broadcast : <a href="index.html#/type:condition">condition</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>broadcast c</code> restarts all processes waiting on the
+condition variable <code>c</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pipe_name">
+  <a href="index.html#/val:pipe_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pipe_name : <a href="index.html#/type:wait_entry_e">wait_entry_e</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the name of the pipe</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy_condition">
+  <a href="index.html#/val:destroy_condition" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy_condition : <a href="index.html#/type:condition">condition</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy_wait_set">
+  <a href="index.html#/val:destroy_wait_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy_wait_set : <a href="index.html#/type:wait_set">wait_set</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys these objects</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

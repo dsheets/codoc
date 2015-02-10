@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_buffer</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_buffer</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shared buffer</p>
+      
+      <p>One can add more data to the end of the buffer, and one can
+remove data from the beginning of the buffer.</p>
+      
+      <p>Additions and deletions of data are atomic, and are strictly
+serialized. Read accesses can occur in parallel, and can even
+overlap with modifications (to some degree). It is, however,
+ensured that reads do not see the parallel modification, i.e.
+reads always base on the state from the beginning of the read
+operation.</p>
+      
+      <p>It is not excluded that additions can be executed in parallel. If
+done this way, it is guaranteed that the effects of parallel
+additions are the same as if they were executed in a serial
+way. In particular, if an addition operation returns, this
+addition and all parallel additions affecting preceding index
+positions must be done. (The current implementation does not
+attempt this optimization.)</p>
+      
+      <p>Index positions are &quot;eternal&quot;, i.e. the index position of a
+byte does not change when preceding bytes are deleted. Instead,
+a deletion merely advances the start index of the valid data
+(which is not necessarily 0). This model is more consistent
+with parallel modifications.</p>
+      
+      <p>On 32 bit platforms it can happen that index positions wrap
+around (at 1G). The position following <code>max_int</code> is 0. The
+length is restricted to <code>max_int-bsize</code> on these platforms.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:buffer">
+  <a href="index.html#/type:buffer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'h buffer
+    
+      <div class="doc">
+        
+      <p>A buffer with a header of type <code>'h</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:buffer_descr">
+  <a href="index.html#/type:buffer_descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'h buffer_descr
+    
+      <div class="doc">
+        
+      <p>The marshallable buffer descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'h <span class="rarr"><span>-&gt;</span></span> 'h <a href="index.html#/type:buffer">buffer</a>
+    
+      <div class="doc">
+        
+      <p><code>create pool bsize h</code>: Creates a buffer in <code>pool</code> with a block
+size of <code>bsize</code>. The block size can be an arbitrary positive integer
+which is always rounded up to the next multiple of the page size
+of the operating system. Blocks are the units of allocation
+of memory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy">
+  <a href="index.html#/val:destroy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The valid index positions (e.g. for <code>sub</code>) are <code>start</code> to
+<code>start+length-1</code>:</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:start">
+  <a href="index.html#/val:start" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> start : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the start index</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:contents">
+  <a href="index.html#/val:contents" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> contents : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the full contents</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sub">
+  <a href="index.html#/val:sub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sub : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a substring</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_to_string">
+  <a href="index.html#/val:blit_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_to_string : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Blits contents to a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_to_memory">
+  <a href="index.html#/val:blit_to_memory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_to_memory : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Blits contents to a memory buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:access">
+  <a href="index.html#/val:access" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> access : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>access b pos f</code>: Gets access to the internal string backing the
+byte at position <code>pos</code>. The function <code>f</code> is called as <code>f s k n</code>
+so that <code>s.[k]</code> is the requested byte at <code>pos</code>. The number <code>n</code>
+is the number of valid bytes in the string.</p>
+      
+      <p>During the execution of <code>f</code> the string <code>s</code> is pinned and cannot be
+deleted by the garbage collector.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_string">
+  <a href="index.html#/val:add_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_string : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a string to the end of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_sub_string">
+  <a href="index.html#/val:add_sub_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_sub_string : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a sub string to the end of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_sub_memory">
+  <a href="index.html#/val:add_sub_memory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_sub_memory : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a sub memory buffer to the end of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_hd">
+  <a href="index.html#/val:delete_hd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_hd : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_hd b n</code>: Deletes <code>n</code> bytes from the beginning of the buffer.
+This means that the <code>start</code> index is increased by <code>n</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Deletes all contents of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:header">
+  <a href="index.html#/val:header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> header : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> 'h
+    
+      <div class="doc">
+        
+      <p>Returns the header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:descr_of_buffer">
+  <a href="index.html#/val:descr_of_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> descr_of_buffer : 'h <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> 'h <a href="index.html#/type:buffer_descr">buffer_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:buffer_of_descr">
+  <a href="index.html#/val:buffer_of_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffer_of_descr : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> 'h <a href="index.html#/type:buffer_descr">buffer_descr</a> <span class="rarr"><span>-&gt;</span></span> 'h <a href="index.html#/type:buffer">buffer</a>
+    
+      <div class="doc">
+        
+      <p>Look up the buffer for this descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap">
+  <a href="index.html#/val:heap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap : _ <a href="index.html#/type:buffer">buffer</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:heap">heap</a>
+    
+      <div class="doc">
+        
+      <p>Returns the underlying heap</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

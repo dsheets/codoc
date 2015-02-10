@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>Lwt_js_events</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_js_events</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Programming mouse or keyboard events handlers using Lwt</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Reminder:
+Event capturing starts with the outer most element in the DOM and
+works inwards to the HTML element the event took place on (capture phase)
+and then out again (bubbling phase).</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Create Lwt threads for events</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:make_event">
+  <a href="index.html#/val:make_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_event : (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#event <span class="keyword">as</span> 'a) <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/module:Event">Event</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/module:Event/type:typ">typ</a> <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>make_event ev target</code> creates a Lwt thread that waits
+for the event <code>ev</code> to happen on <code>target</code> (once).
+This thread is cancellable using
+<a href="&lt;&lt;a_api project=&quot;lwt&quot; | val Lwt.cancel&gt;&gt;">TARGET NONE: &lt;&lt;a_api project=&quot;lwt&quot; | val Lwt.cancel&gt;&gt;</a>.
+If you set the optional parameter <code>~use_capture:true</code>,
+the event will be caught during the capture phase,
+otherwise it is caught during the bubbling phase
+(default).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:seq_loop">
+  <a href="index.html#/val:seq_loop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> seq_loop : (?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'target <span class="rarr"><span>-&gt;</span></span> 'event <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'target <span class="rarr"><span>-&gt;</span></span> ('event <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>seq_loop (make_event ev) target handler</code> creates a looping Lwt
+thread that waits for the event <code>ev</code> to happen on <code>target</code>, then
+execute handler, and start again waiting for the event. Events
+happening during the execution of the handler are ignored. See
+<code>async_loop</code> and <code>buffered_loop</code> for alternative semantics.</p>
+      
+      <p>For example, the <code>clicks</code> function below is defined by:</p>
+      
+      <p><code>let clicks ?use_capture t = seq_loop click ?use_capture t</code></p>
+      
+      <p>The thread returned is cancellable using
+<a href="&lt;&lt;a_api project=&quot;lwt&quot; | val Lwt.cancel&gt;&gt;">TARGET NONE: &lt;&lt;a_api project=&quot;lwt&quot; | val Lwt.cancel&gt;&gt;</a>.
+In order for the loop thread to be canceled from within the handler,
+the latter receives the former as its second parameter.</p>
+      
+      <p>By default, cancelling the loop will not cancel the potential
+currently running handler. This behaviour can be changed by
+setting the <code>cancel_handler</code> parameter to true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:async_loop">
+  <a href="index.html#/val:async_loop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> async_loop : (?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'target <span class="rarr"><span>-&gt;</span></span> 'event <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'target <span class="rarr"><span>-&gt;</span></span> ('event <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>async_loop</code> is similar to <code>seq_loop</code>, but each handler runs
+independently. No event is thus missed, but since several
+instances of the handler can be run concurrently, it is up to the
+programmer to ensure that they interact correctly.</p>
+      
+      <p>Cancelling the loop will not cancel the potential currently running
+handlers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:buffered_loop">
+  <a href="index.html#/val:buffered_loop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffered_loop : (?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'target <span class="rarr"><span>-&gt;</span></span> 'event <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?cancel_queue:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'target <span class="rarr"><span>-&gt;</span></span> ('event <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>buffered_loop</code> is similar to <code>seq_loop</code>, but any event that
+occurs during an execution of the handler is queued instead of
+being ingnored.</p>
+      
+      <p>No event is thus missed, but there can be a non predictible delay
+between its trigger and its treatment. It is thus a good idea to
+use this loop with handlers whose running time is short, so the
+memorized event still makes sense when the handler is eventually
+executed. It is also up to the programmer to ensure that event
+handlers terminate so the queue will eventually be emptied.</p>
+      
+      <p>By default, cancelling the loop will not cancel the (potential)
+currently running handler, but any other queued event will be
+dropped. This behaviour can be customized using the two optional
+parameters <code>cancel_handler</code> and <code>cancel_queue</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:async">
+  <a href="index.html#/val:async" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> async : (unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>async t</code> records a thread to be executed later.
+It is implemented by calling yield, then Lwt.async.
+This is useful if you want to create a new event listener
+when you are inside an event handler.
+This avoids the current event to be catched by the new event handler
+(if it propagates).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:func_limited_loop">
+  <a href="index.html#/val:func_limited_loop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> func_limited_loop : (?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>func_limited_loop event delay_fun target handler</code> will behave like
+<code>Lwt_js_events.async_loop event target handler</code> but it will run <code>delay_fun</code>
+first, and execut <code>handler</code> only when <code>delay_fun</code> is finished and
+no other event occurred in the meantime.</p>
+      
+      <p>This allows to limit the number of events catched.</p>
+      
+      <p>Be careful, it is an asynchrone loop, so if you give too little time,
+several instances of your handler could be run in same time *</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:limited_loop">
+  <a href="index.html#/val:limited_loop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> limited_loop : (?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> ?elapsed_time:float <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Same as func_limited_loop but take time instead of function
+By default elapsed_time = 0.1s = 100ms *</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Predefined functions for some types of events</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:click">
+  <a href="index.html#/val:click" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> click : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dblclick">
+  <a href="index.html#/val:dblclick" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dblclick : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mousedown">
+  <a href="index.html#/val:mousedown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mousedown : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mouseup">
+  <a href="index.html#/val:mouseup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mouseup : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mouseover">
+  <a href="index.html#/val:mouseover" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mouseover : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mousemove">
+  <a href="index.html#/val:mousemove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mousemove : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mouseout">
+  <a href="index.html#/val:mouseout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mouseout : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keypress">
+  <a href="index.html#/val:keypress" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keypress : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:keyboardEvent">keyboardEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keydown">
+  <a href="index.html#/val:keydown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keydown : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:keyboardEvent">keyboardEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keyup">
+  <a href="index.html#/val:keyup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keyup : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:keyboardEvent">keyboardEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input">
+  <a href="index.html#/val:input" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timeupdate">
+  <a href="index.html#/val:timeupdate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timeupdate : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:change">
+  <a href="index.html#/val:change" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> change : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragstart">
+  <a href="index.html#/val:dragstart" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragstart : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragend">
+  <a href="index.html#/val:dragend" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragend : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragenter">
+  <a href="index.html#/val:dragenter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragenter : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragover">
+  <a href="index.html#/val:dragover" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragover : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragleave">
+  <a href="index.html#/val:dragleave" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragleave : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drag">
+  <a href="index.html#/val:drag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drag : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drop">
+  <a href="index.html#/val:drop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:focus">
+  <a href="index.html#/val:focus" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> focus : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blur">
+  <a href="index.html#/val:blur" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blur : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:scroll">
+  <a href="index.html#/val:scroll" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> scroll : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:submit">
+  <a href="index.html#/val:submit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> submit : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:select">
+  <a href="index.html#/val:select" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> select : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mousewheel">
+  <a href="index.html#/val:mousewheel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mousewheel : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> * (int * int)) <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>This function returns the event,
+together with the numbers of ticks the mouse wheel moved.
+Positive means down or right.
+This interface is compatible with all (recent) browsers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchstart">
+  <a href="index.html#/val:touchstart" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchstart : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchmove">
+  <a href="index.html#/val:touchmove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchmove : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchend">
+  <a href="index.html#/val:touchend" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchend : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchcancel">
+  <a href="index.html#/val:touchcancel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchcancel : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:transitionend">
+  <a href="index.html#/val:transitionend" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> transitionend : <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns when a CSS transition terminates on the element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load">
+  <a href="index.html#/val:load" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#imageElement <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:error">
+  <a href="index.html#/val:error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#imageElement <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abort">
+  <a href="index.html#/val:abort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abort : ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#imageElement <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clicks">
+  <a href="index.html#/val:clicks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clicks : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dblclicks">
+  <a href="index.html#/val:dblclicks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dblclicks : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mousedowns">
+  <a href="index.html#/val:mousedowns" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mousedowns : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mouseups">
+  <a href="index.html#/val:mouseups" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mouseups : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mouseovers">
+  <a href="index.html#/val:mouseovers" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mouseovers : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mousemoves">
+  <a href="index.html#/val:mousemoves" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mousemoves : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mouseouts">
+  <a href="index.html#/val:mouseouts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mouseouts : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keypresses">
+  <a href="index.html#/val:keypresses" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keypresses : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:keyboardEvent">keyboardEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keydowns">
+  <a href="index.html#/val:keydowns" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keydowns : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:keyboardEvent">keyboardEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keyups">
+  <a href="index.html#/val:keyups" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keyups : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:keyboardEvent">keyboardEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:inputs">
+  <a href="index.html#/val:inputs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> inputs : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timeupdates">
+  <a href="index.html#/val:timeupdates" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timeupdates : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:changes">
+  <a href="index.html#/val:changes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> changes : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragstarts">
+  <a href="index.html#/val:dragstarts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragstarts : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragends">
+  <a href="index.html#/val:dragends" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragends : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragenters">
+  <a href="index.html#/val:dragenters" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragenters : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragovers">
+  <a href="index.html#/val:dragovers" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragovers : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dragleaves">
+  <a href="index.html#/val:dragleaves" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dragleaves : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drags">
+  <a href="index.html#/val:drags" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drags : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drops">
+  <a href="index.html#/val:drops" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drops : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:dragEvent">dragEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mousewheels">
+  <a href="index.html#/val:mousewheels" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mousewheels : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:mouseEvent">mouseEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> * (int * int) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchstarts">
+  <a href="index.html#/val:touchstarts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchstarts : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchmoves">
+  <a href="index.html#/val:touchmoves" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchmoves : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchends">
+  <a href="index.html#/val:touchends" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchends : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:touchcancels">
+  <a href="index.html#/val:touchcancels" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> touchcancels : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:touchEvent">touchEvent</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:focuses">
+  <a href="index.html#/val:focuses" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> focuses : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blurs">
+  <a href="index.html#/val:blurs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blurs : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:scrolls">
+  <a href="index.html#/val:scrolls" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> scrolls : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:submits">
+  <a href="index.html#/val:submits" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> submits : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:selects">
+  <a href="index.html#/val:selects" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> selects : ?cancel_handler:bool <span class="rarr"><span>-&gt;</span></span> ?use_capture:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.#eventTarget <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:request_animation_frame">
+  <a href="index.html#/val:request_animation_frame" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> request_animation_frame : unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns when a repaint of the window by the browser starts.
+(see JS method <code>window.requestAnimationFrame</code>)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onload">
+  <a href="index.html#/val:onload" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onload : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns when the page is loaded</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:domContentLoaded">
+  <a href="index.html#/val:domContentLoaded" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> domContentLoaded : unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onunload">
+  <a href="index.html#/val:onunload" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onunload : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onbeforeunload">
+  <a href="index.html#/val:onbeforeunload" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onbeforeunload : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onresize">
+  <a href="index.html#/val:onresize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onresize : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onorientationchange">
+  <a href="index.html#/val:onorientationchange" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onorientationchange : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onpopstate">
+  <a href="index.html#/val:onpopstate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onpopstate : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onhashchange">
+  <a href="index.html#/val:onhashchange" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onhashchange : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onorientationchange_or_onresize">
+  <a href="index.html#/val:onorientationchange_or_onresize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onorientationchange_or_onresize : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onresizes">
+  <a href="index.html#/val:onresizes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onresizes : (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onorientationchanges">
+  <a href="index.html#/val:onorientationchanges" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onorientationchanges : (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onpopstates">
+  <a href="index.html#/val:onpopstates" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onpopstates : (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onhashchanges">
+  <a href="index.html#/val:onhashchanges" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onhashchanges : (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:onorientationchanges_or_onresizes">
+  <a href="index.html#/val:onorientationchanges_or_onresizes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> onorientationchanges_or_onresizes : (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:limited_onresizes">
+  <a href="index.html#/val:limited_onresizes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> limited_onresizes : ?elapsed_time:float <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:limited_onorientationchanges">
+  <a href="index.html#/val:limited_onorientationchanges" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> limited_onorientationchanges : ?elapsed_time:float <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:limited_onorientationchanges_or_onresizes">
+  <a href="index.html#/val:limited_onorientationchanges_or_onresizes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> limited_onorientationchanges_or_onresizes : ?elapsed_time:float <span class="rarr"><span>-&gt;</span></span> (<a href="../../../js_of_ocaml.2.5/lib/dom_html/">Dom_html</a>.<a href="../../../js_of_ocaml.2.5/lib/dom_html/#/classtype:event">event</a> <a href="../../../js_of_ocaml.2.5/lib/js/">Js</a>.<a href="../../../js_of_ocaml.2.5/lib/js/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

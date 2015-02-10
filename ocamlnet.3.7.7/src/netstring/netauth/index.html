@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netauth</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netauth</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Some primitives for authentication</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:hmac">
+  <a href="index.html#/val:hmac" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hmac : h:(string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> b:int <span class="rarr"><span>-&gt;</span></span> l:int <span class="rarr"><span>-&gt;</span></span> k:string <span class="rarr"><span>-&gt;</span></span> message:string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The HMAC algorithm of RFC 2104. The function <code>h</code> is the hash function.
+<code>b</code> and <code>l</code> are properties of <code>h</code> (see the RFC or below). The string
+<code>k</code> is the key, up to <code>b</code> bytes. The <code>message</code> is authenticated.</p>
+      
+      <p>The key <code>k</code> should ideally have length <code>l</code>. If this cannot be ensured
+by other means, one should pass <code>k = h any_k</code>.</p>
+      
+      <p>Common values of <code>b</code> and <code>l</code>:</p>
+      <ul><li>For <code>h=MD5</code>: <code>b=64</code>, <code>l=16</code></li><li>For <code>h=SHA-1</code>: <code>b=64</code>, <code>l=20</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:key_type">
+  <a href="index.html#/type:key_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> key_type = [ <div class="cons">| `Kc</div><div class="cons">| `Ke</div><div class="cons">| `Ki</div> ]
+    
+      <div class="doc">
+        
+      <p>Key types:</p>
+      <ul><li><code>`Kc</code> is used for computing checksums</li><li><code>`Ke</code> is used for encrypting confidential messages</li><li><code>`Ki</code> is used for computing integrity checksums for encrypted
+messages</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:derive_key_rfc3961_simplified">
+  <a href="index.html#/val:derive_key_rfc3961_simplified" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> derive_key_rfc3961_simplified : encrypt:(string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> random_to_key:(string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> block_size:int <span class="rarr"><span>-&gt;</span></span> k:int <span class="rarr"><span>-&gt;</span></span> usage:int <span class="rarr"><span>-&gt;</span></span> key_type:<a href="index.html#/type:key_type">key_type</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Derives a special key from a base key, as described in RFC 3961.</p>
+      <ul><li><code>encrypt</code>: Encrypts the argument with the base key and the
+initial cipher state.</li><li><code>random_to_key</code>: Converts a random string of size <code>k</code> to a key</li><li><code>block_size</code>: The block size of the cipher underlying <code>encrypt</code>.
+It is ensured that <code>encrypt</code> is called with strings having exactly
+this many bits. (The <code>c</code> parameter in the RFC text.) Minimum: 40.</li><li><code>k</code>: The input size for <code>random_to_key</code> in bits. Must be divisible
+by 8.</li><li><code>usage</code>: The usage number (here restricted to 0-255, although the
+RFC would allow 32 bits). Examples for usage numbers can be found
+in RFC 4121 section 2.</li><li><code>key_type</code>: Which key type to derive</li></ul>
+      <p>The output is a key as produced by <code>random_to_key</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Bitstring operations</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:xor_s">
+  <a href="index.html#/val:xor_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xor_s : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Performs the bitwise XOR of these strings (which must have the same
+length)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_1_complement">
+  <a href="index.html#/val:add_1_complement" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_1_complement : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The addition algorithm for 1's-complement numbers. The two numbers to
+add are given as bitstrings (big endian), and must have the same
+length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rotate_right">
+  <a href="index.html#/val:rotate_right" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rotate_right : int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Rotate the (big-endian) bitstring to the right by n bits. This also
+works for negative n (left rotation), and for n whose absolute value
+is greater or equal than the bit length of the string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:n_fold">
+  <a href="index.html#/val:n_fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> n_fold : int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Blumenthal's n-fold algorithm for an n that is divisible by 8.
+(RFC 3961, section 5.1)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

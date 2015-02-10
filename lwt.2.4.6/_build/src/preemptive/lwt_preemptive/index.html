@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_preemptive</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_preemptive</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>This module allows to mix preemptive threads with <code>Lwt</code>
+cooperative threads. It maintains an extensible pool of preemptive
+threads to which you can detach computations.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:detach">
+  <a href="index.html#/val:detach" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> detach : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>detaches a computation to a preemptive thread.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run_in_main">
+  <a href="index.html#/val:run_in_main" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run_in_main : (unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>run_in_main f</code> executes <code>f</code> in the main thread, i.e. the one
+executing <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_main/">Lwt_main</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_main/#/val:run">run</a> and returns its result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>init min max log</code> initialises this module. i.e. it launches the
+minimum number of preemptive threads and starts the <b>dispatcher</b>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">min</span> is the minimum number of threads
+  </div>
+  
+  <div class="tag param">
+    <span class="label">max</span> is the maximum number of threads
+  </div>
+  
+  <div class="tag param">
+    <span class="label">log</span> is used to log error messages<br/>If [root:Lwt_preemptive] has already been initialised, this call
+only modify bounds and the log function, and return the
+dispatcher thread.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:simple_init">
+  <a href="index.html#/val:simple_init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> simple_init : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>simple_init ()</code> does a <i>simple initialization</i>. i.e. with
+default parameters if the library is not yet initialised.</p>
+      
+      <p>Note: this function is automatically called <a href="index.html#/val:detach">detach</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_bounds">
+  <a href="index.html#/val:get_bounds" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_bounds : unit <span class="rarr"><span>-&gt;</span></span> int * int
+    
+      <div class="doc">
+        
+      <p><code>get_bounds ()</code> returns the minimum and the maximum number of
+preemptive threads.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_bounds">
+  <a href="index.html#/val:set_bounds" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_bounds : int * int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_bounds (min, max)</code> set the minimum and the maximum number
+of preemptive threads.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_max_number_of_threads_queued">
+  <a href="index.html#/val:set_max_number_of_threads_queued" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_max_number_of_threads_queued : int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the size of the waiting queue, if no more preemptive
+threads are available. When the queue is full, <a href="index.html#/val:detach">detach</a> will
+sleep until a thread is available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_max_number_of_threads_queued">
+  <a href="index.html#/val:get_max_number_of_threads_queued" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_max_number_of_threads_queued : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the size of the waiting queue, if no more threads are
+available</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

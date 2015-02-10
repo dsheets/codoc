@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_server</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_server</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>RPC servers</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Like the client, the RPC server module is programmed on top of the
+Unixqueue event system. It pushes itself on an existing Unixqueue
+as a new service that accepts RPC calls, forwards them to configurable
+functions, and sends the replies back.</p>
+      
+      <p>The server module can manage two kinds of RPC functions: synchronous
+and asynchronous. Synchronous functions compute their result immediately
+and thus the result can be sent back just after the evaluation of the
+function has finished. In contrast to this, asynchronous functions only
+get noticed about the call and need not to know immediately what should
+be answered. Typically, an asynchronous function initiates a second
+communication channel and its result depends on what happens on the
+second channel. The communication on this channel is done in an
+asynchronous way, too, and can be managed by the same event system that
+carries out the RPC service. After several input or output events,
+the result has somehow been computed, and the answer can be sent
+back to the original caller. To do so, the asynchronous RPC function
+invokes 'reply' together with the necessary session IDs that identify
+the answer among all answers.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Connection_lost">
+  <a href="index.html#/exn:Connection_lost" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Connection_lost
+    
+      <div class="doc">
+        
+      <p>raised by the 'reply' function if the connection to the original caller
+has been lost in the meantime.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>represents a server for an RPC program</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:session">
+  <a href="index.html#/type:session" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> session
+    
+      <div class="doc">
+        
+      <p>identifies a pair of a call and a reply</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:connection_id">
+  <a href="index.html#/type:connection_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> connection_id
+    
+      <div class="doc">
+        
+      <p>identifies the connection of a session. For connectionless servers,
+every session gets a new connection_id.
+You can compare connection_ids to find out whether two sessions
+belong to the same connection. Use &quot;=&quot; for equality.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:connector">
+  <a href="index.html#/type:connector" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> connector = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:connector/cons:Localhost">
+  <a href="index.html#/type:connector/cons:Localhost" class="anchor">#</a>
+  | Localhost <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">The service is installed on 'localhost' and listens on the
+given port number. A number of 0 means that the port is
+chosen by the operating system.
+Note: The service is only locally reachable.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:connector/cons:Portmapped">
+  <a href="index.html#/type:connector/cons:Portmapped" class="anchor">#</a>
+  | Portmapped
+  </div>
+  </td><td>(*</td><td class="doc">The service is installed on every network interface; the port is
+chosen by the operating system; the program is registered with the
+portmapper</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:connector/cons:Internet">
+  <a href="index.html#/type:connector/cons:Internet" class="anchor">#</a>
+  | Internet <span class="keyword">of</span> (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> * int)
+  </div>
+  </td><td>(*</td><td class="doc">The service is installed on the passed interface/port combination.
+Use Unix.inet_addr_any to listen on all network interfaces.
+Use port 0 to automatically choose the port number.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:connector/cons:Unix">
+  <a href="index.html#/type:connector/cons:Unix" class="anchor">#</a>
+  | Unix <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">The service is installed on a Unix domain socket.
+Note: the socket path must not exist when the server is started,
+and the socket must be unlinked when the server terminates.
+Note Win32: Unix domain sockets are emulated by writing the
+inet4 port number into a one-line file.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:connector/cons:W32_pipe">
+  <a href="index.html#/type:connector/cons:W32_pipe" class="anchor">#</a>
+  | W32_pipe <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">The service is installed for a named pipe. (Only for Win32.)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:connector/cons:Descriptor">
+  <a href="index.html#/type:connector/cons:Descriptor" class="anchor">#</a>
+  | Descriptor <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">The service listens on the given file descriptor.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:connector/cons:Dynamic_descriptor">
+  <a href="index.html#/type:connector/cons:Dynamic_descriptor" class="anchor">#</a>
+  | Dynamic_descriptor <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">The service listens on the returned file descriptor.</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:binding_sync">
+  <a href="index.html#/type:binding_sync" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> binding_sync = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:binding_sync/field:sync_name">
+  <a href="index.html#/type:binding_sync/field:sync_name" class="anchor">#</a>
+  sync_name
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">procedure name</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:binding_sync/field:sync_proc">
+  <a href="index.html#/type:binding_sync/field:sync_proc" class="anchor">#</a>
+  sync_proc
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a></td><td>;</td><td>(*</td><td class="doc">the function that implements the
+procedure</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:binding_async">
+  <a href="index.html#/type:binding_async" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> binding_async = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:binding_async/field:async_name">
+  <a href="index.html#/type:binding_async/field:async_name" class="anchor">#</a>
+  async_name
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">procedure name</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:binding_async/field:async_invoke">
+  <a href="index.html#/type:binding_async/field:async_invoke" class="anchor">#</a>
+  async_invoke
+  </div>
+  </td><td>: <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">A function that is called when the procedure is called</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:binding">
+  <a href="index.html#/type:binding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> binding = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:binding/cons:Sync">
+  <a href="index.html#/type:binding/cons:Sync" class="anchor">#</a>
+  | Sync <span class="keyword">of</span> <a href="index.html#/type:binding_sync">binding_sync</a>
+  </div>
+  </td><td>(*</td><td class="doc">bind a synchonous procedure</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:binding/cons:Async">
+  <a href="index.html#/type:binding/cons:Async" class="anchor">#</a>
+  | Async <span class="keyword">of</span> <a href="index.html#/type:binding_async">binding_async</a>
+  </div>
+  </td><td>(*</td><td class="doc">bind an asynchonous procedure</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:connector_of_sockaddr">
+  <a href="index.html#/val:connector_of_sockaddr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connector_of_sockaddr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connector">connector</a>
+    
+      <div class="doc">
+        
+      <p>Converts the socket address into a connector</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:connector_of_socksymbol">
+  <a href="index.html#/val:connector_of_socksymbol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connector_of_socksymbol : <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connector">connector</a>
+    
+      <div class="doc">
+        
+      <p>Converts the <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a> into a connector</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?program_number:<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> ?version_number:<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connector">connector</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:mode">mode</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:binding">binding</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Deprecated creation of an RPC server. For new programs, use <code>create2</code>
+or one of its variants.</p>
+      
+      <p>Creates a new server that is pushed onto the event queue.
+The <code>connector</code>, <code>protocol</code> and <code>mode</code> values control the network
+type of the server. Note that not all combinations are valid; the
+following can be used:</p>
+      <ul><li>any <code>connector</code>, <code>protocol=Tcp</code>, <code>mode=Socket</code>:
+creates a classic TCP server socket that allows multiple
+stream connections at the same time</li><li><code>connector=Descriptor s</code>, <code>protocol=Tcp</code>, <code>mode=BiPipe</code>:
+(where <code>s</code> is one half of a socketpair)
+creates a stream socket that is the endpoint of a point-to-point
+stream connection (bidirectional pipe)</li><li>any Internet namespace connector, <code>protocol=Udp</code>, <code>mode=Socket</code>:
+creates a UDP server socket that allows serving multiple datagrams</li></ul>
+      <p>Note: If <code>connector = Descriptor _</code> the file descriptor is not opened by
+this module and not closed. The other <code>connector</code>s work automatically
+regarding this point, i.e. descriptors are opened and closed as
+necessary.</p>
+      
+      <p><code>connector = Dynamic_descriptor</code>: The open descriptor is closed after use.</p>
+      
+      <p>The <code>Rpc_program.t</code> specifies the procedures that are available and
+their signatures. The <code>binding list</code> should contain for every procedure
+name the function that handles calls of the procedures.</p>
+      
+      <p>The remaining integer is the maximum number of waiting connections
+if a classic Tcp server socket is used; other connection types ignore
+this number.</p>
+      
+      <p>The optional arguments <code>?program_number</code> and <code>?version_number</code> override
+the numbers specified in the passed program.</p>
+      
+      <p><b>Notes on servers:</b></p>
+      <ul><li>servers that allow multiple connections never terminate by themselves</li><li>servers for only one connection (endpoint of a bidirectional pipe)
+terminate if they see an EOF on the stream; in this case the stream
+is closed by the server</li><li>the <code>create</code> function may block if the connector is Portmapped</li></ul>
+      <p><b>Note for UDP servers:</b> Due to limitations of the ocaml runtime
+there is a limit of 16K per message.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:socket_config">
+  <a href="index.html#/classtype:socket_config" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> socket_config = 
+  <div class="region" id="/classtype:socket_config/method:listen_options">
+  <a href="index.html#/classtype:socket_config/method:listen_options" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> listen_options : <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/type:listen_options">listen_options</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:socket_config/method:multiplexing">
+  <a href="index.html#/classtype:socket_config/method:multiplexing" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiplexing : close_inactive_descr:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/">Rpc_transport</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/#/classtype:rpc_multiplex_controller">rpc_multiplex_controller</a> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+  
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_socket_config">
+  <a href="index.html#/val:default_socket_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_socket_config : <a href="index.html#/classtype:socket_config">socket_config</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:default_socket_config">
+  <a href="index.html#/class:default_socket_config" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> default_socket_config : <a href="index.html#/classtype:socket_config">socket_config</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mode2">
+  <a href="index.html#/type:mode2" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mode2 = [ <div class="cons">| `Socket_endpoint <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div><div class="cons">| `Multiplexer_endpoint <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/">Rpc_transport</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/#/classtype:rpc_multiplex_controller">rpc_multiplex_controller</a></div><div class="cons">| `Socket <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a> * <a href="index.html#/type:connector">connector</a> * <a href="index.html#/classtype:socket_config">socket_config</a></div><div class="cons">| `Dummy <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Determines the type of the server for <code>create2</code>:</p>
+      <ul><li><code>`Socket_endpoint(proto,fd)</code>: Socket <code>fd</code> is a connected socket
+descriptor used for communication. <code>proto</code> determines the
+encapsulation; should be <code>Tcp</code> for stream sockets and <code>Udp</code> for
+datagram sockets.</li></ul><ul><li><code>`Multiplexer_endpoint m</code>: <code>m</code> is an RPC multiplex controller.</li></ul><ul><li><code>`Socket(proto, conn, config)</code>: Opens or uses a server socket
+according to <code>conn</code>. <code>proto</code> determines the
+encapsulation; should be <code>Tcp</code> for stream sockets and <code>Udp</code> for
+datagram sockets. <code>config</code> specifies configuration details.</li></ul>
+      <p>Despite their names, <code>`Socket_endpoint</code> and <code>`Socket</code> also support
+Win32 named pipes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create2">
+  <a href="index.html#/val:create2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create2 : <a href="index.html#/type:mode2">mode2</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Creates a server according to the <code>mode2</code> argument. This kind of server
+does initially not have any bindings.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bind">
+  <a href="index.html#/val:bind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bind : ?program_number:<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> ?version_number:<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:binding">binding</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Binds the program as specified by the <code>binding list</code>. If the portmapper
+must be informed, this action is started (and continued in the
+background). One can bind several programs in several versions to the
+same server.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unbind">
+  <a href="index.html#/val:unbind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unbind : ?program_number:<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> ?version_number:<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Unbinds the program if it is bound by the server</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bound_programs">
+  <a href="index.html#/val:bound_programs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bound_programs : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/">Rpc_program</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_program/#/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the bound programs</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_event_system">
+  <a href="index.html#/val:get_event_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_event_system : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    
+      <div class="doc">
+        
+      <p>Find out the event system that contains the 'session'</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_connection_id">
+  <a href="index.html#/val:get_connection_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_connection_id : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connection_id">connection_id</a>
+    
+      <div class="doc">
+        
+      <p>Get the connection_id</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_xid">
+  <a href="index.html#/val:get_xid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_xid : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+    
+      <div class="doc">
+        
+      <p>Returns the session ID.
+Important note: This number identifies the session from the caller's
+view, not from the server's view!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_socket_name">
+  <a href="index.html#/val:get_socket_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_socket_name : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_peer_name">
+  <a href="index.html#/val:get_peer_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_peer_name : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p>Return the address of the socket serving the session, and the client
+socket, resp. These functions fail if the server is not running on
+a socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_conn_socket_name">
+  <a href="index.html#/val:get_conn_socket_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_conn_socket_name : <a href="index.html#/type:connection_id">connection_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_conn_peer_name">
+  <a href="index.html#/val:get_conn_peer_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_conn_peer_name : <a href="index.html#/type:connection_id">connection_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p>Return the address of the socket serving the connection, and the client
+socket, resp. These functions fail if the server is not running on
+a socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_server">
+  <a href="index.html#/val:get_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_server : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the server instance of the session</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_main_socket_name">
+  <a href="index.html#/val:get_main_socket_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_main_socket_name : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the address of the server socket, or the address of the
+bidirectional pipe.
+This function fails if the main file descriptor is not a socket.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_protocol">
+  <a href="index.html#/val:get_protocol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_protocol : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:protocol">protocol</a>
+    
+      <div class="doc">
+        
+      <p>Return whether Tcp or Udp</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_srv_event_system">
+  <a href="index.html#/val:get_srv_event_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_srv_event_system : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/class:unix_event_system">unix_event_system</a>
+    
+      <div class="doc">
+        
+      <p>Returns the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_last_proc_info">
+  <a href="index.html#/val:get_last_proc_info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_last_proc_info : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get a debug string describing the last invoked procedure</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_dummy">
+  <a href="index.html#/val:is_dummy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_dummy : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether this is a server in <code>`Dummy</code> mode. These servers cannot be
+used for communication</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:rule">
+  <a href="index.html#/type:rule" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> rule = [ <div class="cons">| `Deny</div><div class="cons">| `Drop</div><div class="cons">| `Reject</div><div class="cons">| `Reject_with <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:server_error">server_error</a></div><div class="cons">| `Accept</div><div class="cons">| `Accept_limit_length <span class="keyword">of</span> int * <a href="index.html#/type:rule">rule</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_session_filter">
+  <a href="index.html#/val:set_session_filter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_session_filter : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/">Rpc_transport</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:rule">rule</a>) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>If set, the filter function is invoked every time the beginning of a new
+RPC call is received, and the result of the filter function determines
+what to do with the call:</p>
+      
+      <p>`Deny: TCP connections are immediately closed; UDP packets are dropped
+`Drop: The call is dropped (it does not allocate memory)
+`Reject_with: A response is sent back that the call is rejected. The
+parameter specified the error code
+`Reject: The same as <code>`Reject_with Rpc.Auth_too_weak</code>
+`Accept: The call is accepted without limitation (the default if no
+filter is installed)
+`Accept_limit_length(n,r): If the call is longer than n bytes, the rule
+r will be applied</p>
+      
+      <p>The parameter of the filter function is the socket address of the
+client.</p>
+      
+      <p>The intention of filters is to prevent denial of service attacks.
+A simple but good filter for TCP servers is
+set_filter srv (fun _ -&gt; (`Accept_limit_length(n,`Deny))
+which accepts messages up to n bytes without limit, and denies longer
+messages. n is the length of the longest sensible message.</p>
+      
+      <p>For UDP servers, there is an implicit limit of 16K, so it is
+not necessary to care about this.</p>
+      
+      <p>Another application is to restrict which systems can contact this
+server, based on the IP address of the client.</p>
+      
+      <p>Note that this is not a protection against distributed denial of service
+attacks.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_session_filter_2">
+  <a href="index.html#/val:set_session_filter_2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_session_filter_2 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/">Rpc_transport</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connection_id">connection_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:rule">rule</a>) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>set_session_filter</code>, but the filter gets as second argument the
+connection ID.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_mstring_factories">
+  <a href="index.html#/val:set_mstring_factories" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_mstring_factories : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/type:named_mstring_factories">named_mstring_factories</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the mstring factories to use for decoding requests containing
+managed strings</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reply">
+  <a href="index.html#/val:reply" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reply : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Asynchronous procedures can reply their results with this function.</p>
+      
+      <p>NOTES:</p>
+      <ul><li>As with synchronous procedures, the transfer is not reliable since
+the connection may be broken at any time</li><li>If it is already known that the connection is down, a Connection_lost
+exception is raised.</li><li>If you don't want to reply to a certain call, just don't <code>reply</code>.
+Unreplied calls do not allocate memory.</li><li>It is possible to reply several times (&quot;batch mode&quot;), but the client
+must support it, too. Just call <code>reply</code> several times for the same
+session.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reply_error">
+  <a href="index.html#/val:reply_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reply_error : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:server_error">server_error</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Like <code>reply</code>, but an error condition is sent back to the caller.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_exception_handler">
+  <a href="index.html#/val:set_exception_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_exception_handler : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (exn <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the exception handler for the server.
+The exception handler gets most exceptions raised by the functions that
+are bound to procedures. The exception handler does not get Abort
+exceptions and any exceptions resulting from I/O problems.</p>
+      
+      <p>NOTES ABOUT EXCEPTIONS:</p>
+      <ul><li>The default exception handler logs a <code>`Crit</code> message using [root:Netlog].</li><li>I/O problems usually lead to an 'Abort' of the whole server.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_onclose_action">
+  <a href="index.html#/val:set_onclose_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_onclose_action : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:connection_id">connection_id</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Every time a connection is closed, the onclose function is called
+with the closed connection.
+The default onclose action is to do nothing. The function is also
+called for <code>Descriptor</code> connectors when the socket should be closed
+(for these connectors the socket is not closed by this module).</p>
+      
+      <p>Note that this action only applies to closed connections. It will
+not be executed for closed sockets in general (closed master socket,
+closed datagram socket).</p>
+      
+      <p>If several onclose actions are set, they will be executed in reverse
+order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_timeout">
+  <a href="index.html#/val:set_timeout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_timeout : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the timeout for the transport.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stop_server">
+  <a href="index.html#/val:stop_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stop_server : ?graceful:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Stops the server: If a TCP server socket is listening, it is immediately
+closed. The shutdown procedure for the connections is initiated.
+Pending result messages are dropped.</p>
+      
+      <p><code>graceful</code>: If true, the shutdown procedure is deferred until all
+responses have been transferred back to the caller. This includes
+any responses added to the message queue in the current callback.
+New calls are not accepted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stop_connection">
+  <a href="index.html#/val:stop_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stop_connection : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connection_id">connection_id</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Schedules a special event that causes the connection to be stopped in the
+very near future. The function has only an effect for stream-oriented
+servers (mode = Tcp). The connection socket will be closed (unless it
+was passed using <code>Descriptor</code>). Nothing happens for datagram-oriented
+servers (mode = Udp).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:auth_result">
+  <a href="index.html#/type:auth_result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> auth_result = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:auth_result/cons:Auth_positive">
+  <a href="index.html#/type:auth_result/cons:Auth_positive" class="anchor">#</a>
+  | Auth_positive <span class="keyword">of</span> (string * string * string * <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:encoder">encoder</a> option * <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:decoder">decoder</a> option)
+  </div>
+  </td><td>(*</td><td class="doc">Successful authentication:
+<code>(username, returned_verifier_flavour, returned_verifier_data, 
+	    enc_opt, dec_opt
+	  )</code><br/>Encoders and decoders are allowed to raise the exceptions
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/">Rpc_server</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/#/exn:Late_drop">Late_drop</a> and <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/exn:Rpc_server">Rpc_server</a>.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:auth_result/cons:Auth_negative">
+  <a href="index.html#/type:auth_result/cons:Auth_negative" class="anchor">#</a>
+  | Auth_negative <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/">Rpc</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc/#/type:server_error">server_error</a>
+  </div>
+  </td><td>(*</td><td class="doc">Failed authentication</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:auth_result/cons:Auth_reply">
+  <a href="index.html#/type:auth_result/cons:Auth_reply" class="anchor">#</a>
+  | Auth_reply <span class="keyword">of</span> (<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a> list * string * string)
+  </div>
+  </td><td>(*</td><td class="doc">The authentication method generates the positive response
+of this RPC call:
+<code>(data, verf_flavor, verf_data)</code>
+(new in Ocamlnet-3.3)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:auth_result/cons:Auth_drop">
+  <a href="index.html#/type:auth_result/cons:Auth_drop" class="anchor">#</a>
+  | Auth_drop
+  </div>
+  </td><td>(*</td><td class="doc">Authentication demands to drop the message</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Late_drop">
+  <a href="index.html#/exn:Late_drop" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Late_drop
+    
+      <div class="doc">
+        
+      <p>This can be raised in encryption/decryption functions to prevent
+that a response is sent.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:auth_peeker">
+  <a href="index.html#/type:auth_peeker" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> auth_peeker = [ <div class="cons">| `None</div><div class="cons">| `Peek_descriptor <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string option</div><div class="cons">| `Peek_multiplexer <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/">Rpc_transport</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_transport/#/classtype:rpc_multiplex_controller">rpc_multiplex_controller</a> <span class="rarr"><span>-&gt;</span></span> string option</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details">
+  <a href="index.html#/classtype:auth_details" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> auth_details = 
+  <div class="region" id="/classtype:auth_details/method:server_addr">
+  <a href="index.html#/classtype:auth_details/method:server_addr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> server_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> option
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:client_addr">
+  <a href="index.html#/classtype:auth_details/method:client_addr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> client_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> option
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:program">
+  <a href="index.html#/classtype:auth_details/method:program" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> program : <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:version">
+  <a href="index.html#/classtype:auth_details/method:version" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> version : <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:procedure">
+  <a href="index.html#/classtype:auth_details/method:procedure" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> procedure : <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:xid">
+  <a href="index.html#/classtype:auth_details/method:xid" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> xid : <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:credential">
+  <a href="index.html#/classtype:auth_details/method:credential" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> credential : string * string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:verifier">
+  <a href="index.html#/classtype:auth_details/method:verifier" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> verifier : string * string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:frame_len">
+  <a href="index.html#/classtype:auth_details/method:frame_len" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> frame_len : int
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_details/method:message">
+  <a href="index.html#/classtype:auth_details/method:message" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> message : <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/">Rpc_packer</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_packer/#/type:packed_value">packed_value</a>
+  
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_method">
+  <a href="index.html#/classtype:auth_method" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> auth_method = 
+  <div class="region" id="/classtype:auth_method/method:name">
+  <a href="index.html#/classtype:auth_method/method:name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> name : string
+  
+      <div class="doc">
+        
+      <p>The name of the authentication method</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_method/method:flavors">
+  <a href="index.html#/classtype:auth_method/method:flavors" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> flavors : string list
+  
+      <div class="doc">
+        
+      <p>Which credential flavors are handled by this method</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_method/method:peek">
+  <a href="index.html#/classtype:auth_method/method:peek" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> peek : <a href="index.html#/type:auth_peeker">auth_peeker</a>
+  
+      <div class="doc">
+        
+      <p>If available, this function is called for every accepted connection.
+It may return the user name.
+Notes:</p>
+      <ul><li>peeked user names override <code>authenticate</code></li><li><code>peek</code> is only called once after the stream connection has been
+accepted</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:auth_method/method:authenticate">
+  <a href="index.html#/classtype:auth_method/method:authenticate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> authenticate : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connection_id">connection_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:auth_details">auth_details</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:auth_result">auth_result</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>authenticate srv conn_id details f</code>:
+This method is called when a remote call has arrived. Its task is
+to determine the client user and pass the user name (and the verifier)
+back. If the user cannot be authenticated, the call must be rejected.
+When the method has done the authentication, it calls the passed
+function <code>f</code> with the <code>auth_result</code>. This function can be called
+immediately or asynchronously.</p>
+      
+      <p>Changed in Ocamlnet-3.3: the arguments <code>program</code>, <code>version</code>,
+<code>procedure</code>, and <code>xid</code> are new. Added new <code>auth_result</code> of
+<code>Auth_reply</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_auth_methods">
+  <a href="index.html#/val:set_auth_methods" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_auth_methods : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:auth_method">auth_method</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the available authentication methods.
+By default, the list is set to <code>auth_none</code>.
+If none of the methods apply, the call is rejected (Auth_too_weak).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:auth_none">
+  <a href="index.html#/val:auth_none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> auth_none : <a href="index.html#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>The authentication method &quot;AUTH_NONE&quot;, i.e. no user name is passed.
+The function <code>get_user</code> will return &quot;&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:auth_too_weak">
+  <a href="index.html#/val:auth_too_weak" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> auth_too_weak : <a href="index.html#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>The method that always rejects.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:auth_transport">
+  <a href="index.html#/val:auth_transport" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> auth_transport : <a href="index.html#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>Authenticate by trusting the transport layer. The user returned by
+the multiplexer's method peer_user_name is taken.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_user">
+  <a href="index.html#/val:get_user" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_user : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the user name as returned by the authentication method. See
+the description of the method for the format of the user name string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_auth_method">
+  <a href="index.html#/val:get_auth_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_auth_method : <a href="index.html#/type:session">session</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:auth_method">auth_method</a>
+    
+      <div class="doc">
+        
+      <p>Returns the method that was used to authenticate the user.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:verbose">
+  <a href="index.html#/val:verbose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> verbose : bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><b>Deprecated.</b>
+Set whether you want debug messages to stderr or not</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:detach">
+  <a href="index.html#/val:detach" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> detach : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><b>Internal function.</b> Cancels all pending I/O operations, and
+deallocates buffers. This function has only one purpose: The
+RPC servers inherited by a Netplex child process return memory.
+The RPC server is unusable after this.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Whether debug messages of general kind are enabled.
+See <a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/">Netlog</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/#/module:Debug">Debug</a> for more information.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:enable_ctrace">
+  <a href="index.html#/module:Debug/val:enable_ctrace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable_ctrace : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Whether debug messages are enabled that trace connection events.
+See <a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/">Netlog</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/#/module:Debug">Debug</a> for more information.</p>
+      
+      <p>The &quot;module name&quot; for these messages is &quot;Rpc_server.Ctrace&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:enable_ptrace">
+  <a href="index.html#/module:Debug/val:enable_ptrace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable_ptrace : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Whether the procedure trace is enabled.
+The procedure trace outputs for every RPC call and response
+a debug message. <code>ptrace_verbosity</code> says how verbose.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:ptrace_verbosity">
+  <a href="index.html#/module:Debug/val:ptrace_verbosity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ptrace_verbosity : <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_util/">Rpc_util</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_util/#/type:verbosity">verbosity</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>How verbose the ptrace is. Defaults to <code>`Name_abbrev_args</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:disable_for_server">
+  <a href="index.html#/module:Debug/val:disable_for_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> disable_for_server : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Disables logging for this server</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

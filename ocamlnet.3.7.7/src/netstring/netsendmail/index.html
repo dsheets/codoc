@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netsendmail</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netsendmail</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Functions to compose and send electronic mails</p>
+      
+      <p><b>Contents</b></p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/label:composing">composing</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/label:sending">sending</a></li></ul>
+      <p>The tutorial has been moved to [root:Netsendmail_tut].</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:composing">
+  <a href="index.html#/label:composing" class="anchor">#</a>
+  
+    <h1 class="section level_1">Composing Messages</h1>
+    
+  </div>
+  
+      <p>The core function is <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:compose">compose</a> generating a MIME mail.
+The mail can be sent with <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:sendmail">sendmail</a>, written to an
+object channel with <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/val:write_mime_message">write_mime_message</a>, or postprocessed
+by a user function.</p>
+      
+      <p>The call to <code>compose</code> can be as easy as</p>
+      <pre><code>compose ~from_addr:(&quot;me&quot;, &quot;me@domain.net&quot;) 
+              ~to_addrs:[&quot;you&quot;, &quot;you@domain.com&quot;]
+              ~subject:&quot;I have a message for you&quot;
+              &quot;Hello, this is my message!\n&quot;</code></pre>
+      <p>This call generates the message as <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a>,
+and can be directly sent with <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:sendmail">sendmail</a>.</p>
+      
+      <p>The <code>compose</code> function is the simplified interface; alternatively one
+can also generate the mail by calling <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:wrap_mail">wrap_mail</a>,
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:wrap_parts">wrap_parts</a>, and <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:wrap_attachment">wrap_attachment</a>, getting
+more fine-grained control of certain options.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:compose">
+  <a href="index.html#/val:compose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compose : ?in_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?out_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?from_addr:string * string <span class="rarr"><span>-&gt;</span></span> ?cc_addrs:(string * string) list <span class="rarr"><span>-&gt;</span></span> ?bcc_addrs:(string * string) list <span class="rarr"><span>-&gt;</span></span> ?content_type:string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list <span class="rarr"><span>-&gt;</span></span> ?container_type:string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list <span class="rarr"><span>-&gt;</span></span> ?attachments:<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a> list <span class="rarr"><span>-&gt;</span></span> to_addrs:(string * string) list <span class="rarr"><span>-&gt;</span></span> subject:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a>
+    
+      <div class="doc">
+        
+      <p>Composes a mail message with a main text, and optionally
+a number of attachments.</p>
+      
+      <p>The addresses <code>from_addr</code>, <code>to_addrs</code>, <code>cc_addrs</code>, and <code>bcc_addrs</code> are
+passed as pairs <code>(human_readable,formal)</code> where
+<code>human_readable</code> is an arbitrary printable string identifying the
+sender/receiver, and where <code>formal</code> is the RFC-822 mailbox specification.
+An example is <code>(&quot;Stolpmann, Gerd&quot;, &quot;gerd@gerd-stolpmann.de&quot;)</code>.</p>
+      
+      <p>The <code>subject</code> can be any text.</p>
+      
+      <p>The anonymous <code>string</code> argument is the main text of the mail.</p>
+      
+      <p>The resulting message is always a correct MIME message.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">in_charset</span> All passed texts (except the formal addresses) must
+be encoded in <code>in_charset</code>. Default: <code>`Enc_iso88591</code>.
+As another exception, setting <code>content_type</code> explicitly prevents
+the main text from being converted, and <code>in_charset</code> does not
+have a meaning for the main text.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">out_charset</span> The encoded words in the generated header fields,
+if necessary, and the main text are encoded in <code>out_charset</code>.
+Default: <code>`Enc_iso88591</code>.
+It is required that <code>out_charset</code> is ASCII-compatible.
+As a special rule, setting <code>content_type</code> explicitly prevents
+the main text from being converted to <code>out_charset</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_type</span> The content type of the main text. The list is
+the list of parameters attached
+to the type, e.g. <code>(&quot;text/plain&quot;, [&quot;charset&quot;, mk_param &quot;ISO-8859-1&quot;])</code>
+(see [root:Mimestring].mk_param). When this argument is set,
+the main text is no longer converted to <code>out_charset</code>.
+By default, when this argument is missing, the main text is
+converted from <code>in_charset</code> to <code>out_charset</code>, and the
+content type becomes <code>&quot;text/plain; charset=&lt;out_charset&gt;&quot;</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">container_type</span> The content type of the container wrapping the
+main text and the attachment into one entity
+(only used if <code>attachments</code> are present). This
+defaults to <code>(&quot;multipart/mixed&quot;, [])</code>. This must be either a
+&quot;multipart&quot; or &quot;message&quot; type.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">attachments</span> An optional list of attachments. Should be generated
+with <code>wrap_attachment</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Character Set Conversion</b></p>
+      
+      <p>The impact of <code>in_charset</code> and <code>out_charset</code> on the generated mail
+is not very obvious. The charset arguments may have an effect on
+the mail header and the mail body.</p>
+      
+      <p>The mail header can only be composed of ASCII characters (7 bit).
+To circumvent this restriction the MIME standard specifies a special
+format, the so-called encoded words. These may only be used in some
+places, and <code>compose</code> knows where: In the subject, and the non-formal
+part of mail addresses. The <code>out_charset</code> is the character set
+used in the generated mail. The <code>in_charset</code> is the character set
+the strings are encoded you pass to <code>compose</code>. It is a good idea
+to have <code>in_charset = out_charset</code>, or at least choose <code>out_charset</code>
+as a superset of <code>in_charset</code>, because this ensures that the character
+set conversion succeeds.</p>
+      
+      <p>If the mail header does not make use of the additional non-ASCII
+characters, the encoded words will be avoided.</p>
+      
+      <p>The mail body is only subject of character set conversion if
+the <code>content_type</code> is <b>not</b> passed to <code>compose</code>. In this case,
+the function sets it to <code>text/plain</code>, and converts the message
+from <code>in_charset</code> to <code>out_charset</code>.</p>
+      
+      <p><b>Adding Attachments</b></p>
+      
+      <p>To generate the attachments, call <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:wrap_attachment">wrap_attachment</a>, e.g.</p>
+      <pre><code>compose ...
+        ~attachments:[ wrap_attachment  
+                         ~content_type:(&quot;application/octet-stream&quot;, [])
+                         (new Netmime.file_mime_body &quot;file.tar.gz&quot;) ]</code></pre>
+      <p>There
+are a number of kinds of attaching files, identified by <code>container_type</code>.
+The default is <code>multipart/mixed</code>, meaning that the parts of the mail are
+mixed messages and files. One can give a hint whether to display
+the parts directly in the mailer program (so-called inline attachments),
+or whether to suggest that the file is saved to disk (&quot;real&quot;
+attachments). This hint is contained in the <code>Content-disposition</code>
+header, see <code>wrap_attachment</code> how to set it.</p>
+      
+      <p>For a discusion of the other <code>container_type</code>s see the
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.tutorial at the end of this document.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:wrap_attachment">
+  <a href="index.html#/val:wrap_attachment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wrap_attachment : ?in_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?out_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?content_id:string <span class="rarr"><span>-&gt;</span></span> ?content_description:string <span class="rarr"><span>-&gt;</span></span> ?content_location:string <span class="rarr"><span>-&gt;</span></span> ?content_disposition:string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list <span class="rarr"><span>-&gt;</span></span> content_type:string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_body">mime_body</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a>
+    
+      <div class="doc">
+        
+      <p>Generates a header for the <code>mime_body</code>. The returned value
+is intended to be used as input for the <code>attachments</code> argument
+of the <code>compose</code> function:</p>
+      <pre><code>     compose ...
+        ~attachments:[ wrap_attachment
+                          ~content_type:(&quot;audio/wav&quot;, [])
+                          (new file_mime_body &quot;music.wav&quot;) ]</code></pre>
+      <p>The header contains at least the <code>Content-type</code> and the
+<code>Content-transfer-encoding</code> fields. The latter is currently
+always <code>&quot;base64&quot;</code>, but it is possible that the function is
+changed in the future to also generate <code>&quot;quoted-printable&quot;</code>
+when applicable.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">in_charset</span> The encoding of the <code>content_description</code> argument.
+Default: <code>`Enc_iso88591</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">out_charset</span> The encoding of the generated <code>Content-Description</code>
+header. Default: <code>`Enc_iso88591</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_type</span> Specifies the content type with main
+type and list of parameters. Example:
+<code>(&quot;text/plain&quot;, [&quot;charset&quot;, Mimestring.mk_param &quot;ISO-8859-1&quot; ])</code>
+(see [root:Mimestring].mk_param)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_disposition</span> Optionally sets the <code>Content-disposition</code>
+header. Frequent values are<ul><li><code>(&quot;inline&quot;, [])</code>: Indicates that the attachment is displayed
+together with the main text</li><li><code>(&quot;attachment&quot;, [&quot;filename&quot;, Mimestring.mk_param fn])</code>: Indicates
+that the attachment should be stored onto the disk. The
+parameter <code>fn</code> is the suggested file name. Note that <code>fn</code>
+should only consist of ASCII characters unless the <code>charset</code>
+argument of <code>mk_param</code> is set to a different character encoding.</li></ul>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_id</span> Optionally sets the <code>Content-ID</code> header field.
+The passed string is the ID value without the embracing angle
+brackets. The <code>Content-ID</code> can be used to refer to the attachment
+from other parts of the mail, e.g. in <code>multipart/related</code> mails
+HTML documents can include hyperlinks to attachments using the
+URL syntax <code>cid:ID</code> where <code>ID</code> is the ID value.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_description</span> The <code>Content-Description</code> header
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_location</span> The <code>Content-Location</code> header. This must be
+a valid URL, only composed of 7 bit characters, and with escaped
+unsafe characters
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wrap_mail">
+  <a href="index.html#/val:wrap_mail" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wrap_mail : ?in_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?out_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?from_addr:string * string <span class="rarr"><span>-&gt;</span></span> ?cc_addrs:(string * string) list <span class="rarr"><span>-&gt;</span></span> ?bcc_addrs:(string * string) list <span class="rarr"><span>-&gt;</span></span> to_addrs:(string * string) list <span class="rarr"><span>-&gt;</span></span> subject:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a>
+    
+      <div class="doc">
+        
+      <p>Sets the mail-related header fields in the input message, and
+returns a message ready for delivery. Transfer- and delivery-related
+header fields are removed from the message first, and the new fields
+are set to the values passed to this function.</p>
+      
+      <p>The arguments are like in <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:compose">compose</a>.</p>
+      
+      <p>The input message should have at least a <code>Content-type</code> header,
+but this is not enforced.</p>
+      
+      <p>Use this function as an alternative to <a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/">Netsendmail</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsendmail/#/val:compose">compose</a>,
+if the message is already available as <code>complex_mime_message</code>,
+e.g. to re-send a parsed mail message to a new destination.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Note: Resending Messages</b></p>
+      
+      <p>Note that mails generated by <code>wrap_mail</code> always appear as new mails,
+not as forwarded or replied mails. In order to do the latter a different
+way of processing the message is needed.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:wrap_parts">
+  <a href="index.html#/val:wrap_parts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wrap_parts : ?in_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?out_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?content_type:string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list <span class="rarr"><span>-&gt;</span></span> ?content_id:string <span class="rarr"><span>-&gt;</span></span> ?content_description:string <span class="rarr"><span>-&gt;</span></span> ?content_location:string <span class="rarr"><span>-&gt;</span></span> ?content_disposition:string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a>
+    
+      <div class="doc">
+        
+      <p>Generates an intermediate container for multipart attachments.
+Use this if you want to bundle a set of attachments as a single
+attachment.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">in_charset</span> The encoding of the <code>content_description</code> argument.
+Default: <code>`Enc_iso88591</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">out_charset</span> The encoding of the generated <code>Content-Description</code>
+header. Default: <code>`Enc_iso88591</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_type</span> The <code>Content-Type</code> header. Default: multipart/mixed
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_id</span> The <code>Content-ID</code> header, without the angle brackets
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_description</span> The <code>Content-Description</code> header
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_location</span> The <code>Content-Location</code> header. This must be
+a valid URL, only composed of 7 bit characters, and with escaped
+unsafe characters
+  </div>
+  
+  <div class="tag param">
+    <span class="label">content_disposition</span> The <code>Content-Disposition</code> header
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Low-level</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:create_address_list_tokens">
+  <a href="index.html#/val:create_address_list_tokens" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_address_list_tokens : ?in_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?out_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> (string * string) list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_token">s_token</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the list of <code>s_token</code>s representing email addresses as
+structured value. The addresses are passed as list of pairs
+<code>(human_readable, formal)</code> as in the <code>compose</code> function above.
+The returned structured field value can be formatted and filled
+into a mail header. For example, to set the &quot;To&quot; header to
+<code>&quot;Stolpmann, Gerd&quot; &lt;gerd@gerd-stolpmann.de&gt;</code> use
+</p>
+      <pre><code>     let sval = create_address_list_tokens [&quot;Stolpmann, Gerd&quot;,
+                                            &quot;gerd@gerd-stolpmann.de&quot;] in
+     header # update_field &quot;to&quot; (format_field_value &quot;to&quot; sval)</code></pre>
+      <p>
+This ensures that the field is correctly quoted, that appropriate
+encodings are applied and that long values are folded into several
+lines.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">in_charset</span> The character encoding used for <code>human_readable</code>.
+Defaults to <code>`Enc_iso88591</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">out_charset</span> The character encoding used in the generated
+encoded word. This encoding must be ASCII-compatible. Defaults to
+<code>`Enc_iso88591</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_text_tokens">
+  <a href="index.html#/val:create_text_tokens" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_text_tokens : ?in_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?out_charset:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_token">s_token</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the list of <code>s_token</code>s representing an informal text
+as structured value. The text is passed as simple string.
+The returned structured field value can be formatted and filled
+into a mail header. For example, to set the &quot;Subject&quot; header to
+<code>&quot;I have to say something&quot;</code>, use
+</p>
+      <pre><code>     let sval = create_text_tokens &quot;I have to say something&quot; in
+     header # update_field &quot;subject&quot; (format_field_value &quot;subject&quot; sval)</code></pre>
+      <p>
+This ensures that the field is correctly quoted, that appropriate
+encodings are applied and that long values are folded into several
+lines.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">in_charset</span> The character encoding used for the input string.
+Defaults to <code>`Enc_iso88591</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">out_charset</span> The character encoding used in the generated
+encoded words. This encoding must be ASCII-compatible. Defaults to
+<code>`Enc_iso88591</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format_field_value">
+  <a href="index.html#/val:format_field_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format_field_value : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_token">s_token</a> list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>To put <code>sval</code>, an <code>s_token list</code>, into the header field <code>name</code>,
+call</p>
+      
+      <p><code>header # update_field name (format_field_value name sval)</code></p>
+      
+      <p>The field value is folded into several lines, if necessary.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:sending">
+  <a href="index.html#/label:sending" class="anchor">#</a>
+  
+    <h1 class="section level_1">Sending Messages</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/val:sendmail">
+  <a href="index.html#/val:sendmail" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sendmail : ?mailer:string <span class="rarr"><span>-&gt;</span></span> ?crlf:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:complex_mime_message">complex_mime_message</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sends the passed message. The mailer program must be sendmail-compatible
+(this can be assumed on all Unix systems, even if a non-sendmail
+mailer is installed).</p>
+      
+      <p>The mailer program is the command passed as <code>mailer</code>, which is by
+default a reasonable compile-time setting.</p>
+      
+      <p>With <code>crlf</code> one can determine the EOL convention for the message piped to
+the mailer program: If <code>crlf</code>, CR/LF is used, if <code>not crlf</code>, only LF is
+used. The default is <code>false</code> for Unix systems.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

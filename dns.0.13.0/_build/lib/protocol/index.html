@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Protocol</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Protocol</a></h1> : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/exn:Dns_resolve_timeout">
+  <a href="index.html#/exn:Dns_resolve_timeout" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Dns_resolve_timeout
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Dns_resolve_error">
+  <a href="index.html#/exn:Dns_resolve_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Dns_resolve_error <span class="keyword">of</span> exn list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:CLIENT">
+  <a href="index.html#/modtype:CLIENT" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> CLIENT = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The type of pluggable DNS resolver modules for request contexts and
+custom metadata and wire protocols.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:CLIENT/type:context">
+  <a href="index.html#/modtype:CLIENT/type:context" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> context
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:CLIENT/val:get_id">
+  <a href="index.html#/modtype:CLIENT/val:get_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_id : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:CLIENT/val:marshal">
+  <a href="index.html#/modtype:CLIENT/val:marshal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> marshal : ?alloc:(unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/buf/">Buf</a>.<a href="../../../../dns.0.13.0/_build/lib/buf/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/packet/">Packet</a>.<a href="../../../../dns.0.13.0/_build/lib/packet/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:CLIENT/type:context">context</a> * <a href="../../../../dns.0.13.0/_build/lib/buf/">Buf</a>.<a href="../../../../dns.0.13.0/_build/lib/buf/#/type:t">t</a>) list
+    
+      <div class="doc">
+        
+      <p><code>marshal query</code> is a list of context-buffer pairs corresponding to the
+channel contexts and request buffers with which to attempt DNS requests.
+Requests are made in parallel and the first response to successfully
+parse is returned as the answer. Lagging requests are kept running until
+successful parse or timeout. With this behavior, it is easy to construct
+low-latency but network-environment-aware DNS resolvers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:CLIENT/val:parse">
+  <a href="index.html#/modtype:CLIENT/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : <a href="index.html#/modtype:CLIENT/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/buf/">Buf</a>.<a href="../../../../dns.0.13.0/_build/lib/buf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/packet/">Packet</a>.<a href="../../../../dns.0.13.0/_build/lib/packet/#/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p><code>parse ctxt buf</code> is the potential packet extracted out of <code>buf</code>
+with <code>ctxt</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:CLIENT/val:timeout">
+  <a href="index.html#/modtype:CLIENT/val:timeout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timeout : <a href="index.html#/modtype:CLIENT/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> exn
+    
+      <div class="doc">
+        
+      <p><code>timeout ctxt</code> is the exception resulting from a context <code>ctxt</code> that has
+timed-out</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Client">
+  <a href="index.html#/module:Client" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Client : <a href="index.html#/modtype:CLIENT">CLIENT</a></div>
+      
+      <div class="doc">
+        
+      <p>The default DNS resolver using the standard DNS protocol</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:SERVER">
+  <a href="index.html#/modtype:SERVER" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> SERVER = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The type of pluggable DNS server modules for request contexts and
+custom metadata dn wire protocols.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:SERVER/type:context">
+  <a href="index.html#/modtype:SERVER/type:context" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> context
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:SERVER/val:query_of_context">
+  <a href="index.html#/modtype:SERVER/val:query_of_context" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> query_of_context : <a href="index.html#/modtype:SERVER/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/packet/">Packet</a>.<a href="../../../../dns.0.13.0/_build/lib/packet/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Projects a context into its associated query</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:SERVER/val:parse">
+  <a href="index.html#/modtype:SERVER/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : <a href="../../../../dns.0.13.0/_build/lib/buf/">Buf</a>.<a href="../../../../dns.0.13.0/_build/lib/buf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:SERVER/type:context">context</a> option
+    
+      <div class="doc">
+        
+      <p>DNS wire format parser function.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> message buffer
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> parsed packet and context
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:SERVER/val:marshal">
+  <a href="index.html#/modtype:SERVER/val:marshal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> marshal : <a href="../../../../dns.0.13.0/_build/lib/buf/">Buf</a>.<a href="../../../../dns.0.13.0/_build/lib/buf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:SERVER/type:context">context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/packet/">Packet</a>.<a href="../../../../dns.0.13.0/_build/lib/packet/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../dns.0.13.0/_build/lib/buf/">Buf</a>.<a href="../../../../dns.0.13.0/_build/lib/buf/#/type:t">t</a> option
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Server">
+  <a href="index.html#/module:Server" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Server : <a href="index.html#/modtype:SERVER">SERVER</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:SERVER/type:context">context</a> = <a href="../../../../dns.0.13.0/_build/lib/packet/">Packet</a>.<a href="../../../../dns.0.13.0/_build/lib/packet/#/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>The default DNS server using the standard DNS protocol</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:contain_exc">
+  <a href="index.html#/val:contain_exc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> contain_exc : string <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

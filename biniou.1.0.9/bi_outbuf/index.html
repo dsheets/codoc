@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Bi_outbuf</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Bi_outbuf</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Output buffer</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_s">
+  <a href="index.html#/type:t/field:o_s" class="anchor">#</a>
+  <span class="keyword">mutable</span> o_s
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Buffer string</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_max_len">
+  <a href="index.html#/type:t/field:o_max_len" class="anchor">#</a>
+  <span class="keyword">mutable</span> o_max_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Same as <code>String.length s</code></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_len">
+  <a href="index.html#/type:t/field:o_len" class="anchor">#</a>
+  <span class="keyword">mutable</span> o_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Length of the data present in the buffer = current position
+in the buffer</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_offs">
+  <a href="index.html#/type:t/field:o_offs" class="anchor">#</a>
+  <span class="keyword">mutable</span> o_offs
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Length of data written and flushed out of the buffer.
+The total number of bytes written to the buffer
+is therefore <code>o_offs + o_len</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_init_len">
+  <a href="index.html#/type:t/field:o_init_len" class="anchor">#</a>
+  o_init_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Initial length of the buffer</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_make_room">
+  <a href="index.html#/type:t/field:o_make_room" class="anchor">#</a>
+  o_make_room
+  </div>
+  </td><td>: <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc"><code>make_room buf n</code> must provide space for at least the requested
+number of bytes <code>n</code>, typically by reallocating a larger buffer
+string or by flushing the data to a channel.
+This function is only called when there is not enough space for <code>n</code>
+bytes.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_shared">
+  <a href="index.html#/type:t/field:o_shared" class="anchor">#</a>
+  <span class="keyword">mutable</span> o_shared
+  </div>
+  </td><td>: <a href="../../biniou.1.0.9/bi_share/">Bi_share</a>.<a href="../../biniou.1.0.9/bi_share/#/module:Wr">Wr</a>.<a href="../../biniou.1.0.9/bi_share/#/module:Wr/type:tbl">tbl</a></td><td>;</td><td>(*</td><td class="doc">Hash table used to map shared objects to positions in the input stream.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:o_shared_init_len">
+  <a href="index.html#/type:t/field:o_shared_init_len" class="anchor">#</a>
+  o_shared_init_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Initial length of the <code>o_shared</code> table.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_extend">
+  <a href="index.html#/val:really_extend" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_extend : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Default make_room function: reallocate a larger buffer string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush_to_channel">
+  <a href="index.html#/val:flush_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush_to_channel : <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Alternate make_room function: write to an out_channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?make_room:(<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?shrlen:int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Create a buffer. The default <code>make_room</code> function is <code>really_extend</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">shrlen</span> initial size of the table used to store shared values.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:contents">
+  <a href="index.html#/val:contents" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> contents : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the data currently in the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_channel_writer">
+  <a href="index.html#/val:create_channel_writer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_channel_writer : ?len:int <span class="rarr"><span>-&gt;</span></span> ?shrlen:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush_channel_writer">
+  <a href="index.html#/val:flush_channel_writer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush_channel_writer : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pair of convenience functions for creating a buffer that
+flushes data to an out_channel when it is full.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_output_writer">
+  <a href="index.html#/val:create_output_writer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_output_writer : ?len:int <span class="rarr"><span>-&gt;</span></span> ?shrlen:int <span class="rarr"><span>-&gt;</span></span> &lt; output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int; .. &gt; <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush_output_writer">
+  <a href="index.html#/val:flush_output_writer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush_output_writer : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pair of convenience functions for creating a buffer that
+flushes data to an object when it is full.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extend">
+  <a href="index.html#/val:extend" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extend : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Guarantee that the buffer string has enough room for n additional bytes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:alloc">
+  <a href="index.html#/val:alloc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> alloc : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>alloc buf n</code> makes room for <code>n</code> bytes and returns the position
+of the first byte in the buffer string <code>buf.s</code>.
+It behaves as if <code>n</code> arbitrary bytes were added and it is
+the user's responsibility to set them to some meaningful values
+by accessing <code>buf.s</code> directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_string">
+  <a href="index.html#/val:add_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add a string to the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_substring">
+  <a href="index.html#/val:add_substring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_substring : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_substring dst src srcpos len</code> copies <code>len</code> bytes from
+string <code>src</code> to buffer <code>dst</code> starting from position <code>srcpos</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_char">
+  <a href="index.html#/val:add_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_char : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add a byte to the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_char2">
+  <a href="index.html#/val:add_char2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_char2 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add two bytes to the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_char4">
+  <a href="index.html#/val:add_char4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_char4 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add four bytes to the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_add_char">
+  <a href="index.html#/val:unsafe_add_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_add_char : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Add a byte to the buffer without checking that there is enough
+room for it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Remove any data present in the buffer and in the table holding
+shared objects.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reset">
+  <a href="index.html#/val:reset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reset : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Remove any data present in the buffer and reset it to its original
+size.
+Remove any data present in the table holding shared objects
+and reset it to its original size.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

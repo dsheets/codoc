@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netpop</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netpop</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>This is an interface for the Post Office Protocol - Version 3
+(POP3) as specifed by RFC 1939. The protocol is intended to permit
+a workstation to dynamically access a maildrop on a server host in
+a useful fashion.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:state">
+  <a href="index.html#/type:state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> state = [ <div class="cons">| `Authorization</div><div class="cons">| `Transaction</div><div class="cons">| `Update</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Protocol_error">
+  <a href="index.html#/exn:Protocol_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Protocol_error
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Err_status">
+  <a href="index.html#/exn:Err_status" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Err_status <span class="keyword">of</span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Bad_state">
+  <a href="index.html#/exn:Bad_state" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Bad_state
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcp_port">
+  <a href="index.html#/val:tcp_port" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcp_port : int
+    
+      <div class="doc">
+        
+      <p>Default TCP port for POP version 3</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client">
+  <a href="index.html#/class:client" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> client : 
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:client/method:state">
+  <a href="index.html#/class:client/method:state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> state : <a href="index.html#/type:state">state</a>
+  
+      <div class="doc">
+        
+      <p>Current state of this session.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:quit">
+  <a href="index.html#/class:client/method:quit" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> quit : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Requests the server to end this session. If the session is
+currently in the <code>`Transaction</code> state, the server will attempt
+to remove all messages marked as deleted before closing its
+side of the connection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:user">
+  <a href="index.html#/class:client/method:user" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> user : user:string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Specifies the name of the mailbox the client would like to open
+using plain-text authentication. Normal completion of this function
+should be followed by the <code>pass</code> command.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:pass">
+  <a href="index.html#/class:client/method:pass" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pass : pass:string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Authenticates a user with the plain-text password <code>pass</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:apop">
+  <a href="index.html#/class:client/method:apop" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> apop : user:string <span class="rarr"><span>-&gt;</span></span> pass:string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Specifies the user and password using APOP authentication.
+APOP is a more secure method of authentication than what is
+provided by the <code>user</code>/<code>pass</code> command sequence.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:stat">
+  <a href="index.html#/class:client/method:stat" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stat : unit <span class="rarr"><span>-&gt;</span></span> int * int * string
+  
+      <div class="doc">
+        
+      <p>Returns information about the current mailbox as tuple
+<code>(count,size,ext)</code> where <code>count</code> is the number of messages in
+the mailbox, <code>size</code> is the size of the mailbox in octets,
+and <code>ext</code> is any server extension data.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:list">
+  <a href="index.html#/class:client/method:list" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> list : ?msgno:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (int, int * string) <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Returns the scan listing for an optional message number or
+for all messages in the current mailbox. The result is a hash
+table that maps a message number to a tuple <code>(size,ext)</code> where
+<code>size</code> is the size of the message in octets, and <code>ext</code> is any
+server extension data.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:retr">
+  <a href="index.html#/class:client/method:retr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> retr : msgno:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Retrieves a message from the server.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:dele">
+  <a href="index.html#/class:client/method:dele" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> dele : msgno:int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Marks the message number of the current mailbox for deletion.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:noop">
+  <a href="index.html#/class:client/method:noop" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> noop : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Pings the server to keep the session alive.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:rset">
+  <a href="index.html#/class:client/method:rset" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rset : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Unmarks any messages that have previously been marked as
+deleted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:top">
+  <a href="index.html#/class:client/method:top" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> top : ?lines:int <span class="rarr"><span>-&gt;</span></span> msgno:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Returns the message header plus a limited number of lines
+of the message body. The default body length is 0 lines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:uidl">
+  <a href="index.html#/class:client/method:uidl" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> uidl : ?msgno:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (int, string) <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Returns the unique identifier(s) for an optional message number
+or for all messages in the current mailbox. The result is a
+hash table that maps a message number to its unique id.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>The class <code>client</code> implements the POP3 protocol. Client objects
+are created by
+</p>
+      <pre><code>new client in_ch out_ch</code></pre>
+      <p>
+where <code>in_ch</code> is an input channel representing the input direction of
+the TCP stream, and where <code>out_ch</code> is an output channel representing
+the output direction of the TCP stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

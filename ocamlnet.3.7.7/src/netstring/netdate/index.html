@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netdate</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netdate</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Support for common date/time parsing and formatting.
+Many routines refer to the epoch, which for Unix is
+00:00:00 UTC, January 1, 1970. Timestamps given as
+&quot;seconds since the epoch&quot; ignore leap seconds.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:year">
+  <a href="index.html#/type:t/field:year" class="anchor">#</a>
+  year
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">complete year</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:month">
+  <a href="index.html#/type:t/field:month" class="anchor">#</a>
+  month
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">1..12</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:day">
+  <a href="index.html#/type:t/field:day" class="anchor">#</a>
+  day
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">1..31</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:hour">
+  <a href="index.html#/type:t/field:hour" class="anchor">#</a>
+  hour
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">0..23</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:minute">
+  <a href="index.html#/type:t/field:minute" class="anchor">#</a>
+  minute
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">0..59</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:second">
+  <a href="index.html#/type:t/field:second" class="anchor">#</a>
+  second
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">0..60 (60=leapsecond)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:nanos">
+  <a href="index.html#/type:t/field:nanos" class="anchor">#</a>
+  nanos
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">nanoseconds, new since Ocamlnet-3.5</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:zone">
+  <a href="index.html#/type:t/field:zone" class="anchor">#</a>
+  zone
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">in minutes; 60 = UTC+0100</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:week_day">
+  <a href="index.html#/type:t/field:week_day" class="anchor">#</a>
+  week_day
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">0 = sunday; -1 if not given</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:localzone">
+  <a href="index.html#/val:localzone" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> localzone : int
+    
+      <div class="doc">
+        
+      <p>The offset in minutes for the local time zone from the UTC.
+This is the zone from the time when the program was started.
+For long-running programs, it is possible that the zone changes
+when daylight savings become effective or non-effective.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:localzone_nodst">
+  <a href="index.html#/val:localzone_nodst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> localzone_nodst : int
+    
+      <div class="doc">
+        
+      <p>Returns the offset for the local time zone for the case that
+daylight savings are not effective.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_localzone">
+  <a href="index.html#/val:get_localzone" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_localzone : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Retrieves the current offset for the local time zone, taking
+daylight savings into account.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> ?nanos:int <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convert the time (seconds since the epoch) to a date/time record</p>
+      
+      <p>The <code>nanos</code> are added to the float as nanoseconds.</p>
+      
+      <p>If <code>zone</code> is set this zone is taken. Otherwise, if
+<code>localzone</code> is set, the local timezone is used that is valid
+at the requested time. Otherwise, UTC is used.</p>
+      
+      <p>Note that <code>create ~localzone:true t</code> is different from
+<code>create ~zone:(get_localzone()) t</code> because the latter assumes
+the timezone that is in effect when the function is called, and not
+the timezone at the time <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:localization">
+  <a href="index.html#/type:localization" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> localization = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:full_day_names">
+  <a href="index.html#/type:localization/field:full_day_names" class="anchor">#</a>
+  full_day_names
+  </div>
+  </td><td>: string array</td><td>;</td><td>(*</td><td class="doc">Element <code>k</code> contains the name of the week day <code>k</code> (0=Sunday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:abbr_day_names">
+  <a href="index.html#/type:localization/field:abbr_day_names" class="anchor">#</a>
+  abbr_day_names
+  </div>
+  </td><td>: string array</td><td>;</td><td>(*</td><td class="doc">Element <code>k</code> contains the abbreviated name of the week day <code>k</code>
+(0=Sunday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:parsed_day_names">
+  <a href="index.html#/type:localization/field:parsed_day_names" class="anchor">#</a>
+  parsed_day_names
+  </div>
+  </td><td>: string list array</td><td>;</td><td>(*</td><td class="doc">Element <code>k</code> contains a list of all possible names of the week
+day <code>k</code>. The list includes full and abbreviated names, but can
+also contain any other allowed name (aliases). The names here
+are in lowercase characters.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:full_month_names">
+  <a href="index.html#/type:localization/field:full_month_names" class="anchor">#</a>
+  full_month_names
+  </div>
+  </td><td>: string array</td><td>;</td><td>(*</td><td class="doc">Element <code>k</code> contains the name of the month day <code>k</code> (0=January)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:abbr_month_names">
+  <a href="index.html#/type:localization/field:abbr_month_names" class="anchor">#</a>
+  abbr_month_names
+  </div>
+  </td><td>: string array</td><td>;</td><td>(*</td><td class="doc">Element <code>k</code> contains the abbreviated name of the month day <code>k</code>
+(0=January)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:parsed_month_names">
+  <a href="index.html#/type:localization/field:parsed_month_names" class="anchor">#</a>
+  parsed_month_names
+  </div>
+  </td><td>: string list array</td><td>;</td><td>(*</td><td class="doc">Element <code>k</code> contains a list of all possible names of the month
+<code>k</code>. The list includes full and abbreviated names, but can
+also contain any other allowed name (aliases). The names here
+are in lowercase characters.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:timezone_names">
+  <a href="index.html#/type:localization/field:timezone_names" class="anchor">#</a>
+  timezone_names
+  </div>
+  </td><td>: (string * int * bool) list</td><td>;</td><td>(*</td><td class="doc">A list of pairs <code>(name,offset,isdst)</code> of timezones. The offset is
+in minutes.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:am_particle">
+  <a href="index.html#/type:localization/field:am_particle" class="anchor">#</a>
+  am_particle
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">A particle for &quot;AM&quot;</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:pm_particle">
+  <a href="index.html#/type:localization/field:pm_particle" class="anchor">#</a>
+  pm_particle
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">A particle for &quot;PM&quot;</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:d_format">
+  <a href="index.html#/type:localization/field:d_format" class="anchor">#</a>
+  d_format
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Format string for date according to the locale</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:t_format">
+  <a href="index.html#/type:localization/field:t_format" class="anchor">#</a>
+  t_format
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Format string for time according to the locale</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:d_t_format">
+  <a href="index.html#/type:localization/field:d_t_format" class="anchor">#</a>
+  d_t_format
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Format string for date and time according to the locale</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:t_format_ampm">
+  <a href="index.html#/type:localization/field:t_format_ampm" class="anchor">#</a>
+  t_format_ampm
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Format string for time, using am and pm, according to the locale</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:localization/field:char_encoding">
+  <a href="index.html#/type:localization/field:char_encoding" class="anchor">#</a>
+  char_encoding
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The character encoding of this locale</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:compiled_localization">
+  <a href="index.html#/type:compiled_localization" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> compiled_localization
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:posix_l9n">
+  <a href="index.html#/val:posix_l9n" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> posix_l9n : <a href="index.html#/type:localization">localization</a>
+    
+      <div class="doc">
+        
+      <p>The standard POSIX localization (English names)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:l9n_from_locale">
+  <a href="index.html#/val:l9n_from_locale" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l9n_from_locale : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:localization">localization</a>
+    
+      <div class="doc">
+        
+      <p>Retrieves the localization from the passed locale (use &quot;&quot; for the
+standard locale). Timezone names are not provided by the locale</p>
+      
+      <p>This function is not available on Windows (the POSIX localization
+is always returned).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compile_l9n">
+  <a href="index.html#/val:compile_l9n" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compile_l9n : <a href="index.html#/type:localization">localization</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:compiled_localization">compiled_localization</a>
+    
+      <div class="doc">
+        
+      <p>Preprocess the localization data for faster parsing and printing</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse">
+  <a href="index.html#/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> ?l9n:<a href="index.html#/type:compiled_localization">compiled_localization</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Parse a string and return a date/time record.</p>
+      
+      <p>The following particles are recognized (by example):</p>
+      <ul><li>Date: <code>1971/06/22</code></li><li>Date: <code>06/22/1971</code></li><li>Date: <code>1971-06-22</code></li><li>Date: <code>22-June-1971</code></li><li>Date: <code>22.06.1971</code></li><li>Date: <code>June 22, 1971</code></li><li>Date: <code>22 June 1971</code></li><li>Date (2 digit year): <code>06/22/71</code></li><li>Date (2 digit year): <code>22.06.71</code></li><li>Date (2 digit year): <code>71-06-22</code></li><li>Date (2 digit year): <code>22-June-71</code></li><li>Month names (<code>June</code>, <code>Jun</code>)</li><li>Weekday names (<code>Monday</code>, <code>Mon</code>)</li><li>Time: <code>14:55</code></li><li>Time: <code>14:55:28</code></li><li>Time: <code>14:55:28.6754</code> (the fractional part is not returned)</li><li>Time may be preceded by <code>T</code></li><li>Time zone: identifiers like <code>UTC</code>, <code>CET</code>, or <code>Z</code></li><li>Time zone: <code>+01:00</code>, <code>-01:00</code>, only following time</li><li>Time zone: <code>+0100</code>, <code>-0100</code>, only following time</li></ul>
+      <p>Years must have 2 or 4 digits. 2-digit years &gt;= 70 are interpreted
+as <code>1900+x</code>. 2-digit years &lt; 70 are interpreted as <code>2000+x</code>.
+Support for 2-digit years will be removed in a future version
+of Ocamlnet. (Support for 3-digit years is already removed in
+Ocamlnet 3.0.)</p>
+      
+      <p>The names of months and weekdays are recognized that are configured
+with the <code>l9n</code> argument. By default, English names are recognized.</p>
+      
+      <p>A date must be given. Time, time zones, and weekdays are optional.
+A missing time is reported as &quot;00:00:00&quot;. A missing weekday is
+reported by setting <code>week_day=(-1)</code>. A missing time zone is
+reported by setting <code>zone</code> to the passed default (which is determined
+from the <code>zone</code> and <code>localzone</code> arguments as for <code>create</code>).</p>
+      
+      <p>It is not checked whether the parsed numbers make sense
+(e.g. whether months are between 1 and 12).</p>
+      
+      <p>Date/time strings as defined in RFC 3339 are supported since
+Ocamlnet 3.0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:since_epoch">
+  <a href="index.html#/val:since_epoch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> since_epoch : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Convert a date/time record into the time (seconds since the epoch),
+rounded down to the next integral number.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:since_epoch_timespec">
+  <a href="index.html#/val:since_epoch_timespec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> since_epoch_timespec : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float * int
+    
+      <div class="doc">
+        
+      <p>Returns the seconds since the epoch as pair <code>(seconds,nanos)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:since_epoch_approx">
+  <a href="index.html#/val:since_epoch_approx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> since_epoch_approx : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Same, but the nanos are added to the seconds. The precision of
+floats is not sufficient to represent this precisely, so the
+result is only an approximation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:week_day">
+  <a href="index.html#/val:week_day" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> week_day : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the week day. If the <code>week_day</code> field is (-1) the week day
+is computed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:year_day">
+  <a href="index.html#/val:year_day" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> year_day : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the year day (range 0 to 365)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iso8601_week_pair">
+  <a href="index.html#/val:iso8601_week_pair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iso8601_week_pair : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int * int
+    
+      <div class="doc">
+        
+      <p>Returns <code>(week_number, year)</code> for the ISO-8601 definition of weeks.
+The week starts with Monday, and has numbers 1-53. A week is considered
+to be part of the year into which four or more days fall.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_epoch">
+  <a href="index.html#/val:parse_epoch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_epoch : ?l9n:<a href="index.html#/type:compiled_localization">compiled_localization</a> <span class="rarr"><span>-&gt;</span></span> ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Parse a string and return the time (integral seconds since the epoch)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_epoch_timespec">
+  <a href="index.html#/val:parse_epoch_timespec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_epoch_timespec : ?l9n:<a href="index.html#/type:compiled_localization">compiled_localization</a> <span class="rarr"><span>-&gt;</span></span> ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> float * int
+    
+      <div class="doc">
+        
+      <p>Parse a string and return the time (seconds and nanos since the epoch)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_epoch_approx">
+  <a href="index.html#/val:parse_epoch_approx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_epoch_approx : ?l9n:<a href="index.html#/type:compiled_localization">compiled_localization</a> <span class="rarr"><span>-&gt;</span></span> ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Parse a string and return the time (approximate seconds since the epoch)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format_to">
+  <a href="index.html#/val:format_to" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format_to : ?l9n:<a href="index.html#/type:compiled_localization">compiled_localization</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> fmt:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Format a date/time record according to the format string and outputs
+the resulting string to the channel.</p>
+      
+      <p>The format string consists of zero or more conversion specifications
+and ordinary characters. All ordinary characters are output directly
+to the channel. A conversion specification consists of the '%'
+character and one other character.</p>
+      
+      <p>The conversion specifications are:</p>
+      <ul><li><code>%A</code>: full weekday name.</li><li><code>%a</code>: abbreviated weekday name.</li><li><code>%B</code>: full month name.</li><li><code>%b</code>: abbreviated month name.</li><li><code>%C</code>: (year / 100) as an integer; single digits are preceded by a zero.</li><li><code>%c</code>: the preferred date+time representation of <code>l9n</code></li><li><code>%D</code>: equivalent to <code>&quot;%m/%d/%y&quot;</code>.</li><li><code>%d</code>: day of the month as an integer (01-31); single digits are
+preceded by a zero.</li><li><code>%e</code>: day of the month as an integer (1-31).</li><li><code>%F</code>: equivalent to <code>&quot;%Y-%m-%d&quot;</code> (ISO 8601)</li><li><code>%G</code>: the year of the week according to the ISO-8601 week definition</li><li><code>%g</code>: same as %G but uses a two-digit year</li><li><code>%H</code>: hour (24-hour clock) as an integer (00-23).</li><li><code>%h</code>: the same as %b.</li><li><code>%I</code>: hour (12-hour clock) as an integer (01-12).</li><li><code>%j</code>: day of the year as an integer (001-366).</li><li><code>%k</code>: hour (24-hour clock) as an integer (0-23);
+single digits are preceded by a blank.</li><li><code>%l</code>: hour (12-hour clock) as an integer (1-12);
+single digits are preceded by a blank.</li><li><code>%M</code>: minute as an integer (00-59).</li><li><code>%m</code>: month as an integer (01-12).</li><li><code>%n</code>: a newline.</li><li><code>%p</code>: &quot;AM&quot; or &quot;PM&quot; as defined in <code>l9n</code>, in uppercase</li><li><code>%P</code>: &quot;am&quot; or &quot;pm&quot; as defined in <code>l9n</code>, in lowercase</li><li><code>%R</code>: equivalent to <code>&quot;%H:%M&quot;</code>.</li><li><code>%r</code>: the time in am/pm notation according to <code>l9n</code></li><li><code>%S</code>: second as an integer (00-60). This format accepts a precision
+argument, e.g. <code>%.3S</code> to print the second with three digits after the
+dot.</li><li><code>%s</code>: number of seconds since the epoch</li><li><code>%T</code>: equivalent to <code>&quot;%H:%M:%S&quot;</code>.</li><li><code>%t</code>: a tab.</li><li><code>%U</code>: week number of the year (Sunday as the first day
+of the week) as an integer (00-53).</li><li><code>%u</code> weekday (Monday as the first day of the week) as
+an integer (1-7).</li><li><code>%V</code>: week number of the year (ISO-8601 definition, use together with
+<code>%G</code> or <code>%g</code></li><li><code>%W</code>: week number of the year (Monday as the first day
+of the week) as an integer (00-53).</li><li><code>%w</code>: weekday (Sunday as the first day of the week) as
+an integer (0-6).</li><li><code>%X</code>: representation of the time according to <code>l9n</code></li><li><code>%x</code>: representation of the date according to <code>l9n</code></li><li><code>%Y</code>: year with century as an integer.</li><li><code>%y</code>: year without century as an integer (00-99).</li><li><code>%z</code>: time zone offset from UTC; a leading plus sign
+stands for east of UTC, a minus sign for west of UTC, hours and
+minutes follow with two digits each and no delimiter between them
+(common form for RFC 822 date headers).</li><li><code>%Z</code>: same as <code>%z</code></li><li><code>%:z</code>: time zone with colon, e.g. +05:00 (new since Ocamlnet 3)</li><li><code>%%</code>: a `%' character.</li></ul>
+      <p>If <code>l9n</code> is not passed, the default is the POSIX localization
+(English names).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format">
+  <a href="index.html#/val:format" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format : ?l9n:<a href="index.html#/type:compiled_localization">compiled_localization</a> <span class="rarr"><span>-&gt;</span></span> fmt:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Format a date/time record as a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mk_date">
+  <a href="index.html#/val:mk_date" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mk_date : ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> ?nanos:int <span class="rarr"><span>-&gt;</span></span> fmt:string <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Format the seconds (plus nanos if present) as a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mk_mail_date">
+  <a href="index.html#/val:mk_mail_date" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mk_mail_date : ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert the time (seconds since the epoch) to a date string that
+conforms to RFC 1123 (which updates RFC 822).</p>
+      
+      <p>Example: <code>&quot;Sun, 06 Nov 1994 08:49:37 -0500&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mk_usenet_date">
+  <a href="index.html#/val:mk_usenet_date" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mk_usenet_date : ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert the time (seconds since the epoch) to a date string that
+conforms to RFC 1036 (which obsoletes RFC 850).</p>
+      
+      <p>Example: <code>&quot;Sunday, 06-Nov-94 08:49:37 -0500&quot;</code>.</p>
+      
+      <p>Note that this format has only two digits for the year.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mk_internet_date">
+  <a href="index.html#/val:mk_internet_date" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mk_internet_date : ?localzone:bool <span class="rarr"><span>-&gt;</span></span> ?zone:int <span class="rarr"><span>-&gt;</span></span> ?digits:int <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert the time (seconds since the epoch) to a date string that
+conforms to RFC 3339. This is the most modern format, and should
+be used if permitted by the network protocol. Pass in <code>digits</code> the
+number of digits for the fractional part of seconds.</p>
+      
+      <p>Example: <code>&quot;1996-12-19T16:39:57.89-08:00&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

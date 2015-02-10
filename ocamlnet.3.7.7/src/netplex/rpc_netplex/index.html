@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Rpc_netplex</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Rpc_netplex</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Netplex support for RPC servers (TCP only)</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:rpc_factory">
+  <a href="index.html#/val:rpc_factory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rpc_factory : configure:(<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:config_file">config_file</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:address">address</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> ?socket_config:('a <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/">Rpc_server</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/#/classtype:socket_config">socket_config</a>) <span class="rarr"><span>-&gt;</span></span> ?hooks:('a <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a>) <span class="rarr"><span>-&gt;</span></span> ?supported_ptypes:<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:parallelization_type">parallelization_type</a> list <span class="rarr"><span>-&gt;</span></span> name:string <span class="rarr"><span>-&gt;</span></span> setup:(<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/">Rpc_server</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_factory">processor_factory</a>
+    
+      <div class="doc">
+        
+      <p>A factory for TCP-based RPC servers. In <code>name</code> the name of the processor
+is defined. This name can be referenced from the config file like:</p>
+      <pre><code>         processor {
+             type = &quot;the passed [name]&quot;;
+             ...
+         }</code></pre>
+      <p>Parameters may be included in the <code>processor</code> section:</p>
+      <ul><li><code>portmapper</code>: This is a boolean parameter. If set to true,
+the Internet port is registered with the portmapper program.
+This will fail if there are several Internet bindings with distinct
+port numbers!</li><li><code>timeout</code>: This is a float parameter. It sets the transport
+timeout of the RPC server (see <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/">Rpc_server</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/#/val:set_timeout">set_timeout</a>).
+If a connection hangs for this number of seconds, it is
+shut down by the server.</li></ul>
+      <p>Further parameters and subsections can be defined by the user. These
+parameters should be parsed and checked for correctness by the
+<code>configure</code> callback. The result of <code>configure</code> is also passed
+to <code>setup</code> and other optional functions. The <code>configure</code> function is
+called just before the service is
+added to Netplex (i.e. from the controller context).</p>
+      
+      <p>The return value of <code>configure</code> can be of any type. This value
+exists once for every time the processor is instantiated (used) by a
+service. It is not only useful for passing configuration values
+down, but also for storing intermediate results while establishing
+the service.</p>
+      
+      <p>The <code>Rpc_server.t</code> structure is created every time a new connection
+is accepted. Of course, this is done from the context of the container.
+The <code>Rpc_server.t</code> is created without any binding; the user must
+bind procedures in the <code>setup</code> function. This can be done by calling
+<code>Rpc_server.bind</code> or the ocamlrpcgen-generated function (by the
+<code>-srv2</code> switch of ocamlrpcgen).</p>
+      
+      <p>For example, a minimal factory for an RPC service may look like:</p>
+      <pre><code>        let proc_ping () = ()     (* Trivial RPC procedure *)
+     
+        let my_factory() =
+          Rpc_netplex.rpc_factory
+            ~name:&quot;my_rpc_service&quot;
+            ~factory:(fun _ _ -&gt; ())
+            ~setup:(fun rpc () -&gt;
+                      My_rpc_srv.bind ~proc_ping rpc
+                   )
+            ()</code></pre>
+      <p>The <code>setup</code> function is also called once before a new connection is
+accepted to get a list of programs and procedures. The <code>Rpc_server.t</code>
+is a special one in this case, and one can test for it with the
+<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/">Rpc_server</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_server/#/val:is_dummy">is_dummy</a> function.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">socket_config</span> An optional function computing the socket
+configuration. By default, <code>Rpc_server.default_socket_config</code> is used.
+Special socket configuration would, for example, allow SSL.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">hooks</span> An optional function returning the hooks to call.
+See <code>Netplex_types.processor_hooks</code> for documentation.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">supported_ptypes</span> Which parallelization types are supported
+by the service. By default, both multi-processing and multi-threading
+are included in this list.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug_rpc_internals">
+  <a href="index.html#/val:debug_rpc_internals" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug_rpc_internals : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug_rpc_service">
+  <a href="index.html#/val:debug_rpc_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug_rpc_service : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>These variables control debugging of <code>Rpc_server</code>. If set, the
+debug messages are sent to the Netplex logger. These variables must
+be set before an RPC connection is accepted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

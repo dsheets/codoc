@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_switch</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_switch</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Lwt switches</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Switch has two goals:</p>
+      <ul><li>being able to free multiple resources at the same time,</li><li>offer a better alternative than always returning an id to free
+some resource.</li></ul>
+      <p>For example, consider the following interface:</p>
+      <pre><code>      type id
+
+      val free : id -&gt; unit Lwt.t
+
+      val f : unit -&gt; id Lwt.t
+      val g : unit -&gt; id Lwt.t
+      val h : unit -&gt; id Lwt.t</code></pre>
+      <p>Now you want to call <code>f</code>, <code>g</code> and <code>h</code> in parallel. You can
+simply do:</p>
+      <pre><code>      lwt idf = f () and idg = g () and idh = h () in
+      ...</code></pre>
+      <p>However, one may want to handle possible failures of <code>f ()</code>, <code>g
+    ()</code> and <code>h ()</code>, and disable all allocated resources if one of
+these three threads fails. This may be hard since you have to
+remember which one failed and which one returned correctly.</p>
+      
+      <p>Now if we change the interface a little bit:</p>
+      <pre><code>      val f : ?switch : Lwt_switch.t -&gt; unit -&gt; id Lwt.t
+      val g : ?switch : Lwt_switch.t -&gt; unit -&gt; id Lwt.t
+      val h : ?switch : Lwt_switch.t -&gt; unit -&gt; id Lwt.t</code></pre>
+      <p>the code becomes:</p>
+      <pre><code>      let switch = Lwt_switch.create () in
+      try_lwt
+        lwt idf = f ~switch ()
+        and idg = g ~switch ()
+        and idh = h ~switch () in
+        ...
+      with exn -&gt;
+        lwt () = Lwt_switch.turn_off switch in
+        raise_lwt exn</code></pre>
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Type of switches.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ()</code> creates a new switch.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_on">
+  <a href="index.html#/val:is_on" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_on : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>is_on switch</code> returns <code>true</code> if the switch is currently on, and
+<code>false</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:turn_off">
+  <a href="index.html#/val:turn_off" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> turn_off : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>turn_off switch</code> turns off the switch. It calls all registered
+hooks, waits for all of them to terminate, then returns. If
+one of the hooks failed, it will fail with the exception raised
+by the hook. If the switch is already off, it does nothing.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Off">
+  <a href="index.html#/exn:Off" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Off
+    
+      <div class="doc">
+        
+      <p>Exception raised when trying to add a hook to a switch that is
+already off.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:check">
+  <a href="index.html#/val:check" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check : <a href="index.html#/type:t">t</a> option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>check switch</code> does nothing if <code>switch</code> is <code>None</code> or contains an
+switch that is currently on, and raises <a href="index.html#/exn:Off">Off</a> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_hook">
+  <a href="index.html#/val:add_hook" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_hook : <a href="index.html#/type:t">t</a> option <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_hook switch f</code> registers <code>f</code> so it will be called when
+<a href="index.html#/val:turn_off">turn_off</a> is invoked. It does nothing if <code>switch</code> is
+<code>None</code>. If <code>switch</code> contains an switch that is already off then
+<a href="index.html#/exn:Off">Off</a> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_hook_or_exec">
+  <a href="index.html#/val:add_hook_or_exec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_hook_or_exec : <a href="index.html#/type:t">t</a> option <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>add_hook_or_exec switch f</code> is the same as <a href="index.html#/val:add_hook">add_hook</a> except
+that if the switch is already off, <code>f</code> is called immediately.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

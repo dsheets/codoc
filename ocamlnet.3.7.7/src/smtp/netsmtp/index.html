@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netsmtp</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netsmtp</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>This is an interface for the Simple Mail Tranfer Protocol (SMTP)
+as specified by RFC 2821.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:Protocol_error">
+  <a href="index.html#/exn:Protocol_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Protocol_error
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Transient_error">
+  <a href="index.html#/exn:Transient_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Transient_error <span class="keyword">of</span> int * string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Permanent_error">
+  <a href="index.html#/exn:Permanent_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Permanent_error <span class="keyword">of</span> int * string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcp_port">
+  <a href="index.html#/val:tcp_port" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tcp_port : int
+    
+      <div class="doc">
+        
+      <p>default TCP port for SMTP</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The class <code>client</code> implements the SMTP protocol. Client objects are created
+by
+</p>
+      <pre><code>new client in_ch out_ch</code></pre>
+      <p>
+where <code>in_ch</code> is an input channel representing the input direction of the
+TCP stream, and where <code>out_ch</code> is an output channel representing the output
+direction of the TCP stream.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:client">
+  <a href="index.html#/class:client" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> client : 
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:client/method:helo">
+  <a href="index.html#/class:client/method:helo" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> helo : ?host:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Sends an HELLO command to the server. the optionnal argument <code>?host</code>
+defaults to the default hostname of the machine. This function returns
+the ESMTP lines returned by the server.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:mail">
+  <a href="index.html#/class:client/method:mail" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> mail : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Performs a MAIL FROM command. the <code>string</code> argument is the mail address
+(without &lt; &gt;) that sends the mail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:rcpt">
+  <a href="index.html#/class:client/method:rcpt" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rcpt : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Performs a RCPT TO command. the <code>string</code> argument is one of the mail
+address the mail has to be sent to. You have to use that function for
+each recipient of the mail.</p>
+      
+      <p>If the server returns a 551 error (user relocated, see RFC 2821, section
+3.4), the relocated adress is silently used, and the error is not raised</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:data">
+  <a href="index.html#/class:client/method:data" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> data : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>This method really send the mail.
+Do not issue that command without having used <code>mail</code> once, and at least
+<code>rcpt</code> once too</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:rset">
+  <a href="index.html#/class:client/method:rset" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rset : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Reset the current transaction</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:expn">
+  <a href="index.html#/class:client/method:expn" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> expn : string <span class="rarr"><span>-&gt;</span></span> string list option
+  
+      <div class="doc">
+        
+      <p>Expand command : <code>expn list</code> will try to expand the Mailing list
+<code>list</code>. If the list cannot be Expanded (reply 252) then <code>None</code> is
+returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:help">
+  <a href="index.html#/class:client/method:help" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> help : unit <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Performs the Help command. Returns the server multiline answer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:noop">
+  <a href="index.html#/class:client/method:noop" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> noop : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>NOOP : does nothing, keeps the connection alive.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:client/method:quit">
+  <a href="index.html#/class:client/method:quit" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> quit : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Requests the server to end this session.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

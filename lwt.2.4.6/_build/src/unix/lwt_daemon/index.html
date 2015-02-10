@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_daemon</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_daemon</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Daemon helpers</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:daemonize">
+  <a href="index.html#/val:daemonize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> daemonize : ?syslog:bool <span class="rarr"><span>-&gt;</span></span> ?stdin:[ <div class="cons">| `Dev_null</div><div class="cons">| `Close</div><div class="cons">| `Keep</div> ] <span class="rarr"><span>-&gt;</span></span> ?stdout:[ <div class="cons">| `Dev_null</div><div class="cons">| `Close</div><div class="cons">| `Keep</div><div class="cons">| `Log_default</div><div class="cons">| `Log <span class="keyword">of</span> <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_log/">Lwt_log</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_log/#/type:logger">logger</a></div> ] <span class="rarr"><span>-&gt;</span></span> ?stderr:[ <div class="cons">| `Dev_null</div><div class="cons">| `Close</div><div class="cons">| `Keep</div><div class="cons">| `Log_default</div><div class="cons">| `Log <span class="keyword">of</span> <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_log/">Lwt_log</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_log/#/type:logger">logger</a></div> ] <span class="rarr"><span>-&gt;</span></span> ?directory:string <span class="rarr"><span>-&gt;</span></span> ?umask:[ <div class="cons">| `Keep</div><div class="cons">| `Set <span class="keyword">of</span> int</div> ] <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Put the current running process into daemon mode. I.e. it forks
+and exit the parent, detach it from its controlling terminal,
+and redict standard intputs/outputs..</p>
+      
+      <p>Notes:</p>
+      <ul><li>if the process is already a daemon, it does nothing.</li><li>you must be sure that there is no pending threads when
+calling this function, otherwise they may be canceled.</li></ul>
+      <p>If <code>syslog</code> is <code>true</code> (the default), then <a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_log/">Lwt_log</a>.<a href="../../../../../lwt.2.4.6/_build/src/unix/lwt_log/#/val:default">default</a> is
+set to <code>Lwt_log.syslog ~facility:`Daemon ()</code>, otherwise it is
+kept unchanged.</p>
+      
+      <p><code>stdin</code> is one of:</p>
+      <ul><li><code>`Dev_null</code> which means that <code>Unix.stdin</code> is reopened as
+<code>/dev/null</code>, this is the default behavior</li><li><code>`Close</code> means that <code>Unix.stdin</code> is simply closed</li><li><code>`Keep</code> means that <code>Unix.stdin</code> is left unchanged</li></ul>
+      <p><code>stdout</code> and <code>stderr</code> control how the two associated file
+descriptors are redirected:</p>
+      <ul><li><code>`Dev_null</code> means that the output is redirected to <code>/dev/null</code></li><li><code>`Close</code> means that the file descriptor is closed</li><li><code>`Keep</code> means that it is left unchanged</li><li><code>`Log logger</code> means that the output is redirected to this
+logger</li><li><code>`Log_default</code> means that the output is redirected to the
+default logger</li></ul>
+      <p>Both <code>stdout</code> and <code>stderr</code> defaults to <code>`Log_default</code>.</p>
+      
+      <p>Warning: do not redirect an output to a logger logging into this
+outpout, for example this code will create an infinite loop:</p>
+      <pre><code>        let logger = Lwt_log.channel ~close_mode:`Keep ~channel:Lwt_io.stderr () in
+        Lwt_daemon.daemonize ~syslog:false ~stderr:(`Log logger) ();
+        prerr_endline &quot;foo&quot;</code></pre>
+      <p>The current working directory is set to <code>directory</code>, which
+defaults to <code>&quot;/&quot;</code>.</p>
+      
+      <p><code>umask</code> may be one of:</p>
+      <ul><li><code>`Keep</code> which means that the umask is left unchanged</li><li><code>`Set n</code> which means that the umash is set to <code>n</code></li></ul>
+      <p>It defaults to <code>`Set 0o022</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

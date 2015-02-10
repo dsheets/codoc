@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_log_core</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_log_core</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Logging facility</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module provides functions to deal with logging.
+It support:</p>
+      <ul><li>logging to multiple destination at the same time</li><li>filtering logs per destination</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Types</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:level">
+  <a href="index.html#/type:level" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> level = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:level/cons:Debug">
+  <a href="index.html#/type:level/cons:Debug" class="anchor">#</a>
+  | Debug
+  </div>
+  </td><td>(*</td><td class="doc">Debugging message. They can be automatically removed by the
+syntax extension.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:level/cons:Info">
+  <a href="index.html#/type:level/cons:Info" class="anchor">#</a>
+  | Info
+  </div>
+  </td><td>(*</td><td class="doc">Informational message. Suitable to be displayed when the
+program is in verbose mode.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:level/cons:Notice">
+  <a href="index.html#/type:level/cons:Notice" class="anchor">#</a>
+  | Notice
+  </div>
+  </td><td>(*</td><td class="doc">Same as <a href="index.html#/type:level/cons:Info">Info</a>, but is displayed by default.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:level/cons:Warning">
+  <a href="index.html#/type:level/cons:Warning" class="anchor">#</a>
+  | Warning
+  </div>
+  </td><td>(*</td><td class="doc">Something strange happend</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:level/cons:Error">
+  <a href="index.html#/type:level/cons:Error" class="anchor">#</a>
+  | Error
+  </div>
+  </td><td>(*</td><td class="doc">An error message, which should not means the end of the
+program.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:level/cons:Fatal">
+  <a href="index.html#/type:level/cons:Fatal" class="anchor">#</a>
+  | Fatal
+  </div>
+  </td><td>(*</td><td class="doc">A fatal error happened, in most cases the program will end
+after a fatal error.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Type of log levels. A level determines the importance of a
+message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:logger">
+  <a href="index.html#/type:logger" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> logger
+    
+      <div class="doc">
+        
+      <p>Type of a logger. A logger is responsible for dispatching messages
+and storing them somewhere.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:section">
+  <a href="index.html#/type:section" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> section
+    
+      <div class="doc">
+        
+      <p>Each logging message has a section. Sections can be used to
+structure your logs. For example you can choose different
+loggers according to the section.</p>
+      
+      <p>Each section carries a level, and messages with a lower log
+level than than the section level will be dropped.</p>
+      
+      <p>Section levels are initialised using the contents of the <code>LWT_LOG</code>
+environment variable, which must contain one or more rules of the form
+<code>pattern -&gt; level</code> separated by &quot;;&quot;. Where <code>pattern</code> is a string
+that may contain <code>*</code>.</p>
+      
+      <p>For example, if <code>LWT_LOG</code> contains:
+</p>
+      <pre><code>        access -&gt; warning;
+        foo[*] -&gt; error</code></pre>
+      <p>
+then the level of the section <code>&quot;access&quot;</code> is <a href="index.html#/type:level/cons:Warning">Warning</a> and the
+level of any section matching <code>&quot;foo[*]&quot;</code> is <a href="index.html#/type:level/cons:Error">Error</a>.</p>
+      
+      <p>If the pattern is omited in a rule then the pattern <code>&quot;*&quot;</code> is
+used instead, so <code>LWT_LOG</code> may just contains <code>&quot;debug&quot;</code> for
+instance.</p>
+      
+      <p>By default, the following rule apply : <code>&quot;* -&gt; notice&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_level">
+  <a href="index.html#/val:string_of_level" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_level : <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_rules">
+  <a href="index.html#/val:load_rules" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_rules : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Reset the rules set when parsing the <code>LWT_LOG</code> environment variable using this
+string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_rule">
+  <a href="index.html#/val:add_rule" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_rule : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_rule pattern level</code> adds a rule for sections logging
+levels. The rule is added before all other rules. It takes
+effect immediately and affect all sections for which the level
+has not been set explicitly with <a href="index.html#/module:Section">Section</a>.<a href="index.html#/module:Section/val:set_level">set_level</a>. <code>pattern</code>
+may contains <code>*</code>. For example:</p>
+      <pre><code>        Lwt_log_core.add_rule &quot;lwt*&quot; Lwt_log_core.Info</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:append_rule">
+  <a href="index.html#/val:append_rule" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> append_rule : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>append_rule pattern level</code> adds the given rule after all other
+rules. For example to set the default fallback rule:</p>
+      <pre><code>        Lwt_log_core.append_rule &quot;*&quot; Lwt_log_core.Info</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Logging functions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:log">
+  <a href="index.html#/val:log" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> level:<a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>log ?section ?logger ~level message</code> logs a message.</p>
+      
+      <p><code>section</code> defaults to <a href="index.html#/module:Section">Section</a>.<a href="index.html#/module:Section/val:main">main</a>. If <code>logger</code> is not
+specified, then the default one is used instead (see
+<a href="index.html#/val:default">default</a>).</p>
+      
+      <p>If <code>exn</code> is provided, then its string representation
+(= <code>Printexc.to_string exn</code>) will be append to the message, and if
+possible the backtrace will also be logged.</p>
+      
+      <p><code>location</code> contains the location of the logging directive, it is
+of the form <code>(file_name, line, column)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:log_f">
+  <a href="index.html#/val:log_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> level:<a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>log_f</code> is the same as <code>log</code> except that it takes a format
+string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_log">
+  <a href="index.html#/val:ign_log" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_log : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> level:<a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <a href="index.html#/val:log">log</a> but ignore the resulting thread.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_log_f">
+  <a href="index.html#/val:ign_log_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_log_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> level:<a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Same as <a href="index.html#/val:log_f">log_f</a> but ignore the resulting thread.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following functions are the same as <a href="index.html#/val:log">log</a> except that their
+name determines which level is used.</p>
+      
+      <p>For example [root:info msg] is the same as [root:log ~level:Info msg].</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:debug">
+  <a href="index.html#/val:debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug_f">
+  <a href="index.html#/val:debug_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_debug">
+  <a href="index.html#/val:ign_debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_debug : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_debug_f">
+  <a href="index.html#/val:ign_debug_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_debug_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:info">
+  <a href="index.html#/val:info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> info : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:info_f">
+  <a href="index.html#/val:info_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> info_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_info">
+  <a href="index.html#/val:ign_info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_info : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_info_f">
+  <a href="index.html#/val:ign_info_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_info_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:notice">
+  <a href="index.html#/val:notice" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> notice : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:notice_f">
+  <a href="index.html#/val:notice_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> notice_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_notice">
+  <a href="index.html#/val:ign_notice" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_notice : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_notice_f">
+  <a href="index.html#/val:ign_notice_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_notice_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:warning">
+  <a href="index.html#/val:warning" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> warning : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:warning_f">
+  <a href="index.html#/val:warning_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> warning_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_warning">
+  <a href="index.html#/val:ign_warning" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_warning : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_warning_f">
+  <a href="index.html#/val:ign_warning_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_warning_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:error">
+  <a href="index.html#/val:error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:error_f">
+  <a href="index.html#/val:error_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_error">
+  <a href="index.html#/val:ign_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_error : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_error_f">
+  <a href="index.html#/val:ign_error_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_error_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fatal">
+  <a href="index.html#/val:fatal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fatal : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fatal_f">
+  <a href="index.html#/val:fatal_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fatal_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_fatal">
+  <a href="index.html#/val:ign_fatal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_fatal : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ign_fatal_f">
+  <a href="index.html#/val:ign_fatal_f" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ign_fatal_f : ?exn:exn <span class="rarr"><span>-&gt;</span></span> ?section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> ?location:string * int * int <span class="rarr"><span>-&gt;</span></span> ?logger:<a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Section">
+  <a href="index.html#/module:Section" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Section : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Sections</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Section/type:t">
+  <a href="index.html#/module:Section/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="index.html#/type:section">section</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Section/val:make">
+  <a href="index.html#/module:Section/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:section">section</a>
+    
+      <div class="doc">
+        
+      <p><code>make name</code> creates a section with the given name. Two calls
+to <a href="index.html#/module:Section/val:make">make</a> with the same name will return the same section
+object.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Section/val:name">
+  <a href="index.html#/module:Section/val:name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name : <a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>name section</code> returns the name of <code>section</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Section/val:main">
+  <a href="index.html#/module:Section/val:main" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> main : <a href="index.html#/type:section">section</a>
+    
+      <div class="doc">
+        
+      <p>The main section. It is the section used by default when no
+one is provided.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Section/val:level">
+  <a href="index.html#/module:Section/val:level" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> level : <a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a>
+    
+      <div class="doc">
+        
+      <p><code>level section</code> returns the logging level of <code>section</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Section/val:set_level">
+  <a href="index.html#/module:Section/val:set_level" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_level : <a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_level section</code> sets the logging level of the given
+section. Modifications of rules using <a href="index.html#/val:add_rule">add_rule</a> won't affect
+the level of this section after this operation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Section/val:reset_level">
+  <a href="index.html#/module:Section/val:reset_level" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reset_level : <a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>reset_level section</code> resets the level of <code>section</code> to its
+default value, i.e. to the value obtained by applying
+rules.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Log templates</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:template">
+  <a href="index.html#/type:template" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> template = string
+    
+      <div class="doc">
+        
+      <p>A template is for generating log messages.</p>
+      
+      <p>It is a string which may contains variables of the form
+<code>$(var)</code>, where <code>var</code> is one of:</p>
+      <ul><li><code>message</code> which will be replaced by the message emited</li><li><code>level</code> which will be replaced by a string representation of
+the level</li><li><code>section</code> which will be replaced by the name of the
+message's section</li><li><code>loc-file</code> which will be replaced by the file name of the
+calling logging function</li><li><code>loc-line</code> which will be replaced by the line number of the
+calling logging function</li><li><code>loc-column</code> which will be replaced by the column number of
+the calling logging function</li></ul>
+      <p>For example:</p>
+      <ul><li><code>&quot;$(name): $(message)&quot;</code></li><li><code>&quot;$(name): $(loc-file): $(loc-line): $(loc-column): $(message)&quot;</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:render">
+  <a href="index.html#/val:render" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> render : buffer:<a href="../../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> template:<a href="index.html#/type:template">template</a> <span class="rarr"><span>-&gt;</span></span> section:<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> level:<a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> message:string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>render ~buffer ~template ~section ~level ~message</code> instantiate
+all variables of <code>template</code>, and store the result in
+<code>buffer</code>. The location is obtained from threads local
+storage.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:location_key">
+  <a href="index.html#/val:location_key" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> location_key : (string * int * int) <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:key">key</a>
+    
+      <div class="doc">
+        
+      <p>The key for storing current location.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Loggers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Logger_closed">
+  <a href="index.html#/exn:Logger_closed" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Logger_closed
+    
+      <div class="doc">
+        
+      <p>Exception raised when trying to use a closed logger</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make">
+  <a href="index.html#/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : output:(<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> close:(unit <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:logger">logger</a>
+    
+      <div class="doc">
+        
+      <p><code>make ~output ~close</code> creates a new logger.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">output</span> is used to write logs. It is a function which
+receive a section, a level and a list lines that must be logged
+together.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">close</span> is used to close the logger.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close">
+  <a href="index.html#/val:close" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close : <a href="index.html#/type:logger">logger</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Close the given logger</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default">
+  <a href="index.html#/val:default" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default : <a href="index.html#/type:logger">logger</a> <a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The default logger. It is used as default when no one is
+specified. Initially, it sends messages to the standard output
+for error messages.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:broadcast">
+  <a href="index.html#/val:broadcast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> broadcast : <a href="index.html#/type:logger">logger</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:logger">logger</a>
+    
+      <div class="doc">
+        
+      <p><code>broadcast loggers</code> is a logger which send messages to all the
+given loggers.</p>
+      
+      <p>Note: closing a broadcast logger does not close its
+components.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dispatch">
+  <a href="index.html#/val:dispatch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dispatch : (<a href="index.html#/type:section">section</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:logger">logger</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:logger">logger</a>
+    
+      <div class="doc">
+        
+      <p><code>dispatch f</code> is a logger which dispatch logging instructions to
+different logger according to their level and/or section.</p>
+      
+      <p>Here is an example:</p>
+      <pre><code>        let access_logger = Lwt_log.file &quot;access.log&quot;
+        and error_logger = Lwt_log.file &quot;error.log&quot; in
+
+        Lwt_log_core.dispatch
+          (fun section level -&gt;
+            match Lwt_log_core.Section.name section, level with
+              | &quot;access&quot;, _ -&gt; access_logger
+              | _, Lwt_log_core.Error -&gt; error_logger)</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Predefined loggers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:null">
+  <a href="index.html#/val:null" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> null : <a href="index.html#/type:logger">logger</a>
+    
+      <div class="doc">
+        
+      <p>Logger which drops everything</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

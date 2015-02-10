@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netencoding</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netencoding</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Base64, Quoted Printable, URL encoding, HTML escaping</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Base64">
+  <a href="index.html#/module:Base64" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Base64 : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Base64 encoding as described in RFC 2045</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Base64/val:encode">
+  <a href="index.html#/module:Base64/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?linelength:int <span class="rarr"><span>-&gt;</span></span> ?crlf:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Compute the &quot;base 64&quot; encoding of the given string argument.
+Note that the result is a string that only contains the characters
+a-z, A-Z, 0-9, +, /, =, and optionally spaces, CR and LF characters.</p>
+      
+      <p>If <code>pos</code> and/or <code>len</code> are passed, only the substring starting at
+<code>pos</code> (default: 0) with length <code>len</code> (default: rest of the string)
+is encoded.</p>
+      
+      <p>The result is divided up into lines not longer than <code>linelength</code>
+(without counting the line separator); default: do not divide lines.
+If <code>linelength</code> is smaller than 4, no line division is performed.
+If <code>linelength</code> is not divisible by 4, the produced lines are a
+bit shorter than <code>linelength</code>.</p>
+      
+      <p>If <code>crlf</code> (default: false) the lines are ended by CRLF; otherwise
+they are only ended by LF.
+(You need the crlf option to produce correct MIME messages.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Base64/val:url_encode">
+  <a href="index.html#/module:Base64/val:url_encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_encode : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?linelength:int <span class="rarr"><span>-&gt;</span></span> ?crlf:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Base64/val:decode">
+  <a href="index.html#/module:Base64/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?url_variant:bool <span class="rarr"><span>-&gt;</span></span> ?accept_spaces:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Decodes the given string argument.</p>
+      
+      <p>If <code>pos</code> and/or <code>len</code> are passed, only the substring starting at
+<code>pos</code> (default: 0) with length <code>len</code> (default: rest of the string)
+is decoded.</p>
+      
+      <p>If <code>url_variant</code> (default: <code>true</code>) is set, the functions also
+accepts the characters '-' and '.' as produced by <code>url_encode</code>.</p>
+      
+      <p>If <code>accept_spaces</code> (default: <code>false</code>) is set, the function ignores
+white space contained in the string to decode (otherwise the
+function fails if it finds white space). Furthermore, the character
+'&gt;' is considered as &quot;space&quot;, too (so you don't have trouble with
+mbox mailboxes that accidentally quote &quot;From&quot;).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Base64/class:encoding_pipe">
+  <a href="index.html#/module:Base64/class:encoding_pipe" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> encoding_pipe : 
+    ?linelength:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?crlf:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/class:pipe">pipe</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This pipe encodes the data written into the pipe.
+<code>linelength</code> and <code>crlf</code> work as in <code>encode</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Base64/class:decoding_pipe">
+  <a href="index.html#/module:Base64/class:decoding_pipe" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> decoding_pipe : 
+    ?url_variant:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?accept_spaces:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/class:pipe">pipe</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This pipe decodes the data written into the pipe.
+<code>url_variant</code> and <code>accept_spaces</code> work as in <code>decode</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:QuotedPrintable">
+  <a href="index.html#/module:QuotedPrintable" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> QuotedPrintable : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module implements the &quot;Quoted Printable&quot; encoding as
+described in RFC 2045.</p>
+      
+      <p>This implementation assumes that the encoded string has a text MIME
+type. On input both CR/LF and LF are accepted as end-of-line (eol) terminators,
+but the output normalizes the eol delimiter as the <code>crlf</code> argument
+specifies. Note that this implies that</p>
+      <ul><li>If <code>crlf</code>, the output uses CR/LF as line separator as MIME prescribes</li><li>the encoding is not invertible for binary data</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/module:QuotedPrintable/val:encode">
+  <a href="index.html#/module:QuotedPrintable/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : ?crlf:bool <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Encodes the string and returns it.</p>
+      
+      <p>Since OcamlNet 0.98, soft line breaks are added to the output
+to ensure that all output lines have a length &lt;= 76 bytes.</p>
+      
+      <p>Note unsafe characters:
+As recommended by RFC 2045, the characters <code>!#$@[]^`|{}~</code>
+and the double quotes
+are additionally represented as hex tokens.
+Furthermore, the letter 'F' is considered as unsafe if it
+occurs at the beginning of the line, so the encoded text
+never contains the word &quot;From&quot; at the beginning of a line.</p>
+      
+      <p>If <code>pos</code> and/or <code>len</code> are passed, only the substring starting at
+<code>pos</code> (default: 0) with length <code>len</code> (default: rest of the string)
+is encoded.</p>
+      
+      <p>If <code>crlf</code> is set (the default), the output text uses CR/LF as
+line separator. Otherwise only LF is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:QuotedPrintable/val:decode">
+  <a href="index.html#/module:QuotedPrintable/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Decodes the string and returns it.</p>
+      
+      <p>Most format errors cause an <code>Invalid_argument</code> exception.</p>
+      
+      <p>If <code>pos</code> and/or <code>len</code> are passed, only the substring starting at
+<code>pos</code> (default: 0) with length <code>len</code> (default: rest of the string)
+is decoded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:QuotedPrintable/class:encoding_pipe">
+  <a href="index.html#/module:QuotedPrintable/class:encoding_pipe" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> encoding_pipe : 
+    ?crlf:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/class:pipe">pipe</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This pipe encodes the data written into the pipe.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:QuotedPrintable/class:decoding_pipe">
+  <a href="index.html#/module:QuotedPrintable/class:decoding_pipe" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> decoding_pipe : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/class:pipe">pipe</a>
+    
+    
+      <div class="doc">
+        
+      <p>This pipe decodes the data written into the pipe.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Q">
+  <a href="index.html#/module:Q" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Q : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>The &quot;Q&quot; encoding as described by RFC 2047.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Q/val:encode">
+  <a href="index.html#/module:Q/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Note:
+All characters except alphanumeric characters are protected by
+hex tokens.
+In particular, spaces are represented as &quot;=20&quot;, not as &quot;_&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Q/val:decode">
+  <a href="index.html#/module:Q/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Url">
+  <a href="index.html#/module:Url" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Url : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Encoding/Decoding within URLs:</p>
+      
+      <p>The following two functions perform the '%'-substitution for
+characters that may otherwise be interpreted as metacharacters.</p>
+      
+      <p>According to: RFC 1738, RFC 1630</p>
+      
+      <p>Option <code>plus</code>: This option has been added because there are some
+implementations that do not map ' ' to '+', for example Javascript's
+<code>escape</code> function. The default is <code>true</code> because this is the RFC-
+compliant definition.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Url/val:decode">
+  <a href="index.html#/module:Url/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : ?plus:bool <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Option <code>plus</code>: Whether '+' is converted to space. The default
+is true. If false, '+' is returned as it is.</p>
+      
+      <p>The optional arguments <code>pos</code> and <code>len</code> may restrict the string
+to process to this substring.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Url/val:encode">
+  <a href="index.html#/module:Url/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : ?plus:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Option <code>plus</code>: Whether spaces are converted to '+'. The default
+is true. If false, spaces are converted to &quot;%20&quot;, and
+only %xx sequences are produced.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>URL-encoded parameters:</p>
+      
+      <p>The following two functions create and analyze URL-encoded parameters.
+Format: <code>name1=val1&amp;name2=val2&amp;...</code></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Url/val:mk_url_encoded_parameters">
+  <a href="index.html#/module:Url/val:mk_url_encoded_parameters" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mk_url_encoded_parameters : (string * string) list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The argument is a list of (name,value) pairs. The result is the
+single URL-encoded parameter string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Url/val:dest_url_encoded_parameters">
+  <a href="index.html#/module:Url/val:dest_url_encoded_parameters" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_url_encoded_parameters : string <span class="rarr"><span>-&gt;</span></span> (string * string) list
+    
+      <div class="doc">
+        
+      <p>The argument is the URL-encoded parameter string. The result is
+the corresponding list of (name,value) pairs.
+Note: Whitespace within the parameter string is ignored.
+If there is a format error, the function fails.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Html">
+  <a href="index.html#/module:Html" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Html : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Encodes characters that need protection by converting them to
+entity references. E.g. <code>&quot;&lt;&quot;</code> is converted to <code>&quot;&amp;lt;&quot;</code>.
+As the entities may be named, there is a dependency on the character
+set.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Legacy functions:</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Html/val:encode_from_latin1">
+  <a href="index.html#/module:Html/val:encode_from_latin1" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_from_latin1 : string <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Html/val:decode_to_latin1">
+  <a href="index.html#/module:Html/val:decode_to_latin1" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode_to_latin1 : string <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>These functions have a more general interface and should be preferred
+in new programs.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Html/val:unsafe_chars_html4">
+  <a href="index.html#/module:Html/val:unsafe_chars_html4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_chars_html4 : string
+    
+      <div class="doc">
+        
+      <p>The string contains '&lt;', '&gt;', '&quot;', '&amp;' and the control characters
+0-8, 11-12, 14-31, 127.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Html/val:encode">
+  <a href="index.html#/module:Html/val:encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode : in_enc:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?out_enc:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?prefer_name:bool <span class="rarr"><span>-&gt;</span></span> ?unsafe_chars:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The input string that is encoded as <code>in_enc</code> is recoded to
+<code>out_enc</code>, and the following characters are encoded as HTML
+entity (<code>&amp;name;</code> or <code>&amp;#num;</code>):</p>
+      <ul><li>The ASCII characters contained in <code>unsafe_chars</code></li><li>The characters that cannot be represented in <code>out_enc</code>. By
+default (<code>out_enc=`Enc_usascii</code>), only ASCII characters can be
+represented, and thus all code points &gt;= 128 are encoded as
+HTML entities. If you pass <code>out_enc=`Enc_utf8</code>, all characters
+can be represented.</li></ul>
+      <p>For example, the string <code>&quot;(a&lt;b) &amp; (c&gt;d)&quot;</code> is encoded as
+<code>&quot;(a&amp;lt;b) &amp;amp; (c&amp;gt;d)&quot;</code>.</p>
+      
+      <p>It is required that <code>out_enc</code> is an ASCII-compatible encoding.</p>
+      
+      <p>The option <code>prefer_name</code> selects whether named entities (e.g. <code>&amp;lt;</code>)
+or numeric entities (e.g. <code>&amp;#60;</code>) are prefered.</p>
+      
+      <p>The efficiency of the function can be improved when the same encoding
+is applied to several strings. Create a specialized encoding function
+by passing all arguments up to the unit argument, and apply this
+function several times. For example:
+</p>
+      <pre><code>             let my_enc = encode ~in_enc:`Enc_utf8 () in
+             let s1' = my_enc s1 in
+             let s2' = my_enc s2 in ...</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Html/type:entity_set">
+  <a href="index.html#/module:Html/type:entity_set" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> entity_set = [ <div class="cons">| `Html</div><div class="cons">| `Xml</div><div class="cons">| `Empty</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Html/val:decode">
+  <a href="index.html#/module:Html/val:decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode : in_enc:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> out_enc:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?lookup:(string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ?entity_base:<a href="index.html#/module:Html/type:entity_set">entity_set</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The input string is recoded from <code>in_enc</code> to <code>out_enc</code>, and HTML
+entities (<code>&amp;name;</code> or <code>&amp;#num;</code>) are resolved. The input encoding
+<code>in_enc</code> must be ASCII-compatible.</p>
+      
+      <p>By default, the function knows all entities defined for HTML 4 (this
+can be changed using <code>entity_base</code>, see below). If other
+entities occur, the function <code>lookup</code> is called and the name of
+the entity is passed as input string to the function. It is
+expected that <code>lookup</code> returns the value of the entity, and that this
+value is already encoded as <code>out_enc</code>.
+By default, <code>lookup</code> raises a <code>Failure</code> exception.</p>
+      
+      <p>If a character cannot be represented in the output encoding,
+the function <code>subst</code> is called. <code>subst</code> must return a substitute
+string for the character.
+By default, <code>subst</code> raises a <code>Failure</code> exception.</p>
+      
+      <p>The option <code>entity_base</code> determines which set of entities are
+considered as the known entities that can be decoded without
+help by the <code>lookup</code> function: <code>`Html</code> selects all entities defined
+for HTML 4, <code>`Xml</code> selects only <code>&amp;lt;</code>, <code>&amp;gt;</code>, <code>&amp;amp;</code>, <code>&amp;quot;</code>,
+and <code>&amp;apos;</code>,
+and <code>`Empty</code> selects the empty set (i.e. <code>lookup</code> is always called).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

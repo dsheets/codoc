@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_kit</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_kit</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Netplex toolkit</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/classtype:v_processor">
+  <a href="index.html#/classtype:v_processor" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> <span class="keyword">virtual</span> v_processor = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a>
+    </div>
+    
+  <div class="region" id="/classtype:v_processor/method:process">
+  <a href="index.html#/classtype:v_processor/method:process" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> process : when_done:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:container">container</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:v_processor/method:supported_ptypes">
+  <a href="index.html#/classtype:v_processor/method:supported_ptypes" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> supported_ptypes : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:parallelization_type">parallelization_type</a> list
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Same as <code>processor</code>, but the methods <code>process</code> and <code>supported_ptypes</code>
+are flagged as <code>virtual</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:empty_processor_hooks">
+  <a href="index.html#/class:empty_processor_hooks" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> empty_processor_hooks : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a>
+    
+    
+      <div class="doc">
+        
+      <p>This is an empty set of processor hooks, i.e. all methods are empty</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:processor_hooks_delegation">
+  <a href="index.html#/class:processor_hooks_delegation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> processor_hooks_delegation : 
+    <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a>
+    
+    
+      <div class="doc">
+        
+      <p>Takes a hooks object, and makes a class of it. Useful for overriding
+methods in an object.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:processor_base">
+  <a href="index.html#/class:processor_base" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> processor_base : 
+    <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:v_processor">v_processor</a>
+    
+    
+      <div class="doc">
+        
+      <p>A virtual (incomplete) base class for processors. As argument the
+user-supplied hooks are passed in. Use this class as in:</p>
+      <pre><code>         class my_processor hooks =
+         object(self)
+           inherit Netplex_kit.processor_base hooks
+           method process ~when_done container fd proto_name = ...
+           method supported_ptypes = ...
+         end</code></pre>
+      <p>In order to run actions from hooks, redefine the hook methods as in:</p>
+      <pre><code>         class my_processor hooks =
+         object(self)
+           inherit Netplex_kit.processor_base hooks as super
+           method process ~when_done container fd proto_name = ...
+           method supported_ptypes = ...
+           method post_start_hook container =
+             ... (* my action *);
+             super # post_start_hook container
+         end</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:protocol_switch_processor">
+  <a href="index.html#/class:protocol_switch_processor" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> protocol_switch_processor : 
+    (string * <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor">processor</a>) list
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor">processor</a>
+    
+    
+      <div class="doc">
+        
+      <p>The arg is a list of pairs <code>(proto_name, proto_proc)</code>. All mentioned
+processors are merged into a single processor. When a TCP connection
+arrives, it depends on the protocol which processor is actually
+activated. (Every socket is bound to a protocol, so this can be derived
+from the socket.)</p>
+      
+      <p>It is up to the user whether the merge makes sense.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:protocol_switch_factory">
+  <a href="index.html#/class:protocol_switch_factory" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> protocol_switch_factory : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    (string * <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_factory">processor_factory</a>) list
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_factory">processor_factory</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p><code>protocol_switch_factory name merge_list</code>: Merges the factories
+in <code>merge_list</code> to a single factory. Which factory is selected
+depends on the protocol.</p>
+      
+      <p>For example:</p>
+      <pre><code>          service {
+            name = &quot;...&quot;;
+            protocol {
+               name = &quot;A&quot;; ...;
+            }
+            protocol {
+               name = &quot;B&quot;; ...;
+            }
+            processor {
+               type = &quot;merged&quot;;
+               A {
+                  ...
+               }
+               B {
+                  ...
+               }
+            }
+          }</code></pre>
+      <p>Here, two protocols <code>A</code> and <code>B</code> are defined, and there is a
+subsection in <code>processor</code> for each of the protocols configuring
+the used service. &quot;merged&quot; is the <code>name</code> of the merged factories.</p>
+      
+      <p>For example, <code>A</code> could be an RPC interface, and <code>B</code> could be
+an HTTP interface providing the same service.</p>
+      
+      <p>For every protocol in <code>merge_list</code> there must be a subsection in
+<code>processor</code> for the protocol. This subsection configures then
+the processor. It is not an error not to create sockets for
+a protocol in <code>merge_list</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_helper_service">
+  <a href="index.html#/val:add_helper_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_helper_service : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller">controller</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:processor_hooks">processor_hooks</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_helper_service ctrl name hooks</code>: Adds a helper service <code>name</code> to
+the controller
+<code>ctrl</code>. The helper service does not have any externally
+accessible socket, but starts a single regular container that looks
+like any other container. Whatever needs to be initialized must be
+done in the <code>pre_start_hook</code> or the <code>post_start_hook</code>.</p>
+      
+      <p>This function must be called in controller context, for example
+in the <code>late_initializer</code> of <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_main/">Netplex_main</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_main/#/val:startup">startup</a>, but it can
+also be started later.</p>
+      
+      <p>For an example, look at <code>examples/netplex/helper_container.ml</code> in
+the distributed source tarball.</p>
+      
+      <p>For multi-threaded programs, <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/val:run_in_controller_context">run_in_controller_context</a>
+is the required companion function to start helper threads at any
+time. Multi-processing programs do not have such an easy way to
+add helpers. They should it at program startup time.</p>
+      
+      <p><b>Known bug.</b> The the helper component will be in &quot;starting&quot; state as
+long as the <code>post_start_hook</code> runs.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_protocol">
+  <a href="index.html#/val:create_protocol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_protocol : ?lstn_backlog:int <span class="rarr"><span>-&gt;</span></span> ?lstn_reuseaddr:bool <span class="rarr"><span>-&gt;</span></span> ?so_keepalive:bool <span class="rarr"><span>-&gt;</span></span> ?tcp_nodelay:bool <span class="rarr"><span>-&gt;</span></span> ?configure_slave_socket:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:extended_address">extended_address</a> array <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:protocol">protocol</a>
+    
+      <div class="doc">
+        
+      <p><code>create_protocol name addresses</code>: Creates a <code>protocol</code> object
+from the passed arguments</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_socket_service_config">
+  <a href="index.html#/val:create_socket_service_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_socket_service_config : ?startup_timeout:float <span class="rarr"><span>-&gt;</span></span> ?change_user_to:int * int <span class="rarr"><span>-&gt;</span></span> ?gc_when_idle:bool <span class="rarr"><span>-&gt;</span></span> ?conn_limit:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:protocol">protocol</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:controller_config">controller_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:socket_service_config">socket_service_config</a>
+    
+      <div class="doc">
+        
+      <p><code>create_socket_service_config name protos ctrl_conf</code>: Creates a
+<code>socket_service_config</code> object from the passed arguments</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

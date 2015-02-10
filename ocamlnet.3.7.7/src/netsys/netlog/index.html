@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netlog</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netlog</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Basic logging facility</p>
+      
+      <p>The purpose of this module is to define a mutable logging function
+which ensures to be always pointing to a valid logging implementation.
+By default, the function prints the messages to stderr, prepended
+by a timestamp. In Netplex context, the implementation is changed so
+that the Netplex logger is used instead (see [root:Netplex_log]), and
+the <code>log</code> and <code>logf</code> functions below have the same effect as
+the counterparts in [root:Netplex_cenv] with the same name.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:level">
+  <a href="index.html#/type:level" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> level = [ <div class="cons">| `Emerg</div><div class="cons">| `Alert</div><div class="cons">| `Crit</div><div class="cons">| `Err</div><div class="cons">| `Warning</div><div class="cons">| `Notice</div><div class="cons">| `Info</div><div class="cons">| `Debug</div> ]
+    
+      <div class="doc">
+        
+      <p>The log levels (syslog-like)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:logger">
+  <a href="index.html#/type:logger" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> logger = <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>A logging function takes a level, and the message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:channel_logger">
+  <a href="index.html#/val:channel_logger" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> channel_logger : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:logger">logger</a>
+    
+      <div class="doc">
+        
+      <p><code>channel_logger ch lev</code>: Prints all messages with a level of <code>lev</code>
+and higher to the channel <code>ch</code>. The output buffer is flushed after
+each message,</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:current_logger">
+  <a href="index.html#/val:current_logger" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> current_logger : <a href="index.html#/type:logger">logger</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The variable containing the current logger function.
+Defaults to <code>channel_logger stderr `Debug</code> at program startup.
+Assign something else to this variable in order to change the
+log destination or the log level.</p>
+      
+      <p>Note that the function <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_main/">Netplex_main</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_main/#/val:run">run</a> modifies <code>current_logger</code>
+so log messages are forwarded to the Netplex logger. It is then the
+Netplex framework that determines log destination and level.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:log">
+  <a href="index.html#/val:log" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log : <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Writes a log message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:logf">
+  <a href="index.html#/val:logf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> logf : <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Writes a log message like <code>printf</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:level_weight">
+  <a href="index.html#/val:level_weight" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> level_weight : <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>A number correspondig to the level</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:level_of_string">
+  <a href="index.html#/val:level_of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> level_of_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_level">
+  <a href="index.html#/val:string_of_level" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_level : <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert level names to strings and vice versa</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:level_names">
+  <a href="index.html#/val:level_names" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> level_names : string array
+    
+      <div class="doc">
+        
+      <p>The level names indexed by weight</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:format">
+  <a href="index.html#/type:format" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> format = [ <div class="cons">| `Std</div><div class="cons">| `ISO</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format_timestamp">
+  <a href="index.html#/val:format_timestamp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format_timestamp : <a href="index.html#/type:format">format</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> float * int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>format_timestamp fmt digits (seconds,nanos)</code>: Formats the timestamp
+<code>(seconds,nanos)</code> and returns the string. Pass in <code>digits</code> the number
+of digits for fractional seconds.</p>
+      <ul><li><code>`Std</code>: This is the &quot;%c&quot; format of <code>Netdate</code></li><li><code>`ISO</code>: ISO-8601 format</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:current_formatter">
+  <a href="index.html#/val:current_formatter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> current_formatter : (float * int <span class="rarr"><span>-&gt;</span></span> string) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The current timestamp formatter</p>
+      
+      <p>Example: Change the format of timestamps to ISO with a precision
+of milliseconds:
+</p>
+      <pre><code>        Netlog.current_formatter := Netlog.format_timestamp `ISO 3</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Controlling messages for debugging Ocamlnet</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Many Ocamlnet modules can emit debug messages. For a module
+<code>M</code> (e.g. [root:Rpc_client]) there is usually a sub module
+<code>M.Debug</code> providing functions controlling the debug messages.
+These functions send the messages to this <code>Debug</code> module, and from here
+they are forwarded to <a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/">Netlog</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/#/val:log">log</a> (with a level of <code>`Debug</code>).</p>
+      
+      <p>In this module everything is by default initialized to enable
+debug messages (i.e., <code>current_dlogger</code> is set to <code>fwd_dlogger</code>,
+and this function sends the messages to <code>current_logger</code> where they are
+printed by <code>channel_logger stderr `Debug</code>). However, the debugged
+modules also need to be enabled individually. One can do this
+by setting the variable <code>M.Debug.enable</code> to <code>true</code>, or by calling
+<code>enable_module</code> or <code>enable_all</code> (see below).</p>
+      
+      <p>Although this debug interface is mainly intended for Ocamlnet
+itself, it is not restricted to this. In order to use it for
+a user module, one has to register the boolean variable that
+controls whether debug messages are enabled (see <code>register_module</code>
+below). This should be done at module initialization time, and
+<b>before</b> any thread is spawned.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Debug/type:dlogger">
+  <a href="index.html#/module:Debug/type:dlogger" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> dlogger = string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Debug logger: The first string is the module name, and the second
+is the message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:fwd_dlogger">
+  <a href="index.html#/module:Debug/val:fwd_dlogger" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fwd_dlogger : <a href="index.html#/module:Debug/type:dlogger">dlogger</a>
+    
+      <div class="doc">
+        
+      <p>The standard debug logger simply prepends the module name to the
+message (separated by &quot;: &quot;), and calls the current logger to
+print it</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:null_dlogger">
+  <a href="index.html#/module:Debug/val:null_dlogger" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> null_dlogger : <a href="index.html#/module:Debug/type:dlogger">dlogger</a>
+    
+      <div class="doc">
+        
+      <p>The &quot;logger&quot; not printing anything</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:current_dlogger">
+  <a href="index.html#/module:Debug/val:current_dlogger" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> current_dlogger : <a href="index.html#/module:Debug/type:dlogger">dlogger</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The current debug logger. This is initialized to <code>fwd_dlogger</code> at
+program startup. Set this variable to <code>null_logger</code> to completely
+turn off debug logging of Ocamlnet.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:log">
+  <a href="index.html#/module:Debug/val:log" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Writes a log message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:logf">
+  <a href="index.html#/module:Debug/val:logf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> logf : string <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Writes a log message like <code>printf</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:enable_module">
+  <a href="index.html#/module:Debug/val:enable_module" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable_module : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:disable_module">
+  <a href="index.html#/module:Debug/val:disable_module" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> disable_module : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Enable or disable the passed module <code>M</code>
+(e.g. <code>enable_module &quot;Rpc_client&quot;</code>). No exception is raised when
+the module name is invalid! Because of this, it is usually safer
+to change the variable <code>M.Debug.enable</code> directly (e.g.
+<code>Rpc_client.Debug.enable := true</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:enable_all">
+  <a href="index.html#/module:Debug/val:enable_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable_all : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Enable all modules</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:disable_all">
+  <a href="index.html#/module:Debug/val:disable_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> disable_all : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Disable all modules (the default)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:names">
+  <a href="index.html#/module:Debug/val:names" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> names : unit <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Return the possible module names for <code>enable_module</code> and
+<code>disable_module</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">For debugged Ocamlnet modules</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug/val:register_module">
+  <a href="index.html#/module:Debug/val:register_module" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> register_module : string <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Registers the <code>enable</code> variable of the named module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:mk_dlog">
+  <a href="index.html#/module:Debug/val:mk_dlog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mk_dlog : string <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>let dlog = mk_dlog &quot;M&quot; enable</code>: The conditional debug function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:mk_dlogr">
+  <a href="index.html#/module:Debug/val:mk_dlogr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mk_dlogr : string <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>let dlogr = mk_dlog &quot;M&quot; enable</code>: The conditional debug function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">File descriptor tracking</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><code>Netlog.Debug</code> also has a little hash table that maps file descriptors
+to an info record. This allows it to track file descriptors more
+easily, and to find file descriptor leaks, and &quot;double close&quot; bugs.
+All long-living descriptors managed by Ocamlnet should go into this
+table.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Debug/type:serial">
+  <a href="index.html#/module:Debug/type:serial" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> serial
+    
+      <div class="doc">
+        
+      <p>A serial number for the optional tracking of ownership</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:new_serial">
+  <a href="index.html#/module:Debug/val:new_serial" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_serial : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Debug/type:serial">serial</a>
+    
+      <div class="doc">
+        
+      <p>Create new serial number</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:track_fd">
+  <a href="index.html#/module:Debug/val:track_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> track_fd : ?update:bool <span class="rarr"><span>-&gt;</span></span> ?anchor:'a <span class="rarr"><span>-&gt;</span></span> ?sn:<a href="index.html#/module:Debug/type:serial">serial</a> <span class="rarr"><span>-&gt;</span></span> owner:string <span class="rarr"><span>-&gt;</span></span> descr:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>track_fd ~owner ~descr fd</code>: Enters the descriptor <code>fd</code> into the
+descriptor table. The <code>owner</code> string should be set to the module
+name. In <code>descr</code> one can give additional information, e.g. about
+the purpose, and details like the file name.</p>
+      
+      <p>It is not an error if there is also an entry for the descriptor
+<code>fd</code>. However, a warning is emitted (using the debug logger).
+By setting <code>update</code> to <code>true</code>, this warning can be suppressed.
+The old entry is overwritten by the new one.</p>
+      
+      <p>The <code>anchor</code> can be an arbitrary boxed value. When the garbage
+collector calls the finaliser for <code>anchor</code> the descriptor is
+marked as dead, and will be tagged in the <code>fd_table</code> as such.</p>
+      
+      <p>By setting <code>sn</code> to a new serial number, the knowledge of this
+number is required to update the descriptor entry later,
+and to release the descriptor. If the entry is tried to be
+updated or released with the wrong serial number, a warning
+is emitted (to the debug logger).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:release_fd">
+  <a href="index.html#/module:Debug/val:release_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> release_fd : ?sn:<a href="index.html#/module:Debug/type:serial">serial</a> <span class="rarr"><span>-&gt;</span></span> ?force:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Removes this descriptor from the descriptor table.</p>
+      
+      <p>It is not an error if the descriptor does not exist in the table.
+However, a warning is emitted (using the debug logger).</p>
+      
+      <p><code>release_fd</code> must be invoked <b>before</b> the descriptor is actually
+closed.</p>
+      
+      <p><code>force</code>: If set, all warnings are suppressed</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:fd_string">
+  <a href="index.html#/module:Debug/val:fd_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fd_string : ?owner:bool <span class="rarr"><span>-&gt;</span></span> ?descr:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return a string for generating debug messages. By default, the
+string only includes the numeric descriptor value.</p>
+      
+      <p>If <code>owner</code> is set to true, the string also includes the owner.
+If <code>descr</code> is set to true, the string also includes the description.</p>
+      
+      <p>The full version of this string looks like
+&quot;76(Http_client - 87.65.213.67:80)&quot;. An untracked descriptor
+looks like &quot;76(?)&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:fd_table">
+  <a href="index.html#/module:Debug/val:fd_table" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fd_table : unit <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the table of descriptors as list of lines.
+One can easily print them to stdout using
+<code>List.iter print_endline (fd_table())</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:enable_fd_tracking">
+  <a href="index.html#/module:Debug/val:enable_fd_tracking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable_fd_tracking : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>By setting to true, each <code>track_fd</code> and <code>release_fd</code> is
+logged.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

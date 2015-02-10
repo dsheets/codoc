@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Transfer</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Transfer</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Read and write the HTTP/1.1 transfer-encoding formats.
+Currently supported are <code>chunked</code> and <code>content-length</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:encoding">
+  <a href="index.html#/type:encoding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encoding = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:encoding/cons:Chunked">
+  <a href="index.html#/type:encoding/cons:Chunked" class="anchor">#</a>
+  | Chunked
+  </div>
+  </td><td>(*</td><td class="doc">dynamic chunked encoding</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:encoding/cons:Fixed">
+  <a href="index.html#/type:encoding/cons:Fixed" class="anchor">#</a>
+  | Fixed <span class="keyword">of</span> int64
+  </div>
+  </td><td>(*</td><td class="doc">fixed size content</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:encoding/cons:Unknown">
+  <a href="index.html#/type:encoding/cons:Unknown" class="anchor">#</a>
+  | Unknown
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>The encoding format detected from the <code>transfer-encoding</code> and
+<code>content-length</code> headers</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:chunk">
+  <a href="index.html#/type:chunk" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> chunk = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:chunk/cons:Chunk">
+  <a href="index.html#/type:chunk/cons:Chunk" class="anchor">#</a>
+  | Chunk <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">chunk of data and not the end of stream</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:chunk/cons:Final_chunk">
+  <a href="index.html#/type:chunk/cons:Final_chunk" class="anchor">#</a>
+  | Final_chunk <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">the last chunk of data, so no more should be read</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:chunk/cons:Done">
+  <a href="index.html#/type:chunk/cons:Done" class="anchor">#</a>
+  | Done
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>A chunk of body that also signals if there to more to arrive</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_encoding">
+  <a href="index.html#/val:string_of_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_encoding : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert the encoding format to a human-readable string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:has_body">
+  <a href="index.html#/val:has_body" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> has_body : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `No</div><div class="cons">| `Unknown</div><div class="cons">| `Yes</div> ]
+    
+      <div class="doc">
+        
+      <p><code>has_body encoding</code> returns the appropriate variant that indicates
+whether the HTTP request or response has an associated body.
+It does not guess: instead <code>Unknown</code> is returned if there is no
+explicit association.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoding_of_sexp">
+  <a href="index.html#/val:encoding_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoding_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_encoding">
+  <a href="index.html#/val:sexp_of_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_encoding : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chunk_of_sexp">
+  <a href="index.html#/val:chunk_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chunk_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:chunk">chunk</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_chunk">
+  <a href="index.html#/val:sexp_of_chunk" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_chunk : <a href="index.html#/type:chunk">chunk</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

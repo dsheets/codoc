@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Shell_sys</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Shell_sys</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Calls external programs, creates pipelines, etc. (full interface)</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module is now thread-safe (as of May 2009), provided the
+threads do no share the same <code>Shell</code> or <code>Shell_sys</code> values.
+Problems reported earlier here have been resolved.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>If you get errors like &quot;Netsys_posix.watch_subprocess: uninitialized&quot;
+you should call <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/val:install_job_handlers">install_job_handlers</a>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Common exceptions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Fatal_error">
+  <a href="index.html#/exn:Fatal_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Fatal_error <span class="keyword">of</span> exn
+    
+      <div class="doc">
+        
+      <p>An error is fatal if it is not possible to recover from it in a
+predictable manner. In this case, many function wrap such exceptions
+<code>x</code> into <code>Fatal_error x</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Environments</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:environment">
+  <a href="index.html#/type:environment" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> environment
+    
+      <div class="doc">
+        
+      <p>The abstract type of a process environment</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_env">
+  <a href="index.html#/val:create_env" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_env : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:environment">environment</a>
+    
+      <div class="doc">
+        
+      <p>Creates an empty environment</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:current_env">
+  <a href="index.html#/val:current_env" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> current_env : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:environment">environment</a>
+    
+      <div class="doc">
+        
+      <p>Returns the environment of the current process as abstract environment
+value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_env">
+  <a href="index.html#/val:copy_env" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_env : <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:environment">environment</a>
+    
+      <div class="doc">
+        
+      <p>Copies an environment</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_env">
+  <a href="index.html#/val:set_env" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_env : <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> string array <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the contents of the environment to the passed string array</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_env">
+  <a href="index.html#/val:get_env" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_env : <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> string array
+    
+      <div class="doc">
+        
+      <p>Gets the contents of the environment as string array</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_env">
+  <a href="index.html#/val:iter_env" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_env : f:(string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Iterates over the strings of the environment, and calls
+<code>f s</code> for every string <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_env_var">
+  <a href="index.html#/val:set_env_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_env_var : <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_env_var env varname varval</code>: Sets the value of the variable
+<code>varname</code> in the environment <code>env</code> to <code>varval</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_env_var">
+  <a href="index.html#/val:get_env_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_env_var : <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the value of the variable in the environment</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_env_vars">
+  <a href="index.html#/val:iter_env_vars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_env_vars : f:(string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Iterates over the variables of the environment, and calls
+<code>f name value</code> for every variable with <code>name</code> and <code>value</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Commands</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:command">
+  <a href="index.html#/type:command" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> command
+    
+      <div class="doc">
+        
+      <p>A command describes how to start a new process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:command">
+  <a href="index.html#/val:command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> command : ?cmdname:string <span class="rarr"><span>-&gt;</span></span> ?arguments:string array <span class="rarr"><span>-&gt;</span></span> ?chdir:string <span class="rarr"><span>-&gt;</span></span> ?environment:<a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> ?descriptors:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> ?assignments:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>) list <span class="rarr"><span>-&gt;</span></span> filename:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a>
+    
+      <div class="doc">
+        
+      <p>Creates a command from the passed arguments:</p>
+      
+        
+  <div class="tag param">
+    <span class="label">filename</span> The name of the executable to start. The executable
+file is not searched, use [root:Shell_sys].lookup_executable for this
+purpose.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">cmdname</span> The name of the command passed in <code>argv[0]</code>. By
+default, this argument is derived from <code>filename</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">arguments</span> The arguments of the command (starting with the
+first real argument, skipping <code>cmdname</code>). By default <code>[]</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">chdir</span> Before the command is executed it is changed to
+this directory.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">environment</span> The environment of the command. By default, the
+current environment
+  </div>
+  
+  <div class="tag param">
+    <span class="label">assignments</span> A list of descriptor pairs <code>(fd_from,fd_to)</code>.
+The descriptor <code>fd_from</code> in the current process will be assigned
+to <code>fd_to</code> in the subprocess started for the command.
+The list of assignments is executed sequentially, so
+later assignments must take the effect of previous assignments
+into account. For example, to make stderr of the subprocess write
+to stdout of the parent process, pass <code>[(stdout; stderr)]</code>.<ul><li>By default, there are no assignments.</li></ul>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">descriptors</span> The list of file descriptors to share with the
+current process. In the subprocess only those descriptors remain open
+that are either mentioned in <code>descriptors</code>, or that are the final target
+of assignments. By default, <code>[stdin; stdout; stderr]</code>.<br/>Note that only the <b>final targets</b> of assignments remain open in the
+subprocess (unless they are also listed in <code>descriptors</code>). If there
+are cascaded assignments like <code>(fd1, fd2); (fd2, fd3)</code> the intermediate
+descriptors like <code>fd2</code> are not considered as final targets; only <code>fd3</code>
+would be a final target in this example.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Executable_not_found">
+  <a href="index.html#/exn:Executable_not_found" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Executable_not_found <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Raised when an executable file cannot be found; the argument is the
+search name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup_executable">
+  <a href="index.html#/val:lookup_executable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup_executable : ?path:string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Searches an executable file. If the passed search name contains a
+slash, it is expected that this name is already the path name of the
+executable. If the search name does not contain a slash character,
+it is searched in the directories enumerated by the search path.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">path</span> The search path. By default, the contents of the
+variable PATH of the current environment, split by ':', are
+used (Win32: SearchPath is used)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_cmdname">
+  <a href="index.html#/val:get_cmdname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cmdname : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the name of the command</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_arguments">
+  <a href="index.html#/val:get_arguments" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_arguments : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string array
+    
+      <div class="doc">
+        
+      <p>Returns the argument array of the command (skipping the command name)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_chdir">
+  <a href="index.html#/val:get_chdir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_chdir : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>Returns the <code>chdir</code> parameter of the command</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_environment">
+  <a href="index.html#/val:get_environment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_environment : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:environment">environment</a>
+    
+      <div class="doc">
+        
+      <p>Returns the designated environment of the command</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_descriptors">
+  <a href="index.html#/val:get_descriptors" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_descriptors : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the list of active descriptors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_assignments">
+  <a href="index.html#/val:get_assignments" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_assignments : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>) list
+    
+      <div class="doc">
+        
+      <p>Returns the list of assignments <code>(fd_from,fd_to)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_filename">
+  <a href="index.html#/val:get_filename" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_filename : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the file name of the executable</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_cmdname">
+  <a href="index.html#/val:set_cmdname" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_cmdname : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the command name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_arguments">
+  <a href="index.html#/val:set_arguments" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_arguments : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string array <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the argument array</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_chdir">
+  <a href="index.html#/val:set_chdir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_chdir : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>chdir</code> parameter of the command</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_environment">
+  <a href="index.html#/val:set_environment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_environment : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:environment">environment</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the environment</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_descriptors">
+  <a href="index.html#/val:set_descriptors" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_descriptors : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the list of active descriptors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_assignments">
+  <a href="index.html#/val:set_assignments" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_assignments : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the list of assignments <code>(fd_from,fd_to)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_filename">
+  <a href="index.html#/val:set_filename" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_filename : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the file name of the executable to start</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_command">
+  <a href="index.html#/val:copy_command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_command : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a>
+    
+      <div class="doc">
+        
+      <p>Returns a duplicate of the command description</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_executable">
+  <a href="index.html#/val:is_executable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_executable : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns <code>true</code> if there is an executable file for the command, and
+it is permitted to run this file (as stated by the file permissions).</p>
+      
+      <p><code>false</code> means that the command can definitely not be executed. However,
+even if the function returns <code>true</code> there may be still reasons that
+execution will fail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Processes</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:process">
+  <a href="index.html#/type:process" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> process
+    
+      <div class="doc">
+        
+      <p>A process is the running instance of a command (a Unix process)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:group_action">
+  <a href="index.html#/type:group_action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> group_action = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:group_action/cons:New_bg_group">
+  <a href="index.html#/type:group_action/cons:New_bg_group" class="anchor">#</a>
+  | New_bg_group
+  </div>
+  </td><td>(*</td><td class="doc">Start process in new background process group</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:group_action/cons:New_fg_group">
+  <a href="index.html#/type:group_action/cons:New_fg_group" class="anchor">#</a>
+  | New_fg_group
+  </div>
+  </td><td>(*</td><td class="doc">Start process in new foreground process group</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:group_action/cons:Join_group">
+  <a href="index.html#/type:group_action/cons:Join_group" class="anchor">#</a>
+  | Join_group <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">Started process joins this existing process group</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:group_action/cons:Current_group">
+  <a href="index.html#/type:group_action/cons:Current_group" class="anchor">#</a>
+  | Current_group
+  </div>
+  </td><td>(*</td><td class="doc">Started process remains in the current group</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Determines in which process group the new process will run</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:fwd_mode">
+  <a href="index.html#/type:fwd_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> fwd_mode = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:fwd_mode/cons:No_forward">
+  <a href="index.html#/type:fwd_mode/cons:No_forward" class="anchor">#</a>
+  | No_forward
+  </div>
+  </td><td>(*</td><td class="doc">No forwarding of keyboard signals</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:fwd_mode/cons:Forward_to_process">
+  <a href="index.html#/type:fwd_mode/cons:Forward_to_process" class="anchor">#</a>
+  | Forward_to_process
+  </div>
+  </td><td>(*</td><td class="doc">Forward signals directly to subprocess</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:fwd_mode/cons:Forward_to_group">
+  <a href="index.html#/type:fwd_mode/cons:Forward_to_group" class="anchor">#</a>
+  | Forward_to_group
+  </div>
+  </td><td>(*</td><td class="doc">Forward signals to the process group of the subprocess</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Determines whether and how keyboard signals (SIGINT, SIGQUIT) are
+forwarded from the caller to the new child. There is no forwarding
+in Win32 - all console applications get the keyboard signals anyway.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run">
+  <a href="index.html#/val:run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run : ?group:<a href="index.html#/type:group_action">group_action</a> <span class="rarr"><span>-&gt;</span></span> ?forward_mode:<a href="index.html#/type:fwd_mode">fwd_mode</a> <span class="rarr"><span>-&gt;</span></span> ?pipe_assignments:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process">process</a>
+    
+      <div class="doc">
+        
+      <p>Executes the command concurrently with the current process. The function
+does not wait until the process terminates; it returns immediately after
+the <code>exec</code> system call has been successfully performed; errors that
+occur until <code>exec</code> are caught and reported as exception (even errors
+in the fresh subprocess).</p>
+      
+      <p>On error, one can assume that the process state has been cleaned up:
+any forked child process has terminated; any modifications of the global
+process state has been restored.</p>
+      
+      <p>File descriptor assignments: First, the assignments in <code>pipe_assignments</code>
+are performed, then the assignments contained in the command. The
+<code>pipe_assignments</code> are interpreted as parallel assignment, not
+as sequential assignment.</p>
+      
+      <p>Note: For users without very special needs, it is recommended to run
+jobs instead of processes. See below for the job API.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">group</span> Determines in which process group the new process will
+run. By default <code>Current_group</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">forward_mode</span> Whether and how to forward keyboard signals
+to the new child. By default <code>No_forward</code>. The Win32 implementation
+ignores this argument.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pipe_assignments</span> A list of descriptor pairs <code>(fd_from,fd_to)</code>.
+The descriptor <code>fd_from</code> in the current process will be assigned
+to <code>fd_to</code> in the started subprocess. In order to
+take effect, <code>fd_to</code> must also be passed in the <code>descriptors</code>
+property of the started command.
+Furthermore, <code>fd_from</code> may or may not be member of <code>descriptors</code>;
+in the first case it will remain open, in the latter case it will
+be closed. The list of assignments is executed in parallel. For
+example, to swap the roles of stdout and stderr, pass the list
+<code>[(stdout,stderr); (stderr,stdout)]</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_id">
+  <a href="index.html#/val:process_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_id : <a href="index.html#/type:process">process</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the process ID of the process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:status">
+  <a href="index.html#/val:status" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> status : <a href="index.html#/type:process">process</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a>
+    
+      <div class="doc">
+        
+      <p>Reports the status so far known: If the process
+has terminated, the status of the process is returned.
+If the process is still running, <code>Not_found</code> will be raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:command_of_process">
+  <a href="index.html#/val:command_of_process" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> command_of_process : <a href="index.html#/type:process">process</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a>
+    
+      <div class="doc">
+        
+      <p>Returns the command that is now running as the process</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:call">
+  <a href="index.html#/val:call" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> call : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process">process</a>
+    
+      <div class="doc">
+        
+      <p>Executes the command and waits until the process terminates
+(synchronous execution a la <code>system</code>, but no intermediate shell).
+<code>status</code> is guaranteed to return WEXITED or WSIGNALED.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill">
+  <a href="index.html#/val:kill" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill : ?signal:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process">process</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sends a signal to the passed process.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">signal</span> The signal to send, by default SIGTERM
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Jobs</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>A <code>job</code> is the description of how to run several commands which are
+linked by pipelines (or which are just a logical unit). A <code>job_instance</code>
+is the running instance of a job.</p>
+      
+      <p>Jobs are implemented on a higher layer than commands; the
+following means of the operating system are used by job
+invocations:</p>
+      <ul><li>Normally a <code>job_instance</code> corresponds to a Unix process group. In
+this case the last added command will result in the process group
+leader.</li><li>Controlling the execution of jobs requires that signal
+handlers are set in many cases (see <code>install_job_handlers</code>)</li><li>The processes of jobs are often interconnected by pipelines
+(see <code>add_pipeline</code>).</li><li>It is possible to handle pipelines between the current process and
+processes of the job (see <code>add_producer</code> and <code>add_consumer</code>)</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Important:</b></p>
+      
+      <p>In order to run jobs efficiently (without busy waiting) and properly
+it is strongly recommended to install the signal handlers using
+<code>install_job_handlers</code></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:job">
+  <a href="index.html#/type:job" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> job
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:job_instance">
+  <a href="index.html#/type:job_instance" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> job_instance
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:new_job">
+  <a href="index.html#/val:new_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> new_job : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job">job</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new job descriptor. Initially the job is empty, but you can
+fill it with commands (<code>add_command</code>), pipelines (<code>add_pipeline</code>),
+consumers (<code>add_consumer</code>) and producers (<code>add_producer</code>).
+When the job is set up, you can start it (<code>run_job</code>/<code>finish_job</code> or
+<code>call_job</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_command">
+  <a href="index.html#/val:add_command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_command : <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a command to a job.</p>
+      
+      <p>Note that you cannot add the same command twice; however you can
+add a copy of a command already belonging to the job.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_pipeline">
+  <a href="index.html#/val:add_pipeline" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_pipeline : ?bidirectional:bool <span class="rarr"><span>-&gt;</span></span> ?src_descr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?dest_descr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> src:<a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> dest:<a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a pipeline which redirects the output of the command <code>src</code> to the
+input of the command <code>dest</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">src_descr</span> determines the file descriptor of the source command
+which is redirected. This is by default <code>stdout</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">dest_descr</span> determines the file descriptor of the destination
+command to which the data stream is sent. This is by default <code>stdin</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">bidirectional</span> if <code>false</code> (default), a classical pipe is created
+to connect the file descriptors. This normally restricts the data
+flow to one direction. If <code>true</code>, a socketpair is created which is
+roughly a bidirectional pipe. In this case, data flow in both
+directions is possible.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_producer">
+  <a href="index.html#/val:add_producer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_producer : ?descr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> producer:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a producer to the job. A producer transfers data to the
+subprocess realizing the passed command. To do so, a pipe is created
+between the file descriptor <code>descr</code> of the subprocess and another
+descriptor <code>descr'</code> which is open in the current process. The
+function <code>producer</code> is called when data can be written into the
+pipe. The argument of <code>producer</code> is the writing end of the pipe
+<code>descr'</code>. This file descriptor is in non-blocking mode. The
+function <code>producer</code> must close <code>descr'</code> when all data are
+transferred. The return value of <code>producer</code> indicates whether
+the descriptor is still open.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">descr</span> The descriptor of the subprocess to which the reading
+end of the pipe is dup'ed. By default <code>stdin</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_string">
+  <a href="index.html#/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?epipe:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>from_string ?pos ?len ?epipe s</code> returns a function which can be
+used as <code>producer</code> argument for <code>add_producer</code>. The data transferred
+to the subprocess is taken from the string <code>s</code>. After these data
+are sent, the pipeline is closed.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">pos</span> The position in <code>s</code> where the data slice to transfer begins.
+By default <code>0</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> The length of the data slice to transfer. By default,
+all bytes from the start position <code>pos</code> to the end of the
+string are taken.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">epipe</span> This function is called when the pipeline breaks
+(EPIPE). Default: the empty function. EPIPE exceptions are
+always caught, and implicitly handled by closing the pipeline.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_stream">
+  <a href="index.html#/val:from_stream" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_stream : ?epipe:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>from_stream ?epipe s</code> returns a function which can be
+used as <code>producer</code> argument for <code>add_producer</code>. The data transferred
+to the subprocess is taken from the string stream <code>s</code>. After these data
+are sent, the pipeline is closed.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">epipe</span> This function is called when the pipeline breaks
+(EPIPE). Default: the empty function. EPIPE exceptions are
+always caught, and implicitly handled by closing the pipeline.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_consumer">
+  <a href="index.html#/val:add_consumer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_consumer : ?descr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> consumer:(<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command">command</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a consumer to the job. A consumer transfers data from the
+subprocess realizing the passed command to the current process.
+To do so, a pipe is created between the file descriptor <code>descr</code>
+of the subprocess and another descriptor <code>descr'</code> which is open
+in the current process. The function <code>consumer</code> is called when
+data can be read from the pipe. The argument of <code>consumer</code> is
+reading end of the pipe <code>descr'</code>. This file descriptor is in
+non-blocking mode. The function <code>consumer</code> must close <code>descr'</code>
+after EOF is detected. The return value of <code>consumer</code> indicates whether
+the descriptor is still open.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">descr</span> The descriptor of the subprocess to which the writing
+end of the pipe is dup'ed. By default <code>stdout</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_buffer">
+  <a href="index.html#/val:to_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_buffer : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>to_buffer b</code> returns a function which can be
+used as <code>consumer</code> argument for <code>add_consumer</code>. The data received
+from the subprocess is added to the buffer <code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:group_mode">
+  <a href="index.html#/type:group_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> group_mode = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:group_mode/cons:Same_as_caller">
+  <a href="index.html#/type:group_mode/cons:Same_as_caller" class="anchor">#</a>
+  | Same_as_caller
+  </div>
+  </td><td>(*</td><td class="doc">The job runs in the same process group as the current process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:group_mode/cons:Foreground">
+  <a href="index.html#/type:group_mode/cons:Foreground" class="anchor">#</a>
+  | Foreground
+  </div>
+  </td><td>(*</td><td class="doc">The job runs in a new foreground process group</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:group_mode/cons:Background">
+  <a href="index.html#/type:group_mode/cons:Background" class="anchor">#</a>
+  | Background
+  </div>
+  </td><td>(*</td><td class="doc">The job runs in a new background process group</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Specifies how the job instance is related to process groups</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run_job">
+  <a href="index.html#/val:run_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run_job : ?mode:<a href="index.html#/type:group_mode">group_mode</a> <span class="rarr"><span>-&gt;</span></span> ?forward_signals:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job_instance">job_instance</a>
+    
+      <div class="doc">
+        
+      <p>Invokes the commands of the job such that they run concurrently
+with the main process.</p>
+      
+      <p>The function returns a <code>job_instance</code>, i.e. a value recording which
+processes are started, and how they are related. Furthermore, the
+function has the side effect of adding the
+job to the global list of current jobs.</p>
+      
+      <p>The <code>mode</code> argument specifies whether a new Unix process group is
+created for the job instance. A process group has the advantage that
+it is possible to send signals to all processes of the group at
+once. For example, one can terminate a group by sending SIGTERM
+to it: All member processes get the signal. Usually, these are not only
+the subprocesses initially created, but also further processes
+started by the initial members.</p>
+      
+      <p>So if it is necessary to send signals to the processes of the job,
+it will be advantegous to run it in a new process group. However,
+this also means that signals sent to the current process group
+are not automatically forwarded to the created process group. For
+example, if the current process group is terminated, the job
+will continue running, because it is member of a different process
+group. One has to explicitly catch and forward signals to avoid
+wild-running jobs.</p>
+      
+      <p>The moral of the story is that one should only create new process
+groups when it is necessary (e.g. the user must be able to stop
+an action at any time). Furthermore, signal forwarding must be
+configured.</p>
+      
+      <p>The Unix shell also allows the programmer to specify process group
+handling to a certain extent. Normally, commands are executed in the
+same process group as the caller. The syntax &quot;command &amp;&quot; forces that
+the command is run in a new background process group. There is another
+situation when new process groups are created: when a new <b>interactive</b>
+shell is started the commands are run in new foreground process groups
+(so the keyboard signals like CTRL-C work).</p>
+      
+        
+  <div class="tag param">
+    <span class="label">mode</span> Specifies the process group handling. By default, the
+job is executed in the same process group as the current process
+(<code>Same_as_caller</code>). The value <code>Background</code> causes that a new
+background process group is started. The value <code>Foreground</code> causes
+that a new foreground process group is started. For the latter,
+it is required that there is a controlling terminal (i.e. it
+does not work for daemons). Any existing foreground process group
+(there is at most one) is put into the background, but this is
+not restored when the job is over (the caller must do this).
+Foreground process groups should be avoided unless you are
+writing an interactive shell interpreter.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">forward_signals</span> If <code>true</code>, the default, keyboard signals
+(SIGINT, SIGQUIT) delivered to the current process are forwarded to
+the job. This has only a meaning if the job is running as
+background process group. Furthermore, it is required that
+<code>install_job_handlers</code> has been called to enable signal
+forwarding.<br/>The function returns normally if at least one process could be started.
+If no process was startable (i.e. the first command was not startable),
+an exception is raised. If one or more processes could be started but
+not all, <code>job_status</code> will return <code>Job_partially_running</code>. The caller
+should then discard the job and any intermediate result that might
+already have been produced by the partial job.<br/>When all processes could be started and no other exceptional condition
+happened, the function sets <code>job_status</code> to <code>Job_running</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:job_handler_engine_type">
+  <a href="index.html#/classtype:job_handler_engine_type" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['t] job_handler_engine_type = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> ['t] <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    </div>
+    
+  <div class="region" id="/classtype:job_handler_engine_type/method:job">
+  <a href="index.html#/classtype:job_handler_engine_type/method:job" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> job : <a href="index.html#/type:job">job</a>
+  
+      <div class="doc">
+        
+      <p>Returns the called job</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:job_handler_engine_type/method:job_instance">
+  <a href="index.html#/classtype:job_handler_engine_type/method:job_instance" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> job_instance : <a href="index.html#/type:job_instance">job_instance</a>
+  
+      <div class="doc">
+        
+      <p>Returns the job instance</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This type of engine also returns the <code>job</code> and the <code>job_instance</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:job_engine">
+  <a href="index.html#/class:job_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> job_engine : 
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:job_instance">job_instance</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    [unit] <a href="index.html#/classtype:job_handler_engine_type">job_handler_engine_type</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>The <code>job_engine</code> watches the job, and looks whether the processes
+are finished, and if so, it records the process statuses. Also,
+the engine takes care of pumping producer data into the job,
+and of collecting consumer data.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:finish_job">
+  <a href="index.html#/val:finish_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> finish_job : <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>This creates a <code>job_engine</code> internally and runs until it is
+finished, i.e. until the job has been executed.</p>
+      
+      <p>In previous version of Ocamlnet there was an optional <code>sys</code>
+argument. This is gone now. Also, the error handling is different.
+It is no longer possible to restart <code>finish_job</code> when an error
+happens.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:call_job">
+  <a href="index.html#/val:call_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> call_job : ?mode:<a href="index.html#/type:group_mode">group_mode</a> <span class="rarr"><span>-&gt;</span></span> ?forward_signals:bool <span class="rarr"><span>-&gt;</span></span> ?onerror:(<a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job">job</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job_instance">job_instance</a>
+    
+      <div class="doc">
+        
+      <p>Starts the job (see <code>run_job</code>) and waits until it finishes (see
+<code>finish_job</code>); i.e. <code>call_job = run_job + finish_job</code>.
+The function returns normally if all processes can be started; you can
+examine <code>job_status</code> of the result to get the information whether all
+processes returned the exit code 0.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">onerror</span> If not all of the processes can be started, the
+function passed by <code>onerror</code> is invoked. By default, this
+function calls <code>abandon_job</code> to stop the already running
+processes. After the <code>onerror</code> function has returned, the original
+exception is raised again. Fatal error conditions are not caught.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">mode</span> See <code>run_job</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">forward_signals</span> See <code>run_job</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:processes">
+  <a href="index.html#/val:processes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> processes : <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process">process</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the processes that have actually been started for this job
+by <code>run_job</code>; note that the corresponding Unix process group
+may have additional processes (e.g. indirectly started processes).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:No_Unix_process_group">
+  <a href="index.html#/exn:No_Unix_process_group" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_Unix_process_group
+    
+      <div class="doc">
+        
+      <p>Raised by functions referring to Unix process groups when the
+job has not been started in its own process group.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_group_leader">
+  <a href="index.html#/val:process_group_leader" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_group_leader : <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:process">process</a>
+    
+      <div class="doc">
+        
+      <p>Returns the process group leader process.
+This function is not available for jobs in the mode <code>Same_as_caller</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_group_id">
+  <a href="index.html#/val:process_group_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_group_id : <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the Unix ID of the process group as number &gt; 1.
+This function is not available for jobs in the mode <code>Same_as_caller</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:job_status">
+  <a href="index.html#/type:job_status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> job_status = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:job_status/cons:Job_running">
+  <a href="index.html#/type:job_status/cons:Job_running" class="anchor">#</a>
+  | Job_running
+  </div>
+  </td><td>(*</td><td class="doc">All commands could be started, and at least
+one process is still running</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:job_status/cons:Job_partially_running">
+  <a href="index.html#/type:job_status/cons:Job_partially_running" class="anchor">#</a>
+  | Job_partially_running
+  </div>
+  </td><td>(*</td><td class="doc">Not all commands could be started, and at least
+one process is still running</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:job_status/cons:Job_ok">
+  <a href="index.html#/type:job_status/cons:Job_ok" class="anchor">#</a>
+  | Job_ok
+  </div>
+  </td><td>(*</td><td class="doc">all processes terminated with exit code 0</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:job_status/cons:Job_error">
+  <a href="index.html#/type:job_status/cons:Job_error" class="anchor">#</a>
+  | Job_error
+  </div>
+  </td><td>(*</td><td class="doc">all processes terminated but some abnormally</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:job_status/cons:Job_abandoned">
+  <a href="index.html#/type:job_status/cons:Job_abandoned" class="anchor">#</a>
+  | Job_abandoned
+  </div>
+  </td><td>(*</td><td class="doc">the job has been abandoned (see <code>abandon_job</code>)</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Indicates the status of the job</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:job_status">
+  <a href="index.html#/val:job_status" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> job_status : <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job_status">job_status</a>
+    
+      <div class="doc">
+        
+      <p>Returns the status. The status may only change after <code>finish_job</code>
+has been called:</p>
+      <ul><li>after <code>run_job</code>: status is <code>Job_running</code> or <code>Job_partially_running</code></li><li>after <code>finish_job</code>: if returning normally: status is <code>Job_ok</code> or
+<code>Job_error</code>. After an exception happened the other states are possible,
+too</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_process_group">
+  <a href="index.html#/val:kill_process_group" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_process_group : ?signal:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Kills the process group if it is still (at least partially) running.
+This operation is not available if the mode is <code>Same_as_caller</code>
+(exception <code>No_Unix_process_group</code>).</p>
+      
+      <p>Note 1: In the Unix terminology, &quot;killing a job&quot; only means to send
+a signal to the job. So the job may continue running, or it may
+terminate; in general we do not know this. Because of this, the job
+will still have an entry in the job list.</p>
+      
+      <p>Note 2: Because sub-sub-processes are also killed, this function may send
+the signal to more processes than kill_processes (below). On the other
+hand, it is possible that sub-processes change their group ID such that
+it is also possible that this function sends the signal to fewer processes
+than kill_processes.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">signal</span> The signal number to send (O'Caml signal numbers as
+used by the <code>Sys</code> module). Default is <code>Sys.sigterm</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_processes">
+  <a href="index.html#/val:kill_processes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_processes : ?signal:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Kills the individual processes of the job which are still running.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">signal</span> The signal number to send (O'Caml signal numbers as
+used by the <code>Sys</code> module). Default is <code>Sys.sigterm</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cancel_job">
+  <a href="index.html#/val:cancel_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cancel_job : ?signal:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Tries to get rid of a running job. If the mode is <code>Same_as_caller</code>, the
+signal is sent to the processes individually. If the mode is
+<code>Foreground</code> or <code>Background</code>, the signal is sent to the process group
+corresponding to the job.</p>
+      
+      <p>This function removes the job from the job list; i.e. it is no longer
+watched. Because of some magic spells it is guaranteed that the job dies
+immediately without becoming a zombie (provided you have a SIGCHLD
+handler).</p>
+      
+        
+  <div class="tag param">
+    <span class="label">signal</span> The signal number to send (O'Caml signal numbers as
+used by the <code>Sys</code> module). Default is <code>Sys.sigterm</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abandon_job">
+  <a href="index.html#/val:abandon_job" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abandon_job : ?signal:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:job_instance">job_instance</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><b>Deprecated</b> name for <code>cancel_job</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Already_installed">
+  <a href="index.html#/exn:Already_installed" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Already_installed
+    
+      <div class="doc">
+        
+      <p>Raised when the job handlers are already installed</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:configure_job_handlers">
+  <a href="index.html#/val:configure_job_handlers" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> configure_job_handlers : ?catch_sigint:bool <span class="rarr"><span>-&gt;</span></span> ?catch_sigquit:bool <span class="rarr"><span>-&gt;</span></span> ?catch_sigterm:bool <span class="rarr"><span>-&gt;</span></span> ?catch_sighup:bool <span class="rarr"><span>-&gt;</span></span> ?at_exit:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Configures signal and at_exit handlers for jobs:</p>
+      <ul><li>The keyboard signals SIGINT and SIGQUIT are forwarded to all jobs
+which are running in the background (and thus are not
+automatically notified) and want to get such signals (<code>forward_signals</code>).</li><li>The signals SIGTERM and SIGHUP are (if the handler is installed)
+forwarded to all dependent processes (regardless whether they are
+running in their own Unix process group or not, and regardless of
+<code>forward_signals</code>).</li><li>The <code>at_exit</code> handler sends a SIGTERM to all dependent processes, too.</li></ul>
+      <p>In previous versions of Ocamlnet it was also possible to configure
+<code>catch_sigchld</code> to set whether a SIGCHLD handler is installed. This
+is now always done.</p>
+      
+      <p>In previous versions of Ocamlnet there was also a <code>set_sigpipe</code> flag.
+This flag is gone as a SIGPIPE handler is now always installed.</p>
+      
+      <p>The handlers are now managed by [root:Netsys_signal]. The handlers of this
+module set the <code>keep_default</code> flag for SIGINT, SIGQUIT, SIGTERM, and
+SIGHUP, so that the default action for these signals is executed after
+the forwarding to the child processes is done. By setting another
+handler in [root:Netsys_signal] without that flag this behavior can be
+overridden.</p>
+      
+      <p>Note that if an uncaught exception leads to program termination,
+this situation will not be detected; any running jobs will
+not be terminated (sorry, this cannot be fixed).</p>
+      
+      <p>This function sets only which handlers will be installed when
+<code>install_job_handlers</code> (below) is invoked.
+The function fails if the handlers are already installed.</p>
+      
+      <p>Win32: No handlers are installed. It would be desirable to some extent
+that at least <code>at_exit</code> is honoured, however, this is not yet done.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">catch_sigint</span> whether to install a SIGINT handler (default: <code>true</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">catch_sigquit</span> whether to install a SIGQUIT handler (default: <code>true</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">catch_sigterm</span> whether to install a SIGTERM handler (default: <code>true</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">catch_sighup</span> whether to install a SIGHUP handler (default: <code>true</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">at_exit</span> whether to set the <code>at_exit</code> handler (default: <code>true</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:install_job_handlers">
+  <a href="index.html#/val:install_job_handlers" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> install_job_handlers : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Installs handlers as configured before.
+Raises <code>Already_installed</code> if the handlers are already installed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Removed functions</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The functions <code>add_rd_polling</code> and <code>add_wr_polling</code> have been removed.
+They were added prior to the merge with the equeue library. Use a
+Unixqueue now, which is much more powerful.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Also no longer supported because the type <code>system_handler</code> is gone:</p>
+      <pre><code>type system_handler</code></pre><pre><code>type process_event</code></pre><pre><code>val wait : 
+      ?wnohang:bool -&gt;                     (* default: false *)
+      ?wuntraced:bool -&gt;                   (* default: false *)
+      ?restart:bool -&gt;                     (* default: false *)
+      ?check_interval:float -&gt;             (* default: 0.1 *)
+      ?read:(Unix.file_descr list) -&gt;      (* default: [] *)
+      ?write:(Unix.file_descr list) -&gt;     (* default: [] *)
+      ?except:(Unix.file_descr list) -&gt;    (* default: [] *)
+      process list -&gt;
+        process_event list</code></pre>
+      <p>
+</p>
+      <pre><code>val register_job : system_handler -&gt; job_instance -&gt; unit</code></pre><pre><code>val iter_job_instances : f:(job_instance -&gt; unit) -&gt;  unit</code></pre><pre><code>val watch_for_zombies : unit -&gt; unit</code></pre><pre><code>val process_group_expects_signals : job_instance -&gt; bool</code></pre>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

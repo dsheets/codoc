@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Bi_inbuf</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Bi_inbuf</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Input buffer</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:i_s">
+  <a href="index.html#/type:t/field:i_s" class="anchor">#</a>
+  <span class="keyword">mutable</span> i_s
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">This is the buffer string.
+It can be accessed for reading but should normally only
+be written to or replaced only by the <code>i_refill</code> function.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:i_pos">
+  <a href="index.html#/type:t/field:i_pos" class="anchor">#</a>
+  <span class="keyword">mutable</span> i_pos
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">This is the current position in the input buffer.
+All data before that may be erased at anytime.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:i_len">
+  <a href="index.html#/type:t/field:i_len" class="anchor">#</a>
+  <span class="keyword">mutable</span> i_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">This is the position of the first byte of invalid input data.
+Data starting at <code>i_pos</code> and ending at <code>i_len-1</code> is considered
+valid input data that is available to the user.
+Beware that calls to <code>try_preread</code>, <code>read</code> and other read functions
+may move data around and therefore modify the values
+of <code>i_pos</code> and <code>i_len</code> in order to keep pointing to the
+correct data segment.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:i_offs">
+  <a href="index.html#/type:t/field:i_offs" class="anchor">#</a>
+  <span class="keyword">mutable</span> i_offs
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Length of data read and discarded from the buffer.
+This indicates the position in the input stream of
+the first byte of the buffer.
+The current position in the input stream is <code>i_offs + i_pos</code>.
+The total length of input stream data put into the buffer is
+<code>i_offs + i_len</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:i_max_len">
+  <a href="index.html#/type:t/field:i_max_len" class="anchor">#</a>
+  <span class="keyword">mutable</span> i_max_len
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">This is the length of <code>i_s</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:i_refill">
+  <a href="index.html#/type:t/field:i_refill" class="anchor">#</a>
+  i_refill
+  </div>
+  </td><td>: <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit</td><td>;</td><td>(*</td><td class="doc">Function called when not enough data is available in the buffer.
+The int argument is the total number of bytes that must be
+available starting at position <code>i_pos</code> when the function returns.
+This function typically does nothing if all input data already has been
+placed into the buffer.
+The <code>i_pos</code> and <code>i_len</code> fields can be modified the <code>i_refill</code> function,
+as long as the available data that was starting from <code>i_pos</code>
+still starts from the new value of <code>i_pos</code>.
+All the other fields can be modified as well.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:t/field:i_shared">
+  <a href="index.html#/type:t/field:i_shared" class="anchor">#</a>
+  i_shared
+  </div>
+  </td><td>: <a href="../../biniou.1.0.9/bi_share/">Bi_share</a>.<a href="../../biniou.1.0.9/bi_share/#/module:Rd">Rd</a>.<a href="../../biniou.1.0.9/bi_share/#/module:Rd/type:tbl">tbl</a></td><td>;</td><td>(*</td><td class="doc">Hash table used to map positions in the input stream to
+shared objects (if any).</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:End_of_input">
+  <a href="index.html#/exn:End_of_input" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> End_of_input
+    
+      <div class="doc">
+        
+      <p>Exception raised by all the functions of this module
+when it is not possible to return a valid result
+because there is not enough data to read from the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:try_preread">
+  <a href="index.html#/val:try_preread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> try_preread : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>try_preread ib n</code> make at least <code>n</code> bytes available for reading
+in <code>ib.i_s</code>, unless the end of the input is reached.
+The result indicates how many bytes were made available. If smaller than
+<code>n</code>, the result indicates that the end of the input was reached.
+<code>ib.i_pos</code> is set to point to the first available byte.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read">
+  <a href="index.html#/val:read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>read ib n</code> makes at least <code>n</code> bytes available for reading or raises
+the <code>End_of_input</code> exception.
+The result is the position of the first available byte.
+<code>ib.i_pos</code> is moved to point to the next position after the <code>n</code> bytes.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>End_of_input</code> if there is less than <code>n</code> bytes
+before the end of input.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_char">
+  <a href="index.html#/val:read_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_char : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char
+    
+      <div class="doc">
+        
+      <p>Read just one byte.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>End_of_input</code> if the end of input has already been reached.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:peek">
+  <a href="index.html#/val:peek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> peek : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char
+    
+      <div class="doc">
+        
+      <p>Return the next byte without moving forward.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>End_of_input</code> if the end of input has already been reached.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_string">
+  <a href="index.html#/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?shrlen:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Create an input buffer from a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">pos</span> position to start from. Default: 0.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">shrlen</span> initial length of the table used to store shared values.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_channel">
+  <a href="index.html#/val:from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_channel : ?len:int <span class="rarr"><span>-&gt;</span></span> ?shrlen:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Create an input buffer from an in_channel.
+Such a buffer is not extensible and <code>read</code> requests may not exceed <code>len</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">len</span> buffer length.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">shrlen</span> initial length of the table used to store shared values.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

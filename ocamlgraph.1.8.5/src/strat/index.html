@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>Strat</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Strat</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Strategies</p>
+      
+      <p>Implementation of a winning strategy of a graph: the graph
+represents a two players game, each vertex belongs to either player
+(whose turn it is to play) and describes a configuration of the
+game. The algorithm computes the winning strategy of a player, if any;
+i.e. the moves to play (which vertex to go to) so that for all
+possible moves of the other player, the game goes through a final
+state.</p>
+      
+        
+  <div class="tag author">
+    <span class="label">Author</span> Nicolas Ayache
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/modtype:G">
+  <a href="index.html#/modtype:G" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> G = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Signature for graphs</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:G/type:t">
+  <a href="index.html#/modtype:G/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/module:V">
+  <a href="index.html#/modtype:G/module:V" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V : <a href="../../../ocamlgraph.1.8.5/src/sig/">Sig</a>.<a href="../../../ocamlgraph.1.8.5/src/sig/#/modtype:ORDERED_TYPE">ORDERED_TYPE</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/type:vertex">
+  <a href="index.html#/modtype:G/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex = <a href="index.html#/modtype:G/module:V">V</a>.<a href="index.html#/modtype:G/module:V/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:mem_vertex">
+  <a href="index.html#/modtype:G/val:mem_vertex" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem_vertex : <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:succ">
+  <a href="index.html#/modtype:G/val:succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> succ : <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:vertex">vertex</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:fold_vertex">
+  <a href="index.html#/modtype:G/val:fold_vertex" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_vertex : (<a href="index.html#/modtype:G/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:G/val:fold_succ">
+  <a href="index.html#/modtype:G/val:fold_succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_succ : (<a href="index.html#/modtype:G/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:G/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:PLAYER">
+  <a href="index.html#/modtype:PLAYER" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> PLAYER = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Signature for graph add-ons: an initial vertex, final vertices
+and membership of vertices to either true or false,
+i.e. first or second player</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:PLAYER/type:t">
+  <a href="index.html#/modtype:PLAYER/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:PLAYER/type:vertex">
+  <a href="index.html#/modtype:PLAYER/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:PLAYER/val:get_initial">
+  <a href="index.html#/modtype:PLAYER/val:get_initial" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_initial : <a href="index.html#/modtype:PLAYER/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:PLAYER/type:vertex">vertex</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:PLAYER/val:is_final">
+  <a href="index.html#/modtype:PLAYER/val:is_final" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_final : <a href="index.html#/modtype:PLAYER/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:PLAYER/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:PLAYER/val:turn">
+  <a href="index.html#/modtype:PLAYER/val:turn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> turn : <a href="index.html#/modtype:PLAYER/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:PLAYER/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:STRAT">
+  <a href="index.html#/modtype:STRAT" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> STRAT = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Signature for strategies: for a given state, the strategy tells
+which state to go to</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:STRAT/type:t">
+  <a href="index.html#/modtype:STRAT/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:STRAT/type:vertex">
+  <a href="index.html#/modtype:STRAT/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:STRAT/val:empty">
+  <a href="index.html#/modtype:STRAT/val:empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> empty : <a href="index.html#/modtype:STRAT/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:STRAT/val:add">
+  <a href="index.html#/modtype:STRAT/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/modtype:STRAT/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:STRAT/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:STRAT/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:STRAT/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:STRAT/val:next">
+  <a href="index.html#/modtype:STRAT/val:next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next : <a href="index.html#/modtype:STRAT/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:STRAT/type:vertex">vertex</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:STRAT/type:vertex">vertex</a>
+    
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if vertex's image is not defined
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Algo">
+  <a href="index.html#/module:Algo" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Algo : <span class="keyword">functor</span> (G : <a href="index.html#/modtype:G">G</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (P : <a href="index.html#/modtype:PLAYER">PLAYER</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:PLAYER/type:vertex">vertex</a> = <a href="index.html#/module:Algo/modarg:1:G">G</a>.<a href="index.html#/module:Algo/modarg:1:G/type:vertex">vertex</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (S : <a href="index.html#/modtype:STRAT">STRAT</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:STRAT/type:vertex">vertex</a> = <a href="index.html#/module:Algo/modarg:1:G">G</a>.<a href="index.html#/module:Algo/modarg:1:G/type:vertex">vertex</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Implements strategy algorithms on graphs</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Algo/val:coherent_player">
+  <a href="index.html#/module:Algo/val:coherent_player" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> coherent_player : <a href="index.html#/module:Algo/modarg:1:G">G</a>.<a href="index.html#/module:Algo/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:2:P">P</a>.<a href="index.html#/module:Algo/modarg:2:P/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>coherent_player g p</code> returns <code>true</code> iff
+the completion <code>p</code> is coherent w.r.t.
+the graph g</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Algo/val:coherent_strat">
+  <a href="index.html#/module:Algo/val:coherent_strat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> coherent_strat : <a href="index.html#/module:Algo/modarg:1:G">G</a>.<a href="index.html#/module:Algo/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:3:S">S</a>.<a href="index.html#/module:Algo/modarg:3:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>coherent_strat g s</code> returns <code>true</code> iff
+the strategy <code>s</code> is coherent w.r.t.
+the graph <code>g</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Algo/val:game">
+  <a href="index.html#/module:Algo/val:game" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> game : <a href="index.html#/module:Algo/modarg:1:G">G</a>.<a href="index.html#/module:Algo/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:2:P">P</a>.<a href="index.html#/module:Algo/modarg:2:P/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:3:S">S</a>.<a href="index.html#/module:Algo/modarg:3:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:3:S">S</a>.<a href="index.html#/module:Algo/modarg:3:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>game g p a b</code> returns <code>true</code> iff <code>a</code> wins in <code>g</code>
+given the completion <code>p</code> (i.e. the game
+goes through a final state).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Algo/val:strategy">
+  <a href="index.html#/module:Algo/val:strategy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> strategy : <a href="index.html#/module:Algo/modarg:1:G">G</a>.<a href="index.html#/module:Algo/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:2:P">P</a>.<a href="index.html#/module:Algo/modarg:2:P/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:3:S">S</a>.<a href="index.html#/module:Algo/modarg:3:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>strategy g p s</code> returns <code>true</code> iff <code>s</code> wins in <code>g</code>
+given the completion <code>p</code>, whatever strategy
+plays the other player.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Algo/val:strategyA">
+  <a href="index.html#/module:Algo/val:strategyA" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> strategyA : <a href="index.html#/module:Algo/modarg:1:G">G</a>.<a href="index.html#/module:Algo/modarg:1:G/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Algo/modarg:2:P">P</a>.<a href="index.html#/module:Algo/modarg:2:P/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool * <a href="index.html#/module:Algo/modarg:3:S">S</a>.<a href="index.html#/module:Algo/modarg:3:S/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>strategyA g p</code> returns <code>true</code> iff there
+exists <code>a</code> winning stragegy for the true
+player. In this case, the winning
+strategy is provided.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

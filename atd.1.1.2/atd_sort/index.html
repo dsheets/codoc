@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Atd_sort</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Atd_sort</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Topological sort that doesn't give up on cycles.</p>
+      <pre>     A --&gt; B
+     C --&gt; D
+     B --&gt; C
+     C --&gt; B
+     D --&gt; E
+     E --&gt; E</pre>
+      <p>gives the following ordering:</p>
+      <pre>     [A] [B C]* [D] [E]*</pre>
+      <p>where a group marked with a star is cyclic, i.e any member of the group
+can be reached from any other member of that group.</p>
+      
+      <p>This is used by atdgen to sort type definitions by dependency order,
+creating recursive groups only when needed. This makes ocamlopt
+significantly faster in certain pathological situations.
+Also it improves the clarity of the generated code and can be used to
+report cycles in a context where they are not allowed.</p>
+      
+      <p>Feel free to reuse outside of atdgen. The algorithm is outlined in
+the ml file. The interface of this module may change without notice.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/modtype:Param">
+  <a href="index.html#/modtype:Param" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Param = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Param/type:t">
+  <a href="index.html#/modtype:Param/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Type of the nodes as specified by the user</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Param/type:id">
+  <a href="index.html#/modtype:Param/type:id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> id
+    
+      <div class="doc">
+        
+      <p>Node identifier that can be compared and hashed using
+the generic comparison and hashing functions of the standard library.
+Typically an int or a string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Param/val:id">
+  <a href="index.html#/modtype:Param/val:id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> id : <a href="index.html#/modtype:Param/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Param/type:id">id</a>
+    
+      <div class="doc">
+        
+      <p>User function to extract a node's unique identifier</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Param/val:to_string">
+  <a href="index.html#/modtype:Param/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : <a href="index.html#/modtype:Param/type:id">id</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>User function to make a node identifier printable,
+used for debugging only.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (P : <a href="index.html#/modtype:Param">Param</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Make/val:sort">
+  <a href="index.html#/module:Make/val:sort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sort : (<a href="index.html#/module:Make/modarg:1:P">P</a>.<a href="index.html#/module:Make/modarg:1:P/type:t">t</a> * <a href="index.html#/module:Make/modarg:1:P">P</a>.<a href="index.html#/module:Make/modarg:1:P/type:id">id</a> list) list <span class="rarr"><span>-&gt;</span></span> (bool * <a href="index.html#/module:Make/modarg:1:P">P</a>.<a href="index.html#/module:Make/modarg:1:P/type:t">t</a> list) list
+    
+      <div class="doc">
+        
+      <p>Partition the nodes of a directed graph into groups and sort these
+groups such that all edges going from one group to another
+point to the right, and such that each group
+has a single element or is a cycle. A cyclic group is marked
+as <code>true</code> while non-cyclic singletons are marked as <code>false</code>.</p>
+      
+      <p>A cycle is a set of nodes such that any node of the set
+can be reached from any other node of that set.</p>
+      
+      <p>All groups of more than one node are cyclic.
+Groups of one node may or may not be cyclic.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_sharedvar</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_sharedvar</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Netplex-wide variables</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This plugin allows to have Netplex-global variables that can be read
+and written by all components. These variables are useful to communicate
+names and other small pieces of information across the whole Netplex.
+For instance, one component could allocate a shared memory object, and
+put its name into a variable to make it known to other components.</p>
+      
+      <p>This implementation works in both multi-processing and
+multi-threading netplex environments. It is, however, not very
+fast, because the variables live in the controller, and the
+access operations are realized by RPC's. It is good
+enough when these operations are only infrequently called, e.g. in
+the post-start and pre-finish processor callbacks.</p>
+      
+      <p>Furthermore, note that it is unwise to put large values into
+variables when using them in multi-processing contexts. The controller
+process is also the parent process of all <code>fork</code>ed children, and
+when a lot of memory is allocated in the controller, all
+this memory needs to be copied when the <code>fork</code> is done. As workaround,
+put such values into temporary files, and only pass the names of the
+files around via variables.</p>
+      
+      <p>Variables come in two flavors:</p>
+      <ul><li>String variables</li><li>Encapsulated variables (see [root:Netplex_encap])</li></ul>
+      <p>A string variable cannot be accessed as encapsulated variable, and
+vice versa.</p>
+      
+      <p>The latter kind is useful to safely store structured ocaml values in
+Netplex variables.</p>
+      
+      <p>More documentation can also be found here:
+[root:Netplex_advanced].sharedvars</p>
+      
+      <p><b>Thread safety:</b> Full. The functions can be called from any thread.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Sharedvar_type_mismatch">
+  <a href="index.html#/exn:Sharedvar_type_mismatch" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Sharedvar_type_mismatch <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>The (dynamically typed) variable has the wrong type (string/exn)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Sharedvar_no_permission">
+  <a href="index.html#/exn:Sharedvar_no_permission" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Sharedvar_no_permission <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>It is not allowed to set the value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Sharedvar_not_found">
+  <a href="index.html#/exn:Sharedvar_not_found" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Sharedvar_not_found <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>The variable does not exist. Only used by <code>Make_var_type</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Sharedvar_null">
+  <a href="index.html#/exn:Sharedvar_null" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Sharedvar_null
+    
+      <div class="doc">
+        
+      <p>The initial value of a shared exception variable</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:plugin">
+  <a href="index.html#/val:plugin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> plugin : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:plugin">plugin</a>
+    
+      <div class="doc">
+        
+      <p>To enable shared variables, call the controller's <code>add_plugin</code> method
+with this object as argument. This can e.g. be done in the
+<code>post_add_hook</code> of the processor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The folloing functions can all be invoked in container
+contexts. In controller context, access is limited to <code>get_value</code>.</p>
+      
+      <p>If called from the wrong context the exception
+<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/exn:Not_in_container_thread">Not_in_container_thread</a> is raised.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:create_var">
+  <a href="index.html#/val:create_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_var : ?own:bool <span class="rarr"><span>-&gt;</span></span> ?ro:bool <span class="rarr"><span>-&gt;</span></span> ?enc:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Create the variable with the passed name with an empty string
+(or the exception <code>Sharedvar_null</code>) as
+initial value. If the creation is possible (i.e. the variable did
+not exist already), the function returns <code>true</code>, otherwise
+the already existing variable is left modified, and <code>false</code> is
+passed back. By default, the variable can be modified and deleted
+by any other container. Two options allow you to change that:</p>
+      <ul><li><code>own</code>: If true, the created variable is owned by the calling
+socket service. Only the caller can delete it, and when the
+last component of the socket service terminates, the variable is
+automatically deleted. The deletion happens after the
+<code>post_finish_hook</code> is executed, so the variable is still accessible
+from this hook.</li><li><code>ro</code>: if true, only the owner can set the value</li><li><code>enc</code>: if true, the variable stores encapsulated values, otherwise
+strings
+(defaults to false)</li></ul>
+      <p>Variable names are global to the whole netplex system. By convention,
+these names are formed like <code>&quot;service_name.local_name&quot;</code>, i.e. they
+are prefixed by the socket service to which they refer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_var">
+  <a href="index.html#/val:delete_var" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_var : string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>delete_var name</code>: Deletes the variable <code>name</code>. Returns <code>true</code> if
+the deletion could be carried out, and <code>false</code> when the variable
+does not exist, or the container does not have permission to delete
+the variable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_value">
+  <a href="index.html#/val:set_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_value : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>set_value name value</code>: Sets the variable <code>name</code> to <code>value</code>. This
+is only possible when the variable exists, and is writable.
+Returns <code>true</code> if the function is successful, and <code>false</code> when
+the variable does not exist.</p>
+      
+      <p>Raises <code>Sharedvar_no_permission</code> if the variable cannot be modified.</p>
+      
+      <p>Raises <code>Sharedvar_type_mismatch</code> if the variable is not a string
+variable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_enc_value">
+  <a href="index.html#/val:set_enc_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_enc_value : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:encap">encap</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>set_enc_value name value</code>: Sets the variable <code>name</code> to <code>value</code>.
+Return value as for <code>set_value</code>.</p>
+      
+      <p>Raises <code>Sharedvar_no_permission</code> if the variable cannot be modified.</p>
+      
+      <p>Raises <code>Sharedvar_type_mismatch</code> if the variable is not encapsulated</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_value">
+  <a href="index.html#/val:get_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_value : string <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p><code>get_value name</code>: Gets the value of the variable <code>name</code>. If the
+variable does not exist, <code>None</code> is returned.</p>
+      
+      <p>Raises <code>Sharedvar_type_mismatch</code> if the variable is not a string
+variable.</p>
+      
+      <p>As an exception of the general rules, this function can also be
+called from the controller, and not only from a container.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_enc_value">
+  <a href="index.html#/val:get_enc_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_enc_value : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:encap">encap</a> option
+    
+      <div class="doc">
+        
+      <p><code>get_enc_value name</code>: Gets the value of the variable <code>name</code>. If the
+variable does not exist, <code>None</code> is returned.</p>
+      
+      <p>Raises <code>Sharedvar_type_mismatch</code> if the variable is not encapsulated</p>
+      
+      <p>As an exception of the general rules, this function can also be
+called from the controller, and not only from a container.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_for_value">
+  <a href="index.html#/val:wait_for_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_for_value : string <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p><code>wait_for_value name</code>: If the variable exists and <code>set_value</code> has
+already been called at least once, the current value is returned.
+If the variable exists, but <code>set_value</code> has not yet been called at all,
+the function waits until <code>set_value</code> is called, and returns the value
+set then. If the variable does not exist, the function immediately
+returns <code>None</code>.</p>
+      
+      <p>An ongoing wait is interrupted when the variable is deleted. In this
+case <code>None</code> is returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_for_enc_value">
+  <a href="index.html#/val:wait_for_enc_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_for_enc_value : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:encap">encap</a> option
+    
+      <div class="doc">
+        
+      <p>Same for encapsulated variables</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_lazily">
+  <a href="index.html#/val:get_lazily" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_lazily : string <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p><code>get_lazily name f</code>: Uses the variable <code>name</code> to ensure that <code>f</code>
+is only invoked when <code>get_lazily</code> is called for the first time,
+and that the value stored in the variable is returned the
+next times. This works from whatever component <code>get_lazily</code>
+is called.</p>
+      
+      <p>If <code>f()</code> raises an exception, the exception is suppressed, and
+<code>None</code> is returned as result of <code>get_lazily</code>. Exceptions are not
+stored in the variable, so the next time <code>get_lazily</code> is called
+it is again tried to compute the value of <code>f()</code>. If you want to
+catch the exception this must done in the body of <code>f</code>.</p>
+      
+      <p>No provisions are taken to delete the variable. If <code>delete_var</code>
+is called by user code (which is allowed at any time), and
+<code>get_lazily</code> is called again, the lazy value will again be computed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_enc_lazily">
+  <a href="index.html#/val:get_enc_lazily" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_enc_lazily : string <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:encap">encap</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/type:encap">encap</a> option
+    
+      <div class="doc">
+        
+      <p>Same for encapsulated values</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dump">
+  <a href="index.html#/val:dump" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dump : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/">Netlog</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Dumps the access counter of this variable to [root:Netlog]. The
+string argument &quot;*&quot; dumps all variables.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_var_type">
+  <a href="index.html#/module:Make_var_type" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_var_type : <span class="keyword">functor</span> (T : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/modtype:TYPE">TYPE</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/">Netplex_cenv</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/modtype:VAR_TYPE">VAR_TYPE</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_cenv/#/modtype:VAR_TYPE/type:t">t</a> = <a href="index.html#/module:Make_var_type/modarg:1:T">T</a>.<a href="index.html#/module:Make_var_type/modarg:1:T/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>Creates a module with <code>get</code> and <code>set</code> functions to access variables
+of type <code>T.t</code>. Call it like</p>
+      <pre><code>         module Foo_var = 
+           Make_var_type(struct type t = foo end)</code></pre>
+      <p>and use <code>Foo_var.get</code> and <code>Foo_var.set</code> to access the shared
+variables of type <code>foo</code>. These functions can also raise the exception
+<code>Sharedvar_not_found</code> (unlike the primitive accessors above).</p>
+      
+      <p>The variable must have been created with <code>enc:true</code>, e.g.</p>
+      <pre><code>          let ok = create_var ~enc:true &quot;name&quot;</code></pre>
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Example code:</p>
+      
+      <p>Here, one randomly chosen container computes <code>precious_value</code>, and
+makes it available to all others, so the other container can simply
+grab the value. This is similar to what <code>get_lazily</code> does internally:</p>
+      <pre><code>      let get_precious_value() =
+        let container = Netplex_cenv.self_cont() in
+        let var_name = &quot;my_service.precious&quot; in
+        if Netplex_sharedvar.create_var var_name then (
+          let precious_value = 
+            try ...    (* some costly computation *)
+            with exn -&gt;
+              ignore(Netplex_sharedvar.delete_var var_name);
+              raise exn in
+          let b = Netplex_sharedvar.set_value var_name precious_value in
+          assert b;
+          precious_value
+        )
+        else (
+          match Netplex_sharedvar.wait_for_value var_name with
+           | Some v -&gt; v
+           | None -&gt; failwith &quot;get_precious_value&quot;
+                       (* or do plan B, e.g. compute the value *)
+        )</code></pre>
+      <p>We don't do anything here for deleting the value when it is no longer
+needed. Finding a criterion for that is very application-specific.
+If the variable can be thought as being another service endpoint
+of a socket service, it is a good idea to acquire the ownership
+(by passing <code>~own:true</code> to <code>create_var</code>), so the variable is automatically
+deleted when the socket service stops.</p>
+      
+      <p>Of course, the plugin must be enabled, e.g. by overriding the
+<code>post_add_hook</code> processor hook:</p>
+      <pre><code>    method post_add_hook sockserv ctrl =
+      ctrl # add_plugin Netplex_sharedvar.plugin</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

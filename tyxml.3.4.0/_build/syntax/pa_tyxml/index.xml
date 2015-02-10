@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unit><root><base><html src="index.html"><xml src="index.xml"><cmti name="Pa_tyxml" src="/home/dsheets/.opam/doc/build/tyxml.3.4.0/_build/syntax/pa_tyxml.cmti" digest="3d3c5edabc68c8c239e441164bf4a543"/></xml></html></base>Pa_tyxml</root><digest>3d3c5edabc68c8c239e441164bf4a543</digest><import>CamlinternalFormatBasics<digest>ba1be62eb45abd435c75cb59cc46b922</digest></import><import>Pervasives<digest>0d015a5a2136659b0de431be7f1545be</digest></import><source><file>syntax/pa_tyxml.mli</file><dir>/home/dsheets/.opam/doc/build/tyxml.3.4.0/_build</dir><digest>c129cb95ee51399c637030004d89fb99</digest></source><doc>Syntax extension for HTML5 or SVG tree creation.</doc><comment>To choose actual XML-implementation you have to provide a module named <code>Html5</code>
+(or <code>Svg</code>):<newline/>For example, the following code:
+<precode>  let module Html5 = Html5.M in
+  &lt;&lt; &lt;html&gt;
+     &lt;head&gt;&lt;title&gt;&lt;/title&gt;&lt;/head&gt;
+     &lt;body&gt;&lt;h1&gt;plop&lt;/h1&gt;&lt;/body&gt;
+   &lt;/html&gt; &gt;&gt;
+)</precode>
+is a caml value of type <verbatim>Html5_types.html Html5.elt</verbatim>.<newline/>In the following, <code>Html5</code> is assumed to be an HTML5 implementation, such as
+<code>Html5.M</code>, but this could for example also be Eliom's <code>Eliom_content.Html5.F</code>.<newline/>To compile a module containing this syntax, you need the camlp4 preprocessor:
+<precode>ocamlfind ocamlc -package tyxml.syntax -syntax camlp4o -c your_module.ml</precode>
+or
+<precode>ocamlc -pp &quot;camlp4o -I &lt;path/to/tyxml&gt; pa_tyxml.cmo&quot; -c your_module.ml</precode><newline/>You can insert OCaml expressions of type <verbatim>'a Html5.M.elt</verbatim> inside html using <verbatim>$...$</verbatim>, like this:
+<precode>let oc = &lt;&lt; &lt;em&gt;Ocsigen&lt;/em&gt; &gt;&gt; in
+&lt;&lt; &lt;p&gt;$oc$ will revolutionize web programming.&lt;/p&gt; &gt;&gt;</precode>
+You can insert OCaml expressions of type string inside html using <verbatim>$str:... $</verbatim>, like this:
+<precode>let i = 4 in
+&lt;&lt; &lt;p&gt;i is equal to $str:string_of_int i$&lt;/p&gt; &gt;&gt;</precode>
+If you want to use a dollar in your page, just write it twice.<newline/>You can write a list of html5 expressions using the syntax <verbatim>&lt;:html5list&lt;...&gt;&gt;</verbatim>, for example:
+<precode>&lt;:html5list&lt; &lt;p&gt;hello&lt;/p&gt; &lt;div&gt;&lt;/div&gt; &gt;&gt;</precode><newline/>Here are some other examples showing what you can do:
+<precode>&lt;&lt; &lt;ul class=$ulclass$ $list:other_attrs$&gt;
+     $first_il$
+     $list:items$
+   &lt;/ul&gt; &gt;&gt;</precode><newline/>Warning: lists antiquotations are allowed only at the end (before a closing tag). For example, the following is not valid:
+<precode>&lt;&lt; &lt;ul $list:other_attrs$ class=$ulclass$&gt;
+     $list:items$
+     $last_il$
+   &lt;/ul&gt; &gt;&gt;</precode><newline/>The syntax extension is not allowed in patterns for the while.<newline/>Additionnaly, you may use <code>svg</code> or <code>svglist</code>.</comment></unit>

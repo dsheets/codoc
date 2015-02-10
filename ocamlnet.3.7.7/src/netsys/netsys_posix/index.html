@@ -1,0 +1,4301 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netsys_posix</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netsys_posix</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>POSIX-specific system calls missing in the <code>Unix</code> module, and
+further API's from POSIX-style operating systems.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Files, Processes, TTYs, Users, Groups</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:int_of_file_descr">
+  <a href="index.html#/val:int_of_file_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_of_file_descr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Return the file descriptor as integer. See also
+<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/">Netsys</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/#/val:int64_of_file_descr">int64_of_file_descr</a> which works for all OS.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_descr_of_int">
+  <a href="index.html#/val:file_descr_of_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_descr_of_int : int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Make a file descriptor from an integer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sysconf_open_max">
+  <a href="index.html#/val:sysconf_open_max" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> sysconf_open_max : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;netsys_sysconf_open_max&quot; 
+    
+      <div class="doc">
+        
+      <p>Return the maximum number of open file descriptor per process.
+It is also ensured that for every file descriptor <code>fd</code>:
+<code>fd &lt; sysconf_open_max()</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_nonblock">
+  <a href="index.html#/val:get_nonblock" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> get_nonblock : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;netsys_get_nonblock&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns whether the nonblock flag is set</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fchdir">
+  <a href="index.html#/val:fchdir" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fchdir : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_fchdir&quot; 
+    
+      <div class="doc">
+        
+      <p>Set the current directory to the directory referenced by the
+file descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fdopendir">
+  <a href="index.html#/val:fdopendir" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fdopendir : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:dir_handle">dir_handle</a>
+    = &quot;netsys_fdopendir&quot; 
+    
+      <div class="doc">
+        
+      <p>Make a directory handle from a file descriptor. The descriptor
+is then &quot;owned&quot; by the directory handle, and will be closed by
+<code>Unix.closedir</code>.</p>
+      
+      <p>This function is useful in conjunction with <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/val:openat">openat</a>
+to read directories relative to a parent directory.</p>
+      
+      <p>This is a recent addition to the POSIX standard; be prepared to
+get <code>Invalid_argument</code> because it is unavailable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:realpath">
+  <a href="index.html#/val:realpath" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> realpath : string <span class="rarr"><span>-&gt;</span></span> string
+    = &quot;netsys_realpath&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns a pathname pointing to the same filesystem object so that
+the pathname does not include &quot;.&quot; or &quot;..&quot; or symbolic links.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getpgid">
+  <a href="index.html#/val:getpgid" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> getpgid : int <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;netsys_getpgid&quot; 
+    
+      <div class="doc">
+        
+      <p>Return the process group ID of the process with the passed PID.
+For the number 0, the process group ID of the current process is
+returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getpgrp">
+  <a href="index.html#/val:getpgrp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getpgrp : unit <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Same as <code>getpgid 0</code>, i.e. returns the process group ID of the
+current process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setpgid">
+  <a href="index.html#/val:setpgid" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> setpgid : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_setpgid&quot; 
+    
+      <div class="doc">
+        
+      <p><code>setpgid pid pgid</code>: Set the process group ID of the process <code>pid</code>
+to <code>pgid</code>. If <code>pid = 0</code>, the process group ID of the current process
+is changed. If <code>pgid = 0</code>, as process group ID the process ID of the
+process referenced by <code>pid</code> is used.</p>
+      
+      <p>It is only possible for a process to join a process group if both
+belong to the same session.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setpgrp">
+  <a href="index.html#/val:setpgrp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setpgrp : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>setpgid 0 0</code>: A new process group ID is created, and the
+current process becomes its sole member.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcgetpgrp">
+  <a href="index.html#/val:tcgetpgrp" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> tcgetpgrp : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;netsys_tcgetpgrp&quot; 
+    
+      <div class="doc">
+        
+      <p>Return the process group ID of the foreground process group of
+the session associated with the file descriptor, which must be
+a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tcsetpgrp">
+  <a href="index.html#/val:tcsetpgrp" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> tcsetpgrp : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_tcsetpgrp&quot; 
+    
+      <div class="doc">
+        
+      <p>Sets the foreground process group ID of the session associated
+with the file descriptor, which must be a tty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ctermid">
+  <a href="index.html#/val:ctermid" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> ctermid : unit <span class="rarr"><span>-&gt;</span></span> string
+    = &quot;netsys_ctermid&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns the name of the controlling tty of the current process
+as pathname to a device file</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ttyname">
+  <a href="index.html#/val:ttyname" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> ttyname : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string
+    = &quot;netsys_ttyname&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns the name of the controlling tty referred to by the
+file descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getsid">
+  <a href="index.html#/val:getsid" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> getsid : int <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;netsys_getsid&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns the session ID of the process with the passed PID.
+For the PID 0, the session ID of the current process is returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_tty">
+  <a href="index.html#/val:with_tty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_tty : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>with_tty f</code>: Runs <code>f fd</code> where <code>fd</code> is the terminal of the process.
+If the process does not have a terminal (because it is a daemon)
+<code>with_tty</code> will fail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tty_read_password">
+  <a href="index.html#/val:tty_read_password" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tty_read_password : ?tty:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>tty_read_password prompt</code>: If <code>tty</code> is a terminal, the <code>prompt</code>
+is printed, and a password is read from the terminal (echo off).
+If <code>tty</code> is not a terminal, no <code>prompt</code> is printed, and just a
+line is read from the <code>tty</code> descriptor (non-interactive case).</p>
+      
+      <p><code>tty</code> defaults to <code>Unix.stdin</code>. If this function is used in a
+program where stdin is not redirected, and the program is started
+in a terminal, it will read the password with prompt and
+echo disabled. If stdin is redirected, it is assumed that the program is
+used in a script, and the password is piped into it.</p>
+      
+      <p>Use in conjunction with <code>with_tty</code> to ensure that <code>tty</code> is
+the terminal even if a redirection is in effect, e.g.
+</p>
+      <pre><code>with_tty (fun tty -&gt; tty_read_password ~tty prompt)</code></pre>
+      <p>Raises <code>Sys.Break</code> if the user triggers SIGINT (i.e. presses
+CTRL-C) to abort the input of a password.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:posix_openpt">
+  <a href="index.html#/val:posix_openpt" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> posix_openpt : bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    = &quot;netsys_posix_openpt&quot; 
+    
+      <div class="doc">
+        
+      <p><code>posix_openpt noctty</code>: Opens an unused PTY master.</p>
+      
+      <p><code>noctty</code>: If true, the descriptor will not become the controlling
+terminal.</p>
+      
+      <p>If this function is not provided by the OS, an emulation is used.</p>
+      
+      <p>On some OS, System V style PTY's are unavailable (but they get
+rare).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:grantpt">
+  <a href="index.html#/val:grantpt" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> grantpt : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_grantpt&quot; 
+    
+      <div class="doc">
+        
+      <p>Grant access to this PTY</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unlockpt">
+  <a href="index.html#/val:unlockpt" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unlockpt : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_unlockpt&quot; 
+    
+      <div class="doc">
+        
+      <p>Unlock a PTY master/slave pair</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ptsname">
+  <a href="index.html#/val:ptsname" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> ptsname : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string
+    = &quot;netsys_ptsname&quot; 
+    
+      <div class="doc">
+        
+      <p>Get the name of the slave PTY</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:node_type">
+  <a href="index.html#/type:node_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> node_type = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:node_type/cons:S_IFREG">
+  <a href="index.html#/type:node_type/cons:S_IFREG" class="anchor">#</a>
+  | S_IFREG
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:node_type/cons:S_IFCHR">
+  <a href="index.html#/type:node_type/cons:S_IFCHR" class="anchor">#</a>
+  | S_IFCHR <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:node_type/cons:S_IFBLK">
+  <a href="index.html#/type:node_type/cons:S_IFBLK" class="anchor">#</a>
+  | S_IFBLK <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:node_type/cons:S_IFIFO">
+  <a href="index.html#/type:node_type/cons:S_IFIFO" class="anchor">#</a>
+  | S_IFIFO
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:node_type/cons:S_IFSOCK">
+  <a href="index.html#/type:node_type/cons:S_IFSOCK" class="anchor">#</a>
+  | S_IFSOCK
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mknod">
+  <a href="index.html#/val:mknod" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> mknod : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:node_type">node_type</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_mknod&quot; 
+    
+      <div class="doc">
+        
+      <p>Creates the node with the given permissions and the given type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setreuid">
+  <a href="index.html#/val:setreuid" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> setreuid : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_setreuid&quot; 
+    
+      <div class="doc">
+        
+      <p>Changes both the real and the effective user ID of the current
+process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setregid">
+  <a href="index.html#/val:setregid" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> setregid : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_setregid&quot; 
+    
+      <div class="doc">
+        
+      <p>Changes both the real and the effective group ID of the current
+process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:initgroups">
+  <a href="index.html#/val:initgroups" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> initgroups : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_initgroups&quot; 
+    
+      <div class="doc">
+        
+      <p>See initgroups(3). This is a non-POSIX function but widely
+available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">The &quot;at&quot; variants of system calls</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Note that a few &quot;at&quot; calls have been omitted because the same
+functionality can be achieved by first opening the file with
+<code>openat</code> and then by using a function that references the file
+by descriptor. An example for this is <code>fstatat</code>: After the
+<code>openat</code> call one can use <code>fstat</code> to get the stat record of the
+file.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:have_at">
+  <a href="index.html#/val:have_at" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_at : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the <code>*at</code> functions are available (they were only recently
+standardized and cannot be expected on all OS yet)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:at_fdcwd">
+  <a href="index.html#/val:at_fdcwd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> at_fdcwd : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Pseudo descriptor value to be used as first argument of <code>*at</code>
+functions</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:at_flag">
+  <a href="index.html#/type:at_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> at_flag = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:at_flag/cons:AT_EACCESS">
+  <a href="index.html#/type:at_flag/cons:AT_EACCESS" class="anchor">#</a>
+  | AT_EACCESS
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:at_flag/cons:AT_SYMLINK_NOFOLLOW">
+  <a href="index.html#/type:at_flag/cons:AT_SYMLINK_NOFOLLOW" class="anchor">#</a>
+  | AT_SYMLINK_NOFOLLOW
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:at_flag/cons:AT_REMOVEDIR">
+  <a href="index.html#/type:at_flag/cons:AT_REMOVEDIR" class="anchor">#</a>
+  | AT_REMOVEDIR
+  </div>
+  </td><td>(*</td><td class="doc">Flags one can pass to &quot;at&quot; functions. Not all functions support
+all flags</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:openat">
+  <a href="index.html#/val:openat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> openat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:open_flag">open_flag</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_perm">file_perm</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>Unix.openfile</code> but open relative to the directory given
+by first argument</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:faccessat">
+  <a href="index.html#/val:faccessat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> faccessat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:access_permission">access_permission</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:at_flag">at_flag</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>Unix.access</code> but the file is taken relative to the directory
+given by first argument</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mkdirat">
+  <a href="index.html#/val:mkdirat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mkdirat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>Unix.mkdir</code> but the file is taken relative to the directory
+given by first argument</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:renameat">
+  <a href="index.html#/val:renameat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> renameat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>renameat olddirfd oldpath newdirfd newpath</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:linkat">
+  <a href="index.html#/val:linkat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linkat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:at_flag">at_flag</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>linkat olddirfd oldpath newdirfd newpath flags</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unlinkat">
+  <a href="index.html#/val:unlinkat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlinkat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:at_flag">at_flag</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>Unix.unlink</code> but unlink the file relative to the directory
+given by first argument</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:symlinkat">
+  <a href="index.html#/val:symlinkat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> symlinkat : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>symlinkat oldpath newdirfd newpath flags</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mkfifoat">
+  <a href="index.html#/val:mkfifoat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mkfifoat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>mkfifoat dirfd path mode</code></p>
+      
+      <p>NB. MacOS 10.10 doesn't support mkfifoat although the other &quot;at&quot; functions
+are implemented. Be prepared to get <code>Invalid_argument</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:readlinkat">
+  <a href="index.html#/val:readlinkat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> readlinkat : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>readlinkat dirfd path</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">File descriptor polling</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:poll_array">
+  <a href="index.html#/type:poll_array" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> poll_array
+    
+      <div class="doc">
+        
+      <p>The array of <code>poll_cell</code> entries</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:poll_req_events">
+  <a href="index.html#/type:poll_req_events" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> poll_req_events
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:poll_act_events">
+  <a href="index.html#/type:poll_act_events" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> poll_act_events
+    
+      <div class="doc">
+        
+      <p>Poll events. <code>poll_req_events</code> is used to request that certain
+event types are observed. <code>poll_act_event</code> shows which
+event types are actually possible</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:poll_cell">
+  <a href="index.html#/type:poll_cell" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> poll_cell = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:poll_cell/field:poll_fd">
+  <a href="index.html#/type:poll_cell/field:poll_fd" class="anchor">#</a>
+  <span class="keyword">mutable</span> poll_fd
+  </div>
+  </td><td>: <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:poll_cell/field:poll_req_events">
+  <a href="index.html#/type:poll_cell/field:poll_req_events" class="anchor">#</a>
+  <span class="keyword">mutable</span> poll_req_events
+  </div>
+  </td><td>: <a href="index.html#/type:poll_req_events">poll_req_events</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:poll_cell/field:poll_act_events">
+  <a href="index.html#/type:poll_cell/field:poll_act_events" class="anchor">#</a>
+  <span class="keyword">mutable</span> poll_act_events
+  </div>
+  </td><td>: <a href="index.html#/type:poll_act_events">poll_act_events</a></td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>The poll cell refers to the descriptor <code>poll_fd</code>. The <code>poll_req_events</code>
+are the events the descriptor is polled for. The <code>poll_act_events</code>
+are the actually reported events.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:have_poll">
+  <a href="index.html#/val:have_poll" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_poll : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether there is a native <code>poll</code> implementation on this OS</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_req_events">
+  <a href="index.html#/val:poll_req_events" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_req_events : bool <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_req_events">poll_req_events</a>
+    
+      <div class="doc">
+        
+      <p><code>poll_req_events rd wr pri</code>: Create a set of in events consisting
+of the bits <code>rd</code>, <code>wr</code>, and <code>pri</code>. <code>rd</code> means to poll for
+input data, <code>wr</code> to poll for output data, and <code>pri</code> to poll for urgent
+input data.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_req_triple">
+  <a href="index.html#/val:poll_req_triple" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_req_triple : <a href="index.html#/type:poll_req_events">poll_req_events</a> <span class="rarr"><span>-&gt;</span></span> bool * bool * bool
+    
+      <div class="doc">
+        
+      <p>Looks into a <code>poll_req_events</code> value, and returns the triple
+<code>(rd,wr,pri)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_null_events">
+  <a href="index.html#/val:poll_null_events" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_null_events : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_act_events">poll_act_events</a>
+    
+      <div class="doc">
+        
+      <p>Create an empty set of <code>poll_act_events</code>, for initilization
+of poll cells.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_result">
+  <a href="index.html#/val:poll_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_result : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Look whether there is any event in <code>poll_out_events</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_rd_result">
+  <a href="index.html#/val:poll_rd_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_rd_result : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_wr_result">
+  <a href="index.html#/val:poll_wr_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_wr_result : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_pri_result">
+  <a href="index.html#/val:poll_pri_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_pri_result : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_err_result">
+  <a href="index.html#/val:poll_err_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_err_result : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_hup_result">
+  <a href="index.html#/val:poll_hup_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_hup_result : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_nval_result">
+  <a href="index.html#/val:poll_nval_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_nval_result : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Look for the bit in <code>poll_act_events</code> and return the status</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_poll_array">
+  <a href="index.html#/val:create_poll_array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_poll_array : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_array">poll_array</a>
+    
+      <div class="doc">
+        
+      <p>Create a poll array with the given size. The <code>poll_fd</code> member is
+initialized with <code>Unix.stdin</code>, and the two event members are empty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_poll_cell">
+  <a href="index.html#/val:set_poll_cell" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_poll_cell : <a href="index.html#/type:poll_array">poll_array</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_cell">poll_cell</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_poll_cell a k c</code>: Sets the poll cell <code>k</code> to <code>c</code>.
+The index <code>k</code> must be in the range from <code>0</code> to <code>N-1</code> when <code>N</code> is the
+length of the poll array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_poll_cell">
+  <a href="index.html#/val:get_poll_cell" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_poll_cell : <a href="index.html#/type:poll_array">poll_array</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_cell">poll_cell</a>
+    
+      <div class="doc">
+        
+      <p><code>get_poll_cell a k</code>: Returns the poll cell <code>k</code>.
+The index <code>k</code> must be in the range from <code>0</code> to <code>N-1</code> when <code>N</code> is the
+length of the poll array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_poll_array">
+  <a href="index.html#/val:blit_poll_array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_poll_array : <a href="index.html#/type:poll_array">poll_array</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_array">poll_array</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>blit_poll_array a1 p1 a2 p2 len</code>: Copies the <code>len</code> cells at index <code>p1</code>
+from <code>a1</code> to <code>a2</code> at index <code>p2</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_array_length">
+  <a href="index.html#/val:poll_array_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_array_length : <a href="index.html#/type:poll_array">poll_array</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Return the number of cells in the poll array</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll">
+  <a href="index.html#/val:poll" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll : <a href="index.html#/type:poll_array">poll_array</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>poll a n tmo</code>: Poll for the events of the cells 0 to <code>n-1</code> of
+poll array <code>a</code>, and set the <code>poll_act_events</code> member of all cells.
+Wait for at most <code>tmo</code> seconds (a negative value means there is
+no timeout). Returns the number of ready file descriptors.</p>
+      
+      <p>On platforms without native support for <code>poll</code> the function is
+emulated using <code>Unix.select</code>. Note, however, that there is a
+performance penalty for the emulation, and that the output
+flags <code>poll_error_result</code>, <code>poll_hangup_result</code>, and
+<code>poll_invalid_result</code> are not emulated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:restarting_poll">
+  <a href="index.html#/val:restarting_poll" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> restarting_poll : <a href="index.html#/type:poll_array">poll_array</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>A wrapper around <code>poll</code> that handles the <code>EINTR</code> condition</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_single">
+  <a href="index.html#/val:poll_single" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_single : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>poll_single fd rd wr pri tmo</code>: Polls a single descriptor for the
+events given by <code>rd</code>, <code>wr</code>, and <code>pri</code>. In <code>tmo</code> the timeout can be
+passed. Returns <code>true</code> if one of the requested events is indicated
+for the descriptor. The <code>EINTR</code> case is not handled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Actually, <code>poll_req_events</code> and <code>poll_act_events</code> are integers that
+are bitmasks of some constants. The following functions allow access to
+this detail.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:int_of_req_events">
+  <a href="index.html#/val:int_of_req_events" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_of_req_events : <a href="index.html#/type:poll_req_events">poll_req_events</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int_of_act_events">
+  <a href="index.html#/val:int_of_act_events" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_of_act_events : <a href="index.html#/type:poll_act_events">poll_act_events</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:req_events_of_int">
+  <a href="index.html#/val:req_events_of_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> req_events_of_int : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_req_events">poll_req_events</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:act_events_of_int">
+  <a href="index.html#/val:act_events_of_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> act_events_of_int : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_act_events">poll_act_events</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:const_rd_event">
+  <a href="index.html#/val:const_rd_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const_rd_event : int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:const_wr_event">
+  <a href="index.html#/val:const_wr_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const_wr_event : int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:const_pri_event">
+  <a href="index.html#/val:const_pri_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const_pri_event : int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:const_err_event">
+  <a href="index.html#/val:const_err_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const_err_event : int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:const_hup_event">
+  <a href="index.html#/val:const_hup_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const_hup_event : int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:const_nval_event">
+  <a href="index.html#/val:const_nval_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const_nval_event : int
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Event aggregation</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Support for &quot;high-speed&quot; poll implementations. Currently, only
+<code>epoll</code> for Linux is supported.</p>
+      
+      <p>The model exhibited in this API is the smallest common denominator
+of Linux epoll, BSD kqueue, and Solaris ports. The <code>event_aggregator</code>
+represents the set of monitored event sources. There is, so far,
+only one source, namely file descriptors, i.e. one can check whether
+a descriptor is readable or writable (like <code>poll</code>). The source can
+be added to the <code>event_aggregator</code> to monitor the source.</p>
+      
+      <p>By calling <code>poll_event_sources</code> one can determine sources that
+are currently active (i.e. in signalling state).</p>
+      
+      <p>It is undefined what happens when a file descriptor is closed while
+being member of the aggregator.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:event_aggregator">
+  <a href="index.html#/type:event_aggregator" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> event_aggregator
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:event_source">
+  <a href="index.html#/type:event_source" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> event_source
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:have_event_aggregation">
+  <a href="index.html#/val:have_event_aggregation" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_event_aggregation : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether there is an implementation for this OS</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_event_aggregator">
+  <a href="index.html#/val:create_event_aggregator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_event_aggregator : bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event_aggregator">event_aggregator</a>
+    
+      <div class="doc">
+        
+      <p><code>create_event_aggregator is_interruptible</code>: Creates a new aggregator,
+and allocates the required OS resources.</p>
+      
+      <p>If <code>is_interruptible</code>, the aggregator can be interrupted from a
+different thread. See <code>interrupt_event_aggregator</code> below.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy_event_aggregator">
+  <a href="index.html#/val:destroy_event_aggregator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy_event_aggregator : <a href="index.html#/type:event_aggregator">event_aggregator</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Frees all OS resources</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fd_event_source">
+  <a href="index.html#/val:fd_event_source" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fd_event_source : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_req_events">poll_req_events</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event_source">event_source</a>
+    
+      <div class="doc">
+        
+      <p>Wraps a file descriptor as event_source, and monitors the
+events in <code>poll_req_events</code>.</p>
+      
+      <p>The <code>event_source</code> contains
+state about the relation to the aggregator, and because of this,
+the <code>event_source</code> should only be used together with one aggregator
+(at a time).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:modify_fd_event_source">
+  <a href="index.html#/val:modify_fd_event_source" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> modify_fd_event_source : <a href="index.html#/type:event_source">event_source</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_req_events">poll_req_events</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Modifies the set of events monitored at this event source</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_fd_of_event_source">
+  <a href="index.html#/val:get_fd_of_event_source" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_fd_of_event_source : <a href="index.html#/type:event_source">event_source</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Get the file descriptor wrapped by this event source</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:act_events_of_event_source">
+  <a href="index.html#/val:act_events_of_event_source" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> act_events_of_event_source : <a href="index.html#/type:event_source">event_source</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:poll_act_events">poll_act_events</a>
+    
+      <div class="doc">
+        
+      <p>Return the actual events of the source. This is updated when
+<code>poll_event_sources</code> returns the source.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_event_source">
+  <a href="index.html#/val:add_event_source" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_event_source : <a href="index.html#/type:event_aggregator">event_aggregator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event_source">event_source</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds the event source to the aggregator</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:del_event_source">
+  <a href="index.html#/val:del_event_source" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> del_event_source : <a href="index.html#/type:event_aggregator">event_aggregator</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event_source">event_source</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Removes the source from the aggregator</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:interrupt_event_aggregator">
+  <a href="index.html#/val:interrupt_event_aggregator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> interrupt_event_aggregator : <a href="index.html#/type:event_aggregator">event_aggregator</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>If <code>create_event_aggregator</code> was called with <code>true</code> as argument, the
+aggregator is interruptible, and this function interrupts it. The
+effect is that a currently running <code>poll_event_sources</code>, or, if
+it is not running, the next invocation of <code>poll_event_sources</code>
+returns immediately.</p>
+      
+      <p>If the aggregator is not interruptible, this function is a NOP.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:push_event_updates">
+  <a href="index.html#/val:push_event_updates" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> push_event_updates : <a href="index.html#/type:event_aggregator">event_aggregator</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pushes all modifications of the sources to the kernel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:poll_event_sources">
+  <a href="index.html#/val:poll_event_sources" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> poll_event_sources : <a href="index.html#/type:event_aggregator">event_aggregator</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:event_source">event_source</a> list
+    
+      <div class="doc">
+        
+      <p><code>poll_event_sources ea tmo</code>: First, all modifications are pushed
+to the kernel, and polling is set up to get events. If no events
+can currently be delivered, the function waits up to <code>tmo</code> seconds
+(or endlessly if negative) for events. The function returns only a
+limited number of events at a time. It is allowed that the function
+returns fewer events than are currently in signalled state, even
+none.</p>
+      
+      <p>Call the function with <code>tmo=0.0</code> for non-blocking behavior.</p>
+      
+      <p>Note that this is the &quot;level-triggered&quot; behavior: If a source
+remains active it will be reported again by the next <code>poll_event_sources</code>,
+just as <code>poll</code> would do.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:event_aggregator_fd">
+  <a href="index.html#/val:event_aggregator_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> event_aggregator_fd : <a href="index.html#/type:event_aggregator">event_aggregator</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the underlying file descriptor. It is implementation-defined
+whether this descriptor can also be polled for events. Generally,
+you should run <code>push_event_updates</code> before polling from the descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Fork helpers</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Ocamlnet invokes <code>Unix.fork</code> at some places to create child processes
+for doing real work. The following functions
+allow it to register a handler that is run in the forked child
+process. Note that this is done by the O'caml code calling <code>fork</code>,
+and not via the POSIX <code>atfork()</code> facility.</p>
+      
+      <p>The handler should release OS resources like file descriptors that
+are by default shared with the parent process.</p>
+      
+      <p>The handler are not invoked when the only purpose of the <code>fork</code> is
+to <code>exec</code> a different process.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:post_fork_handler">
+  <a href="index.html#/classtype:post_fork_handler" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> post_fork_handler = 
+  <div class="region" id="/classtype:post_fork_handler/method:name">
+  <a href="index.html#/classtype:post_fork_handler/method:name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> name : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:post_fork_handler/method:run">
+  <a href="index.html#/classtype:post_fork_handler/method:run" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> run : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A <code>post_fork_handler</code> is a named function <code>unit -&gt; unit</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:register_post_fork_handler">
+  <a href="index.html#/val:register_post_fork_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> register_post_fork_handler : <a href="index.html#/classtype:post_fork_handler">post_fork_handler</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Registers a new post fork handler (MT-Safe)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove_post_fork_handler">
+  <a href="index.html#/val:remove_post_fork_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove_post_fork_handler : <a href="index.html#/classtype:post_fork_handler">post_fork_handler</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Removes a post fork handler from the registry (MT-Safe)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run_post_fork_handlers">
+  <a href="index.html#/val:run_post_fork_handlers" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run_post_fork_handlers : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Runs all post fork handlers. Exceptions are caught and printed to
+stderr.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Fork+exec</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following function has some similarity with posix_spawn, but
+is extended to our needs, Only special (although frequent) cases
+are implemented with posix_spawn.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:wd_spec">
+  <a href="index.html#/type:wd_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> wd_spec = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:wd_spec/cons:Wd_keep">
+  <a href="index.html#/type:wd_spec/cons:Wd_keep" class="anchor">#</a>
+  | Wd_keep
+  </div>
+  </td><td>(*</td><td class="doc">Keep the current working directory in the spawned process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:wd_spec/cons:Wd_chdir">
+  <a href="index.html#/type:wd_spec/cons:Wd_chdir" class="anchor">#</a>
+  | Wd_chdir <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">Change to this directory in the spawned process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:wd_spec/cons:Wd_fchdir">
+  <a href="index.html#/type:wd_spec/cons:Wd_fchdir" class="anchor">#</a>
+  | Wd_fchdir <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">Change to the directory which has been previously been opened</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:pg_spec">
+  <a href="index.html#/type:pg_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> pg_spec = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:pg_spec/cons:Pg_keep">
+  <a href="index.html#/type:pg_spec/cons:Pg_keep" class="anchor">#</a>
+  | Pg_keep
+  </div>
+  </td><td>(*</td><td class="doc">The new process will be member of the same process group as
+this process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:pg_spec/cons:Pg_new_bg_group">
+  <a href="index.html#/type:pg_spec/cons:Pg_new_bg_group" class="anchor">#</a>
+  | Pg_new_bg_group
+  </div>
+  </td><td>(*</td><td class="doc">A new background process group is created, and the spawned
+process will be its single member</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:pg_spec/cons:Pg_new_fg_group">
+  <a href="index.html#/type:pg_spec/cons:Pg_new_fg_group" class="anchor">#</a>
+  | Pg_new_fg_group
+  </div>
+  </td><td>(*</td><td class="doc">A new foreground process group is created, and the spawned
+process will be its single member</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:pg_spec/cons:Pg_join_group">
+  <a href="index.html#/type:pg_spec/cons:Pg_join_group" class="anchor">#</a>
+  | Pg_join_group <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">The spawned process will be member of this process group</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:fd_action">
+  <a href="index.html#/type:fd_action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> fd_action = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:fd_action/cons:Fda_close">
+  <a href="index.html#/type:fd_action/cons:Fda_close" class="anchor">#</a>
+  | Fda_close <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">Close the descriptor</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:fd_action/cons:Fda_close_ignore">
+  <a href="index.html#/type:fd_action/cons:Fda_close_ignore" class="anchor">#</a>
+  | Fda_close_ignore <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">Close the descriptor but ignore <code>EBADF</code> errors</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:fd_action/cons:Fda_close_except">
+  <a href="index.html#/type:fd_action/cons:Fda_close_except" class="anchor">#</a>
+  | Fda_close_except <span class="keyword">of</span> bool array
+  </div>
+  </td><td>(*</td><td class="doc">Closes all descriptors except those for which
+<code>except.(k)</code> is true where <code>k = int_of_file_descr fd</code>.
+Descriptors outside the array index range are closed.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:fd_action/cons:Fda_dup2">
+  <a href="index.html#/type:fd_action/cons:Fda_dup2" class="anchor">#</a>
+  | Fda_dup2 <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  </div>
+  </td><td>(*</td><td class="doc">Duplicate the first descriptor to the second as <code>dup2</code> does</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sig_action">
+  <a href="index.html#/type:sig_action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sig_action = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:sig_action/cons:Sig_default">
+  <a href="index.html#/type:sig_action/cons:Sig_default" class="anchor">#</a>
+  | Sig_default <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">Resets this signal to default behavior in the spawned process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:sig_action/cons:Sig_ignore">
+  <a href="index.html#/type:sig_action/cons:Sig_ignore" class="anchor">#</a>
+  | Sig_ignore <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">Ignores the signal in the spawned process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:sig_action/cons:Sig_mask">
+  <a href="index.html#/type:sig_action/cons:Sig_mask" class="anchor">#</a>
+  | Sig_mask <span class="keyword">of</span> int list
+  </div>
+  </td><td>(*</td><td class="doc">Set the signal mask in the spawned process</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:spawn">
+  <a href="index.html#/val:spawn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> spawn : ?chdir:<a href="index.html#/type:wd_spec">wd_spec</a> <span class="rarr"><span>-&gt;</span></span> ?pg:<a href="index.html#/type:pg_spec">pg_spec</a> <span class="rarr"><span>-&gt;</span></span> ?fd_actions:<a href="index.html#/type:fd_action">fd_action</a> list <span class="rarr"><span>-&gt;</span></span> ?sig_actions:<a href="index.html#/type:sig_action">sig_action</a> list <span class="rarr"><span>-&gt;</span></span> ?env:string array <span class="rarr"><span>-&gt;</span></span> ?no_posix_spawn:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string array <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>spawn cmd args</code>: Fork the process and exec <code>cmd</code> which gets the
+arguments <code>args</code>. On success, the PID of the new process is returned.
+This function does not wait for the completion of the process; use
+<code>Unix.waitpid</code> for this purpose.</p>
+      <ul><li><code>chdir</code>: If set, the new process starts with this working directory
+(this is done before anything else)</li><li><code>pg</code>: If set, the new process will be a member of this process group</li><li><code>fd_actions</code>: If set, these descriptor actions are executed
+sequentially</li><li><code>sig_actions</code>: If set, these signal actions are executed sequentially</li><li><code>env</code>: If set, the process gets this environment instead of the
+current one</li><li><code>no_posix_spawn</code>: If set, the <code>posix_spawn</code> family of library
+functions is not used to spawn even if possible, and always a
+<code>fork/exec</code> approach is taken. This may be slower, but there is
+normally better error reporting.</li></ul>
+      <p>Any exceptions in the subprocess are detected, and reported. However,
+if <code>Fda_close_ignore</code> leads to <code>EBADF</code> for a descriptor, this error is
+ignored.</p>
+      
+      <p>If <code>pg=Pg_new_fg_group</code>, one should include <code>Sig_ignore Sys.sigttou</code>
+in <code>sig_actions</code>.</p>
+      
+      <p>There are two implementations for <code>spawn</code>: One calls <code>fork</code> and <code>exec</code>
+directly, and one uses the <code>posix_spawn</code> family of library functions.
+The latter is faster on certain conditions, but this is very OS-specific.
+A number of features are not supported by <code>posix_spawn</code> and will force
+that <code>fork/exec</code> is used: <code>Wd_chdir</code>, <code>Wd_fchdir</code>, <code>Pg_new_fg_group</code>,
+and <code>Sig_ignore</code>. However, note some implementations of <code>posix_spawn</code>
+also fall back to <code>fork/exec</code> internally for some combinations of flags,
+and it is hard to predict which spawn calls can actually be accelerated.
+The tendency, though, is that recent OS have sped up <code>posix_spawn</code>
+so far possible (e.g. by using <code>vfork</code> internally, or even by making
+<code>posix_spawn</code> a system call).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Notification via file descriptor events</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Often, it is advantageous to report asynchronous events via
+file descriptors. On Linux, this is available via the <code>eventfd</code>
+system call. On other platforms, pipes are used for emulation.</p>
+      
+      <p>A <code>not_event</code> can have two states: off and on. Initially, the
+<code>not_event</code> is off. By signalling it, the state changes to on,
+and the underlying real file descriptor becomes readable.
+By consuming the event, the state is switched back to off.</p>
+      
+      <p>Note that a similar API exists for Win32: See <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/type:w32_event">w32_event</a>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:not_event">
+  <a href="index.html#/type:not_event" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> not_event
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_event">
+  <a href="index.html#/val:create_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_event : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:not_event">not_event</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new event file descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_nonblock_event">
+  <a href="index.html#/val:set_nonblock_event" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> set_nonblock_event : <a href="index.html#/type:not_event">not_event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_set_nonblock_not_event&quot; 
+    
+      <div class="doc">
+        
+      <p>Sets the event fd to non-blocking mode</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_event_fd">
+  <a href="index.html#/val:get_event_fd" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> get_event_fd : <a href="index.html#/type:not_event">not_event</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    = &quot;netsys_get_not_event_fd&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns a duplicate of the underlying file descriptor. This should only
+be used for one thing: checking whether the desciptor becomes readable.
+As this is a duplicate, the caller has to close the descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_event">
+  <a href="index.html#/val:set_event" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> set_event : <a href="index.html#/type:not_event">not_event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_set_not_event&quot; 
+    
+      <div class="doc">
+        
+      <p>Signals the event</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_event">
+  <a href="index.html#/val:wait_event" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> wait_event : <a href="index.html#/type:not_event">not_event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_wait_not_event&quot; 
+    
+      <div class="doc">
+        
+      <p>If the event fd is not signalled, the function blocks until
+it gets signalled, even in non-blocking mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:consume_event">
+  <a href="index.html#/val:consume_event" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> consume_event : <a href="index.html#/type:not_event">not_event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_consume_not_event&quot; 
+    
+      <div class="doc">
+        
+      <p>Consumes the event, and switches the event fd to off again.
+If the event fd is not signalled, the function blocks until
+it gets signalled (in blocking mode), or it raises <code>EAGAIN</code>
+or <code>EWOULDBLOCK</code> (in non-blocking mode).</p>
+      
+      <p>This is effectively an atomic &quot;wait-and-reset&quot; operation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy_event">
+  <a href="index.html#/val:destroy_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy_event : <a href="index.html#/type:not_event">not_event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Releases the OS resources. Note that there can be a hidden second
+file descriptor, so closing the descriptor returned by <code>get_event_fd</code>
+is not sufficient.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:report_signal_as_event">
+  <a href="index.html#/val:report_signal_as_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> report_signal_as_event : <a href="index.html#/type:not_event">not_event</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>report_signal_as_event ev sig</code> Installs a new signal handler for
+signal <code>sig</code> so that <code>ev</code> is signalled when a signal arrives.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Notification queues</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Unimplemented, but a spec exists. Notification queues are intended
+for forwarding events from C level to OCaml level. Possible uses:</p>
+      <ul><li>POSIX timers</li><li>Realtime signals</li><li>Subprocess monitoring</li><li>AIO completion</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Subprocesses and signals</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Watching subprocesses requires that the right signal handler is
+installed: <code>install_subprocess_handler</code></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:watched_subprocess">
+  <a href="index.html#/type:watched_subprocess" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> watched_subprocess
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:watch_subprocess">
+  <a href="index.html#/val:watch_subprocess" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> watch_subprocess : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="index.html#/type:watched_subprocess">watched_subprocess</a>
+    
+      <div class="doc">
+        
+      <p><code>let fd, ws = watch_subprocess pid pgid kill_flag</code>:
+Enters the subprocess <code>pid</code>
+into the watch list. If <code>pgid &gt; 0</code>, the process group ID is
+<code>pgid</code> (for <code>killpg_subprocess</code> and <code>killpg_all_subprocesses</code>).
+The <code>kill_flag</code> controls the process selection of
+<code>kill_all_subprocesses</code> and <code>killpg_all_subprocesses</code>.</p>
+      
+      <p>The returned descriptor <code>fd</code> is open for reading and
+will indicate EOF when the subprocess is terminated. Via <code>ws</code>
+it is possible to query information about the subprocess. The
+installed signal handler will <code>wait</code> for the subprocess and
+put the process status into <code>ws</code>.</p>
+      
+      <p>The caller has to close <code>fd</code> after the termination is signaled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ignore_subprocess">
+  <a href="index.html#/val:ignore_subprocess" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ignore_subprocess : <a href="index.html#/type:watched_subprocess">watched_subprocess</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Changes the arrangement so that the termination of the subprocess
+is no longer reported by the file descriptor. The file descriptor
+indicates EOF immediately (and can be closed by the caller).
+Nevertheless, the signal handler still <code>wait</code>s for the subprocess
+to avoid zombies.</p>
+      
+      <p>Any further access to <code>ws</code> will fail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:forget_subprocess">
+  <a href="index.html#/val:forget_subprocess" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> forget_subprocess : <a href="index.html#/type:watched_subprocess">watched_subprocess</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Frees OS resources. Any further access to the <code>ws</code> will fail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_subprocess_status">
+  <a href="index.html#/val:get_subprocess_status" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_subprocess_status : <a href="index.html#/type:watched_subprocess">watched_subprocess</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a> option
+    
+      <div class="doc">
+        
+      <p>If the subprocess is terminated, this function returns the status.
+Otherwise <code>None</code> is returned</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_subprocess">
+  <a href="index.html#/val:kill_subprocess" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_subprocess : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:watched_subprocess">watched_subprocess</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sends this signal to the subprocess if this process still exists.
+Never throws an exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:killpg_subprocess">
+  <a href="index.html#/val:killpg_subprocess" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> killpg_subprocess : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:watched_subprocess">watched_subprocess</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sends this signal to the process group of the subprocess if there
+is still a watched subprocess belonging to this group.
+Never throws an exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:kill_all_subprocesses">
+  <a href="index.html#/val:kill_all_subprocesses" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> kill_all_subprocesses : int <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>kill_all_subprocess signal override nogroup</code>:
+Sends a signal to potentially
+all subprocesses. The signal is sent to a watched process if the process
+still exists, and these two conditions hold both:</p>
+      <ul><li><code>not nogroup || pgid = 0</code>: Processes with <code>pgid &gt; 0</code> are excluded
+if <code>nogroup</code> is set</li><li><code>kill_flag || override</code>: A process needs to have
+<code>kill_flag</code> set, or <code>override</code> is specified</li></ul>
+      <p>Never throws an exception if the signal handler is installed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:killpg_all_subprocesses">
+  <a href="index.html#/val:killpg_all_subprocesses" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> killpg_all_subprocesses : int <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>killpg_all_subprocess signal override</code>: Sends a signal to potentially
+all subprocesses belonging to a process group (i.e. <code>pgid&gt;0</code>).
+. The signal is sent to a process group if there are still watched
+subprocesses
+belonging to the group, and if either the <code>kill_flag</code> of any of the
+subprocesses process was set to <code>true</code>, or <code>override</code> is <code>true</code>.</p>
+      
+      <p>Never throws an exception if the signal handler is installed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:install_subprocess_handler">
+  <a href="index.html#/val:install_subprocess_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> install_subprocess_handler : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Installs a SIGCHLD handler for watching subprocesses. Note that only
+processes are <code>wait</code>ed for that are registered with
+<code>watch_subprocess</code>.</p>
+      
+      <p>The handler works both in the single-threaded and the multi-threaded
+case. <code>install_subprocess_handler</code> can safely called several times.
+The handler is installed every time the function is called, but the
+required data structures are only initialized at the first call.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:register_subprocess_handler">
+  <a href="index.html#/val:register_subprocess_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> register_subprocess_handler : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Uses the [root:Netsys_signal] framework to manage the installation of
+the SIGCHLD handler.</p>
+      
+      <p>This is the preferred method of installing the SIGCHLD handler.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Further notes.</b></p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The subprocess handler and <code>fork()</code>: The subprocess handler uses
+pipes for notification, and because of this it is sensitive to
+unpredicted duplicates of the pipe descriptors. <code>fork()</code> duplicates
+these pipe descriptors. If nothing is done about this issue, it
+can happen that the notification does not work anymore as it relies
+on detecting closed pipes.</p>
+      
+      <p>If <code>fork()</code> is immediately followed by <code>exec()</code> (as it is done
+to run subcommands), the problem does not occur, because the relevant
+descriptors are closed at <code>exec()</code> time.</p>
+      
+      <p>If <code>fork()</code> is used to start worker processes, however, we have
+to be careful. The descriptors need to be closed, so that the
+parent can continue to monitor subprocesses, and to allow the worker
+processes to use this mechanism. This module defines post fork
+handlers (see above), and a handler is automatically added that
+cleans the descriptors up. All user code has to do is to call
+<code>run_post_fork_handlers</code> immediately after <code>fork()</code> has spawned
+the new child, from the new child. This completely resets
+everything.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The subprocess handler and multi-threading: The handler has been
+carefully designed, and works even in multi-threaded programs.
+However, one should know that multi-threading and <code>fork()</code> do not
+interact well with each other. Again, the problems do not occur
+if <code>fork()</code> is followed by <code>exec()</code>. There is no solution for the
+case that worker processes are started with <code>fork()</code>, though.
+The (very generic) problem is that the state of mutexes and other
+multi-threading primitives is not well-defined after a <code>fork()</code>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Syslog</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:level">
+  <a href="index.html#/type:level" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> level = <a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/">Netlog</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netlog/#/type:level">level</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The log levels</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:syslog_facility">
+  <a href="index.html#/type:syslog_facility" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> syslog_facility = [ <div class="cons">| `Authpriv</div><div class="cons">| `Cron</div><div class="cons">| `Daemon</div><div class="cons">| `Ftp</div><div class="cons">| `Kern</div><div class="cons">| `Local0</div><div class="cons">| `Local1</div><div class="cons">| `Local2</div><div class="cons">| `Local3</div><div class="cons">| `Local4</div><div class="cons">| `Local5</div><div class="cons">| `Local6</div><div class="cons">| `Local7</div><div class="cons">| `Lpr</div><div class="cons">| `Mail</div><div class="cons">| `News</div><div class="cons">| `Syslog</div><div class="cons">| `User</div><div class="cons">| `Uucp</div><div class="cons">| `Default</div> ]
+    
+      <div class="doc">
+        
+      <p>The facilities. Only <code>`User</code> and <code>`Local0</code> to <code>`Local7</code> are
+standard POSIX. If a facility is unavailable it is silently
+substituted by <code>`Local0</code>. The value <code>`Default</code> leaves this unspecified.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:syslog_option">
+  <a href="index.html#/type:syslog_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> syslog_option = [ <div class="cons">| `Cons</div><div class="cons">| `Ndelay</div><div class="cons">| `Odelay</div><div class="cons">| `Nowait</div><div class="cons">| `Pid</div> ]
+    
+      <div class="doc">
+        
+      <p>The syslog options:</p>
+      <ul><li><code>`Cons</code>: Fall back to console logging if syslog is unavailable</li><li><code>`Ndelay</code>: Open the connection immediately</li><li><code>`Odelay</code>: Open the connection at the first call <code>syslog</code> (default)</li><li><code>`Nowait</code>: Do not wait until it is ensured that the message is
+sent</li><li><code>`Pid</code>: Log the PID with every message</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:openlog">
+  <a href="index.html#/val:openlog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> openlog : string option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:syslog_option">syslog_option</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:syslog_facility">syslog_facility</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>openlog ident options facility</code>: Opens a log stream. <code>ident</code> is
+prepended to every message if given (usually the program name).
+The <code>facility</code> is the default facility for <code>syslog</code> calls.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:syslog">
+  <a href="index.html#/val:syslog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> syslog : <a href="index.html#/type:syslog_facility">syslog_facility</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:level">level</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>syslog facility level message</code>: Logs <code>message</code> at <code>level</code> for
+<code>facility</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:closelog">
+  <a href="index.html#/val:closelog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> closelog : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Closes the log stream</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Usually, the log stream is redirected to syslog by either:</p>
+      <ul><li>setting <code>Netlog.current_logger</code> to <code>syslog facility</code>, e.g.
+<pre><code>Netlog.current_logger := Netsys_posix.syslog `User</code></pre></li><li>using the Netplex class for sending message to syslog (XXX)</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Sync</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:fsync">
+  <a href="index.html#/val:fsync" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fsync : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_fsync&quot; 
+    
+      <div class="doc">
+        
+      <p>Sync data and metadata to disk</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fdatasync">
+  <a href="index.html#/val:fdatasync" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fdatasync : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_fdatasync&quot; 
+    
+      <div class="doc">
+        
+      <p>Syncs only data to disk. If this is not implemented, same effect
+as <code>fsync</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Sending file descriptors over Unix domain sockets</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These functions can be used to send file descriptors from one process
+to another one. The descriptor <code>sock</code> must be a connected
+Unix domain socket.</p>
+      
+      <p>The functionality backing this is non-standard but widely available.</p>
+      
+      <p><b>Not yet implemented, but spec exists.</b></p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Optional POSIX functions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:have_fadvise">
+  <a href="index.html#/val:have_fadvise" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> have_fadvise : unit <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;netsys_have_posix_fadvise&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns whether the OS supports the fadvise POSIX option</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:advice">
+  <a href="index.html#/type:advice" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> advice = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:POSIX_FADV_NORMAL">
+  <a href="index.html#/type:advice/cons:POSIX_FADV_NORMAL" class="anchor">#</a>
+  | POSIX_FADV_NORMAL
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:POSIX_FADV_SEQUENTIAL">
+  <a href="index.html#/type:advice/cons:POSIX_FADV_SEQUENTIAL" class="anchor">#</a>
+  | POSIX_FADV_SEQUENTIAL
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:POSIX_FADV_RANDOM">
+  <a href="index.html#/type:advice/cons:POSIX_FADV_RANDOM" class="anchor">#</a>
+  | POSIX_FADV_RANDOM
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:POSIX_FADV_NOREUSE">
+  <a href="index.html#/type:advice/cons:POSIX_FADV_NOREUSE" class="anchor">#</a>
+  | POSIX_FADV_NOREUSE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:POSIX_FADV_WILLNEED">
+  <a href="index.html#/type:advice/cons:POSIX_FADV_WILLNEED" class="anchor">#</a>
+  | POSIX_FADV_WILLNEED
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:POSIX_FADV_DONTNEED">
+  <a href="index.html#/type:advice/cons:POSIX_FADV_DONTNEED" class="anchor">#</a>
+  | POSIX_FADV_DONTNEED
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:FADV_NORMAL">
+  <a href="index.html#/type:advice/cons:FADV_NORMAL" class="anchor">#</a>
+  | FADV_NORMAL
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:FADV_SEQUENTIAL">
+  <a href="index.html#/type:advice/cons:FADV_SEQUENTIAL" class="anchor">#</a>
+  | FADV_SEQUENTIAL
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:FADV_RANDOM">
+  <a href="index.html#/type:advice/cons:FADV_RANDOM" class="anchor">#</a>
+  | FADV_RANDOM
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:FADV_NOREUSE">
+  <a href="index.html#/type:advice/cons:FADV_NOREUSE" class="anchor">#</a>
+  | FADV_NOREUSE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:FADV_WILLNEED">
+  <a href="index.html#/type:advice/cons:FADV_WILLNEED" class="anchor">#</a>
+  | FADV_WILLNEED
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:advice/cons:FADV_DONTNEED">
+  <a href="index.html#/type:advice/cons:FADV_DONTNEED" class="anchor">#</a>
+  | FADV_DONTNEED
+  </div>
+  </td><td>(*</td><td class="doc">Possible advices for fadvise. The names starting with &quot;POSIX_&quot; and
+the ones lacking the prefix have the same meaning. In new code,
+the names starting with &quot;POSIX_&quot; should be preferred (for better
+compaibility with other libraries).</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fadvise">
+  <a href="index.html#/val:fadvise" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fadvise : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:advice">advice</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_fadvise&quot; 
+    
+      <div class="doc">
+        
+      <p>Advises to load pages into the page table from the file, or to remove
+such pages.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:have_fallocate">
+  <a href="index.html#/val:have_fallocate" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> have_fallocate : unit <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;netsys_have_posix_fallocate&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns whether the OS supports the fallocate POSIX option</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fallocate">
+  <a href="index.html#/val:fallocate" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> fallocate : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_fallocate&quot; 
+    
+      <div class="doc">
+        
+      <p>Allocate space for the file and the specified file region</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">POSIX Shared Memory</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:have_posix_shm">
+  <a href="index.html#/val:have_posix_shm" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> have_posix_shm : unit <span class="rarr"><span>-&gt;</span></span> bool
+    = &quot;netsys_have_posix_shm&quot; 
+    
+      <div class="doc">
+        
+      <p>Returns whether the OS supports POSIX shared memory</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:shm_open_flag">
+  <a href="index.html#/type:shm_open_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> shm_open_flag = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_RDONLY">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_RDONLY" class="anchor">#</a>
+  | SHM_O_RDONLY
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_RDWR">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_RDWR" class="anchor">#</a>
+  | SHM_O_RDWR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_CREAT">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_CREAT" class="anchor">#</a>
+  | SHM_O_CREAT
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_EXCL">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_EXCL" class="anchor">#</a>
+  | SHM_O_EXCL
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_TRUNC">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_TRUNC" class="anchor">#</a>
+  | SHM_O_TRUNC
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_open">
+  <a href="index.html#/val:shm_open" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> shm_open : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_open_flag">shm_open_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    = &quot;netsys_shm_open&quot; 
+    
+      <div class="doc">
+        
+      <p>Opens a shared memory object. The first arg is the name of the
+object. The name must begin with a slash, but there must be no
+further slash in it (e.g. &quot;/sample&quot;). The second arg are the
+open flags. The third arg are the permission bits.</p>
+      
+      <p>The open flags are interpreted as follows:</p>
+      <ul><li><code>SHM_O_RDONLY</code>: Open the object for read access</li><li><code>SHM_O_RDWR</code>: Open the object for read-write access</li><li><code>SHM_O_CREAT</code>: Create the object if it does not exist</li><li><code>SHM_O_EXCL</code>: If <code>SHM_O_CREAT</code> was also specified, and a an object
+with the given name already exists, return an error
+(<code>Unix.EEXIST</code>).</li><li><code>SHM_O_TRUNC</code>: If the object already exists, truncate it to
+zero bytes</li></ul>
+      <p>One of <code>SHM_O_RDONLY</code> or <code>SHM_O_RDWR</code> must be given.</p>
+      
+      <p>On success, the function returns a file descriptor representing the
+object. To access the object, one has to memory-map this file
+use one of the <code>map_file</code> functions in the <code>Bigarray</code>
+module, or in [root:Netsys_mem]). Use <code>Unix.ftruncate</code> to resize the object.</p>
+      
+      <p>Note that it is unspecified whether this file pops up somewhere
+in the file system, and if so, where.</p>
+      
+      <p>If a system error occurs, the function raises a <code>Unix.Unix_error</code>
+exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_unlink">
+  <a href="index.html#/val:shm_unlink" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> shm_unlink : string <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_shm_unlink&quot; 
+    
+      <div class="doc">
+        
+      <p>Unlinks the name for a shared memory object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_create">
+  <a href="index.html#/val:shm_create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shm_create : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * string
+    
+      <div class="doc">
+        
+      <p><code>let (fd,name) = shm_create prefix size</code>: Creates an shm object
+with a unique name. The name has the passed <code>prefix</code>. The <code>prefix</code>
+must start with &quot;/&quot; but must not contain any further &quot;/&quot;. The object
+has a length of <code>size</code> bytes. The object has a permissions 0o600
+(independent of umask).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">POSIX semaphores</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:have_named_posix_semaphores">
+  <a href="index.html#/val:have_named_posix_semaphores" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_named_posix_semaphores : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns <code>true</code> if named POSIX semaphores are supported on this system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:have_anon_posix_semaphores">
+  <a href="index.html#/val:have_anon_posix_semaphores" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_anon_posix_semaphores : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns <code>true</code> if anonymous POSIX semaphores are supported on this
+system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:have_posix_semaphores">
+  <a href="index.html#/val:have_posix_semaphores" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_posix_semaphores : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns <code>true</code> if both kinds of semaphores are supported on this system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Constants.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:sem_value_max">
+  <a href="index.html#/val:sem_value_max" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_value_max : int
+    
+      <div class="doc">
+        
+      <p>The maximum value of a semaphore, but at most <code>max_int</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_size">
+  <a href="index.html#/val:sem_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_size : int
+    
+      <div class="doc">
+        
+      <p>The size of an anonymous semaphore in bytes (<code>sizeof(sem_t)</code>)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Types.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:sem_kind">
+  <a href="index.html#/type:sem_kind" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sem_kind = [ <div class="cons">| `Named</div><div class="cons">| `Anonymous</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:semaphore">
+  <a href="index.html#/type:semaphore" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'sem_kind semaphore
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:named_semaphore">
+  <a href="index.html#/type:named_semaphore" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> named_semaphore = [ <div class="cons">| `Named</div> ] <a href="index.html#/type:semaphore">semaphore</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:anon_semaphore">
+  <a href="index.html#/type:anon_semaphore" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> anon_semaphore = [ <div class="cons">| `Anonymous</div> ] <a href="index.html#/type:semaphore">semaphore</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sem_open_flag">
+  <a href="index.html#/type:sem_open_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sem_open_flag = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:sem_open_flag/cons:SEM_O_CREAT">
+  <a href="index.html#/type:sem_open_flag/cons:SEM_O_CREAT" class="anchor">#</a>
+  | SEM_O_CREAT
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:sem_open_flag/cons:SEM_O_EXCL">
+  <a href="index.html#/type:sem_open_flag/cons:SEM_O_EXCL" class="anchor">#</a>
+  | SEM_O_EXCL
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Named semaphores.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:sem_open">
+  <a href="index.html#/val:sem_open" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_open : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sem_open_flag">sem_open_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:named_semaphore">named_semaphore</a>
+    
+      <div class="doc">
+        
+      <p><code>sem_open name flags mode init_value</code>: Opens a named semaphore
+which is optionally created. Sempahore names usually begin with
+a slash followed by a single name component (not containing a
+further slash).</p>
+      
+      <p>Interpretation of <code>flags</code>:</p>
+      <ul><li><code>SEM_O_CREAT</code>: The semaphore is created if not yet existing.
+The <code>mode</code> and <code>init_value</code> are interpreted if the creation
+actually occurs. <code>mode</code> is the permission of the semaphore.
+<code>init_value</code> is the (non-negative) initial value, up to
+<code>sem_value_max</code>.</li><li><code>SEM_O_EXCL</code>: The semaphore is only opened if the semaphore
+does not exist yet. Othwerwise an <code>EEXIST</code> error is returned</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_close">
+  <a href="index.html#/val:sem_close" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_close : <a href="index.html#/type:named_semaphore">named_semaphore</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Closes a named semaphore. Semaphores are also automatically closed
+when the GC finds that the semaphore is unreachable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_unlink">
+  <a href="index.html#/val:sem_unlink" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_unlink : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Unlinks the semaphore name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_create">
+  <a href="index.html#/val:sem_create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_create : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:named_semaphore">named_semaphore</a> * string
+    
+      <div class="doc">
+        
+      <p><code>let (sem,name) = sem_create prefix init_value</code>: Creates
+a new semaphore with a unique name. The name has the passed <code>prefix</code>.
+The <code>prefix</code> must start with &quot;/&quot; but must not contain any further &quot;/&quot;.
+The semaphore is initialized with <code>init_value</code>. The object has
+permissions 0o600 (modulo umask).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Anonymous semaphores.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:sem_init">
+  <a href="index.html#/val:sem_init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_init : <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/">Netsys_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:anon_semaphore">anon_semaphore</a>
+    
+      <div class="doc">
+        
+      <p><code>sem_init mem pos pshared init_value</code>: Initializes the memory
+at position <code>pos</code> to <code>pos + sem_size() - 1</code> as anonymous semaphore.
+If <code>pshared</code> the semaphore is shared between processes.
+<code>init_value</code> is the initial non-negative value (max is
+<code>sem_value_max</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_destroy">
+  <a href="index.html#/val:sem_destroy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_destroy : <a href="index.html#/type:anon_semaphore">anon_semaphore</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys the anonymous semaphore</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:as_sem">
+  <a href="index.html#/val:as_sem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> as_sem : <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/">Netsys_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_types/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:anon_semaphore">anon_semaphore</a>
+    
+      <div class="doc">
+        
+      <p><code>as_sem mem pos</code>: Interprets the memory at position <code>pos</code>
+to <code>pos + sem_size() - 1</code> as anonymous semaphore.
+The memory region must already have been initialized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Operations.</b></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:sem_getvalue">
+  <a href="index.html#/val:sem_getvalue" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_getvalue : 'kind <a href="index.html#/type:semaphore">semaphore</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the value of the semaphore. If the value is bigger than
+what can be represented as <code>int</code>, an <code>EINVAL</code> error is returned.</p>
+      
+      <p>The returned value is non-negative - if the underlying POSIX
+function reports a negative value zero is returned instead.</p>
+      
+      <p>Unavailable on MacOS.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_post">
+  <a href="index.html#/val:sem_post" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_post : 'kind <a href="index.html#/type:semaphore">semaphore</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Unlocks the semaphore (increases the value by 1)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sem_wait_behavior">
+  <a href="index.html#/type:sem_wait_behavior" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sem_wait_behavior = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:sem_wait_behavior/cons:SEM_WAIT_BLOCK">
+  <a href="index.html#/type:sem_wait_behavior/cons:SEM_WAIT_BLOCK" class="anchor">#</a>
+  | SEM_WAIT_BLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:sem_wait_behavior/cons:SEM_WAIT_NONBLOCK">
+  <a href="index.html#/type:sem_wait_behavior/cons:SEM_WAIT_NONBLOCK" class="anchor">#</a>
+  | SEM_WAIT_NONBLOCK
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_wait">
+  <a href="index.html#/val:sem_wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_wait : 'kind <a href="index.html#/type:semaphore">semaphore</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sem_wait_behavior">sem_wait_behavior</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Locks the semaphore (decreases the value by 1). If the semaphore
+value is already zero, and <code>SEM_WAIT_BLOCK</code> is given, the function
+waits until another process or thread posts. If <code>SEM_WAIT_NONBLOCK</code>
+the error <code>EAGAIN</code> is returned.</p>
+      
+      <p><code>sem_wait</code> may be interrupted by signals.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:sem_not">
+  <a href="index.html#/label:sem_not" class="anchor">#</a>
+  
+    <h2 class="section level_2">Semaphores and notification</h2>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Not yet implemented.</b></p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Locales</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:langinfo">
+  <a href="index.html#/type:langinfo" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> langinfo = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_CODESET">
+  <a href="index.html#/type:langinfo/field:nl_CODESET" class="anchor">#</a>
+  nl_CODESET
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_CTYPE</code>: codeset name</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_D_T_FMT">
+  <a href="index.html#/type:langinfo/field:nl_D_T_FMT" class="anchor">#</a>
+  nl_D_T_FMT
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: string for formatting date and time</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_D_FMT">
+  <a href="index.html#/type:langinfo/field:nl_D_FMT" class="anchor">#</a>
+  nl_D_FMT
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: date format string</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_T_FMT">
+  <a href="index.html#/type:langinfo/field:nl_T_FMT" class="anchor">#</a>
+  nl_T_FMT
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: time format string</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_T_FMT_AMPM">
+  <a href="index.html#/type:langinfo/field:nl_T_FMT_AMPM" class="anchor">#</a>
+  nl_T_FMT_AMPM
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: a.m. or p.m. time format string</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_AM_STR">
+  <a href="index.html#/type:langinfo/field:nl_AM_STR" class="anchor">#</a>
+  nl_AM_STR
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: Ante Meridian affix</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_PM_STR">
+  <a href="index.html#/type:langinfo/field:nl_PM_STR" class="anchor">#</a>
+  nl_PM_STR
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: Post Meridian affix</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_DAY_1">
+  <a href="index.html#/type:langinfo/field:nl_DAY_1" class="anchor">#</a>
+  nl_DAY_1
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the first day of the week (for example, Sunday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_DAY_2">
+  <a href="index.html#/type:langinfo/field:nl_DAY_2" class="anchor">#</a>
+  nl_DAY_2
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the second day of the week (for example, Monday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_DAY_3">
+  <a href="index.html#/type:langinfo/field:nl_DAY_3" class="anchor">#</a>
+  nl_DAY_3
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the third day of the week (for example, Tuesday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_DAY_4">
+  <a href="index.html#/type:langinfo/field:nl_DAY_4" class="anchor">#</a>
+  nl_DAY_4
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the fourth day of the week (for example, Wednesday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_DAY_5">
+  <a href="index.html#/type:langinfo/field:nl_DAY_5" class="anchor">#</a>
+  nl_DAY_5
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the fifth day of the week (for example, Thursday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_DAY_6">
+  <a href="index.html#/type:langinfo/field:nl_DAY_6" class="anchor">#</a>
+  nl_DAY_6
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the sixth day of the week (for example, Friday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_DAY_7">
+  <a href="index.html#/type:langinfo/field:nl_DAY_7" class="anchor">#</a>
+  nl_DAY_7
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the seventh day of the week (for example, Saturday)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABDAY_1">
+  <a href="index.html#/type:langinfo/field:nl_ABDAY_1" class="anchor">#</a>
+  nl_ABDAY_1
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the first day of the week</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABDAY_2">
+  <a href="index.html#/type:langinfo/field:nl_ABDAY_2" class="anchor">#</a>
+  nl_ABDAY_2
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the second day of the week</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABDAY_3">
+  <a href="index.html#/type:langinfo/field:nl_ABDAY_3" class="anchor">#</a>
+  nl_ABDAY_3
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the third day of the week</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABDAY_4">
+  <a href="index.html#/type:langinfo/field:nl_ABDAY_4" class="anchor">#</a>
+  nl_ABDAY_4
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the fourth day of the week</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABDAY_5">
+  <a href="index.html#/type:langinfo/field:nl_ABDAY_5" class="anchor">#</a>
+  nl_ABDAY_5
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the fifth day of the week</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABDAY_6">
+  <a href="index.html#/type:langinfo/field:nl_ABDAY_6" class="anchor">#</a>
+  nl_ABDAY_6
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the sixth day of the week</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABDAY_7">
+  <a href="index.html#/type:langinfo/field:nl_ABDAY_7" class="anchor">#</a>
+  nl_ABDAY_7
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the seventh day of the week</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_1">
+  <a href="index.html#/type:langinfo/field:nl_MON_1" class="anchor">#</a>
+  nl_MON_1
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the first month of the year</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_2">
+  <a href="index.html#/type:langinfo/field:nl_MON_2" class="anchor">#</a>
+  nl_MON_2
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the second month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_3">
+  <a href="index.html#/type:langinfo/field:nl_MON_3" class="anchor">#</a>
+  nl_MON_3
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the third month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_4">
+  <a href="index.html#/type:langinfo/field:nl_MON_4" class="anchor">#</a>
+  nl_MON_4
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the fourth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_5">
+  <a href="index.html#/type:langinfo/field:nl_MON_5" class="anchor">#</a>
+  nl_MON_5
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the fifth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_6">
+  <a href="index.html#/type:langinfo/field:nl_MON_6" class="anchor">#</a>
+  nl_MON_6
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the sixth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_7">
+  <a href="index.html#/type:langinfo/field:nl_MON_7" class="anchor">#</a>
+  nl_MON_7
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the seventh month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_8">
+  <a href="index.html#/type:langinfo/field:nl_MON_8" class="anchor">#</a>
+  nl_MON_8
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the eighth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_9">
+  <a href="index.html#/type:langinfo/field:nl_MON_9" class="anchor">#</a>
+  nl_MON_9
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the ninth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_10">
+  <a href="index.html#/type:langinfo/field:nl_MON_10" class="anchor">#</a>
+  nl_MON_10
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the tenth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_11">
+  <a href="index.html#/type:langinfo/field:nl_MON_11" class="anchor">#</a>
+  nl_MON_11
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the eleventh month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_MON_12">
+  <a href="index.html#/type:langinfo/field:nl_MON_12" class="anchor">#</a>
+  nl_MON_12
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: name of the twelfth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_1">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_1" class="anchor">#</a>
+  nl_ABMON_1
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the first month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_2">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_2" class="anchor">#</a>
+  nl_ABMON_2
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the second month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_3">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_3" class="anchor">#</a>
+  nl_ABMON_3
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the third month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_4">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_4" class="anchor">#</a>
+  nl_ABMON_4
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the fourth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_5">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_5" class="anchor">#</a>
+  nl_ABMON_5
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the fifth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_6">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_6" class="anchor">#</a>
+  nl_ABMON_6
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the sixth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_7">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_7" class="anchor">#</a>
+  nl_ABMON_7
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the seventh month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_8">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_8" class="anchor">#</a>
+  nl_ABMON_8
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the eighth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_9">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_9" class="anchor">#</a>
+  nl_ABMON_9
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the ninth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_10">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_10" class="anchor">#</a>
+  nl_ABMON_10
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the tenth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_11">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_11" class="anchor">#</a>
+  nl_ABMON_11
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the eleventh month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ABMON_12">
+  <a href="index.html#/type:langinfo/field:nl_ABMON_12" class="anchor">#</a>
+  nl_ABMON_12
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: abbreviated name of the twelfth month</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ERA">
+  <a href="index.html#/type:langinfo/field:nl_ERA" class="anchor">#</a>
+  nl_ERA
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: era description segments</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ERA_D_FMT">
+  <a href="index.html#/type:langinfo/field:nl_ERA_D_FMT" class="anchor">#</a>
+  nl_ERA_D_FMT
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: era date format string</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ERA_D_T_FMT">
+  <a href="index.html#/type:langinfo/field:nl_ERA_D_T_FMT" class="anchor">#</a>
+  nl_ERA_D_T_FMT
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: era date and time format string</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ERA_T_FMT">
+  <a href="index.html#/type:langinfo/field:nl_ERA_T_FMT" class="anchor">#</a>
+  nl_ERA_T_FMT
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: era time format string</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_ALT_DIGITS">
+  <a href="index.html#/type:langinfo/field:nl_ALT_DIGITS" class="anchor">#</a>
+  nl_ALT_DIGITS
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_TIME</code>: alternative symbols for digits</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_RADIXCHAR">
+  <a href="index.html#/type:langinfo/field:nl_RADIXCHAR" class="anchor">#</a>
+  nl_RADIXCHAR
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_NUMERIC</code>: radix character</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_THOUSEP">
+  <a href="index.html#/type:langinfo/field:nl_THOUSEP" class="anchor">#</a>
+  nl_THOUSEP
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_NUMERIC</code>: separator for thousands</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_YESEXPR">
+  <a href="index.html#/type:langinfo/field:nl_YESEXPR" class="anchor">#</a>
+  nl_YESEXPR
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_MESSAGES</code>: affirmative response expression</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_NOEXPR">
+  <a href="index.html#/type:langinfo/field:nl_NOEXPR" class="anchor">#</a>
+  nl_NOEXPR
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_MESSAGES</code>: negative response expression</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:langinfo/field:nl_CRNCYSTR">
+  <a href="index.html#/type:langinfo/field:nl_CRNCYSTR" class="anchor">#</a>
+  nl_CRNCYSTR
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">from <code>LC_MONETARY</code>: currency</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:query_langinfo">
+  <a href="index.html#/val:query_langinfo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> query_langinfo : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:langinfo">langinfo</a>
+    
+      <div class="doc">
+        
+      <p><code>query_langinfo locale</code>: Temporarily sets the passed <code>locale</code> and
+determines the language attributes. After that the orignal locale is
+restored. Pass &quot;&quot; as <code>locale</code> to get the locale requested in the
+environment.</p>
+      
+      <p>The value for &quot;&quot; is cached.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Clocks</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Support for clocks can be assumed to exist on all current POSIX
+systems.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:timespec">
+  <a href="index.html#/type:timespec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> timespec = float * int
+    
+      <div class="doc">
+        
+      <p><code>(t,t_nanos)</code>: Specifies a time by a base time <code>t</code> to which the
+nanoseconds <code>t_nanos</code> are added.</p>
+      
+      <p>If this pair is returned by a function <code>t</code> will always be integral.
+If a pair is passed to a function, it does not matter whether this
+is the case or not, but using integral values for <code>t</code> ensure
+maximum precision.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nanosleep">
+  <a href="index.html#/val:nanosleep" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> nanosleep : <a href="index.html#/type:timespec">timespec</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timespec">timespec</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_nanosleep&quot; 
+    
+      <div class="doc">
+        
+      <p><code>nanosleep t t_rem</code>: Sleeps for <code>t</code> seconds. The sleep can either be
+finished, or the sleep can be interrupted by a signal. In the
+latter case, the function will raise <code>EÍNTR</code>, and write to <code>t_rem</code>
+the remaining seconds.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:clock_id">
+  <a href="index.html#/type:clock_id" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> clock_id
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:clock">
+  <a href="index.html#/type:clock" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> clock = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:clock/cons:CLOCK_REALTIME">
+  <a href="index.html#/type:clock/cons:CLOCK_REALTIME" class="anchor">#</a>
+  | CLOCK_REALTIME
+  </div>
+  </td><td>(*</td><td class="doc">A clock measuring wallclock time</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:clock/cons:CLOCK_MONOTONIC">
+  <a href="index.html#/type:clock/cons:CLOCK_MONOTONIC" class="anchor">#</a>
+  | CLOCK_MONOTONIC
+  </div>
+  </td><td>(*</td><td class="doc">A clock measuring kernel time (non-settable). Optional, i.e. not supported by all OS</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:clock/cons:CLOCK_ID">
+  <a href="index.html#/type:clock/cons:CLOCK_ID" class="anchor">#</a>
+  | CLOCK_ID <span class="keyword">of</span> <a href="index.html#/type:clock_id">clock_id</a>
+  </div>
+  </td><td>(*</td><td class="doc">A clock ID</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clock_gettime">
+  <a href="index.html#/val:clock_gettime" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> clock_gettime : <a href="index.html#/type:clock">clock</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timespec">timespec</a>
+    = &quot;netsys_clock_gettime&quot; 
+    
+      <div class="doc">
+        
+      <p>Get the time of this clock</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clock_settime">
+  <a href="index.html#/val:clock_settime" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> clock_settime : <a href="index.html#/type:clock">clock</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timespec">timespec</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_clock_settime&quot; 
+    
+      <div class="doc">
+        
+      <p>Set the time of this clock</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clock_getres">
+  <a href="index.html#/val:clock_getres" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> clock_getres : <a href="index.html#/type:clock">clock</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timespec">timespec</a>
+    = &quot;netsys_clock_getres&quot; 
+    
+      <div class="doc">
+        
+      <p>Get the resolution of this clock</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clock_getcpuclockid">
+  <a href="index.html#/val:clock_getcpuclockid" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> clock_getcpuclockid : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:clock_id">clock_id</a>
+    = &quot;netsys_clock_getcpuclockid&quot; 
+    
+      <div class="doc">
+        
+      <p>Return the ID of a clock that counts the CPU seconds of the given
+process. Pass the PID or 0 for the current process.</p>
+      
+      <p>This function is not supported on all OS.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">POSIX timers</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:posix_timer">
+  <a href="index.html#/type:posix_timer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> posix_timer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:timer_expiration">
+  <a href="index.html#/type:timer_expiration" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> timer_expiration = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:timer_expiration/cons:TEXP_NONE">
+  <a href="index.html#/type:timer_expiration/cons:TEXP_NONE" class="anchor">#</a>
+  | TEXP_NONE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:timer_expiration/cons:TEXP_EVENT">
+  <a href="index.html#/type:timer_expiration/cons:TEXP_EVENT" class="anchor">#</a>
+  | TEXP_EVENT <span class="keyword">of</span> <a href="index.html#/type:not_event">not_event</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:timer_expiration/cons:TEXP_EVENT_CREATE">
+  <a href="index.html#/type:timer_expiration/cons:TEXP_EVENT_CREATE" class="anchor">#</a>
+  | TEXP_EVENT_CREATE
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:timer_expiration/cons:TEXP_SIGNAL">
+  <a href="index.html#/type:timer_expiration/cons:TEXP_SIGNAL" class="anchor">#</a>
+  | TEXP_SIGNAL <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:have_posix_timer">
+  <a href="index.html#/val:have_posix_timer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_posix_timer : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timer_create">
+  <a href="index.html#/val:timer_create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timer_create : <a href="index.html#/type:clock">clock</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timer_expiration">timer_expiration</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:posix_timer">posix_timer</a>
+    
+      <div class="doc">
+        
+      <p>Create a new timer that will report expiration as given by the arg:</p>
+      <ul><li><code>TEXP_NONE</code>: no notification</li><li><code>TEXP_EVENT e</code>: the <code>not_event</code> <code>e</code> is signalled</li><li><code>TEXP_EVENT_CREATE</code>: a special <code>not_event</code> is created for the timer.
+(Get the event via <code>timer_event</code>, see below.)</li><li><code>TEXP_SIGNAL n</code>: the signal <code>n</code> is sent to the process</li></ul>
+      <p>Note that <code>TEXP_EVENT_CREATE</code> is much faster on Linux than
+<code>TEXP_EVENT</code>, because it can be avoided to start a new thread
+whenever the timer expires. Instead, the timerfd machinery is used.</p>
+      
+      <p><code>TEXP_EVENT</code> and <code>TEXP_EVENT_CREATE</code> are only supported on systems
+with pthreads.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timer_settime">
+  <a href="index.html#/val:timer_settime" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timer_settime : <a href="index.html#/type:posix_timer">posix_timer</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timespec">timespec</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timespec">timespec</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>timer_settime tm abstime interval value</code>:</p>
+      
+      <p>If <code>value=(0.0,0)</code>, the timer is stopped.</p>
+      
+      <p>If <code>value</code> is a positive time, the timer is started (or the timeout
+is changed if it is already started). If <code>abstime</code>, <code>value</code> is
+interpreted as the absolute point in time of the expiration.
+Otherwise <code>value</code> sets the number of seconds until the expiration.</p>
+      
+      <p>If <code>interval</code> is positive, the started timer will repeat to expire
+after this many seconds once it has expired for the first time.
+If <code>interval=(0.0,0)</code>, the timer is a one-shot timer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timer_gettime">
+  <a href="index.html#/val:timer_gettime" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timer_gettime : <a href="index.html#/type:posix_timer">posix_timer</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:timespec">timespec</a>
+    
+      <div class="doc">
+        
+      <p>Returns the number of seconds until the expiration, or <code>(0.0,0)</code>
+if the timer is off</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timer_delete">
+  <a href="index.html#/val:timer_delete" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timer_delete : <a href="index.html#/type:posix_timer">posix_timer</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Deletes the timer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timer_event">
+  <a href="index.html#/val:timer_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timer_event : <a href="index.html#/type:posix_timer">posix_timer</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:not_event">not_event</a>
+    
+      <div class="doc">
+        
+      <p>Returns the notification event for the timer styles <code>TEXP_EVENT</code> and
+<code>TEXP_EVENT_CREATE</code>.</p>
+      
+      <p>Note that the latter type of event does not allow to call <code>set_event</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Intentionally there is no wrapper for <code>timer_getoverrun</code>.
+Additional overruns can occur because of the further processing
+of the notifications: The OCaml runtime can merge signals,
+which would not be noticed by the kernel overrun counter,
+and events can also be merged. The workaround is to use one-shot timers
+with absolute expiration timestamps, and to check for overruns
+manually. Once we have <code>TEXP_NQ</code> the issue is solved.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Linux I/O Priorities</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These system calls are only available on Linux since kernel 2.6.13,
+and not even on every architecture. i386, x86_64, ia64, and PPC are
+known to work.</p>
+      
+      <p>Per-process I/O priorities are currently only supported by the
+CFQ I/O scheduler.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:have_ioprio">
+  <a href="index.html#/val:have_ioprio" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_ioprio : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns <code>true</code> if the system call <code>ioprio_get</code> is supported</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ioprio_target">
+  <a href="index.html#/type:ioprio_target" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ioprio_target = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:ioprio_target/cons:Ioprio_process">
+  <a href="index.html#/type:ioprio_target/cons:Ioprio_process" class="anchor">#</a>
+  | Ioprio_process <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">A single process</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ioprio_target/cons:Ioprio_pgrp">
+  <a href="index.html#/type:ioprio_target/cons:Ioprio_pgrp" class="anchor">#</a>
+  | Ioprio_pgrp <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">A process group</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ioprio_target/cons:Ioprio_user">
+  <a href="index.html#/type:ioprio_target/cons:Ioprio_user" class="anchor">#</a>
+  | Ioprio_user <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">All processes owned by this user</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ioprio">
+  <a href="index.html#/type:ioprio" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ioprio = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:ioprio/cons:Noprio">
+  <a href="index.html#/type:ioprio/cons:Noprio" class="anchor">#</a>
+  | Noprio
+  </div>
+  </td><td>(*</td><td class="doc">I/O prioritization is unsupported by block layer</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ioprio/cons:Real_time">
+  <a href="index.html#/type:ioprio/cons:Real_time" class="anchor">#</a>
+  | Real_time <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">0..7 (higest..lowest prio)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ioprio/cons:Best_effort">
+  <a href="index.html#/type:ioprio/cons:Best_effort" class="anchor">#</a>
+  | Best_effort <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">0..7 (higest..lowest prio)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:ioprio/cons:Idle">
+  <a href="index.html#/type:ioprio/cons:Idle" class="anchor">#</a>
+  | Idle
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ioprio_get">
+  <a href="index.html#/val:ioprio_get" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> ioprio_get : <a href="index.html#/type:ioprio_target">ioprio_target</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:ioprio">ioprio</a>
+    = &quot;netsys_ioprio_get&quot; 
+    
+      <div class="doc">
+        
+      <p>Retrieve the priority of the target. If several processes match the
+target, the highest priority is returned. If no process matches,
+the unix error <code>ESRCH</code> will be raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ioprio_set">
+  <a href="index.html#/val:ioprio_set" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> ioprio_set : <a href="index.html#/type:ioprio_target">ioprio_target</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:ioprio">ioprio</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys_ioprio_set&quot; 
+    
+      <div class="doc">
+        
+      <p>Sets the priority of the target processes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

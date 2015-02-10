@@ -1,0 +1,4378 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Uq_engines</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Uq_engines</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>An <b>engine</b> performs a certain task in an autonomous way. Engines
+are attached to a <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>, and do their task by
+generating events for resources of the operating system, and
+by handling such events. Engines are in one of four states: They
+may be still <b>working</b>, they may be <b>done</b>, they may be
+<b>aborted</b>, or they may be in an <b>error</b> state. The three latter
+states a called <b>final states</b>, because they indicate that the
+engine has stopped operation.</p>
+      
+      <p>It is possible to ask an engine to notify another object when it
+changes its state. For simplicity, notification is done by invoking
+a callback function, and not by issuing notification events.</p>
+      
+      <p>Effectively, engines provide a calculus for cooperative microthreading.
+This calculus includes combinators for sequential execution and
+synchronization. Moreover, it is easy to connect it with callback-style
+microthreading - one can arrange callbacks when an engine is done, and
+one can catch callbacks and turn them into engines.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Exceptions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Closed_channel">
+  <a href="index.html#/exn:Closed_channel" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Closed_channel
+    
+      <div class="doc">
+        
+      <p>Raised when a method of a closed channel object is called (only channel
+methods count).</p>
+      
+      <p>This exception should be regarded as equivalent to
+<code>Netchannels.Closed_channel</code>, but need not be the same exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Broken_communication">
+  <a href="index.html#/exn:Broken_communication" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Broken_communication
+    
+      <div class="doc">
+        
+      <p>Some engines indicate this error when they cannot continue because the
+other endpoint of communication signals an error.</p>
+      
+      <p>This exception is not raised, but used as argument of the <code>`Error</code>
+state.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Watchdog_timeout">
+  <a href="index.html#/exn:Watchdog_timeout" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Watchdog_timeout
+    
+      <div class="doc">
+        
+      <p>Used by the watchdog engine to indicate a timeout.</p>
+      
+      <p>This exception is not raised, but used as argument of the <code>`Error</code>
+state.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Timeout">
+  <a href="index.html#/exn:Timeout" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Timeout
+    
+      <div class="doc">
+        
+      <p>Used by <code>input_engine</code> and <code>output_engine</code> to indicate timeouts</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Addressing_method_not_supported">
+  <a href="index.html#/exn:Addressing_method_not_supported" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Addressing_method_not_supported
+    
+      <div class="doc">
+        
+      <p>Raised by <code>client_socket_connector</code> and <code>server_socket_acceptor</code> to
+indicate that the passed address is not supported by the class.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Cancelled">
+  <a href="index.html#/exn:Cancelled" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Cancelled
+    
+      <div class="doc">
+        
+      <p>The callback function of a <code>multiplex_controller</code> is invoked with this
+exception if the operation is cancelled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Engine definition</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:engine_state">
+  <a href="index.html#/type:engine_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 't engine_state = [ <div class="cons">| `Working <span class="keyword">of</span> int</div><div class="cons">| `Done <span class="keyword">of</span> 't</div><div class="cons">| `Error <span class="keyword">of</span> exn</div><div class="cons">| `Aborted</div> ]
+    
+      <div class="doc">
+        
+      <p>The type of states with result values of type <code>'t</code>:</p>
+      <ul><li><code>`Working n</code>: The engine is working. The number <code>n</code> counts the number
+of events that have been processed.</li><li><code>`Done arg</code>: The engine has completed its task without errors.
+The argument <code>arg</code> is the result value of the engine</li><li><code>`Error exn</code>: The engine has aborted because of an error. The
+argument <code>exn</code> describes the error as an exception.</li><li><code>`Aborted</code>: The engine has aborted because the <code>abort</code> method
+was called</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:final_state">
+  <a href="index.html#/type:final_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 't final_state = [ <div class="cons">| `Done <span class="keyword">of</span> 't</div><div class="cons">| `Error <span class="keyword">of</span> exn</div><div class="cons">| `Aborted</div> ]
+    
+      <div class="doc">
+        
+      <p>Same as <code>engine_state</code> without <code>`Working</code>. These are only the final
+states.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_state">
+  <a href="index.html#/val:string_of_state" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_state : 'a <a href="index.html#/type:engine_state">engine_state</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>For debug purposes: Returns a string describing the state</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine">
+  <a href="index.html#/classtype:engine" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['t] engine = 
+      <div class="doc">
+        
+      <p>Requirements for engines</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:engine/method:state">
+  <a href="index.html#/classtype:engine/method:state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> state : 't <a href="index.html#/type:engine_state">engine_state</a>
+  
+      <div class="doc">
+        
+      <p>Returns the state of the engine</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine/method:abort">
+  <a href="index.html#/classtype:engine/method:abort" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> abort : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Forces that the engine aborts operation. If the state is already
+<code>`Done</code>, <code>`Aborted</code>, or <code>`Error</code>, this method must do nothing (you
+cannot abort an already finished engine).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine/method:request_notification">
+  <a href="index.html#/classtype:engine/method:request_notification" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_notification : (unit <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Requests notification about state changes.</p>
+      
+      <p>After the notification has been requested, the passed function must
+be called whenever <code>state</code> changes its value (or might change
+its value; it is allowed to call the notification function more
+frequently than necessary). The function returns <code>true</code> if there
+is still interest in notification, and <code>false</code> if notification must
+be disabled; the function must not be called any longer in this
+case.</p>
+      
+      <p>There can be any number of parallel active notifications. It is
+allowed that a notification callback function requests further
+notifications.</p>
+      
+      <p>If the callback raises an exception, this exception is
+propagated to the caller of <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/val:run">run</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine/method:event_system">
+  <a href="index.html#/classtype:engine/method:event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+  
+      <div class="doc">
+        
+      <p>Returns the event system the engine is attached to</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This class type defines the interface an engine must support. The
+class parameter <code>'t</code> is the type of the result values (when the
+engine goes to state <code>`Done</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:delegate_engine">
+  <a href="index.html#/class:delegate_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['t] delegate_engine : 
+    't #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['t] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+      <div class="doc">
+        
+      <p>Turns an engine value into a class</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Engines and callbacks</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:when_state">
+  <a href="index.html#/val:when_state" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> when_state : ?is_done:('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?is_error:(exn <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?is_aborted:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?is_progressing:(int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Watches the state of the argument engine, and arranges that one of
+the functions is called when the corresponding state change is done.
+Once a final state is reached, the engine is no longer watched.
+Note that <code>when_state</code> only observes future state changes.</p>
+      
+      <p>If one of the functions raises an exception, this exception is
+propagated to the caller of <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/val:run">run</a>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">is_done</span> The state transitions to <code>`Done</code>. The argument of
+<code>is_done</code> is the argument of the <code>`Done</code> state.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">is_error</span> The state transitions to <code>`Error</code>. The argument of
+<code>is_error</code> is the argument of the <code>`Error</code> state.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">is_aborted</span> The state transitions to <code>`Aborted</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">is_progressing</span> This function is called when the <code>`Working</code>
+state changes. The int argument is the new <code>`Working</code> arg.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:signal_engine">
+  <a href="index.html#/class:signal_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] signal_engine : 
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> ['a] <a href="index.html#/classtype:engine">engine</a>
+    </div>
+    
+  <div class="region" id="/class:signal_engine/method:signal">
+  <a href="index.html#/class:signal_engine/method:signal" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> signal : 'a <a href="index.html#/type:final_state">final_state</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+    
+      <div class="doc">
+        
+      <p><code>let se = new signal_engine esys</code>: The engine <code>se</code> remains in
+<code>`Working 0</code> until the method <code>se # signal x</code> is called. At this point
+<code>e</code> transitions to <code>x</code>. Any further call of <code>signal</code> does not
+have any effect.</p>
+      
+      <p>Also, if <code>se</code> is aborted, <code>signal</code> does not have any effect.</p>
+      
+      <p>The function <code>signal</code> may be called from a different thread.
+The signalling event is forwarded to the thread running the
+event system.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:signal_engine">
+  <a href="index.html#/val:signal_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> signal_engine : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a> * ('a <a href="index.html#/type:final_state">final_state</a> <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p><code>let (se, signal) = signal_engine esys</code>: Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Combinators</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following combinators serve as the control structures to connect
+primitive engines with each other.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:map_engine">
+  <a href="index.html#/class:map_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] map_engine : 
+    map_done:'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:engine_state">engine_state</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?map_error:(exn <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:engine_state">engine_state</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?map_aborted:(unit <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:engine_state">engine_state</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?propagate_working:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['b] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>The <code>map_engine</code> observes the argument engine, and when the
+state changes to <code>`Done</code>, <code>`Error</code>, or <code>`Aborted</code>, the corresponding
+mapping function is called, and the resulting state becomes the state
+of the mapped engine. If the engine is already in one of the
+mentioned states, the map functions are also called (unlike
+<code>when_state</code>).</p>
+      
+      <p>After the state change to <code>`Done</code>, <code>`Error</code>, or <code>`Aborted</code> has been
+observed, the map engine detaches from the argument engine,
+and no further state changes are recognized.</p>
+      
+      <p>The state <code>`Working</code> cannot be mapped to another state. It is an
+error to map final states to <code>`Working</code>.
+The result type of the <code>map_*</code> functions is <code>engine_state</code>
+and not <code>final_state</code> because of historic reasons.</p>
+      
+      <p>If the mapped engine is aborted, this request will be forwarded
+to the argument engine.</p>
+      
+      <p>If one of the mapping functions raises an exception, this causes
+a transiton to <code>`Error</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">map_done</span> Maps the <code>`Done</code> state of the argument engine to
+another state. The argument of <code>map_done</code> is the argument of the
+<code>`Done</code> state. Note that <code>map_done</code> is non-optional only because
+of typing. If it were optional, the type checker would infer <code>'a = 'b</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">map_error</span> Maps the <code>`Error</code> state of the argument engine to
+another state. The argument of <code>map_error</code> is the argument of the
+<code>`Error</code> state.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">map_aborted</span> Maps the <code>`Aborted</code> state of the argument engine to
+another state.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">propagate_working</span> Specifies whether changes of the <code>`Working</code>
+state in the argument engine are propagated. Defaults to <code>true</code>.
+If set to <code>false</code>, the mapped engine remains in <code>`Working 0</code> until
+it transitions to a final state.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_engine">
+  <a href="index.html#/val:map_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_engine : map_done:('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:engine_state">engine_state</a>) <span class="rarr"><span>-&gt;</span></span> ?map_error:(exn <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:engine_state">engine_state</a>) <span class="rarr"><span>-&gt;</span></span> ?map_aborted:(unit <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:engine_state">engine_state</a>) <span class="rarr"><span>-&gt;</span></span> ?propagate_working:bool <span class="rarr"><span>-&gt;</span></span> 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:fmap_engine">
+  <a href="index.html#/class:fmap_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] fmap_engine : 
+    'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'a <a href="index.html#/type:final_state">final_state</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:final_state">final_state</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['b] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Similar to <code>map_engine</code> but different calling conventions: The
+mapping function is called when the argument engine reaches a
+final state, and this state can be mapped to another final state.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fmap_engine">
+  <a href="index.html#/val:fmap_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fmap_engine : 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:final_state">final_state</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:final_state">final_state</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+      <p>After opening <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/module:Operators">Operators</a>, this is also available
+as operator <code>&gt;&gt;</code>, e.g.</p>
+      <pre><code>         e &gt;&gt;
+           (function
+             | `Done r -&gt; ...
+             | `Error error -&gt; ...
+             | `Aborted -&gt; ...
+           )</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:meta_engine">
+  <a href="index.html#/class:meta_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] meta_engine : 
+    'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a <a href="index.html#/type:final_state">final_state</a>] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+      <div class="doc">
+        
+      <p>maps the final state <code>s</code> to <code>`Done s</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:meta_engine">
+  <a href="index.html#/val:meta_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> meta_engine : 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:final_state">final_state</a> <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:epsilon_engine">
+  <a href="index.html#/class:epsilon_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['t] epsilon_engine : 
+    't <a href="index.html#/type:engine_state">engine_state</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['t] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine transitions from its initial state <code>`Working 0</code> in one
+step (&quot;epsilon time&quot;) to the passed constant state. During this time
+event processing will continue, so concurrently running engines can
+make progress. For performance reasons, however, external resources
+like file descriptors are not watched for new events.</p>
+      
+      <p>In previous versions of this library the class was called <code>const_engine</code>.
+However, this is not a constant thing. In particular, it is possible
+that this engine is aborted, so the passed state is not reached.
+To avoid programming errors because of the misnomer, this class has been
+renamed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:epsilon_engine">
+  <a href="index.html#/val:epsilon_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> epsilon_engine : 't <a href="index.html#/type:engine_state">engine_state</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 't <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:seq_engine">
+  <a href="index.html#/class:seq_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] seq_engine : 
+    'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'a <span class="rarr"><span>-&gt;</span></span> 'b #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['b] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine runs two engines in sequential order. It is called</p>
+      <pre><code>let eng_s = new seq_engine eng_a f</code></pre>
+      <p>When <code>eng_a</code> goes to the state <code>`Done arg</code>, the function <code>f</code> is called to
+obtain</p>
+      <pre><code>let eng_b = f arg</code></pre>
+      <p><code>eng_b</code> runs until it is also in state <code>`Done</code>.</p>
+      
+      <p>If <code>eng_a</code> or <code>eng_b</code> go to states <code>`Aborted</code> or <code>`Error</code>, the
+sequential engine <code>eng_s</code> does so, too. If <code>eng_s</code> is aborted,
+this request will be forwarded to the currently active engine,
+<code>eng_a</code> or <code>eng_b</code>.</p>
+      
+      <p>If calling <code>f</code> results in an exception, this is handled as if <code>eng_a</code>
+signaled an exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:seq_engine">
+  <a href="index.html#/val:seq_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> seq_engine : 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b #<a href="index.html#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function.</p>
+      
+      <p>After opening <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/module:Operators">Operators</a>, this is also available
+as operator <code>++</code>, e.g.
+</p>
+      <pre><code>e1 ++ (fun r1 -&gt; e2)</code></pre>
+      <p>
+(when <code>e1</code> and <code>e2</code> are engines, and <code>r1</code> is the result of <code>e1</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:qseq_engine">
+  <a href="index.html#/class:qseq_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] qseq_engine : 
+    'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'a <span class="rarr"><span>-&gt;</span></span> 'b #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['b] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:qseq_engine">
+  <a href="index.html#/val:qseq_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> qseq_engine : 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b #<a href="index.html#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Almost the same as <code>seq_engine</code>, but this version does not
+propagate working state (i.e. no progress reporting).</p>
+      
+      <p><code>qseq_engine</code> should be preferred for recursive chains of engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:stream_seq_engine">
+  <a href="index.html#/class:stream_seq_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] stream_seq_engine : 
+    'a
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ('a <span class="rarr"><span>-&gt;</span></span> 'a #<a href="index.html#/classtype:engine">engine</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p><code>let se = new stream_seq_engine x0 s esys</code>: The constructed engine <code>se</code>
+fetches functions <code>f : 'a -&gt; 'a #engine</code> from the stream <code>s</code>, and
+runs the engines obtained by calling these functions <code>e = f x</code> one
+after the other. Each function call gets the result of the previous
+engine as argument. The first call gets <code>x0</code> as argument.</p>
+      
+      <p>If one of the engines <code>e</code> transitions into an error or aborted state,
+<code>se</code> will also do that. If <code>se</code> is aborted, this is passed down to
+the currently running engine <code>e</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stream_seq_engine">
+  <a href="index.html#/val:stream_seq_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_seq_engine : 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'a #<a href="index.html#/classtype:engine">engine</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:sync_engine">
+  <a href="index.html#/class:sync_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] sync_engine : 
+    'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'b #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a * 'b] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine runs two engines in parallel, and waits until both
+are <code>`Done</code> (synchronization). The product of the two <code>`Done</code> arguments
+is taken as the combined result.</p>
+      
+      <p>If one of the engines goes to the states <code>`Aborted</code> or <code>`Error</code>,
+the combined engine will follow this transition. The other,
+non-aborted and non-errorneous engine is aborted in this case.
+<code>`Error</code> has higher precedence than <code>`Aborted</code>.</p>
+      
+      <p>If the combined engine is aborted, this request is forwarded
+to both member engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sync_engine">
+  <a href="index.html#/val:sync_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sync_engine : 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> 'b #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b) <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:msync_engine">
+  <a href="index.html#/class:msync_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] msync_engine : 
+    'a #<a href="index.html#/classtype:engine">engine</a> list
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'b
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['b] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Multiple synchronization:
+<code>let me = new msync_engine el f x0 esys</code> - Runs the engines in <code>el</code> in
+parallel, and waits until all are <code>`Done</code>. The result of <code>me</code> is
+then computed by folding the results of the part engines using
+<code>f</code>, with an initial accumulator <code>x0</code>.</p>
+      
+      <p>If one of the engines goes to the states <code>`Aborted</code> or <code>`Error</code>,
+the combined engine will follow this transition. The other,
+non-aborted and non-errorneous engines are aborted in this case.
+<code>`Error</code> has higher precedence than <code>`Aborted</code>.</p>
+      
+      <p>If calling <code>f</code> results in an exception, this is handled as if
+the part engine signals an error.</p>
+      
+      <p>If the combined engine is aborted, this request is forwarded
+to all member engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:msync_engine">
+  <a href="index.html#/val:msync_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> msync_engine : 'a #<a href="index.html#/classtype:engine">engine</a> list <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:delay_engine">
+  <a href="index.html#/class:delay_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] delay_engine : 
+    float
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit <span class="rarr"><span>-&gt;</span></span> 'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p><code>let de = delay_engine d f esys</code>: The engine <code>e = f()</code> is created
+after <code>d</code> seconds, and the result of <code>e</code> becomes the result of <code>de</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delay_engine">
+  <a href="index.html#/val:delay_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delay_engine : float <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'a #<a href="index.html#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:timeout_engine">
+  <a href="index.html#/class:timeout_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] timeout_engine : 
+    float
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    exn
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'a <a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p><code>timeout_engine d x e</code>: If the engine <code>e</code> finishes within <code>d</code>
+seconds, the result remains unchanged. If the engine takes longer,
+though, it is aborted, and the state transitions to
+<code>`Error x</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timeout_engine">
+  <a href="index.html#/val:timeout_engine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timeout_engine : float <span class="rarr"><span>-&gt;</span></span> exn <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:watchdog">
+  <a href="index.html#/class:watchdog" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> watchdog : 
+    float
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'a #<a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    [unit] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>A watchdog engine checks whether the argument engine makes
+progress, and if there is no progress for the passed number of
+seconds, the engine is aborted, and the watchdog state changes
+to <code>`Error Watchdog_timeout</code>.</p>
+      
+      <p>The current implementation is not very exact, and it may take
+a little longer than the passed period of inactivity until the
+watchdog recognizes inactivity.</p>
+      
+      <p>If the argument engine terminates, the watchdog changes its state to
+<code>`Done ()</code></p>
+      
+      <p>Important note: The watchdog assumes that the <code>`Working</code> state
+of the target engine really counts events that indicate progress.
+This does not work for:</p>
+      <ul><li><code>poll_process_engine</code>: there is no way to check whether a subprocess
+makes progress</li><li><code>connector</code>: It is usually not possible to reflect the progress
+on packet level</li><li><code>listener</code>: It is usually not possible to reflect the progress
+on packet level</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:watchdog">
+  <a href="index.html#/val:watchdog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> watchdog : float <span class="rarr"><span>-&gt;</span></span> 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:serializer_t">
+  <a href="index.html#/classtype:serializer_t" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['a] serializer_t = 
+  <div class="region" id="/classtype:serializer_t/method:serialized">
+  <a href="index.html#/classtype:serializer_t/method:serialized" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> serialized : (<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p><code>let se = serialized f</code>: Waits until all the previous engines reach
+a final state, and then runs <code>e = f esys</code>.</p>
+      
+      <p><code>se</code> enters a final state when <code>e</code> does.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A serializer queues up engines, and starts the next engine when the
+previous one finishes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:serializer">
+  <a href="index.html#/class:serializer" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] serializer : 
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:serializer_t">serializer_t</a>
+    
+    
+      <div class="doc">
+        
+      <p>Creates a serializer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:serializer">
+  <a href="index.html#/val:serializer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> serializer : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:serializer_t">serializer_t</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:prioritizer_t">
+  <a href="index.html#/classtype:prioritizer_t" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['a] prioritizer_t = 
+  <div class="region" id="/classtype:prioritizer_t/method:prioritized">
+  <a href="index.html#/classtype:prioritizer_t/method:prioritized" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> prioritized : (<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p><code>let pe = prioritized f p</code>: Queues up <code>f</code> on priority level <code>p</code>.
+The engine <code>e = f esys</code> can start when there is no waiting
+engine on a higher priority level (i.e. with a number less than
+<code>p</code>), and all running engines on lower priority levels are done.</p>
+      
+      <p><code>pe</code> enters a final state when <code>e</code> does.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A prioritizer allows to prioritize the execution of engines: At any
+time, only engines of a certain priority <code>p</code> can be executed. If an
+engine with a higher priority <code>ph</code> wants to start, it prevents further
+engines with priority level <code>p</code> from being started until the higher
+prioritized engines with level <code>ph</code> are done. On the same priority level,
+there is no limit for the number of executed engines.</p>
+      
+      <p>Here, higher priorities have lower numbers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:prioritizer">
+  <a href="index.html#/class:prioritizer" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] prioritizer : 
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:prioritizer_t">prioritizer_t</a>
+    
+    
+      <div class="doc">
+        
+      <p>Creates a prioritizer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prioritizer">
+  <a href="index.html#/val:prioritizer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prioritizer : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:prioritizer_t">prioritizer_t</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cache_t">
+  <a href="index.html#/classtype:cache_t" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['a] cache_t = 
+  <div class="region" id="/classtype:cache_t/method:get_engine">
+  <a href="index.html#/classtype:cache_t/method:get_engine" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_engine : unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>Requests the value. If it is not already in the cache,
+the engine for getting the value is started, and it is waited
+until the value is available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cache_t/method:get_opt">
+  <a href="index.html#/classtype:cache_t/method:get_opt" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_opt : unit <span class="rarr"><span>-&gt;</span></span> 'a option
+  
+      <div class="doc">
+        
+      <p>Returns the cached value if available</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cache_t/method:put">
+  <a href="index.html#/classtype:cache_t/method:put" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> put : 'a <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Puts a value immediately into the cache. It replaces an existing
+value. If it is currently tried to obtain a new value by running
+an engine, this engine is kept running, and <code>get_engine</code> will
+return its result. Only future calls of <code>get_engine</code> will return
+the value just put into the cache.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cache_t/method:invalidate">
+  <a href="index.html#/classtype:cache_t/method:invalidate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> invalidate : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Invalidates the cache - if a value exists in the cache, it is removed.
+If in the future the cache value is requested via <code>get_engine</code>
+the engine will be started anew to get the value.</p>
+      
+      <p>Note that (as for <code>put</code>) any already running <code>get_engine</code> is not
+interrupted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:cache_t/method:abort">
+  <a href="index.html#/classtype:cache_t/method:abort" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> abort : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Any engine running to get the cache value is aborted, and the contents
+of the cache are invalidated. Note that also the engines returned
+by <code>get_engine</code> are aborted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A cache contains a mutable value that is obtained by running an
+engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:cache">
+  <a href="index.html#/class:cache" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] cache : 
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:cache_t">cache_t</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p><code>new cache f esys</code>: A cache that runs <code>f esys</code> to obtain values</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cache">
+  <a href="index.html#/val:cache" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cache : (<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/classtype:cache_t">cache_t</a>
+    
+      <div class="doc">
+        
+      <p>Same as function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine_mixin">
+  <a href="index.html#/class:engine_mixin" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['t] engine_mixin : 
+    't <a href="index.html#/type:engine_state">engine_state</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:engine_mixin/method:state">
+  <a href="index.html#/class:engine_mixin/method:state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> state : 't <a href="index.html#/type:engine_state">engine_state</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine_mixin/method:set_state">
+  <a href="index.html#/class:engine_mixin/method:set_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> set_state : 't <a href="index.html#/type:engine_state">engine_state</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine_mixin/method:request_notification">
+  <a href="index.html#/class:engine_mixin/method:request_notification" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_notification : (unit <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine_mixin/method:notify">
+  <a href="index.html#/class:engine_mixin/method:notify" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> notify : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine_mixin/method:event_system">
+  <a href="index.html#/class:engine_mixin/method:event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+  
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>A useful class fragment that implements <code>state</code> and
+<code>request_notification</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Operators">
+  <a href="index.html#/module:Operators" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Operators : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Handy operators: <code>++</code>, <code>&gt;&gt;</code>, and <code>eps_e</code></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>The most important operators. This module should be opened.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Operators/val:(++)">
+  <a href="index.html#/module:Operators/val:(%2B%2B)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (++) : 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b #<a href="index.html#/classtype:engine">engine</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Another name for <code>qseq_engine</code>. Use this operator to run engines in
+sequence:</p>
+      <pre><code>	    e1 ++ (fun r1 -&gt; e2) ++ (fun r2 -&gt; e3) ++ ...</code></pre>
+      <p>Here <code>rK</code> is the result of engine <code>eK</code>.</p>
+      
+      <p>Change in OCamlnet-3.6.4: <code>++</code> is now <code>qseq_engine</code>, and no longer
+<code>seq_engine</code>, and hence it does not support progress reporting anymore.
+Redefine <code>++</code> as <code>seq_engine</code> in your own code if you need the old
+behavior.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Operators/val:(&gt;&gt;)">
+  <a href="index.html#/module:Operators/val:(%3E%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&gt;&gt;) : 'a #<a href="index.html#/classtype:engine">engine</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:final_state">final_state</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:final_state">final_state</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Another name for <code>fmap_engine</code>. Use this operator to map the
+final value of an engine:</p>
+      <pre><code>	    e &gt;&gt; (function `Done x -&gt; ... | `Error e -&gt; ... | `Aborted -&gt; ...)</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Operators/val:eps_e">
+  <a href="index.html#/module:Operators/val:eps_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eps_e : 't <a href="index.html#/type:engine_state">engine_state</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> 't <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>epsilon_engine</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Basic I/O engines</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:poll_engine">
+  <a href="index.html#/class:poll_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> poll_engine : 
+    ?extra_match:(exn <span class="rarr"><span>-&gt;</span></span> bool) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    (<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/type:operation">operation</a> * float) list
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> [<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/type:event">event</a>] <a href="index.html#/classtype:engine">engine</a>
+    </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Additional methods</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:poll_engine/method:restart">
+  <a href="index.html#/class:poll_engine/method:restart" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> restart : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Activate the engine again when it is already in a final state.
+This method violates the engine protocol, and should be used
+with care; it is not allowed to leave a final state.</p>
+      
+      <p>The notification lists are kept, but note that observers often
+detach when final states are reached. This may cause problems.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:poll_engine/method:group">
+  <a href="index.html#/class:poll_engine/method:group" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> group : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/type:group">group</a>
+  
+      <div class="doc">
+        
+      <p>Returns the group the engine is member of</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine waits until one of the passed operations can be
+carried out, or until one of the operations times out.
+In these cases, the state of the engine changes to <code>`Done ev</code>, where
+<code>ev</code> is the corresponding event.</p>
+      
+      <p>The argument list enumerates the operations to watch for. For every
+operation there may be a positive timeout value, or a negative number
+to indicate that no timeout is specified.</p>
+      
+      <p>After one event has been caught, the engine terminates operation.
+The method <code>restart</code> can be called to activate it again (with the
+same event condition, and the same notification list). See the
+description of <code>restart</code> for possible problems.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">extra_match</span> This function is called when an <code>Extra</code> event is
+found. If the function returns <code>true</code> for the argument exception
+of <code>Extra</code>, the event is caught; otherwise it is rejected.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:input_engine">
+  <a href="index.html#/class:input_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] input_engine : 
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    float
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Generic input engine for reading from a file descriptor:
+<code>let e = new input_engine f fd tmo</code> - Waits until the file descriptor
+becomes readable, and calls then <code>let x = f fd</code> to read from the
+descriptor. The result <code>x</code> is the result of the engine.</p>
+      
+      <p>If the file descriptor does not become readable within <code>tmo</code> seconds,
+the resulting engine transitions to <code>`Error Timeout</code>.</p>
+      
+      <p>Use this class to construct engines reading via <code>Unix.read</code> or
+comparable I/O functions:</p>
+      <pre><code>      let read_engine fd tmo esys =
+        new input_engine (fun fd -&gt;
+                            let buf = String.create 4096 in
+                            let n = Unix.read fd buf 0 (String.length buf) in
+                            String.sub buf 0 n
+                         )
+                         fd tmo esys</code></pre>
+      <p>This engine returns the read data as string.</p>
+      
+      <p>See also <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/">Uq_io</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/#/val:input_e">input_e</a> for a more generic way of reading with
+engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_engine">
+  <a href="index.html#/class:output_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] output_engine : 
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    float
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Generic output engine for writing to a file descriptor:
+<code>let e = new output_engine f fd tmo</code> - Waits until the file descriptor
+becomes writable, and calls then <code>let x = f fd</code> to write to the
+descriptor. The result <code>x</code> is the result of the engine.</p>
+      
+      <p>If the file descriptor does not become writable within <code>tmo</code> seconds,
+the resulting engine transitions to <code>`Error Timeout</code>.</p>
+      
+      <p>Use this class to construct engines writing via <code>Unix.single_write</code> or
+comparable I/O functions:</p>
+      <pre><code>      let write_engine fd s tmo esys =
+        new output_engine (fun fd -&gt;
+                             Unix.single_write fd s 0 (String.length s)
+                          )
+                          fd tmo esys</code></pre>
+      <p>This engine returns the number of written bytes.</p>
+      
+      <p>See also <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/">Uq_io</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/#/val:output_e">output_e</a> for a more generic way of writing with
+engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:poll_process_engine">
+  <a href="index.html#/class:poll_process_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> poll_process_engine : 
+    ?period:float option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    pid:int
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    [<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a>] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p><b>This class is deprecated!</b> Use the classes in [root:Shell_uq] instead.</p>
+      
+      <p>This engine waits until the process with the ID <code>pid</code> terminates.
+When this happens, the state of the engine changes to
+<code>`Done</code>, and the argument of <code>`Done</code> is the process status.</p>
+      
+      <p>The engine does not catch stopped processes.</p>
+      
+      <p>The engine checks the process status every <code>period</code> seconds, and
+whenever there is a <code>Signal</code> event on the queue. The idea of the
+latter is that the user of this engine can increase the responsiveness
+by defining a signal handler for SIGCHLD signals (the handler need
+not to perform any special action, it must just be defined). When
+the sub process terminates, a SIGCHLD signal is sent to the current
+process. If the event loop happens to wait for new conditions (which
+is usually very likely), a <code>Signal</code> event will be generated, and
+the engine will check the process status very soon. Note that it is
+not guaranteed that a terminating process triggers a <code>Signal</code> event,
+although it is very likely.</p>
+      
+      <p>You can define an empty SIGCHLD handler with:</p>
+      <pre><code>Sys.set_signal Sys.sigchld (Sys.Signal_handle (fun _ -&gt; ()))</code></pre>
+        
+  <div class="tag param">
+    <span class="label">period</span> Every <code>period</code> seconds the process status is checked.
+Defaults to 0.1 seconds.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">More I/O</h2>
+    </div>
+      <p>The module [root:Uq_io] provides a bunch of functions to read and write
+data via various &quot;devices&quot;. All these functions return engines, and
+are easy to use. Devices can be file descriptors, but also other
+data structures. In particular, there is also support for buffered I/O
+and for reading line-by-line from an input device.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Transfer engines</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Transfer engines copy data between file descriptors. This kind
+of engine is likely to be declared as deprecated in
+the future. If possible, one should use multiplex controllers
+(see below), and for copying streams the generic copier
+<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/">Uq_io</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/#/val:copy_e">copy_e</a> is a better choice.</p>
+      
+      <p>The pure types <code>async_in_channel</code> and <code>async_out_channel</code> have been
+proven to be useful for bridging with [root:Netchannels].</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:async_out_channel">
+  <a href="index.html#/classtype:async_out_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> async_out_channel = 
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Methods from <code>raw_out_channel</code></h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:async_out_channel/method:output">
+  <a href="index.html#/classtype:async_out_channel/method:output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p><code>output s k n</code>: Writes the substring of <code>s</code> beginning at index
+<code>k</code> with length <code>n</code> into the channel. The channel is free to
+accept only a portion of the string (or even nothing), and
+returns the number of bytes it accepts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_out_channel/method:close_out">
+  <a href="index.html#/classtype:async_out_channel/method:close_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_out : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Closes the channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_out_channel/method:pos_out">
+  <a href="index.html#/classtype:async_out_channel/method:pos_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pos_out : int
+  
+      <div class="doc">
+        
+      <p>Returns the number of characters output into the channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_out_channel/method:flush">
+  <a href="index.html#/classtype:async_out_channel/method:flush" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> flush : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Flushes the channel. Asynchronous channels usually ignore
+flush requests. A potential meaning of flushing could be that
+no more data are accepted until the current buffer is completely
+processed. Implementing this is optional.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Additional control methods</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:async_out_channel/method:can_output">
+  <a href="index.html#/classtype:async_out_channel/method:can_output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> can_output : bool
+  
+      <div class="doc">
+        
+      <p>Whether output is possible, i.e. the output method accepts at least
+one byte</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_out_channel/method:request_notification">
+  <a href="index.html#/classtype:async_out_channel/method:request_notification" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_notification : (unit <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>After the notification has been requested, the passed function is
+be called whenever <code>can_output</code> changes its value (or might change
+its value). The function returns <code>true</code> if there is still interest
+in notification, and <code>false</code> if notification must be disabled.</p>
+      
+      <p>There can be any number of parallel active notifications. It is
+allowed that a notification callback requests further notifications.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>An asynchrounous output channel provides methods to output data to
+a stream descriptor. It is based on <code>raw_out_channel</code>, which is
+defined by the Ocamlnet module <code>Netchannels</code> (see there for an
+introduction into the idea of using objects as I/O channels).
+An asynchronous channel can indicate that there is no space in the
+output buffer. Furthermore, one can request notification in the case
+that there is no space or again space in the output buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_in_channel">
+  <a href="index.html#/classtype:async_in_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> async_in_channel = 
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Methods from <code>raw_in_channel</code></h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:async_in_channel/method:input">
+  <a href="index.html#/classtype:async_in_channel/method:input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p><code>input s k n</code>: Reads channel data into the substring of <code>s</code>
+beginning at index <code>k</code> with length <code>n</code>. The channel is free to
+fill only a portion of the string (or even nothing). The method
+returns the number of bytes actually read.</p>
+      
+      <p>The exception <code>End_of_file</code> indicates that the end of the channel
+is reached. The return value <code>0</code>, however, means that no data
+could be read.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_in_channel/method:close_in">
+  <a href="index.html#/classtype:async_in_channel/method:close_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_in : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Closes the channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_in_channel/method:pos_in">
+  <a href="index.html#/classtype:async_in_channel/method:pos_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pos_in : int
+  
+      <div class="doc">
+        
+      <p>Returns the number of characters read from the channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Additional control methods</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:async_in_channel/method:can_input">
+  <a href="index.html#/classtype:async_in_channel/method:can_input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> can_input : bool
+  
+      <div class="doc">
+        
+      <p>Whether input is possible, i.e. the input method gets at least
+one byte, or can signal <code>End_of_file</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_in_channel/method:request_notification">
+  <a href="index.html#/classtype:async_in_channel/method:request_notification" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_notification : (unit <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>After the notification has been requested, the passed function is
+be called whenever <code>can_input</code> changes its value (or might change
+its value). The function returns <code>true</code> if there is still interest
+in notification, and <code>false</code> if notification must be disabled.</p>
+      
+      <p>There can be any number of parallel active notifications. It is
+allowed that a notification callback requests further notifications.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>An asynchrounous input channel provides methods to input data from
+a stream descriptor. It is based on <code>raw_in_channel</code>, which is
+defined by the Ocamlnet module <code>Netchannels</code> (see there for an
+introduction into the idea of using objects as I/O channels).
+An asynchronous channel can indicate that there is no data in the
+input buffer. Furthermore, one can request notification in the case
+that there is no data or again data in the input buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pseudo_async_out_channel">
+  <a href="index.html#/class:pseudo_async_out_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> pseudo_async_out_channel : 
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.#raw_out_channel
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:async_out_channel">async_out_channel</a>
+    
+    
+      <div class="doc">
+        
+      <p>Takes a <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:raw_out_channel">raw_out_channel</a> as an asynchronous channel.
+It is always possible to output to this channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:pseudo_async_in_channel">
+  <a href="index.html#/class:pseudo_async_in_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> pseudo_async_in_channel : 
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.#raw_in_channel
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:async_in_channel">async_in_channel</a>
+    
+    
+      <div class="doc">
+        
+      <p>Takes a <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:raw_in_channel">raw_in_channel</a> as an asynchronous channel.
+It is always possible to input from this channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:receiver">
+  <a href="index.html#/class:receiver" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> receiver : 
+    src:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    dst:<a href="index.html#/classtype:async_out_channel">async_out_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?close_src:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?close_dst:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    [unit] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine copies all data from the <code>src</code> file descriptor to the
+<code>dst</code> output channel. The engine attaches immediately to the
+event system, and detaches automatically.</p>
+      
+      <p>By default, both the file descriptor and the output channel
+are closed when the engine stops operation, either successfully
+or because of an error.</p>
+      
+      <p>The semantics of the engine is undefined if <code>src</code> is not a
+stream-oriented descriptor.</p>
+      
+      <p>The engine goes to <code>`Error</code> state when either reading from <code>src</code>
+or writing to <code>dst</code> raises an unexpected exception.</p>
+      
+      <p>For every file descriptor event, the state is advanced from
+<code>`Working n</code> to <code>`Working (n+1)</code>.</p>
+      
+      <p>TODO: This class cannot yet cope with Win32 named pipes.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">close_src</span> Whether to close <code>src</code> when the engine stops
+(default: <code>true</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">close_dst</span> Whether to close <code>dst</code> when the engine stops
+(default: <code>true</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:sender">
+  <a href="index.html#/class:sender" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> sender : 
+    src:<a href="index.html#/classtype:async_in_channel">async_in_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    dst:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?close_src:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?close_dst:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    [unit] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine copies all data from the <code>src</code> input channel to the
+<code>dst</code> file descriptor. The engine attaches immediately to the
+event system, and detaches automatically.</p>
+      
+      <p>By default, both the file descriptor and the output channel
+are closed when the engine stops operation, either successfully
+or because of an error.</p>
+      
+      <p>The semantics of the engine is undefined if <code>dst</code> is not a
+stream-oriented descriptor.</p>
+      
+      <p>The engine goes to <code>`Error</code> state when either reading from <code>src</code>
+or writing to <code>dst</code> raises an unexpected exception.</p>
+      
+      <p>For every file descriptor event, the state is advanced from
+<code>`Working n</code> to <code>`Working (n+1)</code>.</p>
+      
+      <p>TODO: This class cannot yet cope with Win32 named pipes.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">close_src</span> Whether to close <code>src</code> when the engine stops
+(default: <code>true</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">close_dst</span> Whether to close <code>dst</code> when the engine stops
+(default: <code>true</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_out_channel_engine">
+  <a href="index.html#/classtype:async_out_channel_engine" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> async_out_channel_engine = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> [unit] <a href="index.html#/classtype:engine">engine</a>
+    </div>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:async_out_channel">async_out_channel</a>
+    </div>
+    
+    
+      <div class="doc">
+        
+      <p>Combination of engine + async_out_channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:async_in_channel_engine">
+  <a href="index.html#/classtype:async_in_channel_engine" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> async_in_channel_engine = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> [unit] <a href="index.html#/classtype:engine">engine</a>
+    </div>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:async_in_channel">async_in_channel</a>
+    </div>
+    
+    
+      <div class="doc">
+        
+      <p>Combination of engine + async_in_channel</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_async_descr">
+  <a href="index.html#/class:output_async_descr" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_async_descr : 
+    dst:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?buffer_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?close_dst:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:async_out_channel_engine">async_out_channel_engine</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine implements an <code>async_out_channel</code> for the output
+descriptor <code>dst</code>. The engine provides an internal buffer to
+reduce the number of blocked output operations; by default there
+is even no limit for the growth of the buffer, and because of this
+the channel never blocks (<code>can_output</code> is always <code>true</code>).</p>
+      
+      <p>The engine attaches immediately to the event system, and detaches
+automatically. By default, the file descriptor is closed when the
+engine stops operation, either successfully or because of an
+error.</p>
+      
+      <p>If the buffer is full, the class accepts no more data until
+there is again free space in the buffer. This means that writers
+must be prepared that <code>can_output</code> returns <code>false</code>, and that
+the <code>output</code> method returns 0. The buffer can only get &quot;full&quot;
+if the <code>buffer_size</code> argument is passed.</p>
+      
+      <p>The notification mechanism is shared by the &quot;engine nature&quot; and
+by the &quot;channel nature&quot; of this class: If either the <code>state</code> or
+<code>can_output</code> change their values, the notification callbacks
+are invoked.</p>
+      
+      <p>The semantics of the engine is undefined if <code>dst</code> is not a
+stream-oriented descriptor.</p>
+      
+      <p>TODO: This class cannot yet cope with Win32 named piped.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buffer_size</span> Limits the size of the buffer
+  </div>
+  
+  <div class="tag param">
+    <span class="label">close_dst</span> Whether to close <code>dst</code> when the engine stops
+(default: <code>true</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:input_async_descr">
+  <a href="index.html#/class:input_async_descr" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_async_descr : 
+    src:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?buffer_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?close_src:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:async_in_channel_engine">async_in_channel_engine</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>The corresponding class for asynchronous input channels.</p>
+      
+      <p>TODO: This class cannot yet cope with Win32 named piped.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:copy_task">
+  <a href="index.html#/type:copy_task" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> copy_task = [ <div class="cons">| `Unidirectional <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div><div class="cons">| `Uni_socket <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div><div class="cons">| `Bidirectional <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div><div class="cons">| `Tridirectional <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Specifies the task the <code>copier</code> class has to do:</p>
+      <ul><li><code>`Unidirectional(src,dst)</code>: Data from <code>src</code> are copied to <code>dst</code>.
+EOF of <code>src</code> causes that both descriptors are closed.</li><li><code>`Uni_socket(src,dst)</code>: Data from <code>src</code> are copied to <code>dst</code>.
+EOF of <code>src</code> causes that <code>dst</code> is shut down for sending; all descriptors
+remain open. It is required that <code>dst</code> is a socket.</li><li><code>`Bidirectional(bi1,bi2)</code>: Data from <code>bi1</code> are copied to <code>bi2</code>,
+and data from <code>bi2</code> are copied to <code>bi1</code>. EOF of one descriptor
+causes that the other descriptor is shut down for sending.
+When both descriptors are at EOF, both are closed.
+It is required that <code>bi1</code> and <code>bi2</code> are sockets.</li><li><code>`Tridirectional(bi,dst,src)</code>: Data from <code>bi</code> are copied to <code>dst</code>,
+and data from <code>src</code> are copied to <code>bi</code> (i.e. a bidirectional
+descriptor is split up into two unidirectional descriptors).
+EOF of <code>bi</code> causes that <code>dst</code> is closed. EOF of <code>src</code> causes
+that <code>bi</code> is shut down for sending. EOF in both directions
+causes that all descriptors are closed. It is required that
+<code>bi</code> is a socket.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:copier">
+  <a href="index.html#/class:copier" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> copier : 
+    <a href="index.html#/type:copy_task">copy_task</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    [unit] <a href="index.html#/classtype:engine">engine</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine copies data between file descriptors as specified by
+the <code>copy_task</code> argument.</p>
+      
+      <p>The task is done when all input descriptors are at EOF. See
+the description of <code>copy_task</code> for details, especially whether
+the descriptors are closed or not.</p>
+      
+      <p>On error or abort, the descriptors are only closed if they
+had been closed on regular EOF.</p>
+      
+      <p>The semantics of the engine is undefined if one of the descriptors
+is not stream-oriented.</p>
+      
+      <p>TODO: This class cannot yet cope with Win32 named piped.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Socket engines</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Note that Win32 named pipes are also supported by the following
+API's, although they are not sockets. These pipes have a feature
+set comparable to Unix domain sockets.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:inetspec">
+  <a href="index.html#/type:inetspec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> inetspec = [ <div class="cons">| `Sock_inet <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_type">socket_type</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> * int</div><div class="cons">| `Sock_inet_byname <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_type">socket_type</a> * string * int</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sockspec">
+  <a href="index.html#/type:sockspec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> sockspec = [ <div class="cons">| <a href="index.html#/type:inetspec">inetspec</a></div><div class="cons">| `Sock_unix <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_type">socket_type</a> * string</div> ]
+    
+      <div class="doc">
+        
+      <p>Extended names for socket addresses. Currently, these naming schemes
+are supported:</p>
+      <ul><li><code>`Sock_unix(stype,path)</code>: Names the Unix domain socket at <code>path</code>.
+The socket type <code>stype</code> is an auxiliary piece of information, but
+not a distinguishing part of the name. <code>path = &quot;&quot;</code> refers to
+anonymous sockets. Otherwise, the <code>path</code> must be an absolute path name.</li><li><code>`Sock_inet(stype,addr,port)</code>: Names the Internet socket of type
+<code>stype</code> bound to the IP address <code>addr</code> and the <code>port</code>.
+If <code>stype = Unix.SOCK_STREAM</code>, a TCP socket is meant, and if
+<code>stype = Unix.SOCK_DGRAM</code>, a UDP socket is meant. It is allowed
+that <code>addr = Unix.inet_addr_any</code>. If <code>port = 0</code>, the name is to
+be considered as incomplete.</li><li><code>`Sock_inet_byname(stype,name,port)</code>: Names the Internet socket of
+type <code>stype</code> bound to the IP address corresponding to the
+<code>name</code>, and bound to the <code>port</code>. It is unspecified which naming
+service is used to resolve <code>name</code> to an IP address, and how it is
+used. If the <code>name</code> cannot be resolved, no socket is meant; this
+is usually an error. <code>stype</code> is interpreted as for <code>`Sock_inet</code>.
+If <code>port = 0</code>, the name is to be considered as incomplete.</li></ul>
+      <p>It is currently not possible to name IP sockets that are bound to
+several IP addresses but not all IP addresses of the host.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sockspec_of_sockaddr">
+  <a href="index.html#/val:sockspec_of_sockaddr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sockspec_of_sockaddr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_type">socket_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockspec">sockspec</a>
+    
+      <div class="doc">
+        
+      <p>Converts a normal socket address to the extended form</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sockspec_of_socksymbol">
+  <a href="index.html#/val:sockspec_of_socksymbol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sockspec_of_socksymbol : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_type">socket_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockspec">sockspec</a>
+    
+      <div class="doc">
+        
+      <p>Converts a <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a> to this form</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Client sockets</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:connect_address">
+  <a href="index.html#/type:connect_address" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> connect_address = [ <div class="cons">| `Socket <span class="keyword">of</span> <a href="index.html#/type:sockspec">sockspec</a> * <a href="index.html#/type:connect_options">connect_options</a></div><div class="cons">| `Command <span class="keyword">of</span> string * (int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> unit)</div><div class="cons">| `W32_pipe <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/type:pipe_mode">pipe_mode</a> * string</div> ]
+    
+      <div class="doc">
+        
+      <p>Specifies the service to connect to:</p>
+      <ul><li><code>`Socket(addr,opts)</code>: Connect to the passed socket address</li><li><code>`Command(cmd,handler)</code>: The <code>cmd</code> is started with the shell,
+and <code>stdin</code> and <code>stdout</code> are used to transfer data to the
+process and from the process, respectively. Only <code>SOCK_STREAM</code>
+type is supported. Note that the passed file descriptors are
+normal pipes, not sockets (so the descriptors can be individually
+closed).<br/>There is not any kind of error detection, so the command should
+be failsafe. <code>stderr</code> of the command is connected with <code>stderr</code> of
+the caller process.<br/>No provisions are taken to wait for the process; this is the
+task of the caller. After the process has been started, the
+<code>handler</code> is invoked with the process ID and the event system
+to give the caller a chance to arrange that the process will be
+waited for.</li><li><code>`W32_pipe(mode,name)</code>: A Win32 named pipe</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:connect_options">
+  <a href="index.html#/type:connect_options" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> connect_options = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:connect_options/field:conn_bind">
+  <a href="index.html#/type:connect_options/field:conn_bind" class="anchor">#</a>
+  conn_bind
+  </div>
+  </td><td>: <a href="index.html#/type:sockspec">sockspec</a> option</td><td>;</td><td>(*</td><td class="doc">Bind the connecting socket to this address (same family as the
+connected socket required). <code>None</code>: Use an anonymous port.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_connect_options">
+  <a href="index.html#/val:default_connect_options" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_connect_options : <a href="index.html#/type:connect_options">connect_options</a>
+    
+      <div class="doc">
+        
+      <p>Returns the default options</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:connect_status">
+  <a href="index.html#/type:connect_status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> connect_status = [ <div class="cons">| `Socket <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="index.html#/type:sockspec">sockspec</a></div><div class="cons">| `Command <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * int</div><div class="cons">| `W32_pipe <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a></div> ]
+    
+      <div class="doc">
+        
+      <p>This type corresponds with <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/type:connect_address">connect_address</a>: An engine
+connecting with an address `X will return a status of `X.</p>
+      <ul><li><code>`Socket(fd,addr)</code>: <code>fd</code> is the client socket connected with the
+service. <code>addr</code> is the socket address of the client that must be
+used by the server to reach the client.</li><li><code>`Command(fd, pid)</code>: <code>fd</code> is the Unix domain socket connected with
+the running command. <code>pid</code> is the process ID.</li><li><code>`W32_pipe fd</code>: <code>fd</code> is the proxy descriptor of the connected
+Win32 named pipe endpoint. See [root:Netsys_win32] how to get the
+<code>w32_pipe</code> object to access the pipe. The proxy descriptor <b>cannot</b>
+be used for I/O.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:client_endpoint">
+  <a href="index.html#/val:client_endpoint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> client_endpoint : <a href="index.html#/type:connect_status">connect_status</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the client endpoint contained in the <code>connect_status</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:client_socket">
+  <a href="index.html#/val:client_socket" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> client_socket : <a href="index.html#/type:connect_status">connect_status</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+      <div class="doc">
+        
+      <p>For backward compatibility. <b>Deprecated name</b> for <code>client_endpoint</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:client_endpoint_connector">
+  <a href="index.html#/classtype:client_endpoint_connector" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> client_endpoint_connector = 
+  <div class="region" id="/classtype:client_endpoint_connector/method:connect">
+  <a href="index.html#/classtype:client_endpoint_connector/method:connect" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> connect : <a href="index.html#/type:connect_address">connect_address</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connect_status">connect_status</a> <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>Instantiates an engine that connects to the endpoint given by the
+<code>connect_address</code> argument. If successful, the state of the engine
+changes to <code>`Done(status)</code> where <code>status</code> contains the socket
+details. The connection is established in the background.</p>
+      
+      <p>The type of status will correspond to the type of connect address
+(e.g. a <code>`Socket</code> address will return a <code>`Socket</code> status).</p>
+      
+      <p>The close-on-exec flag of the created socket descriptor is always set.
+The socket descriptor is always in non-blocking mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This class type provides engines to connect to a service. In order
+to get and activate such an engine, call <code>connect</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:client_socket_connector">
+  <a href="index.html#/classtype:client_socket_connector" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> client_socket_connector = <a href="index.html#/classtype:client_endpoint_connector">client_endpoint_connector</a>
+    
+      <div class="doc">
+        
+      <p>For backward compatibility. <b>Deprecated name</b> for
+<code>client_endpoint_connector</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:connector">
+  <a href="index.html#/val:connector" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connector : ?proxy:<a href="index.html#/classtype:client_socket_connector">client_socket_connector</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connect_address">connect_address</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:connect_status">connect_status</a> <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>This engine connects to a socket as specified by the <code>connect_address</code>,
+optionally using the <code>proxy</code>, and changes to the state
+<code>`Done(status)</code> when the connection is established.</p>
+      
+      <p>If the <code>proxy</code> does not support the <code>connect_address</code>, the class
+will raise <code>Addressing_method_not_supported</code>.</p>
+      
+      <p>The descriptor <code>fd</code> (part of the <code>connect_status</code>) is in non-blocking mode,
+and the close-on-exec flag is set.
+It is the task of the caller to close this descriptor.</p>
+      
+      <p>The engine attaches automatically to the event system, and detaches
+when it is possible to do so. This depends on the type of the
+connection method. For direct socket connections, the engine can
+often detach immediately when the conection is established. For proxy
+connections it is required that the engine
+copies data to and from the file descriptor. In this case, the
+engine detaches when the file descriptor is closed.</p>
+      
+      <p>It is possible that name service queries block execution.</p>
+      
+      <p>If name resolution fails, the engine will enter
+<code>`Error(Uq_resolver.Host_not_found name)</code>. This is <b>new since
+Ocamlnet-3.3</b> - before this version, the exception was simply
+<code>Not_found</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Example</b> of using <code>connector</code>: This engine <code>e</code> connects to the
+&quot;echo&quot; service as provided by inetd, sends a line of data to it,
+and awaits the response.</p>
+      <pre><code>	let e =
+	  Uq_engines.connector
+	    (`Socket(`Sock_inet_byname(Unix.SOCK_STREAM, &quot;localhost&quot;, 7),
+		     Uq_engines.default_connect_options))
+	    esys
+	  ++ (fun cs -&gt;
+		match cs with
+		  | `Socket(fd,_) -&gt;
+		      let mplex =
+			Uq_engines.create_multiplex_controller_for_connected_socket
+			  ~supports_half_open_connection:true
+			  fd esys in
+		      let d_unbuf = `Multiplex mplex in
+		      let d = `Buffer_in(Uq_io.create_in_buffer d_unbuf) in
+		      Uq_io.output_string_e d_unbuf &quot;This is line1\n&quot;
+		      ++ (fun () -&gt;
+			    Uq_io.input_line_e d 
+			    ++ (fun s -&gt;
+				  print_endline s;
+				  eps_e (`Done()) esys
+			       )
+			 )
+		  | _ -&gt; assert false
+	     )</code></pre>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Server sockets</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:listen_address">
+  <a href="index.html#/type:listen_address" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> listen_address = [ <div class="cons">| `Socket <span class="keyword">of</span> <a href="index.html#/type:sockspec">sockspec</a> * <a href="index.html#/type:listen_options">listen_options</a></div><div class="cons">| `W32_pipe <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/type:pipe_mode">pipe_mode</a> * string * <a href="index.html#/type:listen_options">listen_options</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Specifies the resource to listen on:</p>
+      <ul><li><code>`Socket(addr,opts)</code>: It is listened on a socket with address <code>addr</code></li><li><code>`W32_pipe(mode,name,opts)</code>: It is listened on a pipe server with
+<code>name</code> which accepts pipe connections in <code>mode</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:listen_options">
+  <a href="index.html#/type:listen_options" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> listen_options = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:listen_options/field:lstn_backlog">
+  <a href="index.html#/type:listen_options/field:lstn_backlog" class="anchor">#</a>
+  lstn_backlog
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The length of the queue of not yet accepted
+connections.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:listen_options/field:lstn_reuseaddr">
+  <a href="index.html#/type:listen_options/field:lstn_reuseaddr" class="anchor">#</a>
+  lstn_reuseaddr
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Whether to allow that the address can be
+immediately reused after the previous listener
+has its socket shut down. (Only for Internet
+sockets.)</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_listen_options">
+  <a href="index.html#/val:default_listen_options" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_listen_options : <a href="index.html#/type:listen_options">listen_options</a>
+    
+      <div class="doc">
+        
+      <p>Returns the default options</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:server_endpoint_acceptor">
+  <a href="index.html#/classtype:server_endpoint_acceptor" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> server_endpoint_acceptor = 
+  <div class="region" id="/classtype:server_endpoint_acceptor/method:server_address">
+  <a href="index.html#/classtype:server_endpoint_acceptor/method:server_address" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> server_address : <a href="index.html#/type:connect_address">connect_address</a>
+  
+      <div class="doc">
+        
+      <p>The contact address under which the clients can establish new
+connections with this server.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:server_endpoint_acceptor/method:multiple_connections">
+  <a href="index.html#/classtype:server_endpoint_acceptor/method:multiple_connections" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_connections : bool
+  
+      <div class="doc">
+        
+      <p>Whether it is possible to accept multiple connections</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:server_endpoint_acceptor/method:accept">
+  <a href="index.html#/classtype:server_endpoint_acceptor/method:accept" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> accept : unit <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="index.html#/type:inetspec">inetspec</a> option) <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>Instantiates an engine that accepts connections on the listening
+endpoint.</p>
+      
+      <p>If the connection is successfully established, the state of the engine
+changes to <code>`Done(fd,addr)</code> where <code>fd</code> is the connected file descriptor,
+and where <code>addr</code> (if not-<code>None</code>) is the endpoint address of the
+connecting client (from the server's perspective). Such addresses are
+only supported for Internet endpoints. If a proxy is used to accept
+the connections, the returned address is that from the proxy's
+view, and usually different from what <code>Unix.getpeername</code> returns.</p>
+      
+      <p>The close-on-exec flag of the created endpoint descriptor is always set.
+The endpoint descriptor is always in non-blocking mode.</p>
+      
+      <p>It is allowed to shut down <code>fd</code> for sending, and it is required to
+close <code>fd</code> after all data transfers have been performed.</p>
+      
+      <p>A call of <code>accept</code> allows it only to establish one connection at a time.
+However, it is allowed to call <code>accept</code> several times to accept several
+connections, provided the acceptor supports this (returned by
+<code>multiple_connections</code>). It is only allowed to call <code>accept</code> again
+when the previous engine was successful.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:server_endpoint_acceptor/method:shut_down">
+  <a href="index.html#/classtype:server_endpoint_acceptor/method:shut_down" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> shut_down : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>The server endpoint is shut down such that no further connections
+are possible. It is required to call this method even for acceptors
+that do not support multiple connections. It is also required to
+call this method when an <code>accept</code> was not successful.</p>
+      
+      <p>If there is a engine waiting for connections, it is aborted.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This class type is for service providers that listen for connections.
+By calling <code>accept</code>, one gets an engine that waits for the next
+connection, and establishes it.</p>
+      
+      <p>There are services that can only accept one connection for a
+certain contact address. In this case <code>accept</code> must only be called
+once. Normally, services can accept any number of connections
+(multiplexing), and it is allowed to call <code>accept</code> again after
+the previous accept engine was successful.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:server_socket_acceptor">
+  <a href="index.html#/classtype:server_socket_acceptor" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> server_socket_acceptor = <a href="index.html#/classtype:server_endpoint_acceptor">server_endpoint_acceptor</a>
+    
+      <div class="doc">
+        
+      <p>For backward compatibility. <b>Deprecated name</b> for
+<code>server_endpoint_acceptor</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:direct_acceptor">
+  <a href="index.html#/class:direct_acceptor" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> direct_acceptor : 
+    ?close_on_shutdown:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?preclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:server_endpoint_acceptor">server_endpoint_acceptor</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>An implementation of <code>server_endpoint_acceptor</code> for sockets and Win32
+named pipes. For sockets, the passed descriptor must be the master
+socket. For Win32 named pipes, the passed descriptor must be the
+proxy descriptor of the pipe server..</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:direct_socket_acceptor">
+  <a href="index.html#/class:direct_socket_acceptor" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> direct_socket_acceptor : 
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:server_endpoint_acceptor">server_endpoint_acceptor</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>For backward compatibility. <b>Deprecated name</b> for <code>direct_acceptor</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:server_endpoint_listener">
+  <a href="index.html#/classtype:server_endpoint_listener" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> server_endpoint_listener = 
+  <div class="region" id="/classtype:server_endpoint_listener/method:listen">
+  <a href="index.html#/classtype:server_endpoint_listener/method:listen" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> listen : <a href="index.html#/type:listen_address">listen_address</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:server_endpoint_acceptor">server_endpoint_acceptor</a> <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>Instantiates an engine that listens for connections on the socket given
+by the <code>listen_address</code> argument. If successful, the state of the engine
+changes to <code>`Done(acc)</code> where <code>acc</code> is the acceptor object guiding
+you through further operation of the socket (see above).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This class type represents factories for service providers</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:server_socket_listener">
+  <a href="index.html#/classtype:server_socket_listener" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> server_socket_listener = <a href="index.html#/classtype:server_endpoint_listener">server_endpoint_listener</a>
+    
+      <div class="doc">
+        
+      <p>For backward compatibility. <b>Deprecated name</b> for
+<code>server_endpoint_listener</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:listener">
+  <a href="index.html#/val:listener" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> listener : ?proxy:<a href="index.html#/classtype:server_socket_listener">server_socket_listener</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:listen_address">listen_address</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:server_socket_acceptor">server_socket_acceptor</a> <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>This engine creates a server socket listening on the <code>listen_address</code>.
+If passed, the <code>proxy</code> is used to create the server socket.</p>
+      
+      <p>On success, the engine goes to state <code>`Done acc</code>, where <code>acc</code> is
+the acceptor object (see above). The acceptor object can be used
+to accept incoming connections.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Datagrams</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:datagram_type">
+  <a href="index.html#/type:datagram_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> datagram_type = [ <div class="cons">| `Unix_dgram</div><div class="cons">| `Inet_udp</div><div class="cons">| `Inet6_udp</div> ]
+    
+      <div class="doc">
+        
+      <p>- <code>`Unix_dgram</code>: Datagrams over Unix domain sockets</p>
+      <ul><li><code>`Inet_udp</code>: Internet v4 UDP protocol</li><li><code>`Inet6_udp</code>: Internet v6 UDP protocol</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket">
+  <a href="index.html#/classtype:wrapped_datagram_socket" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> wrapped_datagram_socket = 
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:descriptor">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:descriptor" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> descriptor : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+  
+      <div class="doc">
+        
+      <p>The underlying file descriptor. This descriptor must not be used
+to transfer data (<code>Unix.send(to)</code>, <code>Unix.recv(from)</code>, etc.), because the
+descriptor may be connected with a proxy, and the socket addresses
+may be wrong that are used by the low-level socket functions.
+The right way is to use the methods below to transfer data. It is
+allowed, however, to pass the descriptor to <code>Unix.select</code>, and to check
+whether transfers are possible. It is also allowed to set or clear
+non-blocking mode, and the close-on-exec flag, and to modify the
+socket options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:sendto">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:sendto" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> sendto : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:msg_flag">msg_flag</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:sockspec">sockspec</a> <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>Send data over the (unconnected) socket</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:recvfrom">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:recvfrom" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> recvfrom : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:msg_flag">msg_flag</a> list <span class="rarr"><span>-&gt;</span></span> int * <a href="index.html#/type:sockspec">sockspec</a>
+  
+      <div class="doc">
+        
+      <p>Receive data from the (unconnected) socket. The method will
+raise EAGAIN if the message cannot be processed for some reason,
+even if the socket is in blocking mode. In this case, the received
+message is discarded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:shut_down">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:shut_down" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> shut_down : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Close the descriptor, shuts down any further needed resources</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:datagram_type">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:datagram_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> datagram_type : <a href="index.html#/type:datagram_type">datagram_type</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:socket_domain">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:socket_domain" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> socket_domain : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_domain">socket_domain</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:socket_type">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:socket_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> socket_type : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_type">socket_type</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:wrapped_datagram_socket/method:socket_protocol">
+  <a href="index.html#/classtype:wrapped_datagram_socket/method:socket_protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> socket_protocol : int
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A <code>wrapped_datagram_socket</code> allows datagrams to be sent via proxies.
+It provides versions of the <code>sendto</code> and <code>recvfrom</code> functions that
+use extended socket names (which are proxy-friendly).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:datagram_socket_provider">
+  <a href="index.html#/classtype:datagram_socket_provider" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> datagram_socket_provider = 
+  <div class="region" id="/classtype:datagram_socket_provider/method:create_datagram_socket">
+  <a href="index.html#/classtype:datagram_socket_provider/method:create_datagram_socket" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_datagram_socket : <a href="index.html#/type:datagram_type">datagram_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:wrapped_datagram_socket">wrapped_datagram_socket</a> <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>Creates an engine that creates a <code>wrapped_datagram_socket</code> object
+and that sets up any further resources the objects needs.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This is a factory for <code>wrapped_datagram_socket</code> objects.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:datagram_provider">
+  <a href="index.html#/val:datagram_provider" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> datagram_provider : ?proxy:<a href="index.html#/classtype:datagram_socket_provider">datagram_socket_provider</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:datagram_type">datagram_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:wrapped_datagram_socket">wrapped_datagram_socket</a> <a href="index.html#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>This engine creates a datagram socket as demanded by the <code>datagram_type</code>,
+optionally using <code>proxy</code> for sending and receiving datagrams.</p>
+      
+      <p>The socket is unconnected.</p>
+      
+      <p>The socket is in non-blocking mode, and the close-on-exec flag is
+set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Multiplex Controllers</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/classtype:multiplex_controller">
+  <a href="index.html#/classtype:multiplex_controller" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> multiplex_controller = 
+  <div class="region" id="/classtype:multiplex_controller/method:alive">
+  <a href="index.html#/classtype:multiplex_controller/method:alive" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> alive : bool
+  
+      <div class="doc">
+        
+      <p>If the controller is alive, the socket is not yet completely down.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:mem_supported">
+  <a href="index.html#/classtype:multiplex_controller/method:mem_supported" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> mem_supported : bool
+  
+      <div class="doc">
+        
+      <p>Whether <code>start_mem_reading</code> and <code>start_mem_writing</code> are possible</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:event_system">
+  <a href="index.html#/classtype:multiplex_controller/method:event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+  
+      <div class="doc">
+        
+      <p>Returns the event system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:reading">
+  <a href="index.html#/classtype:multiplex_controller/method:reading" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> reading : bool
+  
+      <div class="doc">
+        
+      <p>True iff there is a reader</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:start_reading">
+  <a href="index.html#/classtype:multiplex_controller/method:start_reading" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_reading : ?peek:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> when_done:(exn option <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Start reading from the connection. When data is available, the
+<code>when_done</code> callback is invoked. The int is the number of read
+bytes. It is 0 if an error occurred which is indicated by the
+exception. The exception <code>End_of_file</code> is used when the end of the
+data stream is reached. The exception <code>Cancelled</code> indicates that
+reading has been cancelled in the meantime.</p>
+      
+      <p>This starts one-time read job only, i.e. it is not restarted
+after <code>when_done</code> has been invoked.</p>
+      
+      <p>It is an error to start reading several times.</p>
+      
+      <p>The function <code>peek</code> is called immediately before data is read in
+from the underlying communication channel.</p>
+      
+      <p>For getting an engine-based version of <code>start_reading</code>, use
+a <code>signal_engine</code>:
+</p>
+      <pre><code>           let (e, signal) = signal_engine esys in
+           mplex # start_reading ~when_done:(fun xo n -&gt; signal (xo,n)) ...</code></pre>
+      <p>
+Now <code>e</code> will transition to <code>`Done(x0,n)</code> when the read is done.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:start_mem_reading">
+  <a href="index.html#/classtype:multiplex_controller/method:start_mem_reading" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_mem_reading : ?peek:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> when_done:(exn option <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Same as <code>start_reading</code>, but puts the data into a <code>memory</code> buffer.
+There is an optimization for the case that the descriptor is a
+connected socket, or supports <code>Unix.read</code>. If this is not possible
+the method raises <code>Mem_not_supported</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:cancel_reading">
+  <a href="index.html#/classtype:multiplex_controller/method:cancel_reading" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cancel_reading : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Cancels the read job. The <code>when_done</code> callback is invoked with the
+number of bytes read so far (which may be 0) and the exception
+<code>Cancelled</code>.</p>
+      
+      <p>It is no error if there is no reader.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:writing">
+  <a href="index.html#/classtype:multiplex_controller/method:writing" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> writing : bool
+  
+      <div class="doc">
+        
+      <p>True iff there is a writer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:start_writing">
+  <a href="index.html#/classtype:multiplex_controller/method:start_writing" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_writing : when_done:(exn option <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Start writing to the connection. When data is written, the
+<code>when_done</code> callback is invoked. The int is the number of written
+bytes. It is 0 if an error occurred which is indicated by the
+exception. The exception <code>Cancelled</code> indicates that
+writing has been cancelled in the meantime.</p>
+      
+      <p>This starts one-time write job only, i.e. it is not restarted
+after <code>when_done</code> has been invoked.</p>
+      
+      <p>It is an error to start writing several times.</p>
+      
+      <p>See the comment for <code>start_reading</code> for how to get an engine-based
+version of this method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:start_mem_writing">
+  <a href="index.html#/classtype:multiplex_controller/method:start_mem_writing" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_mem_writing : when_done:(exn option <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Same as <code>start_writing</code>, but takes the data from a <code>memory</code> buffer.
+There is an optimization for the case that the descriptor is a
+connected socket, or supports <code>Unix.write</code>. If this is not possible
+the method raises <code>Mem_not_supported</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:supports_half_open_connection">
+  <a href="index.html#/classtype:multiplex_controller/method:supports_half_open_connection" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> supports_half_open_connection : bool
+  
+      <div class="doc">
+        
+      <p>Whether the underlying transport mechanism can close the write side
+of the connection only (half-open connection).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:start_writing_eof">
+  <a href="index.html#/classtype:multiplex_controller/method:start_writing_eof" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_writing_eof : when_done:(exn option <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Start writing the EOF marker to the connection. When it is written,
+the <code>when_done</code> callback is invoked. The exception <code>Cancelled</code> indicates
+that writing has been cancelled in the meantime.</p>
+      
+      <p>This starts one-time write job only, i.e. it is not restarted
+after <code>when_done</code> has been invoked.</p>
+      
+      <p>It is an error to start writing several times. It is an error to
+write EOF when the socket does not support half-open connections.</p>
+      
+      <p>See the comment for <code>start_reading</code> for how to get an engine-based
+version of this method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:cancel_writing">
+  <a href="index.html#/classtype:multiplex_controller/method:cancel_writing" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cancel_writing : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Cancels the write job. The <code>when_done</code> callback is invoked with the
+number of bytes read so far (which may be 0) and the exception
+<code>Canelled</code>.</p>
+      
+      <p>It is no error if there is no writer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:read_eof">
+  <a href="index.html#/classtype:multiplex_controller/method:read_eof" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read_eof : bool
+  
+      <div class="doc">
+        
+      <p>Whether the EOF marker has been read</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:wrote_eof">
+  <a href="index.html#/classtype:multiplex_controller/method:wrote_eof" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> wrote_eof : bool
+  
+      <div class="doc">
+        
+      <p>Whether the EOF marker has been written</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:shutting_down">
+  <a href="index.html#/classtype:multiplex_controller/method:shutting_down" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> shutting_down : bool
+  
+      <div class="doc">
+        
+      <p>True iff the shutdown is in progress</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:start_shutting_down">
+  <a href="index.html#/classtype:multiplex_controller/method:start_shutting_down" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> start_shutting_down : ?linger:float <span class="rarr"><span>-&gt;</span></span> when_done:(exn option <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Start shutting down the connection. After going through the shutdown
+procedure, the <code>when_done</code> callback is invoked. The exception
+indicates whether an error happened. <code>Cancelled</code> means that the
+shutdown operation has been cancelled in the meantime.</p>
+      
+      <p>The underlying file descriptor (if any) is not closed. A shutdown
+is only a protocol handshake. After a shutdown, both <code>read_eof</code>
+and <code>wrote_eof</code> are true. Call <code>inactivate</code> to close the descriptor.</p>
+      
+      <p>Optionally, one can <code>linger</code> for a certain period of time.
+It is only lingered when the EOF was written before the EOF
+is seen on input.
+Defaults to <code>linger 60.0</code>. Set to 0 to turn off.</p>
+      
+      <p>See the comment for <code>start_reading</code> for how to get an engine-based
+version of this method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:cancel_shutting_down">
+  <a href="index.html#/classtype:multiplex_controller/method:cancel_shutting_down" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cancel_shutting_down : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Cancels the shutdown procedure. After that, the state of the
+connection is undefined. The <code>when_done</code> callback is invoked with
+the exception <code>Cancelled</code>.</p>
+      
+      <p>It is no error if no shutdown is in progress.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:multiplex_controller/method:inactivate">
+  <a href="index.html#/classtype:multiplex_controller/method:inactivate" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inactivate : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Inactivates the connection immediately, and releases any resources
+the controller is responsible for (e.g. closes file descriptors).
+Note that this is more than
+cancelling all pending operations and shutting the connection down.
+However, the details of this method are implementation-defined.
+Callbacks are not invoked.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A <code>multiplex_controller</code> is a quite low-level device to abstract
+bidirectional socket connections. It is independent of any real
+device.</p>
+      
+      <p>There can be a reader, a writer (or both), or alternatively,
+the shutdown process may be in progress. One cannot have more than
+one reader and more than more writer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Mem_not_supported">
+  <a href="index.html#/exn:Mem_not_supported" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Mem_not_supported
+    
+      <div class="doc">
+        
+      <p>May be raised by multiplex controller methods <code>start_mem_reading</code> and
+<code>start_mem_writing</code> if these methods are not supported for the kind
+of file descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_multiplex_controller_for_connected_socket">
+  <a href="index.html#/val:create_multiplex_controller_for_connected_socket" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_multiplex_controller_for_connected_socket : ?close_inactive_descr:bool <span class="rarr"><span>-&gt;</span></span> ?preclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?supports_half_open_connection:bool <span class="rarr"><span>-&gt;</span></span> ?timeout:float * exn <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/class:unix_event_system">unix_event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:multiplex_controller">multiplex_controller</a>
+    
+      <div class="doc">
+        
+      <p>Creates a multiplex controller for a bidirectional socket (e.g.
+a TCP socket). It is essential that the socket is in connected state.
+This function also supports Win32 named pipes.</p>
+      
+      <p>Note that the file descriptor is not closed when the attached engines
+are terminated. One can call <code>inactivate</code> manually to do that.</p>
+      
+      <p><code>close_inactive_descr</code>: Whether <code>inactivate</code> closes the descriptor.
+True by default.</p>
+      
+      <p><code>preclose</code>: This function is called just before the descriptor is
+closed.</p>
+      
+      <p><code>supports_half_open_connection</code>: This implementation does not know
+how to find out whether the socket supports half-open connections.
+You can simply set this boolean because of this. Defaults to <code>false</code>.
+You can set it to <code>true</code> for TCP connections and for Unix-domain
+connections with stream semantics.</p>
+      
+      <p><code>timeout</code>: If set to <code>(t, x)</code>, a general timeout of <code>t</code> is set.
+When an operation has been started, and there is no I/O activity within
+<code>t</code> seconds, neither by the started operation nor by another operation,
+the connection times out. In this case, the operation returns the
+exception <code>x</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:datagram_multiplex_controller">
+  <a href="index.html#/classtype:datagram_multiplex_controller" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> datagram_multiplex_controller = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:multiplex_controller">multiplex_controller</a>
+    </div>
+    
+  <div class="region" id="/classtype:datagram_multiplex_controller/method:received_from">
+  <a href="index.html#/classtype:datagram_multiplex_controller/method:received_from" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> received_from : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+  
+      <div class="doc">
+        
+      <p>Returns the socket address of the last received datagram. This
+value is updated just before the <code>when_done</code> callback of the
+reader is invoked.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:datagram_multiplex_controller/method:send_to">
+  <a href="index.html#/classtype:datagram_multiplex_controller/method:send_to" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> send_to : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the socket address of the next datagram to send.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Additional methods for unconnected datagram handling</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_multiplex_controller_for_datagram_socket">
+  <a href="index.html#/val:create_multiplex_controller_for_datagram_socket" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_multiplex_controller_for_datagram_socket : ?close_inactive_descr:bool <span class="rarr"><span>-&gt;</span></span> ?preclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?timeout:float * exn <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/class:unix_event_system">unix_event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:datagram_multiplex_controller">datagram_multiplex_controller</a>
+    
+      <div class="doc">
+        
+      <p>Creates a multiplex controller for datagram sockets (e.g. UDP socket).</p>
+      
+      <p>Note that the file descriptor is not closed when the attached engines
+are terminated. One can call <code>inactivate</code> manually to do that.</p>
+      
+      <p><code>close_inactive_descr</code>: Whether <code>inactivate</code> closes the descriptor.
+True by default.</p>
+      
+      <p><code>preclose</code>: This function is called just before the descriptor is
+closed.</p>
+      
+      <p><code>timeout</code>: If set to <code>(t, x)</code>, a general timeout of <code>t</code> is set.
+When an operation has been started, and there is no I/O activity within
+<code>t</code> seconds, neither by the started operation nor by another operation,
+the connection times out. In this case, the operation returns the
+exception <code>x</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:onshutdown_out_spec">
+  <a href="index.html#/type:onshutdown_out_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> onshutdown_out_spec = [ <div class="cons">| `Ignore</div><div class="cons">| `Initiate_shutdown</div><div class="cons">| `Action <span class="keyword">of</span> <a href="index.html#/classtype:async_out_channel_engine">async_out_channel_engine</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:multiplex_controller">multiplex_controller</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:engine_state">engine_state</a> <span class="rarr"><span>-&gt;</span></span> unit</div> ]
+    
+      <div class="doc">
+        
+      <p>See class <code>output_async_mplex</code> for explanations</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:onshutdown_in_spec">
+  <a href="index.html#/type:onshutdown_in_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> onshutdown_in_spec = [ <div class="cons">| `Ignore</div><div class="cons">| `Initiate_shutdown</div><div class="cons">| `Action <span class="keyword">of</span> <a href="index.html#/classtype:async_in_channel_engine">async_in_channel_engine</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:multiplex_controller">multiplex_controller</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:engine_state">engine_state</a> <span class="rarr"><span>-&gt;</span></span> unit</div> ]
+    
+      <div class="doc">
+        
+      <p>See class <code>input_async_mplex</code> for explanations</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_async_mplex">
+  <a href="index.html#/class:output_async_mplex" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_async_mplex : 
+    ?onclose:[ <div class="cons">| `Write_eof</div><div class="cons">| `Ignore</div> ] option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?onshutdown:<a href="index.html#/type:onshutdown_out_spec">onshutdown_out_spec</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?buffer_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:multiplex_controller">multiplex_controller</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:async_out_channel_engine">async_out_channel_engine</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates an asynchronous output channel writing to the multiplex
+controller (see also <code>output_async_descr</code> for the corresponding
+class writing to a single descriptor).</p>
+      
+      <p><code>onclose</code>: What to do when the <code>close_out</code> method is invoked.
+Defaults to <code>`Ignore</code>. <code>`Write_eof</code> means to write the EOF marker.
+Anyway, after doing the close action, the multiplex controller
+is shutdown.</p>
+      
+      <p><code>onshutdown</code>: What to do when all data (and optionally, the EOF marker)
+have been written. It is also invoked in case of I/O errors.
+The default is <code>`Ignore</code>. The value <code>`Initiate_shutdown</code> means that
+it is started to shutdown the socket. The success of this action
+is not waited upon, however. One can also pass <code>`Action f</code> in which
+case the function <code>f</code> is called with this object, the
+multiplex controller, and the proposed next state as arguments.
+By checking the proposed next state the function can see why the
+shutdown function was called.</p>
+      
+      <p><code>buffer_size</code>: The size of the internal buffer. By default unlimited.</p>
+      
+      <p>Note that the engine is done when the output channel is closed.
+The socket is not shut down, and the underlying file descriptor
+is not closed! You can define the <code>shutdown</code> callback to do something
+in this case.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:input_async_mplex">
+  <a href="index.html#/class:input_async_mplex" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_async_mplex : 
+    ?onshutdown:<a href="index.html#/type:onshutdown_in_spec">onshutdown_in_spec</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?buffer_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:multiplex_controller">multiplex_controller</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:async_in_channel_engine">async_in_channel_engine</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates an asynchronous input channel reading from the multiplex
+controller.</p>
+      
+      <p><code>onshutdown</code>: See <code>output_async_mplex</code>.</p>
+      
+      <p><code>buffer_size</code>: The size of the internal buffer. By default unlimited.</p>
+      
+      <p>Note that the engine is done when the input channel is closed.
+The socket is not shut down, and the underlying file descriptor
+is not closed! You can define the <code>shutdown</code> callback to do something
+in this case.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Recursion</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>When programming with engines, it is normal to use recursion for any
+kind of loops. For example, to read the lines from a file:</p>
+      <pre><code>      open Uq_engines.Operators  (* for &quot;&gt;&gt;&quot; and &quot;++&quot; *)
+
+      let fd = 
+        Unix.openfile filename [Unix.O_RDONLY] 0 in
+      let d = 
+        `Buffer_in(Uq_io.create_in_buffer(`Polldescr(`Read_write,fd,esys))) in
+
+      let rec read_lines acc =
+        Uq_io.input_line_e d &gt;&gt;
+          (function                       (* catch exception End_of_file *)
+            | `Done line -&gt; `Done(Some line)
+            | `Error End_of_file -&gt; `Done None
+            | `Error error -&gt; `Error error
+            | `Aborted -&gt; `Aborted
+          ) ++
+          (function
+            | Some line -&gt;
+                read_lines (line :: acc)
+            | None -&gt;
+                eps_e (`Done (List.rev acc)) esys
+          ) in
+
+      let e = read_lines []</code></pre>
+      <p>There is generally the question whether this style leads to stack
+overflows. This depends on the mechanisms that come into play:</p>
+      <ul><li>The engine mechanism passing control from one engine to the next is
+not tail-recursive, and thus the stack can overflow when the
+recursion becomes too deep</li><li>The event queue mechanism, however, does not have this problem.
+Control falls automatically back to the event queue whenever I/O
+needs to be done.</li></ul>
+      <p>In this example, this means that only the engine mechanism is used
+as long as the data is read from the buffer. When the buffer needs
+to be refilled, however, control is passed back to the event queue
+(so the stack is cleaned), and the continuation of the execution
+is only managed via closures (which only allocate memory on the
+heap, not on the stack). Usually, this is a good compromise: The
+engine mechnism is a lot faster, but I/O is an indicator for using
+the better but slower technique.</p>
+      
+      <p>Also note another difference: The event queue mechanism allows that
+other asynchronous code attached to the same event queue may run
+(control maybe yielded to unrelated execution contexts). The
+pure engine mechanism does not allow that. This may be handy when
+exclusive access to variables is needed. (But be careful here -
+this is very sensitive to minimal changes of the implementation.)</p>
+      
+      <p>Certain engines enforce using the event queue mechanisms although they
+are unrelated to I/O. Especially <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/class:delay_engine">delay_engine</a> is
+useful here: A &quot;delay&quot; of 0 seconds is already sufficient to
+go back to the event queue. If recursions sometimes lead to
+stack overflows the solution is to include such a zero delay
+before doing the self call.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">More Engines</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Pointers to other modules related to engines:</p>
+      <ul><li>RPC clients: The function <a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/">Rpc_proxy</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient">ManagedClient</a>.<a href="../../../../ocamlnet.3.7.7/src/rpc/rpc_proxy/#/module:ManagedClient/val:rpc_engine">rpc_engine</a> allows
+to call an RPC via an engine. When the call is done, the engine transitions
+to <code>`Done r</code>, and <code>r</code> is the result of the remote call.</li><li>Subprograms: The class <a href="../../../../ocamlnet.3.7.7/src/shell/shell_uq/">Shell_uq</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_uq/#/class:call_engine">call_engine</a> allows to start an
+external program, and to monitor it via an engine.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

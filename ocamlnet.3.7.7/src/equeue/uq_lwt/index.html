@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Uq_lwt</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Uq_lwt</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Compatibility with <code>Lwt</code></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Lwt is another library for event-driven programming. Here are some
+helpers for running Lwt code on top of Ocamlnet event queues.</p>
+      
+      <p>This is for Lwt-2.3 or better.</p>
+      
+      <p>See also the comments in [root:Equeue_howto].lwt.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:lwt_backend">
+  <a href="index.html#/class:lwt_backend" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> lwt_backend : 
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:lwt_backend/method:iter">
+  <a href="index.html#/class:lwt_backend/method:iter" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> iter : bool <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lwt_backend/method:cleanup">
+  <a href="index.html#/class:lwt_backend/method:cleanup" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> cleanup : unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lwt_backend/method:register_readable">
+  <a href="index.html#/class:lwt_backend/method:register_readable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> register_readable : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lwt_backend/method:register_writable">
+  <a href="index.html#/class:lwt_backend/method:register_writable" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> register_writable : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lwt_backend/method:register_timer">
+  <a href="index.html#/class:lwt_backend/method:register_timer" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> register_timer : float <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+    
+    
+      <div class="doc">
+        
+      <p>Adapter for turning an Ocamlnet <code>event_system</code> into an Lwt <code>Lwt_engine.t</code>.</p>
+      
+      <p>Use it like:</p>
+      <pre><code>       class lwt_engine esys =
+       object
+         inherit Lwt_engine.abstract
+         inherit Uq_lwt.lwt_backend esys
+       end</code></pre>
+      <p>(We've intentionally left out <b>this</b> definition to avoid any
+build dependency on Lwt. Also note that <code>Lwt_engine</code> is in the
+package <code>lwt.unix</code>.)</p>
+      
+      <p>Now, activate this Lwt engine (event loop):</p>
+      <pre><code>      Lwt_engine.set (new lwt_engine esys)</code></pre>
+      <p>Note that Lwt can only deal with one event loop at a time, and the
+new event loop will be used for all Lwt code.</p>
+      
+      <p>It is, unfortunately, necessary that you use the Lwt main loop
+(<code>Lwt_main.run</code> or <code>Lwt_unix.run</code>), because otherwise some hook
+functions are never executed (and execution will hang).</p>
+      
+      <p>For an example, see <code>tests/equeue/manual/relay.ml</code> in the distribution
+tarball.</p>
+      
+      <p>Netplex users: If you want to use <code>lwt_engine</code> for driving the
+event loop of the container, you can do so by overriding the
+processor hooks <code>container_event_system</code> and <code>container_run</code>, e.g.</p>
+      <pre><code>    method container_event_system () =
+      let esys = Unixqueue.create_unix_event_system() in
+      Lwt_engine.set (new lwt_engine esys);
+      esys
+
+    method container_run esys =
+      Lwt_main.run &lt;something&gt;</code></pre>
+      <p>The Lwt thread <code>&lt;something&gt;</code> must at least run until the container is
+shut down. You can catch this moment by also defining the <code>shutdown</code>
+method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

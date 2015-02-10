@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>OASISFileTemplate</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">OASISFileTemplate</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Generate files replacing parts of it</p>
+      
+      <p>This module allow to generate files using template. Each template files
+is split into three parts: an header, a body and a footer. We target at
+changing the body part. If target file already exists, we load the header
+and the footer from it. We merge the three parts and repalce the target
+files.</p>
+      
+      <p>There are some safety limits:</p>
+      <ul><li>embed a digest to check nothing has changed in the body</li><li>if digest of the body has changed, create a backup</li><li>if we cannot find OASIS_START/OASIS_STOP body section, leave the
+file untouched</li></ul>
+      <p>The whole module is <b>not exported</b>.</p>
+      
+        
+  <div class="tag author">
+    <span class="label">Author</span> Sylvain Le Gall
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Comments</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:comment">
+  <a href="index.html#/type:comment" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> comment
+    
+      <div class="doc">
+        
+      <p>Comment definition.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment_ml">
+  <a href="index.html#/val:comment_ml" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_ml : <a href="index.html#/type:comment">comment</a>
+    
+      <div class="doc">
+        
+      <p>.ml comments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment_sh">
+  <a href="index.html#/val:comment_sh" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_sh : <a href="index.html#/type:comment">comment</a>
+    
+      <div class="doc">
+        
+      <p>Shell comments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment_makefile">
+  <a href="index.html#/val:comment_makefile" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_makefile : <a href="index.html#/type:comment">comment</a>
+    
+      <div class="doc">
+        
+      <p>Makefile comments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment_ocamlbuild">
+  <a href="index.html#/val:comment_ocamlbuild" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_ocamlbuild : <a href="index.html#/type:comment">comment</a>
+    
+      <div class="doc">
+        
+      <p>OCamlbuild comments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment_bat">
+  <a href="index.html#/val:comment_bat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_bat : <a href="index.html#/type:comment">comment</a>
+    
+      <div class="doc">
+        
+      <p>.bat file comments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment_meta">
+  <a href="index.html#/val:comment_meta" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_meta : <a href="index.html#/type:comment">comment</a>
+    
+      <div class="doc">
+        
+      <p>META file comments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:comment_markdown">
+  <a href="index.html#/val:comment_markdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_markdown : <a href="index.html#/type:comment">comment</a>
+    
+      <div class="doc">
+        
+      <p>Markdown comments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Template</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:line">
+  <a href="index.html#/type:line" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> line = string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:body">
+  <a href="index.html#/type:body" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> body = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:body/cons:NoBody">
+  <a href="index.html#/type:body/cons:NoBody" class="anchor">#</a>
+  | NoBody
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:body/cons:Body">
+  <a href="index.html#/type:body/cons:Body" class="anchor">#</a>
+  | Body <span class="keyword">of</span> <a href="index.html#/type:line">line</a> list
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:body/cons:BodyWithDigest">
+  <a href="index.html#/type:body/cons:BodyWithDigest" class="anchor">#</a>
+  | BodyWithDigest <span class="keyword">of</span> <a href="../../../../../ocaml.4.02.1+doc/stdlib/digest/">Digest</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/digest/#/type:t">t</a> * <a href="index.html#/type:line">line</a> list
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:template">
+  <a href="index.html#/type:template" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> template = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:fn">
+  <a href="index.html#/type:template/field:fn" class="anchor">#</a>
+  fn
+  </div>
+  </td><td>: <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:comment">
+  <a href="index.html#/type:template/field:comment" class="anchor">#</a>
+  comment
+  </div>
+  </td><td>: <a href="index.html#/type:comment">comment</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:header">
+  <a href="index.html#/type:template/field:header" class="anchor">#</a>
+  header
+  </div>
+  </td><td>: <a href="index.html#/type:line">line</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:body">
+  <a href="index.html#/type:template/field:body" class="anchor">#</a>
+  body
+  </div>
+  </td><td>: <a href="index.html#/type:body">body</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:footer">
+  <a href="index.html#/type:template/field:footer" class="anchor">#</a>
+  footer
+  </div>
+  </td><td>: <a href="index.html#/type:line">line</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:perm">
+  <a href="index.html#/type:template/field:perm" class="anchor">#</a>
+  perm
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:important">
+  <a href="index.html#/type:template/field:important" class="anchor">#</a>
+  important
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Determine if should be kept in dynamic mode.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:template/field:disable_oasis_section">
+  <a href="index.html#/type:template/field:disable_oasis_section" class="anchor">#</a>
+  disable_oasis_section
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Determine if OASIS section comments and digest should be omitted.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:template_make">
+  <a href="index.html#/val:template_make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> template_make : <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:comment">comment</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:template">template</a>
+    
+      <div class="doc">
+        
+      <p><code>template_make fn cmt header body footer</code> Create a template for which
+target file is <code>fn</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:template_of_string_list">
+  <a href="index.html#/val:template_of_string_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> template_of_string_list : ctxt:<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISContext/">OASISContext</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISContext/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> template:bool <span class="rarr"><span>-&gt;</span></span> ?disable_oasis_section:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:comment">comment</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:template">template</a>
+    
+      <div class="doc">
+        
+      <p><code>template_of_string_list ~ctxt ~template ~pure fn cmt lst</code> Split the list
+<code>lst</code> into a header, body and footer, using comment <code>cmt</code> to determine each
+part. Set <code>~template</code> if this is an embedded template (i.e. not a file
+loaded from disk). If <code>~disable_oasis_section</code> is set, then the list is
+processed on the assumption that there is no header and footer. See
+<a href="index.html#/val:template_make">template_make</a> for other options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:template_of_mlfile">
+  <a href="index.html#/val:template_of_mlfile" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> template_of_mlfile : <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:template">template</a>
+    
+      <div class="doc">
+        
+      <p><code>template_of_ml_file fn</code> Create an OCaml file template taking into account
+subtleties, like line modifier. See <a href="index.html#/val:template_make">template_make</a> for other options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">File generation</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:to_string_list">
+  <a href="index.html#/val:to_string_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string_list : <a href="index.html#/type:template">template</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:line">line</a> list
+    
+      <div class="doc">
+        
+      <p>Create a list representation of the file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:file_generate_change">
+  <a href="index.html#/type:file_generate_change" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_generate_change = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:file_generate_change/cons:Create">
+  <a href="index.html#/type:file_generate_change/cons:Create" class="anchor">#</a>
+  | Create <span class="keyword">of</span> <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a>
+  </div>
+  </td><td>(*</td><td class="doc"><code>Create fn</code>, <code>fn</code> is the target file, nothing exists before</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_generate_change/cons:Change">
+  <a href="index.html#/type:file_generate_change/cons:Change" class="anchor">#</a>
+  | Change <span class="keyword">of</span> <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a> * <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a> option
+  </div>
+  </td><td>(*</td><td class="doc"><code>Change (fn, bak)</code>, <code>bak</code> is the backup file, an existing file
+has been changed.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:file_generate_change/cons:NoChange">
+  <a href="index.html#/type:file_generate_change/cons:NoChange" class="anchor">#</a>
+  | NoChange
+  </div>
+  </td><td>(*</td><td class="doc">Nothing done, the file doesn't need to be updated</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Describe what has been done to generate a file out of a template.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_rollback">
+  <a href="index.html#/val:file_rollback" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_rollback : ctxt:<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISContext/">OASISContext</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISContext/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_generate_change">file_generate_change</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Reset to pristine a generated file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_generate">
+  <a href="index.html#/val:file_generate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_generate : ctxt:<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISContext/">OASISContext</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISContext/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?remove:bool <span class="rarr"><span>-&gt;</span></span> backup:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:template">template</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_generate_change">file_generate_change</a>
+    
+      <div class="doc">
+        
+      <p>Generate a file using a template. Only the part between OASIS_START and
+OASIS_STOP will be really replaced if the file exists. If the file doesn't
+exist use the whole template. If <code>~remove</code> is <code>true</code>, then an existing file
+will be deleted iff the template body is <code>[]</code> and the header and footer of
+the file match the template's (used by the -remove option for setup-clean).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Multiple templates management</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:AlreadyExists">
+  <a href="index.html#/exn:AlreadyExists" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> AlreadyExists <span class="keyword">of</span> <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a>
+    
+      <div class="doc">
+        
+      <p>Try to add a file that is already in the set</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:templates">
+  <a href="index.html#/type:templates" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> templates
+    
+      <div class="doc">
+        
+      <p>Set of templates.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : disable_oasis_section:<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:unix_filename">unix_filename</a> list <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a>
+    
+      <div class="doc">
+        
+      <p>No generated template files with the given set of files with the OASIS
+section disabled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find">
+  <a href="index.html#/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:template">template</a>
+    
+      <div class="doc">
+        
+      <p>Find a generated template file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/type:template">template</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a>
+    
+      <div class="doc">
+        
+      <p>Add a generated template file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : <a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/">OASISUnixPath</a>.<a href="../../../../../oasis.0.4.5/_build/src/oasis/OASISUnixPath/#/type:host_filename">host_filename</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a>
+    
+      <div class="doc">
+        
+      <p>Remove a generated template file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace">
+  <a href="index.html#/val:replace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace : <a href="index.html#/type:template">template</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a>
+    
+      <div class="doc">
+        
+      <p>Add or replace a generated template file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : (<a href="index.html#/type:template">template</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:templates">templates</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p>Fold over generated template files.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

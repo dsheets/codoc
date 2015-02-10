@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Xdr</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Xdr</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>External Data Representation</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module supports the &quot;external data representation&quot;, or XDR
+for short. XDR is a means to pack structured values as strings and
+it serves to transport such values across character streams even
+between computers with different architectures.</p>
+      
+      <p>XDR values must be formed according to an XDR type. Such types are
+usually written in a notation that is close to the C notation of
+structured types. There are some important details where XDR is
+better than C:</p>
+      <ul><li>direct support for strings</li><li>arrays may have fixed or variable length</li><li>unions must have a discriminator</li><li>no pointers. The notation <code>*t</code> is allowed, but means something
+different, namely &quot;t option&quot; in O'Caml notation.</li><li>recursive types are possible and behave like recursive types in
+O'Caml. For example,
+<pre><code>       struct *list {
+         int value;
+         next list;
+       }</code></pre>
+is a list of integer values and equivalent to
+<pre><code>       type intlist = intlist_el option
+        and intlist_el = { value : int; next : intlist }</code></pre></li></ul>
+      <p>See RFC 1014 for details about XDR.</p>
+      
+      <p>This module defines:</p>
+      <ul><li>XDR types</li><li>XDR type terms</li><li>XDR type systems</li><li>XDR type term systems</li></ul>
+      <p>In &quot;type terms&quot; you can see the components from which the type has been
+formed, while a &quot;type&quot; is an opaque representation that has been checked
+and for that some preprocessing has been done.</p>
+      
+      <p>A &quot;type system&quot; is a collection of several types that have names and that
+can refer to previously defined types (i.e. a sequence of &quot;typedef&quot;s).
+As with simple types, there is an extensive and an opaque representation.</p>
+      
+      <p>A typical way of using this module is to define an &quot;XDR type term system&quot;
+by simply writing an O'Caml expression. After that, this system is validated
+and you get the &quot;type system&quot;. From now on, you can refer to the types
+defined in the system by name and get the corresponding &quot;XDR types&quot;.
+Once you have an XDR type you can use it to pack or unpack an XDR value.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Terms that describe possible XDR types:</p>
+      <ul><li><code>X_int</code>: integer (32 bit)</li><li><code>X_uint</code>: unsigned integer</li><li><code>X_hyper</code>: hyper (64 bit signed integer)</li><li><code>X_uhyper</code>: unsigned hyper</li><li><code>X_enum [x1,i1; ...]</code>: <code>enum { x1 = i1, ... }</code></li><li><code>X_float</code>: float (32 bit fp number)</li><li><code>X_double</code>: double (64 bit fp number)</li><li><code>X_opaque_fixed n</code>: <code>opaque[n]</code></li><li><code>X_opaque n</code>: <code>opaque&lt;n&gt;</code></li><li><code>X_string n</code>: <code>string&lt;n&gt;</code></li><li><code>X_mstring(name,n)</code>: <code>_managed string&lt;n&gt;</code> (see below)</li><li><code>X_array_fixed (t,n)</code>: <code>t[n]</code></li><li><code>X_array (t,n)</code>: <code>t&lt;n&gt;</code></li><li><code>X_struct [x1,t1;...]</code>: <code>struct { t1 x1; ...}</code></li><li><code>X_union_over_int
+       ([n1,t1;...], None)</code>: <code>union switch(int) {case n1: t1; ...}</code></li><li><code>X_union_over_int
+       ([n1,t1;...], Some t)</code>: <code>union switch(int) {case n1: t1; ...; default t}</code></li><li><code>X_union_over_uint
+       ([n1,t1;...], None)</code>: <code>union switch(unsigned int) {case n1: t1; ...}</code></li><li><code>X_union_over_uint
+       ([n1,t1;...], Some t)</code>: <code>union switch(unsigned int)
+                                   {case n1: t1; ...; default t}</code></li><li><code>X_union_over_enum
+       (e, [n1,t1;...], None)</code>: <code>union switch(e) {case n1:t1; ...}</code>
+where e is an enumeration type</li><li><code>X_union_over_enum
+       (e, [n1,t1;...], Some t)</code>: <code>union switch(e) {case n1:t1; ...; default t}</code>
+where e is an enumeration type</li><li><code>X_void</code>: void</li></ul>
+      <p>The <code>X_type</code> constructor is only useful for types interpreted relative to
+a type system. Then it refers to a named type in this system.</p>
+      
+      <p>The <code>X_param</code> constructor includes a reference to an arbitrary type
+which must first be given when packing or unpacking values.
+(A &quot;lazy&quot; type reference.) Additionally, the values for parameters
+may be encrypted or decrypted.</p>
+      
+      <p>Example how to define a recursive type:</p>
+      
+      <p><code>X_rec (&quot;a&quot;, X_array ( X_struct [&quot;value&quot;, X_int; &quot;next&quot;, X_refer &quot;a&quot;], 1))</code></p>
+      
+      <p><b>Managed strings</b> are represented as <code>X_mstring(name,n)</code>. The <code>name</code> refers
+to the preferred factory for managed strings (needs to be passed to the
+XDR unpacker). Values for managed strings are objects of type
+<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a>.</p>
+      
+      <p>The term <code>X_direct(t,read,write,size)</code> is generated by ocamlrpcgen at
+positions
+suitable for direct mapping. In this case, the XDR byte representation is
+directly mapped to the final Ocaml value bypassing the intermediate
+representation defined in this module. <code>t</code> is the mapped type. The
+function <code>read</code> is called as <code>read s cursor len</code> in order to map the
+XDR bytes at <code>!cursor</code> in <code>s</code>. The <code>cursor</code> must be advanced to the
+end position. <code>len</code> is the number of valid bytes in <code>s</code> (i.e. <code>s.(len-1)</code>
+is the last one). The result of <code>read</code> is an arbitrary exception which
+needs to be postprocessed by ocamlrpcgen-generated code. The function
+<code>write</code> is called as <code>write x s cursor</code>: The value encapsulated in
+exception <code>x</code> is written to string <code>s</code> at position <code>cursor</code>. Like for
+<code>read</code> the cursor is advanced by the number of written bytes. There
+must be enough space in <code>s</code>. The function <code>size</code> can be used to determine
+the number of written bytes beforehand.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:xdr_type_term">
+  <a href="index.html#/type:xdr_type_term" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> xdr_type_term = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_int">
+  <a href="index.html#/type:xdr_type_term/cons:X_int" class="anchor">#</a>
+  | X_int
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_uint">
+  <a href="index.html#/type:xdr_type_term/cons:X_uint" class="anchor">#</a>
+  | X_uint
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_hyper">
+  <a href="index.html#/type:xdr_type_term/cons:X_hyper" class="anchor">#</a>
+  | X_hyper
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_uhyper">
+  <a href="index.html#/type:xdr_type_term/cons:X_uhyper" class="anchor">#</a>
+  | X_uhyper
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_enum">
+  <a href="index.html#/type:xdr_type_term/cons:X_enum" class="anchor">#</a>
+  | X_enum <span class="keyword">of</span> (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int4">int4</a>) list
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_float">
+  <a href="index.html#/type:xdr_type_term/cons:X_float" class="anchor">#</a>
+  | X_float
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_double">
+  <a href="index.html#/type:xdr_type_term/cons:X_double" class="anchor">#</a>
+  | X_double
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_opaque_fixed">
+  <a href="index.html#/type:xdr_type_term/cons:X_opaque_fixed" class="anchor">#</a>
+  | X_opaque_fixed <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_opaque">
+  <a href="index.html#/type:xdr_type_term/cons:X_opaque" class="anchor">#</a>
+  | X_opaque <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_string">
+  <a href="index.html#/type:xdr_type_term/cons:X_string" class="anchor">#</a>
+  | X_string <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_mstring">
+  <a href="index.html#/type:xdr_type_term/cons:X_mstring" class="anchor">#</a>
+  | X_mstring <span class="keyword">of</span> string * <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_array_fixed">
+  <a href="index.html#/type:xdr_type_term/cons:X_array_fixed" class="anchor">#</a>
+  | X_array_fixed <span class="keyword">of</span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_array">
+  <a href="index.html#/type:xdr_type_term/cons:X_array" class="anchor">#</a>
+  | X_array <span class="keyword">of</span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_struct">
+  <a href="index.html#/type:xdr_type_term/cons:X_struct" class="anchor">#</a>
+  | X_struct <span class="keyword">of</span> (string * <a href="index.html#/type:xdr_type_term">xdr_type_term</a>) list
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_union_over_int">
+  <a href="index.html#/type:xdr_type_term/cons:X_union_over_int" class="anchor">#</a>
+  | X_union_over_int <span class="keyword">of</span> (<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int4">int4</a> * <a href="index.html#/type:xdr_type_term">xdr_type_term</a>) list * <a href="index.html#/type:xdr_type_term">xdr_type_term</a> option
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_union_over_uint">
+  <a href="index.html#/type:xdr_type_term/cons:X_union_over_uint" class="anchor">#</a>
+  | X_union_over_uint <span class="keyword">of</span> (<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> * <a href="index.html#/type:xdr_type_term">xdr_type_term</a>) list * <a href="index.html#/type:xdr_type_term">xdr_type_term</a> option
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_union_over_enum">
+  <a href="index.html#/type:xdr_type_term/cons:X_union_over_enum" class="anchor">#</a>
+  | X_union_over_enum <span class="keyword">of</span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a> * (string * <a href="index.html#/type:xdr_type_term">xdr_type_term</a>) list * <a href="index.html#/type:xdr_type_term">xdr_type_term</a> option
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_void">
+  <a href="index.html#/type:xdr_type_term/cons:X_void" class="anchor">#</a>
+  | X_void
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_type">
+  <a href="index.html#/type:xdr_type_term/cons:X_type" class="anchor">#</a>
+  | X_type <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_param">
+  <a href="index.html#/type:xdr_type_term/cons:X_param" class="anchor">#</a>
+  | X_param <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_rec">
+  <a href="index.html#/type:xdr_type_term/cons:X_rec" class="anchor">#</a>
+  | X_rec <span class="keyword">of</span> (string * <a href="index.html#/type:xdr_type_term">xdr_type_term</a>)
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_refer">
+  <a href="index.html#/type:xdr_type_term/cons:X_refer" class="anchor">#</a>
+  | X_refer <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_type_term/cons:X_direct">
+  <a href="index.html#/type:xdr_type_term/cons:X_direct" class="anchor">#</a>
+  | X_direct <span class="keyword">of</span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a> * (string <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> exn) * (exn <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> unit) * (exn <span class="rarr"><span>-&gt;</span></span> int)
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:xdr_type">
+  <a href="index.html#/type:xdr_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> xdr_type
+    
+      <div class="doc">
+        
+      <p>This is the validated version of <code>xdr_type_term</code>. Note that it does not
+contain <code>X_type</code> constructors, i.e. is completely expanded.
+It is allowed that an <code>xdr_type</code> contains <code>X_param</code> constructors (parameters).
+The set of occurring parameters can be determined very quickly for an
+<code>xdr_type</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:xdr_type_term_system">
+  <a href="index.html#/type:xdr_type_term_system" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> xdr_type_term_system = (string * <a href="index.html#/type:xdr_type_term">xdr_type_term</a>) list
+    
+      <div class="doc">
+        
+      <p>Bind names to types. In a correct system you can only refer to
+previously defined types, i.e. the type called <code>n</code> must be defined
+in the list before it can be used via <code>X_type n</code>.
+It is possible to use this module without the means of type
+systems, but often code is more readable if types are defined
+in an environment allowing bindings to names.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:xdr_type_system">
+  <a href="index.html#/type:xdr_type_system" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> xdr_type_system
+    
+      <div class="doc">
+        
+      <p>A validated type system.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:x_bool">
+  <a href="index.html#/val:x_bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> x_bool : <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+      <div class="doc">
+        
+      <p>Common abbreviation for boolean types. Has values <code>xv_true</code> and <code>xv_false</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:x_optional">
+  <a href="index.html#/val:x_optional" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> x_optional : <a href="index.html#/type:xdr_type_term">xdr_type_term</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+      <div class="doc">
+        
+      <p>Common abbreviation for optional types. Has values <code>xv_none</code> and
+<code>xv_some v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:x_opaque_max">
+  <a href="index.html#/val:x_opaque_max" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> x_opaque_max : <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+      <div class="doc">
+        
+      <p>Common abbreviation for opaque data of arbitrary length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:x_string_max">
+  <a href="index.html#/val:x_string_max" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> x_string_max : <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+      <div class="doc">
+        
+      <p>Common abbreviation for strings of arbitrary length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:x_mstring_max">
+  <a href="index.html#/val:x_mstring_max" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> x_mstring_max : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+      <div class="doc">
+        
+      <p>Common abbreviation for mstrings of arbitrary length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:x_array_max">
+  <a href="index.html#/val:x_array_max" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> x_array_max : <a href="index.html#/type:xdr_type_term">xdr_type_term</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+      <div class="doc">
+        
+      <p>Common abbreviation for arrays of arbitrary length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Values possible for XDR types. This is straight-forward, except the
+&quot;_fast&quot; variants:</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:xdr_value">
+  <a href="index.html#/type:xdr_value" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> xdr_value = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_int">
+  <a href="index.html#/type:xdr_value/cons:XV_int" class="anchor">#</a>
+  | XV_int <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int4">int4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_uint">
+  <a href="index.html#/type:xdr_value/cons:XV_uint" class="anchor">#</a>
+  | XV_uint <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_hyper">
+  <a href="index.html#/type:xdr_value/cons:XV_hyper" class="anchor">#</a>
+  | XV_hyper <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int8">int8</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_uhyper">
+  <a href="index.html#/type:xdr_value/cons:XV_uhyper" class="anchor">#</a>
+  | XV_uhyper <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint8">uint8</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_enum">
+  <a href="index.html#/type:xdr_value/cons:XV_enum" class="anchor">#</a>
+  | XV_enum <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_float">
+  <a href="index.html#/type:xdr_value/cons:XV_float" class="anchor">#</a>
+  | XV_float <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:fp4">fp4</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_double">
+  <a href="index.html#/type:xdr_value/cons:XV_double" class="anchor">#</a>
+  | XV_double <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:fp8">fp8</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_opaque">
+  <a href="index.html#/type:xdr_value/cons:XV_opaque" class="anchor">#</a>
+  | XV_opaque <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_string">
+  <a href="index.html#/type:xdr_value/cons:XV_string" class="anchor">#</a>
+  | XV_string <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_array">
+  <a href="index.html#/type:xdr_value/cons:XV_array" class="anchor">#</a>
+  | XV_array <span class="keyword">of</span> <a href="index.html#/type:xdr_value">xdr_value</a> array
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_struct">
+  <a href="index.html#/type:xdr_value/cons:XV_struct" class="anchor">#</a>
+  | XV_struct <span class="keyword">of</span> (string * <a href="index.html#/type:xdr_value">xdr_value</a>) list
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_union_over_int">
+  <a href="index.html#/type:xdr_value/cons:XV_union_over_int" class="anchor">#</a>
+  | XV_union_over_int <span class="keyword">of</span> (<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int4">int4</a> * <a href="index.html#/type:xdr_value">xdr_value</a>)
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_union_over_uint">
+  <a href="index.html#/type:xdr_value/cons:XV_union_over_uint" class="anchor">#</a>
+  | XV_union_over_uint <span class="keyword">of</span> (<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> * <a href="index.html#/type:xdr_value">xdr_value</a>)
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_union_over_enum">
+  <a href="index.html#/type:xdr_value/cons:XV_union_over_enum" class="anchor">#</a>
+  | XV_union_over_enum <span class="keyword">of</span> (string * <a href="index.html#/type:xdr_value">xdr_value</a>)
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_void">
+  <a href="index.html#/type:xdr_value/cons:XV_void" class="anchor">#</a>
+  | XV_void
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_enum_fast">
+  <a href="index.html#/type:xdr_value/cons:XV_enum_fast" class="anchor">#</a>
+  | XV_enum_fast <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">The integer is the _position_ in the <code>X_enum</code> list, sorted by
+enum values (ascending). For example, if we have
+<code>X_enum [ &quot;A&quot;, 4; &quot;B&quot;, 2; &quot;C&quot;, 6 ]</code>
+the element &quot;B&quot; has the position 0, because 2 is the lowest
+number</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_struct_fast">
+  <a href="index.html#/type:xdr_value/cons:XV_struct_fast" class="anchor">#</a>
+  | XV_struct_fast <span class="keyword">of</span> <a href="index.html#/type:xdr_value">xdr_value</a> array
+  </div>
+  </td><td>(*</td><td class="doc">The array elements are in the same order as declared in <code>X_struct</code></td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_union_over_enum_fast">
+  <a href="index.html#/type:xdr_value/cons:XV_union_over_enum_fast" class="anchor">#</a>
+  | XV_union_over_enum_fast <span class="keyword">of</span> (int * <a href="index.html#/type:xdr_value">xdr_value</a>)
+  </div>
+  </td><td>(*</td><td class="doc">The integer is the _position_ in the <code>X_enum</code> list. &quot;position&quot;
+means the same as for <code>XV_enum_fast</code></td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_array_of_string_fast">
+  <a href="index.html#/type:xdr_value/cons:XV_array_of_string_fast" class="anchor">#</a>
+  | XV_array_of_string_fast <span class="keyword">of</span> string array
+  </div>
+  </td><td>(*</td><td class="doc">To be used with an <code>X_array</code> or <code>X_array_fixed</code> with an inner
+type of <code>X_string</code></td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_mstring">
+  <a href="index.html#/type:xdr_value/cons:XV_mstring" class="anchor">#</a>
+  | XV_mstring <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:xdr_value/cons:XV_direct">
+  <a href="index.html#/type:xdr_value/cons:XV_direct" class="anchor">#</a>
+  | XV_direct <span class="keyword">of</span> exn * int
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:xv_true">
+  <a href="index.html#/val:xv_true" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xv_true : <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:xv_false">
+  <a href="index.html#/val:xv_false" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xv_false : <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+      <div class="doc">
+        
+      <p>See <code>x_bool</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:xv_none">
+  <a href="index.html#/val:xv_none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xv_none : <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:xv_some">
+  <a href="index.html#/val:xv_some" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xv_some : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+      <div class="doc">
+        
+      <p>See <code>x_optional</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Dest_failure">
+  <a href="index.html#/exn:Dest_failure" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Dest_failure
+    
+      <div class="doc">
+        
+      <p>raised if the dest_* function are applied to non-matching xdr_value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_int">
+  <a href="index.html#/val:dest_xv_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_int : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int4">int4</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_uint">
+  <a href="index.html#/val:dest_xv_uint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_uint : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_hyper">
+  <a href="index.html#/val:dest_xv_hyper" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_hyper : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int8">int8</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_uhyper">
+  <a href="index.html#/val:dest_xv_uhyper" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_uhyper : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint8">uint8</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_enum">
+  <a href="index.html#/val:dest_xv_enum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_enum : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_enum_fast">
+  <a href="index.html#/val:dest_xv_enum_fast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_enum_fast : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_float">
+  <a href="index.html#/val:dest_xv_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_float : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:fp4">fp4</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_double">
+  <a href="index.html#/val:dest_xv_double" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_double : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:fp8">fp8</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_opaque">
+  <a href="index.html#/val:dest_xv_opaque" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_opaque : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_string">
+  <a href="index.html#/val:dest_xv_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_string : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_mstring">
+  <a href="index.html#/val:dest_xv_mstring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_mstring : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_array">
+  <a href="index.html#/val:dest_xv_array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_array : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> array
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_array_of_string_fast">
+  <a href="index.html#/val:dest_xv_array_of_string_fast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_array_of_string_fast : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> string array
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_struct">
+  <a href="index.html#/val:dest_xv_struct" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_struct : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:xdr_value">xdr_value</a>) list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_struct_fast">
+  <a href="index.html#/val:dest_xv_struct_fast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_struct_fast : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> array
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_union_over_int">
+  <a href="index.html#/val:dest_xv_union_over_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_union_over_int : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:int4">int4</a> * <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_union_over_uint">
+  <a href="index.html#/val:dest_xv_union_over_uint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_union_over_uint : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/">Rtypes</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/rtypes/#/type:uint4">uint4</a> * <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_union_over_enum">
+  <a href="index.html#/val:dest_xv_union_over_enum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_union_over_enum : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> string * <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_union_over_enum_fast">
+  <a href="index.html#/val:dest_xv_union_over_enum_fast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_union_over_enum_fast : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> int * <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest_xv_void">
+  <a href="index.html#/val:dest_xv_void" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest_xv_void : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_xv_enum_fast">
+  <a href="index.html#/val:map_xv_enum_fast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_xv_enum_fast : <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> int32
+    
+      <div class="doc">
+        
+      <p>Works for both <code>XV_enum</code> and <code>XV_enum_fast</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_xv_struct_fast">
+  <a href="index.html#/val:map_xv_struct_fast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_xv_struct_fast : <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> array
+    
+      <div class="doc">
+        
+      <p>Works for both <code>XV_struct</code> and <code>XV_struct_fast</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_xv_union_over_enum_fast">
+  <a href="index.html#/val:map_xv_union_over_enum_fast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_xv_union_over_enum_fast : <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> int * int32 * <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+      <div class="doc">
+        
+      <p>Works for both <code>XV_union_over_enum</code> and <code>XV_union_over_enum_fast</code>.
+Returns the triple <code>(k,i,x)</code>:</p>
+      <ul><li><code>k</code>: Position of the selected value in the <code>T_enum</code> array</li><li><code>i</code>: value of the enum</li><li><code>x</code>: selected arm of the union</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Xdr_format">
+  <a href="index.html#/exn:Xdr_format" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Xdr_format <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Format error found during unpacking a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Xdr_format_message_too_long">
+  <a href="index.html#/exn:Xdr_format_message_too_long" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Xdr_format_message_too_long <span class="keyword">of</span> <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+      <div class="doc">
+        
+      <p>The message is too long and cannot be packed into a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Xdr_failure">
+  <a href="index.html#/exn:Xdr_failure" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Xdr_failure <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Usually a problem during packing</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>You must use these two functions to obtain validated types and
+type systems. They fail with &quot;validate_xdr_type&quot; resp.
+&quot;validate_xdr_type_system&quot; if the parameters are incorrect.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:validate_xdr_type">
+  <a href="index.html#/val:validate_xdr_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> validate_xdr_type : <a href="index.html#/type:xdr_type_term">xdr_type_term</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:validate_xdr_type_system">
+  <a href="index.html#/val:validate_xdr_type_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> validate_xdr_type_system : <a href="index.html#/type:xdr_type_term_system">xdr_type_term_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_system">xdr_type_system</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:params">
+  <a href="index.html#/val:params" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> params : <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>return the <code>X_param</code> parameters contained in the type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Get the unvalidated version back:</p>
+      <ul><li>Note that <code>X_type</code> constructions are always resolved</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/val:xdr_type_term">
+  <a href="index.html#/val:xdr_type_term" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xdr_type_term : <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:xdr_type_term_system">
+  <a href="index.html#/val:xdr_type_term_system" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> xdr_type_term_system : <a href="index.html#/type:xdr_type_system">xdr_type_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term_system">xdr_type_term_system</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>You can expand any type term relative to a (validated) type system.
+For example:
+<code>expanded_xdr_type sys1 (X_type &quot;xy&quot;)</code>
+extracts the type called &quot;xy&quot; defined in sys1.
+Expansion removes all X_type constructions in a type term.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:expanded_xdr_type">
+  <a href="index.html#/val:expanded_xdr_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> expanded_xdr_type : <a href="index.html#/type:xdr_type_system">xdr_type_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:expanded_xdr_type_term">
+  <a href="index.html#/val:expanded_xdr_type_term" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> expanded_xdr_type_term : <a href="index.html#/type:xdr_type_term_system">xdr_type_term_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type_term">xdr_type_term</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:are_compatible">
+  <a href="index.html#/val:are_compatible" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> are_compatible : <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>are_compatible</code>: currently not implemented</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:value_matches_type">
+  <a href="index.html#/val:value_matches_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_matches_type : <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:xdr_type">xdr_type</a>) list <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Is the value properly formed with respect to this type? The third
+argument of this function is a list of parameter instances. Note that
+all parameters must be instantiated to compare a value with a type
+and that the parameters instances are not allowed to have parameters
+themselves.</p>
+      
+      <p>Encrypted parameters are not supported here.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Packing and unpacking</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><code>pack_xdr_value v t p print</code>: Serialize v into a string conforming to
+the XDR standard where v matches t. In p the parameter instances are
+given. All parameters must be given, and the parameters must not contain
+parameters themselves. The fourth argument, print, is a function
+which is evaluated for the pieces of the resultant string. You can use
+pack_xdr_value_as_string to get the whole string at once.</p>
+      
+      <p><code>unpack_xdr_value s t p</code>: Unserialize a string to a value
+matching t. If this operation fails you get an Xdr_format
+exception explaining what the reason for the failure is.
+Mostly the cause for failures is that t isn't the type
+of the value.
+Note that there are some implementation restrictions limiting
+the number of elements in array, strings and opaque fields.
+If you get such an error this normally still means that
+the value is not of the expected type, because these limits
+have no practical meaning (they are still higher than the
+usable address space).</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Encryption:</b> The <code>encode</code> and <code>decode</code> functions can be used
+to encrypt/decrypt parameters (placeholders in the type marked with
+<code>X_param pname</code> for a parameter name <code>pname</code>). The <code>encode</code> argument
+may list for each parameter an encoding function:</p>
+      <pre><code>encode = [ pname1, encoder1; pname2, encoder2; ... ]</code></pre>
+      <p>The functions <code>encoder</code> are called with the XDR-packed parameter value,
+and return the encrypted value.</p>
+      
+      <p>Likewise, the <code>decode</code> argument may list for each parameter a decoding
+function:</p>
+      <pre><code>decode = [ pname1, decoder1; pname2, decoder2; ... ]</code></pre>
+      <p>The call style of the decoder functions is a bit more complicated, though.
+They are called as</p>
+      <pre><code>let (xdr_s, n) = decoder s pos len</code></pre>
+      <p>meaning that the <code>decoder</code> starts decoding at position <code>pos</code> of string <code>s</code>,
+and that at most <code>len</code> bytes can be decoded. It returns the decoded
+string <code>xdr_s</code> (which is then unpacked), and in <code>n</code> the number of
+consumed input bytes is returned.</p>
+      
+      <p>Exceptions raised in encoders or decoders fall through unmodified.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:encoder">
+  <a href="index.html#/type:encoder" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encoder = <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a> list
+    
+      <div class="doc">
+        
+      <p>see text above</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:decoder">
+  <a href="index.html#/type:decoder" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> decoder = string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string * int
+    
+      <div class="doc">
+        
+      <p>see text above</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pack_xdr_value">
+  <a href="index.html#/val:pack_xdr_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pack_xdr_value : ?encode:(string * <a href="index.html#/type:encoder">encoder</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:xdr_type">xdr_type</a>) list <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pack_xdr_value_as_string">
+  <a href="index.html#/val:pack_xdr_value_as_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pack_xdr_value_as_string : ?rm:bool <span class="rarr"><span>-&gt;</span></span> ?encode:(string * <a href="index.html#/type:encoder">encoder</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:xdr_type">xdr_type</a>) list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>rm: If true, four null bytes are prepended to the string for the
+record mark</p>
+      
+      <p>Changed in Ocamlnet-3.3: these functions raise <code>Xdr_failure</code> in
+case of errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pack_xdr_value_as_mstrings">
+  <a href="index.html#/val:pack_xdr_value_as_mstrings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pack_xdr_value_as_mstrings : ?encode:(string * <a href="index.html#/type:encoder">encoder</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:xdr_type">xdr_type</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/classtype:mstring">mstring</a> list
+    
+      <div class="doc">
+        
+      <p>The concatanated mstrings are the packed representation</p>
+      
+      <p>Changed in Ocamlnet-3.3: this function raises <code>Xdr_failure</code> in
+case of errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:xdr_value_version">
+  <a href="index.html#/type:xdr_value_version" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> xdr_value_version = [ <div class="cons">| `V1</div><div class="cons">| `V2</div><div class="cons">| `V3</div><div class="cons">| `V4</div><div class="cons">| `Ocamlrpcgen</div> ]
+    
+      <div class="doc">
+        
+      <p>Selects which version of <code>xdr_value</code> is returned by <code>unpack_xdr_value</code>.
+During the development of Ocamlnet several incompatible changes were
+made, but by selecting a certain version these changes can be hidden
+from the caller.</p>
+      <ul><li><code>`V1</code>: This version refers to the original <code>xdr_value</code> definition,
+which only included <code>XV_int</code>, <code>XV_uint</code>, <code>XV_hyper</code>, <code>XV_uhyper</code>,
+<code>XV_enum</code>, <code>XV_float</code>, <code>XV_double</code>, <code>XV_opaque</code>, <code>XV_string</code>,
+<code>XV_array</code>, <code>XV_struct</code>, <code>XV_union_over_int</code>, <code>XV_union_over_uint</code>,
+<code>XV_union_over_enum</code>, and <code>XV_void</code>.</li><li><code>`V2</code>: This version is available since the <code>rpc-0.4</code> distribution,
+and added the tags <code>XV_enum_fast</code>, <code>XV_struct_fast</code>, and
+<code>XV_union_over_enum_fast</code>.</li><li><code>`V3</code>: In Ocamlnet-3.0 the tag <code>XV_array_of_string_fast</code> was added.</li><li><code>`V4</code>: In Ocamlnet-3.5 the tag <code>XV_direct</code> was added.</li><li><code>`Ocamlrpcgen</code>: This refers to the version that must be used if the
+returned <code>xdr_value</code> is processed by code generated with <code>ocamlrpcgen</code>.</li></ul>
+      <p>The default is still <code>`V1</code>, for ultimate backward compatibility.
+The switch <code>fast=true</code> selects <code>`Ocamlrpcgen</code> (it was always used
+for this purpose, despite its name).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unpack_xdr_value">
+  <a href="index.html#/val:unpack_xdr_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unpack_xdr_value : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?fast:bool <span class="rarr"><span>-&gt;</span></span> ?prefix:bool <span class="rarr"><span>-&gt;</span></span> ?mstring_factories:<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/type:named_mstring_factories">named_mstring_factories</a> <span class="rarr"><span>-&gt;</span></span> ?xv_version:<a href="index.html#/type:xdr_value_version">xdr_value_version</a> <span class="rarr"><span>-&gt;</span></span> ?decode:(string * <a href="index.html#/type:decoder">decoder</a>) list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:xdr_type">xdr_type</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unpack_xdr_value_l">
+  <a href="index.html#/val:unpack_xdr_value_l" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unpack_xdr_value_l : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?fast:bool <span class="rarr"><span>-&gt;</span></span> ?prefix:bool <span class="rarr"><span>-&gt;</span></span> ?mstring_factories:<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/">Xdr_mstring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr_mstring/#/type:named_mstring_factories">named_mstring_factories</a> <span class="rarr"><span>-&gt;</span></span> ?xv_version:<a href="index.html#/type:xdr_value_version">xdr_value_version</a> <span class="rarr"><span>-&gt;</span></span> ?decode:(string * <a href="index.html#/type:decoder">decoder</a>) list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_type">xdr_type</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:xdr_type">xdr_type</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:xdr_value">xdr_value</a> * int
+    
+      <div class="doc">
+        
+      <p><code>prefix</code>: whether it is ok that the string is longer than the message
+(default: false)</p>
+      
+      <p><code>mstring_factories</code>: when a <code>T_mstring(name,_)</code> type is found, the
+factory is looked up in this hash table under <code>name</code>, and if this
+fails under the name <code>&quot;*&quot;</code>. If there is no such
+factory, unpacking fails! (Default: empty table.)</p>
+      
+      <p><code>xv_version</code>: Selects a certain version of the returned <code>xdr_value</code>
+terms. See <a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/">Xdr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/xdr/#/type:xdr_value_version">xdr_value_version</a> for details. Set this to
+<code>`Ocamlrpcgen</code> if you decode the <code>xdr_value</code> with ocamlrpcgen-generated
+decoders.</p>
+      
+      <p><code>fast</code>: Setting this to true is a deprecated way to set
+<code>xv_version=`Ocamlrpcgen</code>.</p>
+      
+      <p>The variant <code>unpack_xdr_value_l</code> returns not only the decoded value,
+but also the actual length in bytes.</p>
+      
+      <p>The exceptions <code>Xdr_format</code> and <code>Xdr_format_message_too_long</code> may
+be raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

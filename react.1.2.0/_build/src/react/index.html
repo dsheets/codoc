@@ -1,0 +1,3440 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>React</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">React</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Declarative events and signals.</p>
+      
+      <p>React is a module for functional reactive programming (frp). It
+provides support to program with time varying values : declarative
+<a href="index.html#/module:E">events</a> and <a href="index.html#/module:S">signals</a>. React
+doesn't define any primitive event or signal, this lets the client
+choose the concrete timeline.</p>
+      
+      <p>Consult the <a href="index.html#/label:sem">semantics</a>, the <a href="index.html#/label:basics">basics</a> and
+<a href="index.html#/label:ex">examples</a>. Open the module to use it, this defines only two
+types and modules in your scope.</p>
+      
+      <p><em>Release 1.2.0 - Daniel Bünzli &lt;daniel.buenzl i@erratique.ch&gt;</em></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Interface</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:event">
+  <a href="index.html#/type:event" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a event
+    
+      <div class="doc">
+        
+      <p>The type for events of type <code>'a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:signal">
+  <a href="index.html#/type:signal" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a signal
+    
+      <div class="doc">
+        
+      <p>The type for signals of type <code>'a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:step">
+  <a href="index.html#/type:step" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> step
+    
+      <div class="doc">
+        
+      <p>The type for update steps.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E">
+  <a href="index.html#/module:E" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> E : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Event combinators.</p>
+      
+      <p>Consult their <a href="index.html#/label:evsem">semantics.</a></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/module:E/label:prim">
+  <a href="index.html#/module:E/label:prim" class="anchor">#</a>
+  
+    <h1 class="section level_1">Primitive and basics</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:E/type:t">
+  <a href="index.html#/module:E/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p>The type for events with occurrences of type <code>'a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:never">
+  <a href="index.html#/module:E/val:never" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> never : 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p>A never occuring event. For all t, [<code>never</code>]<sub>t</sub> <code>= None</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:create">
+  <a href="index.html#/module:E/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> * (?step:<a href="index.html#/type:step">step</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p><code>create ()</code> is a primitive event <code>e</code> and a <code>send</code> function. The
+function <code>send</code> is such that:
+</p>
+      <ul><li><code>send v</code> generates an occurrence <code>v</code> of <code>e</code> at the time it is called
+and triggers an <a href="index.html#/label:steps">update step</a>.</li><li><code>send ~step v</code> generates an occurence <code>v</code> of <code>e</code> on the step <code>step</code>
+when <code>step</code> is <a href="index.html#/module:Step/val:execute">executed</a>.</li><li><code>send ~step v</code> raises <code>Invalid_argument</code> if it was previously
+called with a step and this step has not executed yet or if
+the given <code>step</code> was already executed.</li></ul>
+      <p><b>Warning.</b> <code>send</code> must not be executed inside an update step.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:retain">
+  <a href="index.html#/module:E/val:retain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> retain : 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `R <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> unit</div> ]
+    
+      <div class="doc">
+        
+      <p><code>retain e c</code> keeps a reference to the closure <code>c</code> in <code>e</code> and
+returns the previously retained value. <code>c</code> will <em>never</em> be
+invoked.</p>
+      
+      <p><b>Raises.</b> <code>Invalid_argument</code> on <a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:never">never</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:stop">
+  <a href="index.html#/module:E/val:stop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stop : ?strong:bool <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>stop e</code> stops <code>e</code> from occuring. It conceptually becomes
+<a href="index.html#/module:E/val:never">never</a> and cannot be restarted. Allows to
+disable <a href="index.html#/label:sideeffects">effectful</a> events.</p>
+      
+      <p>The <code>strong</code> argument should only be used on platforms
+where weak arrays have a strong semantics (i.e. JavaScript).
+See <a href="index.html#/label:strongstop">details</a>.</p>
+      
+      <p><b>Note.</b> If executed in an <a href="index.html#/label:steps">update step</a>
+the event may still occur in the step.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:equal">
+  <a href="index.html#/module:E/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>equal e e'</code> is <code>true</code> iff <code>e</code> and <code>e'</code> are equal. If both events are
+different from <a href="index.html#/module:E/val:never">never</a>, physical equality is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:trace">
+  <a href="index.html#/module:E/val:trace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> trace : ?iff:bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>trace iff tr e</code> is <code>e</code> except <code>tr</code> is invoked with e's
+occurence when <code>iff</code> is <code>true</code> (defaults to <code>S.const true</code>).
+For all t where [<code>e</code>]<sub>t</sub> <code>= Some v</code> and [<code>iff</code>]<sub>t</sub> =
+<code>true</code>, <code>tr</code> is invoked with <code>v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:E/label:transf">
+  <a href="index.html#/module:E/label:transf" class="anchor">#</a>
+  
+    <h1 class="section level_1">Transforming and filtering</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:E/val:once">
+  <a href="index.html#/module:E/val:once" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> once : 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>once e</code> is <code>e</code> with only its next occurence.
+</p>
+      <ul><li>[<code>once e</code>]<sub>t</sub> <code>= Some v</code> if [<code>e</code>]<sub>t</sub> <code>= Some v</code> and
+[<code>e</code>]<sub>&lt;t</sub> <code>= None</code>.</li><li>[<code>once e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:drop_once">
+  <a href="index.html#/module:E/val:drop_once" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop_once : 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>drop_once e</code> is <code>e</code> without its next occurrence.
+</p>
+      <ul><li>[<code>drop_once e</code>]<sub>t</sub> <code>= Some v</code> if [<code>e</code>]<sub>t</sub> <code>= Some v</code> and
+[<code>e</code>]<sub>&lt;t</sub> <code>= Some _</code>.</li><li>[<code>drop_once e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:app">
+  <a href="index.html#/module:E/val:app" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> app : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>app ef e</code> occurs when both <code>ef</code> and <code>e</code> occur
+<a href="index.html#/label:simultaneity">simultaneously</a>.
+The value is <code>ef</code>'s occurence applied to <code>e</code>'s one.
+</p>
+      <ul><li>[<code>app ef e</code>]<sub>t</sub> <code>= Some v'</code> if [<code>ef</code>]<sub>t</sub> <code>= Some f</code> and
+[<code>e</code>]<sub>t</sub> <code>= Some v</code> and <code>f v = v'</code>.</li><li>[<code>app ef e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:map">
+  <a href="index.html#/module:E/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>map f e</code> applies <code>f</code> to <code>e</code>'s occurrences.
+</p>
+      <ul><li>[<code>map f e</code>]<sub>t</sub> <code>= Some (f v)</code> if [<code>e</code>]<sub>t</sub> <code>= Some v</code>.</li><li>[<code>map f e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:stamp">
+  <a href="index.html#/module:E/val:stamp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stamp : 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>stamp e v</code> is <code>map (fun _ -&gt; v) e</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:filter">
+  <a href="index.html#/module:E/val:filter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter : ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>filter p e</code> are <code>e</code>'s occurrences that satisfy <code>p</code>.
+</p>
+      <ul><li>[<code>filter p e</code>]<sub>t</sub> <code>= Some v</code> if [<code>e</code>]<sub>t</sub> <code>= Some v</code> and
+<code>p v = true</code></li><li>[<code>filter p e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:fmap">
+  <a href="index.html#/module:E/val:fmap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fmap : ('a <span class="rarr"><span>-&gt;</span></span> 'b option) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>fmap fm e</code> are <code>e</code>'s occurrences filtered and mapped by <code>fm</code>.
+</p>
+      <ul><li>[<code>fmap fm e</code>]<sub>t</sub> <code>= Some v</code> if <code>fm</code> [<code>e</code>]<sub>t</sub> <code>= Some v</code></li><li>[<code>fmap fm e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:diff">
+  <a href="index.html#/module:E/val:diff" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> diff : ('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>diff f e</code> occurs whenever <code>e</code> occurs except on the next occurence.
+Occurences are <code>f v v'</code> where <code>v</code> is <code>e</code>'s current
+occurrence and <code>v'</code> the previous one.
+</p>
+      <ul><li>[<code>diff f e</code>]<sub>t</sub> <code>= Some r</code> if [<code>e</code>]<sub>t</sub> <code>= Some v</code>,
+[<code>e</code>]<sub>&lt;t</sub> <code>= Some v'</code> and <code>f v v' = r</code>.</li><li>[<code>diff f e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:changes">
+  <a href="index.html#/module:E/val:changes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> changes : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>changes eq e</code> is <code>e</code>'s occurrences with occurences equal to
+the previous one dropped. Equality is tested with <code>eq</code> (defaults to
+structural equality).
+</p>
+      <ul><li>[<code>changes eq e</code>]<sub>t</sub> <code>= Some v</code> if [<code>e</code>]<sub>t</sub> <code>= Some v</code>
+and either [<code>e</code>]<sub>&lt;t</sub> <code>= None</code> or [<code>e</code>]<sub>&lt;t</sub> <code>= Some v'</code> and
+<code>eq v v' = false</code>.</li><li>[<code>changes eq e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:on">
+  <a href="index.html#/module:E/val:on" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>on c e</code> is the occurrences of <code>e</code> when <code>c</code> is <code>true</code>.
+</p>
+      <ul><li>[<code>on c e</code>]<sub>t</sub> <code>= Some v</code>
+if [<code>c</code>]<sub>t</sub> <code>= true</code> and [<code>e</code>]<sub>t</sub> <code>= Some v</code>.</li><li>[<code>on c e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:when_">
+  <a href="index.html#/module:E/val:when_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> when_ : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Use <a href="index.html#/module:E/val:on">on</a>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:dismiss">
+  <a href="index.html#/module:E/val:dismiss" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dismiss : 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>dismiss c e</code> is the occurences of <code>e</code> except the ones when <code>c</code> occurs.
+</p>
+      <ul><li>[<code>dimiss c e</code>]<sub>t</sub> <code>= Some v</code>
+if [<code>c</code>]<sub>t</sub> <code>= None</code> and [<code>e</code>]<sub>t</sub> <code>= Some v</code>.</li><li>[<code>dimiss c e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:until">
+  <a href="index.html#/module:E/val:until" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> until : 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>until c e</code> is <code>e</code>'s occurences until <code>c</code> occurs.
+</p>
+      <ul><li>[<code>until c e</code>]<sub>t</sub> <code>= Some v</code> if [<code>e</code>]<sub>t</sub> <code>= Some v</code> and
+[<code>c</code>]<sub>&lt;=t</sub> <code>= None</code></li><li>[<code>until c e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:E/label:accum">
+  <a href="index.html#/module:E/label:accum" class="anchor">#</a>
+  
+    <h1 class="section level_1">Accumulating</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:E/val:accum">
+  <a href="index.html#/module:E/val:accum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> accum : ('a <span class="rarr"><span>-&gt;</span></span> 'a) <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>accum ef i</code> accumulates a value, starting with <code>i</code>, using <code>e</code>'s
+functional occurrences.
+</p>
+      <ul><li>[<code>accum ef i</code>]<sub>t</sub> <code>= Some (f i)</code> if [<code>ef</code>]<sub>t</sub> <code>= Some f</code>
+and [<code>ef</code>]<sub>&lt;t</sub> <code>= None</code>.</li><li>[<code>accum ef i</code>]<sub>t</sub> <code>= Some (f acc)</code> if [<code>ef</code>]<sub>t</sub> <code>= Some f</code>
+and [<code>accum ef i</code>]<sub>&lt;t</sub> <code>= Some acc</code>.</li><li>[<code>accum ef i</code>] <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:fold">
+  <a href="index.html#/module:E/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>fold f i e</code> accumulates <code>e</code>'s occurrences with <code>f</code> starting with <code>i</code>.
+</p>
+      <ul><li>[<code>fold f i e</code>]<sub>t</sub> <code>= Some (f i v)</code> if
+[<code>e</code>]<sub>t</sub> <code>= Some v</code> and [<code>e</code>]<sub>&lt;t</sub> <code>= None</code>.</li><li>[<code>fold f i e</code>]<sub>t</sub> <code>= Some (f acc v)</code> if
+[<code>e</code>]<sub>t</sub> <code>= Some v</code> and [<code>fold f i e</code>]<sub>&lt;t</sub> <code>= Some acc</code>.</li><li>[<code>fold f i e</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:E/label:combine">
+  <a href="index.html#/module:E/label:combine" class="anchor">#</a>
+  
+    <h1 class="section level_1">Combining</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:E/val:select">
+  <a href="index.html#/module:E/val:select" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> select : 'a <a href="index.html#/type:event">event</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:merge">
+  <a href="index.html#/module:E/val:merge" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> merge : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>merge f a el</code> merges the <a href="index.html#/label:simultaneity">simultaneous</a>
+occurrences of every event in <code>el</code> using <code>f</code> and the accumulator <code>a</code>.</p>
+      
+      <p>[<code>merge f a el</code>]<sub>t</sub>
+<code>= List.fold_left f a (List.filter (fun o -&gt; o &lt;&gt; None)
+           (List.map</code> []<sub>t</sub><code>el))</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:switch">
+  <a href="index.html#/module:E/val:switch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> switch : 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>switch e ee</code> is <code>e</code>'s occurrences until there is an
+occurrence <code>e'</code> on <code>ee</code>, the occurrences of <code>e'</code> are then used
+until there is a new occurrence on <code>ee</code>, etc..
+</p>
+      <ul><li>[<code>switch e ee</code>]<sub>t</sub> <code>=</code> [<code>e</code>]<sub>t</sub> if [<code>ee</code>]<sub>&lt;=t</sub> <code>= None</code>.</li><li>[<code>switch e ee</code>]<sub>t</sub> <code>=</code> [<code>e'</code>]<sub>t</sub> if [<code>ee</code>]<sub>&lt;=t</sub>
+<code>= Some e'</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:fix">
+  <a href="index.html#/module:E/val:fix" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fix : ('a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> * 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>fix ef</code> allows to refer to the value an event had an
+infinitesimal amount of time before.</p>
+      
+      <p>In <code>fix ef</code>, <code>ef</code> is called with an event <code>e</code> that represents
+the event returned by <code>ef</code> delayed by an infinitesimal amount of
+time. If <code>e', r = ef e</code> then <code>r</code> is returned by <code>fix</code> and <code>e</code>
+is such that :
+</p>
+      <ul><li>[<code>e</code>]<sub>t</sub> <code>=</code> <code>None</code> if t = 0</li><li>[<code>e</code>]<sub>t</sub> <code>=</code> [<code>e'</code>]<sub>t-dt</sub> otherwise</li></ul>
+      <p><b>Raises.</b> <code>Invalid_argument</code> if <code>e'</code> is directly a delayed event (i.e.
+an event given to a fixing function).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Lifting</h1>
+    </div>
+      <p>Lifting combinators. For a given <code>n</code> the semantics is:
+</p>
+      <ul><li>[<code>ln f e1 ... en</code>]<sub>t</sub> <code>= Some (f v1 ... vn)</code> if for all
+i : [<code>ei</code>]<sub>t</sub> <code>= Some vi</code>.</li><li>[<code>ln f e1 ... en</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/module:E/val:l1">
+  <a href="index.html#/module:E/val:l1" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l1 : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:l2">
+  <a href="index.html#/module:E/val:l2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l2 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:event">event</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:l3">
+  <a href="index.html#/module:E/val:l3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l3 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:event">event</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:l4">
+  <a href="index.html#/module:E/val:l4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l4 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:event">event</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:l5">
+  <a href="index.html#/module:E/val:l5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l5 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'f) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'f <a href="index.html#/type:event">event</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/val:l6">
+  <a href="index.html#/module:E/val:l6" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l6 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'f <span class="rarr"><span>-&gt;</span></span> 'g) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'f <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'g <a href="index.html#/type:event">event</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Pervasives support</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:E/module:Option">
+  <a href="index.html#/module:E/module:Option" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Option : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Events with option occurences.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:E/module:Option/val:some">
+  <a href="index.html#/module:E/module:Option/val:some" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> some : 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>some e</code> is <code>map (fun v -&gt; Some v) e</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:E/module:Option/val:value">
+  <a href="index.html#/module:E/module:Option/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : ?default:'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>value default e</code> either silences <code>None</code> occurences if <code>default</code> is
+unspecified or replaces them by the value of <code>default</code> at the occurence
+time.
+</p>
+      <ul><li>[<code>value ~default e</code>]<sub>t</sub><code>= v</code> if [<code>e</code>]<sub>t</sub> <code>= Some (Some v)</code>.</li><li>[<code>value ?default:None e</code>]<sub>t</sub><code>= None</code> if [<code>e</code>]<sub>t</sub> = <code>None</code>.</li><li>[<code>value ?default:(Some s) e</code>]<sub>t</sub><code>= v</code>
+if [<code>e</code>]<sub>t</sub> = <code>None</code> and [<code>s</code>]<sub>t</sub> <code>= v</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S">
+  <a href="index.html#/module:S" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> S : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Signal combinators.</p>
+      
+      <p>Consult their <a href="index.html#/label:sigsem">semantics.</a></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/module:S/label:prim">
+  <a href="index.html#/module:S/label:prim" class="anchor">#</a>
+  
+    <h1 class="section level_1">Primitive and basics</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:S/type:t">
+  <a href="index.html#/module:S/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p>The type for signals of type <code>'a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:const">
+  <a href="index.html#/module:S/val:const" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>const v</code> is always <code>v</code>, [<code>const v</code>]<sub>t</sub> <code>= v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:create">
+  <a href="index.html#/module:S/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> * (?step:<a href="index.html#/type:step">step</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p><code>create i</code> is a primitive signal <code>s</code> set to <code>i</code> and a
+<code>set</code> function. The function <code>set</code> is such that:
+</p>
+      <ul><li><code>set v</code> sets the signal's value to <code>v</code> at the time it is called and
+triggers an <a href="index.html#/label:steps">update step</a>.</li><li><code>set ~step v</code> sets the signal's value to <code>v</code> at the time it is
+called and updates it dependencies when <code>step</code> is
+<a href="index.html#/module:Step/val:execute">executed</a></li><li><code>set ~step v</code> raises <code>Invalid_argument</code> if it was previously
+called with a step and this step has not executed yet or if
+the given <code>step</code> was already executed.</li></ul>
+      <p>
+<b>Warning.</b> <code>set</code> must not be executed inside an update step.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:value">
+  <a href="index.html#/module:S/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>value s</code> is <code>s</code>'s current value.</p>
+      
+      <p><b>Warning.</b> If executed in an <a href="index.html#/label:steps">update
+step</a> may return a non up-to-date value or raise <code>Failure</code> if
+the signal is not yet initialized.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:retain">
+  <a href="index.html#/module:S/val:retain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> retain : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `R <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> unit</div> ]
+    
+      <div class="doc">
+        
+      <p><code>retain s c</code> keeps a reference to the closure <code>c</code> in <code>s</code> and
+returns the previously retained value. <code>c</code> will <em>never</em> be
+invoked.</p>
+      
+      <p><b>Raises.</b> <code>Invalid_argument</code> on constant signals.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:stop">
+  <a href="index.html#/module:S/val:stop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stop : ?strong:bool <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>stop s</code>, stops updating <code>s</code>. It conceptually becomes <a href="index.html#/module:S/val:const">const</a>
+with the signal's last value and cannot be restarted. Allows to
+disable <a href="index.html#/label:sideeffects">effectful</a> signals.</p>
+      
+      <p>The <code>strong</code> argument should only be used on platforms
+where weak arrays have a strong semantics (i.e. JavaScript).
+See <a href="index.html#/label:strongstop">details</a>.</p>
+      
+      <p><b>Note.</b> If executed in an update step the signal may
+still update in the step.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:equal">
+  <a href="index.html#/module:S/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>equal s s'</code> is <code>true</code> iff <code>s</code> and <code>s'</code> are equal. If both
+signals are <a href="index.html#/module:S/val:const">const</a>ant <code>eq</code> is used between their value
+(defauts to structural equality). If both signals are not
+<a href="index.html#/module:S/val:const">const</a>ant, physical equality is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:trace">
+  <a href="index.html#/module:S/val:trace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> trace : ?iff:bool <a href="index.html#/module:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>trace iff tr s</code> is <code>s</code> except <code>tr</code> is invoked with <code>s</code>'s
+current value and on <code>s</code> changes when <code>iff</code> is <code>true</code> (defaults
+to <code>S.const true</code>). For all t where [<code>s</code>]<sub>t</sub> <code>= v</code> and (t = 0
+or ([<code>s</code>]<sub>t-dt</sub><code>= v'</code> and <code>eq v v' = false</code>)) and
+[<code>iff</code>]<sub>t</sub> = <code>true</code>, <code>tr</code> is invoked with <code>v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">From events</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:S/val:hold">
+  <a href="index.html#/module:S/val:hold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hold : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>hold i e</code> has the value of <code>e</code>'s last occurrence or <code>i</code> if there
+wasn't any.
+</p>
+      <ul><li>[<code>hold i e</code>]<sub>t</sub> <code>= i</code> if [<code>e</code>]<sub>&lt;=t</sub> <code>= None</code></li><li>[<code>hold i e</code>]<sub>t</sub> <code>= v</code> if [<code>e</code>]<sub>&lt;=t</sub> <code>= Some v</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:S/label:tr">
+  <a href="index.html#/module:S/label:tr" class="anchor">#</a>
+  
+    <h1 class="section level_1">Transforming and filtering</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:S/val:app">
+  <a href="index.html#/module:S/val:app" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> app : ?eq:('b <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>app sf s</code> holds the value of <code>sf</code> applied
+to the value of <code>s</code>, [<code>app sf s</code>]<sub>t</sub>
+<code>=</code> [<code>sf</code>]<sub>t</sub> [<code>s</code>]<sub>t</sub>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:map">
+  <a href="index.html#/module:S/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : ?eq:('b <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>map f s</code> is <code>s</code> transformed by <code>f</code>, [<code>map f s</code>]<sub>t</sub> = <code>f</code> [<code>s</code>]<sub>t</sub>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:filter">
+  <a href="index.html#/module:S/val:filter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>filter f i s</code> is <code>s</code>'s values that satisfy <code>p</code>. If a value does not
+satisfy <code>p</code> it holds the last value that was satisfied or <code>i</code> if
+there is none.
+</p>
+      <ul><li>[<code>filter p s</code>]<sub>t</sub> <code>=</code> [<code>s</code>]<sub>t</sub> if <code>p</code> [<code>s</code>]<sub>t</sub><code>= true</code>.</li><li>[<code>filter p s</code>]<sub>t</sub> <code>=</code> [<code>s</code>]<sub>t'</sub> if <code>p</code> [<code>s</code>]<sub>t</sub><code>= false</code>
+and t' is the greatest t' &lt; t with <code>p</code> [<code>s</code>]<sub>t'</sub><code>= true</code>.</li><li>[<code>filter p e</code>]<sub>t</sub> <code>= i</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:fmap">
+  <a href="index.html#/module:S/val:fmap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fmap : ?eq:('b <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b option) <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>fmap fm i s</code> is <code>s</code> filtered and mapped by <code>fm</code>.
+</p>
+      <ul><li>[<code>fmap fm i s</code>]<sub>t</sub> <code>=</code> v if <code>fm</code> [<code>s</code>]<sub>t</sub><code>= Some v</code>.</li><li>[<code>fmap fm i s</code>]<sub>t</sub> <code>=</code> [<code>fmap fm i s</code>]<sub>t'</sub> if <code>fm</code>
+[<code>s</code>]<sub>t</sub> <code>= None</code> and t' is the greatest t' &lt; t with <code>fm</code>
+[<code>s</code>]<sub>t'</sub> <code>&lt;&gt; None</code>.</li><li>[<code>fmap fm i s</code>]<sub>t</sub> <code>= i</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:diff">
+  <a href="index.html#/module:S/val:diff" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> diff : ('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>diff f s</code> is an event with occurrences whenever <code>s</code> changes from
+<code>v'</code> to <code>v</code> and <code>eq v v'</code> is <code>false</code> (<code>eq</code> is the signal's equality
+function). The value of the occurrence is <code>f v v'</code>.
+</p>
+      <ul><li>[<code>diff f s</code>]<sub>t</sub> <code>= Some d</code>
+if [<code>s</code>]<sub>t</sub> <code>= v</code> and [<code>s</code>]<sub>t-dt</sub> <code>= v'</code> and <code>eq v v' = false</code>
+and <code>f v v' = d</code>.</li><li>[<code>diff f s</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:changes">
+  <a href="index.html#/module:S/val:changes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> changes : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>changes s</code> is <code>diff (fun v _ -&gt; v) s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:sample">
+  <a href="index.html#/module:S/val:sample" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sample : ('b <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>sample f e s</code> samples <code>s</code> at <code>e</code>'s occurrences.
+</p>
+      <ul><li>[<code>sample f e s</code>]<sub>t</sub> <code>= Some (f ev sv)</code> if [<code>e</code>]<sub>t</sub> <code>= Some ev</code>
+and [<code>s</code>]<sub>t</sub> <code>= sv</code>.</li><li>[<code>sample e s</code>]<sub>t</sub> <code>= None</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:on">
+  <a href="index.html#/module:S/val:on" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>on c i s</code> is the signal <code>s</code> whenever <code>c</code> is <code>true</code>.
+When <code>c</code> is <code>false</code> it holds the last value <code>s</code> had when
+<code>c</code> was the last time <code>true</code> or <code>i</code> if it never was.
+</p>
+      <ul><li>[<code>on c i s</code>]<sub>t</sub> <code>=</code> [<code>s</code>]<sub>t</sub> if [<code>c</code>]<sub>t</sub> <code>= true</code></li><li>[<code>on c i s</code>]<sub>t</sub> <code>=</code> [<code>s</code>]<sub>t'</sub> if [<code>c</code>]<sub>t</sub> <code>= false</code>
+where t' is the greatest t' &lt; t with [<code>c</code>]<sub>t'</sub> <code>= true</code>.</li><li>[<code>on c i s</code>]<sub>t</sub> <code>=</code> <code>i</code> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:when_">
+  <a href="index.html#/module:S/val:when_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> when_ : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> Use <a href="index.html#/module:S/val:on">on</a>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:dismiss">
+  <a href="index.html#/module:S/val:dismiss" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dismiss : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>dismiss c i s</code> is the signal <code>s</code> except changes when <code>c</code> occurs
+are ignored. If <code>c</code> occurs initially <code>i</code> is used.
+</p>
+      <ul><li>[<code>dismiss c i s</code>]<sub>t</sub> <code>=</code> [<code>s</code>]<sub>t'</sub>
+where t' is the greatest t' &lt;= t with [<code>c</code>]<sub>t'</sub> <code>= None</code> and
+[<code>s</code>]<sub>t'-dt</sub> <code>&lt;&gt;</code> [<code>s</code>]<sub>t'</sub></li><li>[<code>dismiss_ c i s</code>]<sub>0</sub> <code>=</code> <code>v</code> where <code>v = i</code> if
+[<code>c</code>]<sub>0</sub> <code>= Some _</code> and <code>v =</code> [<code>s</code>]<sub>0</sub> otherwise.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:S/label:acc">
+  <a href="index.html#/module:S/label:acc" class="anchor">#</a>
+  
+    <h1 class="section level_1">Accumulating</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:S/val:accum">
+  <a href="index.html#/module:S/val:accum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> accum : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'a) <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>accum e i</code> is <code>S.hold i (</code><a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/label:accum">accum</a><code>e i)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:fold">
+  <a href="index.html#/module:S/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>fold f i e</code> is <code>S.hold i (</code><a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:fold">fold</a><code>f i e)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:S/label:combine">
+  <a href="index.html#/module:S/label:combine" class="anchor">#</a>
+  
+    <h1 class="section level_1">Combining</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:S/val:merge">
+  <a href="index.html#/module:S/val:merge" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> merge : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>merge f a sl</code> merges the value of every signal in <code>sl</code>
+using <code>f</code> and the accumulator <code>a</code>.</p>
+      
+      <p>[<code>merge f a sl</code>]<sub>t</sub>
+<code>= List.fold_left f a (List.map</code> []<sub>t</sub><code>sl)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:switch">
+  <a href="index.html#/module:S/val:switch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> switch : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>switch ss</code> is the inner signal of <code>ss</code>.
+</p>
+      <ul><li>[<code>switch ss</code>]<sub>t</sub> <code>=</code> [[<code>ss</code>]<sub>t</sub>]<sub>t</sub>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:bind">
+  <a href="index.html#/module:S/val:bind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bind : ?eq:('b <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>bind s sf</code> is <code>switch (map ~eq:( == ) sf s)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:fix">
+  <a href="index.html#/module:S/val:fix" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fix : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> * 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>fix i sf</code> allow to refer to the value a signal had an
+infinitesimal amount of time before.</p>
+      
+      <p>In <code>fix sf</code>, <code>sf</code> is called with a signal <code>s</code> that represents
+the signal returned by <code>sf</code> delayed by an infinitesimal amount
+time. If <code>s', r = sf s</code> then <code>r</code> is returned by <code>fix</code> and <code>s</code>
+is such that :
+</p>
+      <ul><li>[<code>s</code>]<sub>t</sub> <code>=</code> <code>i</code> for t = 0.</li><li>[<code>s</code>]<sub>t</sub> <code>=</code> [<code>s'</code>]<sub>t-dt</sub> otherwise.</li></ul>
+      <p><code>eq</code> is the equality used by <code>s</code>.</p>
+      
+      <p><b>Raises.</b> <code>Invalid_argument</code> if <code>s'</code> is directly a delayed signal (i.e.
+a signal given to a fixing function).</p>
+      
+      <p><b>Note.</b> Regarding values depending on the result <code>r</code> of
+<code>s', r = sf s</code> the following two cases need to be distinguished :
+</p>
+      <ul><li>After <code>sf s</code> is applied, <code>s'</code> does not depend on
+a value that is in a step and <code>s</code> has no dependents in a step (e.g
+in the simple case where <code>fix</code> is applied outside a step).<br/>In that case if the initial value of <code>s'</code> differs from <code>i</code>,
+<code>s</code> and its dependents need to be updated and a special
+update step will be triggered for this. Values
+depending on the result <code>r</code> will be created only after this
+special update step has finished (e.g. they won't see
+the <code>i</code> of <code>s</code> if <code>r = s</code>).</li><li>Otherwise, values depending on <code>r</code> will be created in the same
+step as <code>s</code> and <code>s'</code> (e.g. they will see the <code>i</code> of <code>s</code> if <code>r = s</code>).</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:S/label:lifting">
+  <a href="index.html#/module:S/label:lifting" class="anchor">#</a>
+  
+    <h1 class="section level_1">Lifting</h1>
+    
+  </div>
+  
+      <p>Lifting combinators. For a given <code>n</code> the semantics is :</p>
+      
+      <p>[<code>ln f a1</code> ... <code>an</code>]<sub>t</sub> = f [<code>a1</code>]<sub>t</sub> ... [<code>an</code>]<sub>t</sub></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:S/val:l1">
+  <a href="index.html#/module:S/val:l1" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l1 : ?eq:('b <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:l2">
+  <a href="index.html#/module:S/val:l2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l2 : ?eq:('c <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:l3">
+  <a href="index.html#/module:S/val:l3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l3 : ?eq:('d <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:l4">
+  <a href="index.html#/module:S/val:l4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l4 : ?eq:('e <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:l5">
+  <a href="index.html#/module:S/val:l5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l5 : ?eq:('f <span class="rarr"><span>-&gt;</span></span> 'f <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'f) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'f <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/val:l6">
+  <a href="index.html#/module:S/val:l6" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l6 : ?eq:('g <span class="rarr"><span>-&gt;</span></span> 'g <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'f <span class="rarr"><span>-&gt;</span></span> 'g) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'f <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'g <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following modules lift some of <code>Pervasives</code> functions and
+operators.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:S/module:Bool">
+  <a href="index.html#/module:S/module:Bool" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Bool : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:S/module:Bool/val:zero">
+  <a href="index.html#/module:S/module:Bool/val:zero" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> zero : bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:one">
+  <a href="index.html#/module:S/module:Bool/val:one" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> one : bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:not">
+  <a href="index.html#/module:S/module:Bool/val:not" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> not : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:(&amp;&amp;)">
+  <a href="index.html#/module:S/module:Bool/val:(%26%26)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&amp;&amp;) : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:(||)">
+  <a href="index.html#/module:S/module:Bool/val:(%7C%7C)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (||) : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:edge">
+  <a href="index.html#/module:S/module:Bool/val:edge" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> edge : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>edge s</code> is <code>changes s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:rise">
+  <a href="index.html#/module:S/module:Bool/val:rise" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rise : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>rise s</code> is <code>E.fmap (fun b -&gt; if b then Some () else None) (edge s)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:fall">
+  <a href="index.html#/module:S/module:Bool/val:fall" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fall : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:event">event</a>
+    
+      <div class="doc">
+        
+      <p><code>fall s</code> is <code>E.fmap (fun b -&gt; if b then None else Some ()) (edge s)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Bool/val:flip">
+  <a href="index.html#/module:S/module:Bool/val:flip" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flip : bool <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>flip b e</code> is a signal whose boolean value flips each time
+<code>e</code> occurs. <code>b</code> is the initial signal value.
+</p>
+      <ul><li>[<code>flip b e</code>]<sub>0</sub> <code>= not b</code> if [<code>e</code>]<sub>0</sub> <code>= Some _</code></li><li>[<code>flip b e</code>]<sub>t</sub> <code>= b</code> if [<code>e</code>]<sub>&lt;=t</sub> <code>= None</code></li><li>[<code>flip b e</code>]<sub>t</sub> <code>=</code> <code>not</code> [<code>flip b e</code>]<sub>t-dt</sub>
+if [<code>e</code>]<sub>t</sub> <code>= Some _</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int">
+  <a href="index.html#/module:S/module:Int" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Int : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:S/module:Int/val:zero">
+  <a href="index.html#/module:S/module:Int/val:zero" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> zero : int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:one">
+  <a href="index.html#/module:S/module:Int/val:one" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> one : int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:minus_one">
+  <a href="index.html#/module:S/module:Int/val:minus_one" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minus_one : int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:(~-)">
+  <a href="index.html#/module:S/module:Int/val:(~-)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (~-) : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:succ">
+  <a href="index.html#/module:S/module:Int/val:succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> succ : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:pred">
+  <a href="index.html#/module:S/module:Int/val:pred" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pred : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:(+)">
+  <a href="index.html#/module:S/module:Int/val:(%2B)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (+) : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:(-)">
+  <a href="index.html#/module:S/module:Int/val:(-)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (-) : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:(*)">
+  <a href="index.html#/module:S/module:Int/val:(*)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (*) : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:mod">
+  <a href="index.html#/module:S/module:Int/val:mod" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mod : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:abs">
+  <a href="index.html#/module:S/module:Int/val:abs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abs : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:max_int">
+  <a href="index.html#/module:S/module:Int/val:max_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_int : int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:min_int">
+  <a href="index.html#/module:S/module:Int/val:min_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> min_int : int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:land">
+  <a href="index.html#/module:S/module:Int/val:land" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> land : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:lor">
+  <a href="index.html#/module:S/module:Int/val:lor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lor : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:lxor">
+  <a href="index.html#/module:S/module:Int/val:lxor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lxor : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:lnot">
+  <a href="index.html#/module:S/module:Int/val:lnot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lnot : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:lsl">
+  <a href="index.html#/module:S/module:Int/val:lsl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lsl : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:lsr">
+  <a href="index.html#/module:S/module:Int/val:lsr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lsr : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Int/val:asr">
+  <a href="index.html#/module:S/module:Int/val:asr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> asr : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float">
+  <a href="index.html#/module:S/module:Float" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Float : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:S/module:Float/val:zero">
+  <a href="index.html#/module:S/module:Float/val:zero" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> zero : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:one">
+  <a href="index.html#/module:S/module:Float/val:one" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> one : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:minus_one">
+  <a href="index.html#/module:S/module:Float/val:minus_one" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minus_one : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:(~-.)">
+  <a href="index.html#/module:S/module:Float/val:(~-.)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (~-.) : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:(+.)">
+  <a href="index.html#/module:S/module:Float/val:(%2B.)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (+.) : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:(-.)">
+  <a href="index.html#/module:S/module:Float/val:(-.)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (-.) : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:(*.)">
+  <a href="index.html#/module:S/module:Float/val:(*.)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (*.) : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:(/.)">
+  <a href="index.html#/module:S/module:Float/val:(/.)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (/.) : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:(**)">
+  <a href="index.html#/module:S/module:Float/val:(**)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (**) : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:sqrt">
+  <a href="index.html#/module:S/module:Float/val:sqrt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sqrt : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:exp">
+  <a href="index.html#/module:S/module:Float/val:exp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> exp : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:log">
+  <a href="index.html#/module:S/module:Float/val:log" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:log10">
+  <a href="index.html#/module:S/module:Float/val:log10" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log10 : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:cos">
+  <a href="index.html#/module:S/module:Float/val:cos" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cos : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:sin">
+  <a href="index.html#/module:S/module:Float/val:sin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sin : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:tan">
+  <a href="index.html#/module:S/module:Float/val:tan" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tan : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:acos">
+  <a href="index.html#/module:S/module:Float/val:acos" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> acos : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:asin">
+  <a href="index.html#/module:S/module:Float/val:asin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> asin : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:atan">
+  <a href="index.html#/module:S/module:Float/val:atan" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> atan : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:atan2">
+  <a href="index.html#/module:S/module:Float/val:atan2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> atan2 : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:cosh">
+  <a href="index.html#/module:S/module:Float/val:cosh" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cosh : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:sinh">
+  <a href="index.html#/module:S/module:Float/val:sinh" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sinh : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:tanh">
+  <a href="index.html#/module:S/module:Float/val:tanh" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tanh : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:ceil">
+  <a href="index.html#/module:S/module:Float/val:ceil" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ceil : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:floor">
+  <a href="index.html#/module:S/module:Float/val:floor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> floor : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:abs_float">
+  <a href="index.html#/module:S/module:Float/val:abs_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abs_float : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:mod_float">
+  <a href="index.html#/module:S/module:Float/val:mod_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mod_float : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:frexp">
+  <a href="index.html#/module:S/module:Float/val:frexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> frexp : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> (float * int) <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:ldexp">
+  <a href="index.html#/module:S/module:Float/val:ldexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ldexp : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:modf">
+  <a href="index.html#/module:S/module:Float/val:modf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> modf : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> (float * float) <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:float">
+  <a href="index.html#/module:S/module:Float/val:float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:float_of_int">
+  <a href="index.html#/module:S/module:Float/val:float_of_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float_of_int : int <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:truncate">
+  <a href="index.html#/module:S/module:Float/val:truncate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> truncate : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:int_of_float">
+  <a href="index.html#/module:S/module:Float/val:int_of_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_of_float : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:infinity">
+  <a href="index.html#/module:S/module:Float/val:infinity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> infinity : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:neg_infinity">
+  <a href="index.html#/module:S/module:Float/val:neg_infinity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> neg_infinity : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:nan">
+  <a href="index.html#/module:S/module:Float/val:nan" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nan : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:max_float">
+  <a href="index.html#/module:S/module:Float/val:max_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_float : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:min_float">
+  <a href="index.html#/module:S/module:Float/val:min_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> min_float : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:epsilon_float">
+  <a href="index.html#/module:S/module:Float/val:epsilon_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> epsilon_float : float <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Float/val:classify_float">
+  <a href="index.html#/module:S/module:Float/val:classify_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> classify_float : float <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:fpclass">fpclass</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Pair">
+  <a href="index.html#/module:S/module:Pair" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Pair : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:S/module:Pair/val:pair">
+  <a href="index.html#/module:S/module:Pair/val:pair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pair : ?eq:('a * 'b <span class="rarr"><span>-&gt;</span></span> 'a * 'b <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b) <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Pair/val:fst">
+  <a href="index.html#/module:S/module:Pair/val:fst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fst : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('a * 'b) <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Pair/val:snd">
+  <a href="index.html#/module:S/module:Pair/val:snd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> snd : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> ('b * 'a) <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Option">
+  <a href="index.html#/module:S/module:Option" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Option : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:S/module:Option/val:none">
+  <a href="index.html#/module:S/module:Option/val:none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> none : 'a option <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>none</code> is <code>S.const None</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Option/val:some">
+  <a href="index.html#/module:S/module:Option/val:some" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> some : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>some s</code> is <code>S.map ~eq (fun v -&gt; Some v) None</code>, where <code>eq</code> uses
+<code>s</code>'s equality function to test the <code>Some v</code>'s equalities.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Option/val:value">
+  <a href="index.html#/module:S/module:Option/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : ?eq:('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> default:[ <div class="cons">| `Init <span class="keyword">of</span> 'a <a href="index.html#/type:signal">signal</a></div><div class="cons">| `Always <span class="keyword">of</span> 'a <a href="index.html#/type:signal">signal</a></div> ] <span class="rarr"><span>-&gt;</span></span> 'a option <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a>
+    
+      <div class="doc">
+        
+      <p><code>value default s</code> is <code>s</code> with only its <code>Some v</code> values.
+Whenever <code>s</code> is <code>None</code>, if <code>default</code> is <code>`Always dv</code> then
+the current value of <code>dv</code> is used instead. If <code>default</code>
+is <code>`Init dv</code> the current value of <code>dv</code> is only used
+if there's no value at creation time, otherwise the last
+<code>Some v</code> value of <code>s</code> is used.
+</p>
+      <ul><li>[<code>value ~default s</code>]<sub>t</sub> <code>= v</code> if [<code>s</code>]<sub>t</sub> <code>= Some v</code></li><li>[<code>value ~default:(`Always d) s</code>]<sub>t</sub> <code>=</code> [<code>d</code>]<sub>t</sub>
+if [<code>s</code>]<sub>t</sub> <code>= None</code></li><li>[<code>value ~default:(`Init d) s</code>]<sub>0</sub> <code>=</code> [<code>d</code>]<sub>0</sub>
+if [<code>s</code>]<sub>0</sub> <code>= None</code></li><li>[<code>value ~default:(`Init d) s</code>]<sub>t</sub> <code>=</code>
+[<code>value ~default:(`Init d) s</code>]<sub>t'</sub>
+if [<code>s</code>]<sub>t</sub> <code>= None</code> and t' is the greatest t' &lt; t
+with [<code>s</code>]<sub>t'</sub> <code>&lt;&gt; None</code> or 0 if there is no such <code>t'</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare">
+  <a href="index.html#/module:S/module:Compare" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Compare : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:S/module:Compare/val:(=)">
+  <a href="index.html#/module:S/module:Compare/val:(=)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (=) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:(&lt;&gt;)">
+  <a href="index.html#/module:S/module:Compare/val:(%3C%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&lt;&gt;) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:(&lt;)">
+  <a href="index.html#/module:S/module:Compare/val:(%3C)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&lt;) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:(&gt;)">
+  <a href="index.html#/module:S/module:Compare/val:(%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&gt;) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:(&lt;=)">
+  <a href="index.html#/module:S/module:Compare/val:(%3C=)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&lt;=) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:(&gt;=)">
+  <a href="index.html#/module:S/module:Compare/val:(%3E=)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&gt;=) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:compare">
+  <a href="index.html#/module:S/module:Compare/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> int <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:(==)">
+  <a href="index.html#/module:S/module:Compare/val:(==)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (==) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Compare/val:(!=)">
+  <a href="index.html#/module:S/module:Compare/val:(!=)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (!=) : 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:S/label:special">
+  <a href="index.html#/module:S/label:special" class="anchor">#</a>
+  
+    <h1 class="section level_1">Combinator specialization</h1>
+    
+  </div>
+  
+      <p>Given an equality function <code>equal</code> and a type <code>t</code>, the functor
+<a href="index.html#/module:S/module:Make">Make</a> automatically applies the <code>eq</code> parameter of the combinators.
+The outcome is combinators whose <em>results</em> are signals with
+values in <code>t</code>.</p>
+      
+      <p>Basic types are already specialized in the module <a href="index.html#/module:S/module:Special">Special</a>, open
+this module to use them.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:S/modtype:EqType">
+  <a href="index.html#/module:S/modtype:EqType" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> EqType = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Input signature of <a href="index.html#/module:S/modtype:S">S</a>.Make</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/module:S/modtype:EqType/type:t">
+  <a href="index.html#/module:S/modtype:EqType/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:EqType/val:equal">
+  <a href="index.html#/module:S/modtype:EqType/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : 'a <a href="index.html#/module:S/modtype:EqType/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:EqType/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S">
+  <a href="index.html#/module:S/modtype:S" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> S = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Output signature of <a href="index.html#/module:S/modtype:S">S</a>.Make</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/module:S/modtype:S/type:v">
+  <a href="index.html#/module:S/modtype:S/type:v" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a v
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:create">
+  <a href="index.html#/module:S/modtype:S/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> * (?step:<a href="index.html#/type:step">step</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> unit)
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:equal">
+  <a href="index.html#/module:S/modtype:S/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:hold">
+  <a href="index.html#/module:S/modtype:S/val:hold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hold : 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:app">
+  <a href="index.html#/module:S/modtype:S/val:app" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> app : ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a>) <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:map">
+  <a href="index.html#/module:S/modtype:S/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:filter">
+  <a href="index.html#/module:S/modtype:S/val:filter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter : ('a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:fmap">
+  <a href="index.html#/module:S/modtype:S/val:fmap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fmap : ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a> option) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:when_">
+  <a href="index.html#/module:S/modtype:S/val:when_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> when_ : bool <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:dismiss">
+  <a href="index.html#/module:S/modtype:S/val:dismiss" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dismiss : 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:accum">
+  <a href="index.html#/module:S/modtype:S/val:accum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> accum : ('a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a>) <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:fold">
+  <a href="index.html#/module:S/modtype:S/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:event">event</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:merge">
+  <a href="index.html#/module:S/modtype:S/val:merge" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> merge : ('a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:switch">
+  <a href="index.html#/module:S/modtype:S/val:switch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> switch : 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:bind">
+  <a href="index.html#/module:S/modtype:S/val:bind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bind : 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:fix">
+  <a href="index.html#/module:S/modtype:S/val:fix" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fix : 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a> * 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:l1">
+  <a href="index.html#/module:S/modtype:S/val:l1" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l1 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:l2">
+  <a href="index.html#/module:S/modtype:S/val:l2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l2 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:l3">
+  <a href="index.html#/module:S/modtype:S/val:l3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l3 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:l4">
+  <a href="index.html#/module:S/modtype:S/val:l4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l4 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:l5">
+  <a href="index.html#/module:S/modtype:S/val:l5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l5 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'f <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'f <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/modtype:S/val:l6">
+  <a href="index.html#/module:S/modtype:S/val:l6" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> l6 : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'c <span class="rarr"><span>-&gt;</span></span> 'd <span class="rarr"><span>-&gt;</span></span> 'e <span class="rarr"><span>-&gt;</span></span> 'f <span class="rarr"><span>-&gt;</span></span> 'g <a href="index.html#/module:S/modtype:S/type:v">v</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'e <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'f <a href="index.html#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> 'g <a href="index.html#/module:S/modtype:S/type:v">v</a> <a href="index.html#/type:signal">signal</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Make">
+  <a href="index.html#/module:S/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (Eq : <a href="index.html#/module:S/modtype:EqType">EqType</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:S/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> = 'a <a href="index.html#/module:S/module:Make/modarg:1:Eq">Eq</a>.<a href="index.html#/module:S/module:Make/modarg:1:Eq/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>Functor specializing the combinators for the given signal value type</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Special">
+  <a href="index.html#/module:S/module:Special" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Special : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Specialization for booleans, integers and floats.</p>
+      
+      <p>Open this module to use it.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:S/module:Special/module:Sb">
+  <a href="index.html#/module:S/module:Special/module:Sb" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Sb : <a href="index.html#/module:S/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> = bool</div>
+      
+      <div class="doc">
+        
+      <p>Specialization for booleans.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Special/module:Si">
+  <a href="index.html#/module:S/module:Special/module:Si" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Si : <a href="index.html#/module:S/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> = int</div>
+      
+      <div class="doc">
+        
+      <p>Specialization for integers.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:S/module:Special/module:Sf">
+  <a href="index.html#/module:S/module:Special/module:Sf" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Sf : <a href="index.html#/module:S/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> 'a <a href="index.html#/module:S/modtype:S/type:v">v</a> = float</div>
+      
+      <div class="doc">
+        
+      <p>Specialization for floats.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Step">
+  <a href="index.html#/module:Step" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Step : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Update steps.</p>
+      
+      <p>Update functions returned by <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:create">create</a> and <a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:create">create</a>
+implicitely create and execute update steps when used without
+specifying their <code>step</code> argument.</p>
+      
+      <p>Using explicit <a href="index.html#/type:step">step</a> values with these functions gives more control on
+the time when the update step is perfomed and allows to perform
+simultaneous <a href="index.html#/label:primitives">primitive</a> signal updates and event
+occurences. See also the documentation about <a href="index.html#/label:steps">update steps</a> and
+<a href="index.html#/label:simultaneity">simultaneous events</a>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Steps</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Step/type:t">
+  <a href="index.html#/module:Step/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="index.html#/type:step">step</a>
+    
+      <div class="doc">
+        
+      <p>The type for update steps.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Step/val:create">
+  <a href="index.html#/module:Step/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:step">step</a>
+    
+      <div class="doc">
+        
+      <p><code>create ()</code> is a new update step.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Step/val:execute">
+  <a href="index.html#/module:Step/val:execute" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> execute : <a href="index.html#/type:step">step</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>execute step</code> executes the update step.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>step</code> was already executed.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:sem">
+  <a href="index.html#/label:sem" class="anchor">#</a>
+  
+    <h1 class="section level_1">Semantics</h1>
+    
+  </div>
+  
+      <p>The following notations are used to give precise meaning to the
+combinators. It is important to note that in these semantic
+descriptions the origin of time t = 0 is <em>always</em> fixed at
+the time at which the combinator creates the event or the signal and
+the semantics of the dependents is evaluated relative to this timeline.</p>
+      
+      <p>We use dt to denote an infinitesimal amount of time.
+</p>
+      
+  <div class="region" id="/label:evsem">
+  <a href="index.html#/label:evsem" class="anchor">#</a>
+  
+    <h2 class="section level_2">Events</h2>
+    
+  </div>
+  
+      <p>An event is a value with discrete occurrences over time.</p>
+      
+      <p>The semantic function [] <code>: 'a event -&gt; time -&gt; 'a option</code> gives
+meaning to an event <code>e</code> by mapping it to a function of time
+[<code>e</code>] returning <code>Some v</code> whenever the event occurs with value
+<code>v</code> and <code>None</code> otherwise. We write [<code>e</code>]<sub>t</sub> the evaluation of
+this <em>semantic</em> function at time t.</p>
+      
+      <p>As a shortcut notation we also define <sub>&lt;t</sub> <code>: 'a event -&gt; 'a option</code>
+(resp. []<sub>&lt;=t</sub>) to denote the last occurrence, if any, of an
+event before (resp. before or at) <code>t</code>. More precisely :
+</p>
+      <ul><li>[<code>e</code>]<sub>&lt;t</sub> <code>=</code> [<code>e</code>]<sub>t'</sub> with t' the greatest t' &lt; t
+(resp. <code>&lt;=</code>) such that
+[<code>e</code>]<sub>t'</sub> <code>&lt;&gt; None</code>.</li><li>[<code>e</code>]<sub>&lt;t</sub> <code>= None</code> if there is no such t'.</li></ul>
+  <div class="region" id="/label:sigsem">
+  <a href="index.html#/label:sigsem" class="anchor">#</a>
+  
+    <h2 class="section level_2">Signals</h2>
+    
+  </div>
+  
+      <p>A signal is a value that varies continuously over time. In
+contrast to <a href="index.html#/label:evsem">events</a> which occur at specific point
+in time, a signal has a value at every point in time.</p>
+      
+      <p>The semantic function [] <code>: 'a signal -&gt; time -&gt; 'a</code> gives
+meaning to a signal <code>s</code> by mapping it to a function of time
+[<code>s</code>] that returns its value at a given time. We write [<code>s</code>]<sub>t</sub>
+the evaluation of this <em>semantic</em> function at time t.
+</p>
+      
+  <div class="region" id="/label:sigeq">
+  <a href="index.html#/label:sigeq" class="anchor">#</a>
+  
+    <h3 class="section level_3">Equality</h3>
+    
+  </div>
+  
+      <p>Most signal combinators have an optional <code>eq</code> parameter that
+defaults to structural equality. <code>eq</code> specifies the equality
+function used to detect changes in the value of the resulting
+signal. This function is needed for the efficient update of
+signals and to deal correctly with signals that perform
+<a href="index.html#/label:sideeffects">side effects</a>.</p>
+      
+      <p>Given an equality function on a type the combinators can be automatically
+<a href="index.html#/module:S/label:special">specialized</a> via a functor.</p>
+      
+  <div class="region" id="/label:sigcont">
+  <a href="index.html#/label:sigcont" class="anchor">#</a>
+  
+    <h3 class="section level_3">Continuity</h3>
+    
+  </div>
+  
+      <p>Ultimately signal updates depend on
+<a href="index.html#/label:primitives">primitives</a> updates. Thus a signal can
+only approximate a real continuous signal. The accuracy of the
+approximation depends on the variation rate of the real signal and
+the primitive's update frequency.</p>
+      
+  <div class="region" id="/label:basics">
+  <a href="index.html#/label:basics" class="anchor">#</a>
+  
+    <h1 class="section level_1">Basics</h1>
+    
+  </div>
+  
+  <div class="region" id="/label:primitives">
+  <a href="index.html#/label:primitives" class="anchor">#</a>
+  
+    <h2 class="section level_2">Primitive events and signals</h2>
+    
+  </div>
+  
+      <p>React doesn't define primitive events and signals, they must be
+created and updated by the client.</p>
+      
+      <p>Primitive events are created with <a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:create">create</a>. This function
+returns a new event and an update function that generates an
+occurrence for the event at the time it is called. The following
+code creates a primitive integer event <code>x</code> and generates three
+occurrences with value <code>1</code>, <code>2</code>, <code>3</code>. Those occurrences are printed
+on stdout by the effectful event <code>pr_x</code>. </p>
+      <pre><code>open React;;
+
+let x, send_x = E.create ()
+let pr_x = E.map print_int x
+let () = List.iter send_x [1; 2; 3]</code></pre>
+      <p>
+Primitive signals are created with <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:create">create</a>. This function
+returns a new signal and an update function that sets the signal's value
+at the time it is called. The following code creates an
+integer signal <code>x</code> initially set to <code>1</code> and updates it three time with
+values <code>2</code>, <code>2</code>, <code>3</code>. The signal's values are printed on stdout by the
+effectful signal <code>pr_x</code>. Note that only updates that change
+the signal's value are printed, hence the program prints <code>123</code>, not <code>1223</code>.
+See the discussion on
+<a href="index.html#/label:sideeffects">side effects</a> for more details.</p>
+      <pre><code>open React;;
+
+let x, set_x = S.create 1
+let pr_x = S.map print_int x
+let () = List.iter set_x [2; 2; 3]</code></pre>
+      <p>
+The <a href="index.html#/label:clock">clock</a> example shows how a realtime time
+flow can be defined.</p>
+      
+  <div class="region" id="/label:steps">
+  <a href="index.html#/label:steps" class="anchor">#</a>
+  
+    <h2 class="section level_2">Update steps</h2>
+    
+  </div>
+  
+      <p>The <a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:create">create</a> and <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:create">create</a> functions return update functions
+used to generate primitive event occurences and set the value of
+primitive signals. Upon invocation as in the preceding section
+these functions immediatly create and invoke an update step.
+The <em>update step</em> automatically updates events and signals that
+transitively depend on the updated primitive. The dependents of a
+signal are updated iff the signal's value changed according to its
+<a href="index.html#/label:sigeq">equality function</a>.</p>
+      
+      <p>The update functions have an optional <code>step</code> argument. If they are
+given a concrete <code>step</code> value created with <a href="index.html#/module:Step">Step</a>.<a href="index.html#/module:Step/val:create">create</a>, then it
+updates the event or signal but doesn't update its dependencies. It
+will only do so whenever <code>step</code> is executed with
+<a href="index.html#/module:Step">Step</a>.<a href="index.html#/module:Step/val:execute">execute</a>. This allows to make primitive event occurences and
+signal changes simultaneous. See next section for an example.</p>
+      
+  <div class="region" id="/label:simultaneity">
+  <a href="index.html#/label:simultaneity" class="anchor">#</a>
+  
+    <h2 class="section level_2">Simultaneous events</h2>
+    
+  </div>
+  
+      <p><a href="index.html#/label:steps">Update steps</a> are made under a
+<a href="http://dx.doi.org/10.1016/0167-6423(92)90005-V">synchrony hypothesis</a> :
+the update step takes no time, it is instantenous. Two event occurrences
+are <em>simultaneous</em> if they occur in the same update step.</p>
+      
+      <p>In the code below <code>w</code>, <code>x</code> and <code>y</code> will always have simultaneous
+occurrences. They <em>may</em> have simulatenous occurences with <code>z</code>
+if <code>send_w</code> and <code>send_z</code> are used with the same update step.</p>
+      <pre><code>let w, send_w = E.create ()
+let x = E.map succ w
+let y = E.map succ x
+let z, send_z = E.create ()
+
+let () =
+  let () = send_w 3 (* w x y occur simultaneously, z doesn't occur *) in
+  let step = Step.create () in
+  send_w ~step 3;
+  send_z ~step 4;
+  Step.execute step (* w x z y occur simultaneously *)</code></pre>
+  <div class="region" id="/label:update">
+  <a href="index.html#/label:update" class="anchor">#</a>
+  
+    <h2 class="section level_2">The update step and thread safety</h2>
+    
+  </div>
+  
+      <p><a href="index.html#/label:primitives">Primitives</a> are the only mean to drive the reactive
+system and they are entirely under the control of the client. When
+the client invokes a primitive's update function without the
+<code>step</code> argument or when it invokes <a href="index.html#/module:Step">Step</a>.<a href="index.html#/module:Step/val:execute">execute</a> on a <code>step</code>
+value, React performs an update step.</p>
+      
+      <p>To ensure correctness in the presence of threads, update steps
+must be executed in a critical section. Let uset(<code>p</code>) be the set
+of events and signals that need to be updated whenever the
+primitive <code>p</code> is updated. Updating two primitives <code>p</code> and <code>p'</code>
+concurrently is only allowed if uset(<code>p</code>) and uset(<code>p'</code>) are
+disjoint. Otherwise the updates must be properly serialized.</p>
+      
+      <p>Below, concurrent, updates to <code>x</code> and <code>y</code> must be serialized (or
+performed on the same step if it makes sense semantically), but z
+can be updated concurently to both <code>x</code> and <code>y</code>.</p>
+      <pre><code>open React;;
+
+let x, set_x = S.create 0
+let y, send_y = E.create ()
+let z, set_z = S.create 0
+let max_xy = S.l2 (fun x y -&gt; if x &gt; y then x else y) x (S.hold 0 y)
+let succ_z = S.map succ z</code></pre>
+  <div class="region" id="/label:sideeffects">
+  <a href="index.html#/label:sideeffects" class="anchor">#</a>
+  
+    <h2 class="section level_2">Side effects</h2>
+    
+  </div>
+  
+      <p>Effectful events and signals perform their side effect
+exactly <em>once</em> in each <a href="index.html#/label:steps">update step</a> in which there
+is an update of at least one of the event or signal it depends on.</p>
+      
+      <p>Remember that a signal updates in a step iff its
+<a href="index.html#/label:sigeq">equality function</a> determined that the signal
+value changed. Signal initialization is unconditionally considered as
+an update.</p>
+      
+      <p>It is important to keep references on effectful events and
+signals. Otherwise they may be reclaimed by the garbage collector.
+The following program prints only a <code>1</code>.
+</p>
+      <pre><code>let x, set_x = S.create 1
+let () = ignore (S.map print_int x)
+let () = Gc.full_major (); List.iter set_x [2; 2; 3]</code></pre>
+      <p>
+</p>
+      
+  <div class="region" id="/label:lifting">
+  <a href="index.html#/label:lifting" class="anchor">#</a>
+  
+    <h2 class="section level_2">Lifting</h2>
+    
+  </div>
+  
+      <p>Lifting transforms a regular function to make it act on signals.
+The combinators
+<a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:const">const</a> and <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:app">app</a> allow to lift functions of arbitrary arity n,
+but this involves the inefficient creation of n-1 intermediary
+closure signals. The fixed arity <a href="index.html#/module:S/label:lifting">lifting
+functions</a> are more efficient. For example :
+</p>
+      <pre><code>let f x y = x mod y
+let fl x y = S.app (S.app ~eq:(==) (S.const f) x) y (* inefficient *)
+let fl' x y = S.l2 f x y                            (* efficient *)</code></pre>
+      <p>
+Besides, some of <code>Pervasives</code>'s functions and operators are
+already lifted and availables in submodules of <a href="index.html#/module:S">S</a>. They can be
+be opened in specific scopes. For example if you are dealing with
+float signals you can open <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/module:Float">Float</a>.
+</p>
+      <pre><code>open React
+open React.S.Float
+
+let f t = sqrt t *. sin t (* f is defined on float signals *)
+...
+open Pervasives (* back to pervasives floats *)</code></pre>
+      <p>
+If you are using OCaml 3.12 or later you can also use the <code>let open</code>
+construct
+</p>
+      <pre><code>let open React.S.Float in
+let f t = sqrt t *. sin t in (* f is defined on float signals *)
+...</code></pre>
+  <div class="region" id="/label:recursion">
+  <a href="index.html#/label:recursion" class="anchor">#</a>
+  
+    <h2 class="section level_2">Mutual and self reference</h2>
+    
+  </div>
+  
+      <p>Mutual and self reference among time varying values occurs naturally
+in programs. However a mutually recursive definition of two signals
+in which both need the value of the other at time t to define
+their value at time t has no least fixed point. To break this
+tight loop one signal must depend on the value the other had at time
+t-dt where dt is an infinitesimal delay.</p>
+      
+      <p>The fixed point combinators <a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:fix">fix</a> and <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:fix">fix</a> allow to refer to
+the value an event or signal had an infinitesimal amount of time
+before. These fixed point combinators act on a function <code>f</code> that takes
+as argument the infinitesimally delayed event or signal that <code>f</code>
+itself returns.</p>
+      
+      <p>In the example below <code>history s</code> returns a signal whose value
+is the history of <code>s</code> as a list.
+</p>
+      <pre><code>let history ?(eq = ( = )) s =
+  let push v = function
+    | [] -&gt; [ v ]
+    | v' :: _ as l when eq v v' -&gt; l
+    | l -&gt; v :: l
+  in
+  let define h =
+    let h' = S.l2 push s h in
+    h', h'
+  in
+  S.fix [] define</code></pre>
+      <p>
+When a program has infinitesimally delayed values a
+<a href="index.html#/label:primitives">primitive</a> may trigger more than one update
+step. For example if a signal <code>s</code> is infinitesimally delayed, then
+its update in a step <code>c</code> will trigger a new step <code>c'</code> at the end
+of the step in which the delayed signal of <code>s</code> will have the value
+<code>s</code> had in <code>c</code>. This means that the recursion occuring between a
+signal (or event) and its infinitesimally delayed counterpart must
+be well-founded otherwise this may trigger an infinite number
+of update steps, like in the following examples.
+</p>
+      <pre><code>let start, send_start = E.create ()
+let diverge =
+  let define e =
+    let e' = E.select [e; start] in
+    e', e'
+  in
+  E.fix define
+
+let () = send_start ()        (* diverges *)
+
+let diverge =                 (* diverges *)
+  let define s =
+    let s' = S.Int.succ s in
+    s', s'
+  in
+  S.fix 0 define</code></pre>
+      <p>
+For technical reasons, delayed events and signals (those given to
+fixing functions) are not allowed to directly depend on each
+other. Fixed point combinators will raise <code>Invalid_argument</code> if
+such dependencies are created. This limitation can be
+circumvented by mapping these values with the identity.</p>
+      
+  <div class="region" id="/label:strongstop">
+  <a href="index.html#/label:strongstop" class="anchor">#</a>
+  
+    <h2 class="section level_2">Strong stops</h2>
+    
+  </div>
+  
+      <p>Strong stops should only be used on platforms where weak arrays have
+a strong semantics (i.e. JavaScript). You can safely ignore that
+section and the <code>strong</code> argument of <a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:stop">stop</a> and <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:stop">stop</a>
+if that's not the case.</p>
+      
+      <p>Whenever <a href="index.html#/module:E">E</a>.<a href="index.html#/module:E/val:stop">stop</a> and <a href="index.html#/module:S">S</a>.<a href="index.html#/module:S/val:stop">stop</a> is called with <code>~strong:true</code> on a
+reactive value <code>v</code>, it is first stopped and then it walks over the
+list <code>prods</code> of events and signals that it depends on and
+unregisters itself from these ones as a dependent (something that is
+normally automatically done when <code>v</code> is garbage collected since
+dependents are stored in a weak array). Then for each element of
+<code>prod</code> that has no dependents anymore and is not a primitive it
+stops them aswell and recursively.</p>
+      
+      <p>A stop call with <code>~strong:true</code> is more involved. But it allows to
+prevent memory leaks when used judiciously on the leaves of the
+reactive system that are no longer used.</p>
+      
+      <p><b>Warning.</b> It should be noted that if direct references are kept
+on an intermediate event or signal of the reactive system it may
+suddenly stop updating if all its dependents were strongly stopped. In
+the example below, <code>e1</code> will <em>never</em> occur:
+</p>
+      <pre><code>let e, e_send = E.create ()
+let e1 = E.map (fun x -&gt; x + 1) e (* never occurs *)
+let () =
+  let e2 = E.map (fun x -&gt; x + 1) e1 in
+  E.stop ~strong:true e2</code></pre>
+      <p>
+This can be side stepped by making an artificial dependency to keep
+the reference:
+</p>
+      <pre><code>let e, e_send = E.create ()
+let e1 = E.map (fun x -&gt; x + 1) e (* may still occur *)
+let e1_ref = E.map (fun x -&gt; x) e1
+let () =
+  let e2 = E.map (fun x -&gt; x + 1) e1 in
+  E.stop ~strong:true e2</code></pre>
+  <div class="region" id="/label:ex">
+  <a href="index.html#/label:ex" class="anchor">#</a>
+  
+    <h1 class="section level_1">Examples</h1>
+    
+  </div>
+  
+  <div class="region" id="/label:clock">
+  <a href="index.html#/label:clock" class="anchor">#</a>
+  
+    <h2 class="section level_2">Clock</h2>
+    
+  </div>
+  
+      <p>The following program defines a primitive event <code>seconds</code> holding
+the UNIX time and occuring on every second. An effectful event
+converts these occurences to local time and prints them on stdout
+along with an
+<a href="http://www.ecma-international.org/publications/standards/Ecma-048.htm">ANSI
+escape sequence</a> to control the cursor position.
+</p>
+      <pre><code>let pr_time t =
+  let tm = Unix.localtime t in
+  Printf.printf &quot;\x1B[8D%02d:%02d:%02d%!&quot;
+    tm.Unix.tm_hour tm.Unix.tm_min tm.Unix.tm_sec
+
+open React;;
+
+let seconds, run =
+  let e, send = E.create () in
+  let run () =
+    while true do send (Unix.gettimeofday ()); Unix.sleep 1 done
+  in
+  e, run
+
+let printer = E.map pr_time seconds
+
+let () = run ()</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

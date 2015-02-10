@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Cohttp_lwt</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Cohttp_lwt</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Portable Lwt implementation of HTTP client and server, without
+depending on a particular I/O implementation. The various <code>Make</code>
+functors must be instantiated by an implementation that provides
+a concrete IO monad.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/modtype:Net">
+  <a href="index.html#/modtype:Net" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Net = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The <code>Net</code> module type defines how to connect to a remote node
+and close the resulting channels to clean up.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Net/module:IO">
+  <a href="index.html#/modtype:Net/module:IO" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> IO : Cohttp.S.IO</div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Net/type:ctx">
+  <a href="index.html#/modtype:Net/type:ctx" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ctx
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Net/val:default_ctx">
+  <a href="index.html#/modtype:Net/val:default_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_ctx : <a href="index.html#/modtype:Net/type:ctx">ctx</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Net/val:connect_uri">
+  <a href="index.html#/modtype:Net/val:connect_uri" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connect_uri : ctx:<a href="index.html#/modtype:Net/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Net/module:IO">IO</a>.conn * <a href="index.html#/modtype:Net/module:IO">IO</a>.ic * <a href="index.html#/modtype:Net/module:IO">IO</a>.oc) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Net/val:close_in">
+  <a href="index.html#/modtype:Net/val:close_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_in : <a href="index.html#/modtype:Net/module:IO">IO</a>.ic <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Net/val:close_out">
+  <a href="index.html#/modtype:Net/val:close_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_out : <a href="index.html#/modtype:Net/module:IO">IO</a>.oc <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Net/val:close">
+  <a href="index.html#/modtype:Net/val:close" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close : <a href="index.html#/modtype:Net/module:IO">IO</a>.ic <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Net/module:IO">IO</a>.oc <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Net/val:sexp_of_ctx">
+  <a href="index.html#/modtype:Net/val:sexp_of_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_ctx : <a href="index.html#/modtype:Net/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Request">
+  <a href="index.html#/modtype:Request" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Request = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The <code>Request</code> module combines the [root:Cohttp].Request module with
+the IO functions, to have them conveniently in one place.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Request/type:t">
+  <a href="index.html#/modtype:Request/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = Cohttp.Request.t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Cohttp.S.Request <span class="keyword">with</span> <span class="keyword">type</span> t := Cohttp.Request.t 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Cohttp.S.Http_io <span class="keyword">with</span> <span class="keyword">type</span> t := Cohttp.Request.t 
+    </div>
+  
+  <div class="region" id="/modtype:Request/val:t_of_sexp">
+  <a href="index.html#/modtype:Request/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Request/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Request/val:sexp_of_t">
+  <a href="index.html#/modtype:Request/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/modtype:Request/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_request">
+  <a href="index.html#/module:Make_request" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_request : <span class="keyword">functor</span> (IO : Cohttp.S.IO) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Request">Request</a> <span class="keyword">with</span> <span class="keyword">module</span> IO = <a href="index.html#/module:Make_request/modarg:1:IO">IO</a> </div>
+      
+      <div class="doc">
+        
+      <p>Functor to build a concrete <a href="index.html#/modtype:Request">Request</a> from an IO implementation</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Response">
+  <a href="index.html#/modtype:Response" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Response = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The <code>Response</code> module combines the [root:Cohttp].Request module with
+the IO functions, to have them conveniently in one place.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Response/type:t">
+  <a href="index.html#/modtype:Response/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = Cohttp.Response.t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Cohttp.S.Response <span class="keyword">with</span> <span class="keyword">type</span> t := Cohttp.Response.t 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Cohttp.S.Http_io <span class="keyword">with</span> <span class="keyword">type</span> t := Cohttp.Response.t 
+    </div>
+  
+  <div class="region" id="/modtype:Response/val:t_of_sexp">
+  <a href="index.html#/modtype:Response/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Response/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Response/val:sexp_of_t">
+  <a href="index.html#/modtype:Response/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/modtype:Response/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_response">
+  <a href="index.html#/module:Make_response" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_response : <span class="keyword">functor</span> (IO : Cohttp.S.IO) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Response">Response</a> <span class="keyword">with</span> <span class="keyword">module</span> IO = <a href="index.html#/module:Make_response/modarg:1:IO">IO</a> </div>
+      
+      <div class="doc">
+        
+      <p>Functor to build a concrete <a href="index.html#/modtype:Response">Response</a> from an IO implementation</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client">
+  <a href="index.html#/modtype:Client" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Client = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The <code>Client</code> module implements non-pipelined single HTTP client
+calls. Each call will open a separate <a href="index.html#/modtype:Net">Net</a> connection. For
+best results, the [root:Cohttp_lwt_body] that is returned should be
+consumed in order to close the file descriptor in a timely
+fashion. It will still be finalized by a GC hook if it is not used
+up, but this can take some additional time to happen.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Client/module:IO">
+  <a href="index.html#/modtype:Client/module:IO" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> IO : Cohttp.S.IO</div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/module:Request">
+  <a href="index.html#/modtype:Client/module:Request" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Request : <a href="index.html#/modtype:Request">Request</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/module:Response">
+  <a href="index.html#/modtype:Client/module:Response" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Response : <a href="index.html#/modtype:Response">Response</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/type:ctx">
+  <a href="index.html#/modtype:Client/type:ctx" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ctx
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:default_ctx">
+  <a href="index.html#/modtype:Client/val:default_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_ctx : <a href="index.html#/modtype:Client/type:ctx">ctx</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:call">
+  <a href="index.html#/modtype:Client/val:call" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> call : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> ?body:<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?chunked:bool <span class="rarr"><span>-&gt;</span></span> Cohttp.Code.meth <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>call ?ctx ?headers ?body ?chunked meth uri</code> will resolve the
+<code>uri</code> to a concrete network endpoint using the resolver initialized
+in <code>ctx</code>. It will then issue an HTTP request with method <code>meth</code>,
+adding request headers from <code>headers</code> if present. If a <code>body</code>
+is specified then that will be included with the request, using
+chunked encoding if <code>chunked</code> is true. The default is to disable
+chunked encoding for HTTP request bodies for compatibility reasons.</p>
+      
+      <p>In most cases you should use the more specific helper calls in the
+interface rather than invoke this function directly. See <a href="index.html#/modtype:Client/val:head">head</a>,
+<a href="index.html#/modtype:Client/val:get">get</a> and <a href="index.html#/modtype:Client/val:post">post</a> for some examples.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:head">
+  <a href="index.html#/modtype:Client/val:head" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> head : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:get">
+  <a href="index.html#/modtype:Client/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:delete">
+  <a href="index.html#/modtype:Client/val:delete" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:post">
+  <a href="index.html#/modtype:Client/val:post" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> post : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?body:<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?chunked:bool <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:put">
+  <a href="index.html#/modtype:Client/val:put" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> put : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?body:<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?chunked:bool <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:patch">
+  <a href="index.html#/modtype:Client/val:patch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> patch : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?body:<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?chunked:bool <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:post_form">
+  <a href="index.html#/modtype:Client/val:post_form" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> post_form : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> params:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:callv">
+  <a href="index.html#/modtype:Client/val:callv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> callv : ?ctx:<a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Request">Request</a>.<a href="index.html#/modtype:Client/module:Request/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Client/module:Response">Response</a>.<a href="index.html#/modtype:Client/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt_stream/">Lwt_stream</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt_stream/#/type:t">t</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Client/val:sexp_of_ctx">
+  <a href="index.html#/modtype:Client/val:sexp_of_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_ctx : <a href="index.html#/modtype:Client/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_client">
+  <a href="index.html#/module:Make_client" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_client : <span class="keyword">functor</span> (IO : Cohttp.S.IO <span class="keyword">with</span> <span class="keyword">type</span> 'a t = 'a <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Request : <a href="index.html#/modtype:Request">Request</a> <span class="keyword">with</span> <span class="keyword">module</span> IO = <a href="index.html#/module:Make_client/modarg:1:IO">IO</a> ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Response : <a href="index.html#/modtype:Response">Response</a> <span class="keyword">with</span> <span class="keyword">module</span> IO = <a href="index.html#/module:Make_client/modarg:1:IO">IO</a> ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Net : <a href="index.html#/modtype:Net">Net</a> <span class="keyword">with</span> <span class="keyword">module</span> <a href="index.html#/modtype:Net/module:IO">IO</a> = <a href="index.html#/module:Make_client/modarg:1:IO">IO</a> ) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Client">Client</a> <span class="keyword">with</span> <span class="keyword">module</span> <a href="index.html#/modtype:Client/module:IO">IO</a> = <a href="index.html#/module:Make_client/modarg:1:IO">IO</a>  <span class="keyword">and</span> <span class="keyword">module</span> <a href="index.html#/modtype:Client/module:Request">Request</a> = <a href="index.html#/module:Make_client/modarg:2:Request">Request</a>  <span class="keyword">and</span> <span class="keyword">module</span> <a href="index.html#/modtype:Client/module:Response">Response</a> = <a href="index.html#/module:Make_client/modarg:3:Response">Response</a>  <span class="keyword">and</span> <span class="keyword">type</span> <a href="index.html#/modtype:Client/type:ctx">ctx</a> = <a href="index.html#/module:Make_client/modarg:4:Net">Net</a>.<a href="index.html#/module:Make_client/modarg:4:Net/type:ctx">ctx</a></div>
+      
+      <div class="doc">
+        
+      <p>The <code>Make_client</code> functor glues together a [root:Cohttp].S.IO implementation
+with [root:Cohttp].Request and [root:Cohttp].Response to send requests down
+a connection that is established by the <a href="index.html#/modtype:Net">Net</a> module.
+The resulting module satisfies the <a href="index.html#/modtype:Client">Client</a> module type.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server">
+  <a href="index.html#/modtype:Server" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Server = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The <code>Server</code> module implements a pipelined HTTP/1.1 server.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Server/module:IO">
+  <a href="index.html#/modtype:Server/module:IO" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> IO : Cohttp.S.IO</div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/module:Request">
+  <a href="index.html#/modtype:Server/module:Request" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Request : <a href="index.html#/modtype:Request">Request</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/module:Response">
+  <a href="index.html#/modtype:Server/module:Response" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Response : <a href="index.html#/modtype:Response">Response</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/type:ctx">
+  <a href="index.html#/modtype:Server/type:ctx" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ctx
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:default_ctx">
+  <a href="index.html#/modtype:Server/val:default_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_ctx : <a href="index.html#/modtype:Server/type:ctx">ctx</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/type:conn">
+  <a href="index.html#/modtype:Server/type:conn" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> conn = <a href="index.html#/modtype:Server/module:IO">IO</a>.conn * Cohttp.Connection.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/type:t">
+  <a href="index.html#/modtype:Server/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:make">
+  <a href="index.html#/modtype:Server/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : ?conn_closed:(<a href="index.html#/modtype:Server/type:conn">conn</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> callback:(<a href="index.html#/modtype:Server/type:conn">conn</a> <span class="rarr"><span>-&gt;</span></span> Cohttp.Request.t <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (Cohttp.Response.t * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Server/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:resolve_local_file">
+  <a href="index.html#/modtype:Server/val:resolve_local_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resolve_local_file : docroot:string <span class="rarr"><span>-&gt;</span></span> uri:<a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Resolve a URI and a docroot into a concrete local filename.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:respond">
+  <a href="index.html#/modtype:Server/val:respond" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> respond : ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> ?flush:bool <span class="rarr"><span>-&gt;</span></span> status:Cohttp.Code.status_code <span class="rarr"><span>-&gt;</span></span> body:<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Server/module:Response">Response</a>.<a href="index.html#/modtype:Server/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>respond ?headers ?flush ~status ~body</code> will respond to an HTTP
+request with the given <code>status</code> code and response <code>body</code>. If
+<code>flush</code> is true, then every response chunk will be flushed to
+the network rather than being buffered. <code>flush</code> is true by default.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:respond_string">
+  <a href="index.html#/modtype:Server/val:respond_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> respond_string : ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> status:Cohttp.Code.status_code <span class="rarr"><span>-&gt;</span></span> body:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Server/module:Response">Response</a>.<a href="index.html#/modtype:Server/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:respond_error">
+  <a href="index.html#/modtype:Server/val:respond_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> respond_error : ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> ?status:Cohttp.Code.status_code <span class="rarr"><span>-&gt;</span></span> body:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Server/module:Response">Response</a>.<a href="index.html#/modtype:Server/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:respond_redirect">
+  <a href="index.html#/modtype:Server/val:respond_redirect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> respond_redirect : ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> uri:<a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Server/module:Response">Response</a>.<a href="index.html#/modtype:Server/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:respond_need_auth">
+  <a href="index.html#/modtype:Server/val:respond_need_auth" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> respond_need_auth : ?headers:Cohttp.Header.t <span class="rarr"><span>-&gt;</span></span> auth:Cohttp.Auth.challenge <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Server/module:Response">Response</a>.<a href="index.html#/modtype:Server/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:respond_not_found">
+  <a href="index.html#/modtype:Server/val:respond_not_found" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> respond_not_found : ?uri:<a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/modtype:Server/module:Response">Response</a>.<a href="index.html#/modtype:Server/module:Response/type:t">t</a> * <a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/">Cohttp_lwt_body</a>.<a href="../../../../cohttp.0.15.0/_build/lwt/cohttp_lwt_body/#/type:t">t</a>) <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:callback">
+  <a href="index.html#/modtype:Server/val:callback" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> callback : <a href="index.html#/modtype:Server/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Server/module:IO">IO</a>.conn <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Server/module:IO">IO</a>.ic <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Server/module:IO">IO</a>.oc <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Server/val:sexp_of_ctx">
+  <a href="index.html#/modtype:Server/val:sexp_of_ctx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_ctx : <a href="index.html#/modtype:Server/type:ctx">ctx</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_server">
+  <a href="index.html#/module:Make_server" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_server : <span class="keyword">functor</span> (IO : Cohttp.S.IO <span class="keyword">with</span> <span class="keyword">type</span> 'a t = 'a <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Request : <a href="index.html#/modtype:Request">Request</a> <span class="keyword">with</span> <span class="keyword">module</span> IO = <a href="index.html#/module:Make_server/modarg:1:IO">IO</a> ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Response : <a href="index.html#/modtype:Response">Response</a> <span class="keyword">with</span> <span class="keyword">module</span> IO = <a href="index.html#/module:Make_server/modarg:1:IO">IO</a> ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Net : <a href="index.html#/modtype:Net">Net</a> <span class="keyword">with</span> <span class="keyword">module</span> <a href="index.html#/modtype:Net/module:IO">IO</a> = <a href="index.html#/module:Make_server/modarg:1:IO">IO</a> ) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Server">Server</a> <span class="keyword">with</span> <span class="keyword">module</span> <a href="index.html#/modtype:Server/module:IO">IO</a> = <a href="index.html#/module:Make_server/modarg:1:IO">IO</a>  <span class="keyword">and</span> <span class="keyword">module</span> <a href="index.html#/modtype:Server/module:Request">Request</a> = <a href="index.html#/module:Make_server/modarg:2:Request">Request</a>  <span class="keyword">and</span> <span class="keyword">module</span> <a href="index.html#/modtype:Server/module:Response">Response</a> = <a href="index.html#/module:Make_server/modarg:3:Response">Response</a>  <span class="keyword">and</span> <span class="keyword">type</span> <a href="index.html#/modtype:Server/type:ctx">ctx</a> = <a href="index.html#/module:Make_server/modarg:4:Net">Net</a>.<a href="index.html#/module:Make_server/modarg:4:Net/type:ctx">ctx</a></div>
+      
+      <div class="doc">
+        
+      <p>The <code>Make_server</code> functor glues together a [root:Cohttp].S.IO implementation
+with [root:Cohttp].Request and [root:Cohttp].Response to send requests down
+a connection that is established by the <a href="index.html#/modtype:Net">Net</a> module.
+The resulting module satisfies the <a href="index.html#/modtype:Server">Server</a> module type.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

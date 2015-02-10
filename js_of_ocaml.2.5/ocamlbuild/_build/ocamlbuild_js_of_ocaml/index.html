@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Ocamlbuild_js_of_ocaml</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Ocamlbuild_js_of_ocaml</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Ocamlbuild plugin to build with js_of_ocaml</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Js_of_ocaml comes with a support for OCamlbuild.</p>
+      <div class="region">
+    <h2 class="section level_2">Initialize</h2>
+    </div>
+      <p>Initialize the js_of_ocaml ocamlbuild plugin with the following
+code in <i>myocamlbuild.ml</i>:
+</p>
+      <pre><code>     let _ = Ocamlbuild_plugin.dispatch Ocamlbuild_js_of_ocaml.dispatcher</code></pre>
+      <p>
+<b>Side note</b>: [root:Ocamlbuild_plugin].dispatch should be used only
+once. The last call will override previous ones.</p>
+      <div class="region">
+    <h3 class="section level_3">With Oasis</h3>
+    </div>
+      <p>If you use oasis, <b>myocamlbuild.ml</b> should look like:
+</p>
+      <pre><code>     let _ =
+       Ocamlbuild_plugin.dispatch
+         (fun hook -&gt;
+            dispatch_default hook;
+            Ocamlbuild_js_of_ocaml.dispatcher
+              ~oasis_executables:[&quot;src/yourprogram.byte&quot;]
+              hook;
+         )</code></pre><div class="region">
+    <h2 class="section level_2">Build</h2>
+    </div>
+      <p>Build a JavaScript program <b>myprog.js</b> by calling the command:
+</p>
+      <pre><code>     ocamlbuild -use-ocamlfind -plugin-tag &quot;package(js_of_ocaml.ocamlbuild)&quot; myprog.js</code></pre>
+      <p>
+It will first build the bytecode <b>myprog.byte</b> and finally produce <b>myprog.js</b> (in <b>_build</b>).</p>
+      <div class="region">
+    <h2 class="section level_2">Options</h2>
+    </div>
+      <p>One can pass option to the Js_of_ocaml compiler using tags.
+See &lt;&lt;a_manual chapter=&quot;options&quot; |Options&gt;&gt;.</p>
+      
+      <p>Available tags:</p>
+      <ul><li><b>pretty</b>: Pretty print the generated javascript.</li><li><b>debuginfo</b>: Output debug information.</li><li><b>noinline</b>: Disable inlining</li><li><b>sourcemap</b>: Generate sourcemap</li><li><b>tailcall(none)</b>: Set the tailcall optimisation (default &quot;trampoline&quot;)</li><li><b>opt(3)</b>: Set the compilation profile (default 1)</li><li><b>debug</b>: enables <b>pretty</b>, <b>debuginfo</b>, <b>sourcemap</b></li></ul><div class="region">
+    <h3 class="section level_3">Exemples</h3>
+    </div>
+      <p>In the <b>_tags</b> file:
+</p>
+      <pre><code>     &lt;myprog.js&gt;:pretty, opt(3)</code></pre><div class="region">
+    <h2 class="section level_2">Dispatchers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:dispatcher">
+  <a href="index.html#/val:dispatcher" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dispatcher : ?oasis_executables:Ocamlbuild_plugin.Pathname.t list <span class="rarr"><span>-&gt;</span></span> Ocamlbuild_plugin.hook <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The main dispatcher</p>
+      
+      <p><code>?oasis_executables</code> is the paths of the executables
+(having the .byte extension) you want to compile
+as a javascript executable. The former executables are still compiled.</p>
+      
+      <p>Side note: [root:Ocamlbuild_plugin].dispatch should be used only once as
+it record only one function for an ocamlbuild module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Low level functions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:oasis_support">
+  <a href="index.html#/val:oasis_support" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> oasis_support : executables:Ocamlbuild_plugin.Pathname.t list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Map each targets given as argument to ocamlbuild and replace each element
+that exists in <code>~executables</code> by its corresponding .js target.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

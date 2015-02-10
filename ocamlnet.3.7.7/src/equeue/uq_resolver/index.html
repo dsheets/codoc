@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Uq_resolver</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Uq_resolver</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Support for pluggable resolvers</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>A resolver maps several kinds of names to addresses, or vice versa.
+Currently, only DNS host lookups are supported (but this can be extended
+if needed).</p>
+      
+      <p>The plugin mechanism allows one to change the name resovler Ocamlnet
+uses. Resolvers can be both synchronous or asynchronous. Note however,
+that the default resolver is synchronous and simply bases on
+<code>Unix.gethostbyname</code>.</p>
+      
+      <p>Requirements of the resolver:</p>
+      <ul><li>IP addresses may be enclosed in square brackets, but also given without
+such brackets. If such an IP address is passed to the resolver, the
+string address is just converted to a <code>Unix.inet_addr</code>.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Asynchronous Interface</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following types are the same as in [root:Uq_engines], here only
+redefined for systematic reasons</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:engine_state">
+  <a href="index.html#/type:engine_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 't engine_state = [ <div class="cons">| `Working <span class="keyword">of</span> int</div><div class="cons">| `Done <span class="keyword">of</span> 't</div><div class="cons">| `Error <span class="keyword">of</span> exn</div><div class="cons">| `Aborted</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine">
+  <a href="index.html#/classtype:engine" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['t] engine = 
+  <div class="region" id="/classtype:engine/method:state">
+  <a href="index.html#/classtype:engine/method:state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> state : 't <a href="index.html#/type:engine_state">engine_state</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine/method:abort">
+  <a href="index.html#/classtype:engine/method:abort" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> abort : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine/method:request_notification">
+  <a href="index.html#/classtype:engine/method:request_notification" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_notification : (unit <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:engine/method:event_system">
+  <a href="index.html#/classtype:engine/method:event_system" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> event_system : <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a>
+  
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Exceptions</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Host_not_found">
+  <a href="index.html#/exn:Host_not_found" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Host_not_found <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>This host cannot be resolved</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The type of resolvers:</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:resolver">
+  <a href="index.html#/classtype:resolver" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> resolver = 
+  <div class="region" id="/classtype:resolver/method:host_by_name">
+  <a href="index.html#/classtype:resolver/method:host_by_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> host_by_name : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:host_entry">host_entry</a> <a href="index.html#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>Look up the passed host name up. The implementation can be synchronous
+or asynchronous. In the first case, an engine is returned that is
+already in one of the states <code>`Done he</code> or <code>`Error e</code> where <code>he</code> is
+the host entry, or <code>e</code> is an exception like <code>Host_not_found</code>. In this
+case the passed event system is ignored. If the implementation is
+asynchronous, the caller must run the event system until the
+state of the engine transitions to <code>`Done he</code> or <code>`Error e</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Synchronous Interface</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:get_host_by_name">
+  <a href="index.html#/val:get_host_by_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_host_by_name : ?resolver:<a href="index.html#/classtype:resolver">resolver</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:host_entry">host_entry</a>
+    
+      <div class="doc">
+        
+      <p>Look up the host, and return the host entry
+or raise the exception <code>Host_not_found</code>.</p>
+      
+      <p>If a <code>resolver</code> is passed, this resolver is used, otherwise the
+pluggable resolver is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sockaddr_of_socksymbol">
+  <a href="index.html#/val:sockaddr_of_socksymbol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sockaddr_of_socksymbol : ?resolver:<a href="index.html#/classtype:resolver">resolver</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p>Use the resolver to look up names in <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a>,
+and convert the symbol to a <code>Unix.sockaddr</code> only containing IP
+addresses.</p>
+      
+      <p>If a <code>resolver</code> is passed, this resolver is used, otherwise the
+pluggable resolver is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Resolvers</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:default_resolver">
+  <a href="index.html#/val:default_resolver" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_resolver : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:resolver">resolver</a>
+    
+      <div class="doc">
+        
+      <p>The default resolver uses <code>Unix.gethostbyname</code> to look up names.
+Note that this usually means that no IPv6 addresses are returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gai_resolver">
+  <a href="index.html#/val:gai_resolver" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gai_resolver : ?ipv4:bool <span class="rarr"><span>-&gt;</span></span> ?ipv6:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:resolver">resolver</a>
+    
+      <div class="doc">
+        
+      <p>This resolver uses <code>Unix.getaddrinfo</code>. One can set whether IPv4
+or IPv6 addresses may be returned (only one type is returned).
+The order of addresses cannot
+be set, but there is a global config file <code>/etc/gai.info</code>.</p>
+      
+      <p>The <code>h_aliases</code> field of the result is not set.</p>
+      
+      <p>By default, both <code>ipv4</code> and <code>ipv6</code> are enabled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Plugins</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:current_resolver">
+  <a href="index.html#/val:current_resolver" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> current_resolver : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:resolver">resolver</a>
+    
+      <div class="doc">
+        
+      <p>Returns the pluggable resolver</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_current_resolver">
+  <a href="index.html#/val:set_current_resolver" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_current_resolver : <a href="index.html#/classtype:resolver">resolver</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the pluggable resolver</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

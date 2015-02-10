@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Atd_annot</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Atd_annot</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Utilities for interpreting annotations of type <a href="../../atd.1.1.2/atd_ast/">Atd_ast</a>.<a href="../../atd.1.1.2/atd_ast/#/type:annot">annot</a></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="../../atd.1.1.2/atd_ast/">Atd_ast</a>.<a href="../../atd.1.1.2/atd_ast/#/type:annot">annot</a>
+    
+      <div class="doc">
+        
+      <p>Sample annotation in ATD syntax with legend:
+</p>
+      <pre>
+section a   section b
+----------- ------
+&lt;a a1=&quot;x1&quot;&gt; &lt;b b1&gt;
+ | |  |        |
+ | |  |        +- field without a value
+ | |  |
+ | |  +- field value
+ | |
+ | +- field name
+ |
+ +- section name</pre>
+      <p>The following rules must be followed for a proper use of this module:</p>
+      <ul><li>There may not be two sections with the same name. The <code>merge</code> function
+can be used to merge sections.</li><li>Section order doesn't matter as long as section names are unique.</li><li>Field names within a section should be unique. If not, only the
+first occurrence of each field is meaningful.</li><li>Field values may be arbitrary strings.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:has_section">
+  <a href="index.html#/val:has_section" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> has_section : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Return true if such a section (first-level key) exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:has_field">
+  <a href="index.html#/val:has_field" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> has_field : string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>has_field section_names field_name annotations</code>
+returns true if at least one section exists with
+a name in <code>section_names</code> and one of its fields named
+<code>field_name</code>.</p>
+      
+      <p>Each section should be unique.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_flag">
+  <a href="index.html#/val:get_flag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_flag : string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>get_flag section_names field_name</code>
+looks sequentially into the sections specified by <code>section_names</code>
+for a field named <code>field_name</code>.
+If no such field can be found in any section, the result is <code>false</code>.
+Otherwise, the search stops with the first field matching
+one of the section names and the field name.
+If the field has no associated value, the result is <code>true</code>.
+If the field value is <code>&quot;true&quot;</code> then <code>true</code> is returned.
+Likewise, if the field value is <code>&quot;false&quot;</code> then <code>false</code> is returned.
+If the field value is anything else, a <code>Failure</code> exception is raised.</p>
+      
+      <p>Each section should be unique.</p>
+      
+      <p>Given the following annotations in the ATD syntax noted <code>a</code>:
+</p>
+      <pre>&lt;ocaml openin=&quot;false&quot;&gt; &lt;ocaml_312 openin&gt;</pre>
+      <p>We obtain the following results:</p>
+      <pre># get_flag [&quot;ocaml_312&quot;; &quot;ocaml&quot;] &quot;openin&quot; a;;
+\- : true
+# get_flag [&quot;ocaml_311&quot;; &quot;ocaml&quot;] &quot;openin&quot; a;;
+\- : false
+# get_flag [&quot;ocaml_312&quot;] &quot;openin&quot; a;;
+\- : true
+# get_flag [&quot;ocaml_311&quot;] &quot;openin&quot; a;;
+\- : false
+# get_flag [&quot;ocaml&quot;] &quot;openin&quot; a;;
+\- : false</pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_field">
+  <a href="index.html#/val:get_field" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_field : (string <span class="rarr"><span>-&gt;</span></span> 'a option) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>get_field parse default section_names field_name annotations</code>
+looks sequentially into the sections specified by <code>section_names</code>
+for a field named <code>field_name</code>.
+If no such field exists, the <code>default</code> value is returned.
+If the field is present, the associated value is parsed using
+the given function <code>parse</code> which should return <code>None</code>
+in order to indicate an invalid value.
+If the field is present without an associated value
+or if <code>parse</code> returns <code>None</code>, a <code>Failure</code> exception is raised.</p>
+      
+      <p>Each section should be unique.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_field">
+  <a href="index.html#/val:set_field" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_field : <a href="../../atd.1.1.2/atd_ast/">Atd_ast</a>.<a href="../../atd.1.1.2/atd_ast/#/type:loc">loc</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>set_field loc section_name field_name value annotations</code>
+sets a field, reusing existing section <code>section_name</code>
+if it exists, preserving the position of field <code>field_name</code>
+and overwriting its value if it exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:merge">
+  <a href="index.html#/val:merge" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> merge : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Merge sections of the same name together,
+and keeps only the first occurrence of each
+field.</p>
+      <pre>&lt;a a1=&quot;x1&quot;&gt; &lt;b&gt; &lt;a a2=&quot;x3&quot; a1=&quot;x2&quot;&gt;</pre>
+      <p>becomes</p>
+      <pre>&lt;a a1=&quot;x1&quot; a2=&quot;x3&quot;&gt; &lt;b&gt;</pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_id">
+  <a href="index.html#/val:create_id" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_id : unit <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Create a unique numeric ID</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

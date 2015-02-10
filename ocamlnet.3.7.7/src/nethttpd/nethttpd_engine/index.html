@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Nethttpd_engine</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Nethttpd_engine</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">The event-based encapsulation of the HTTP daemon</h1>
+    </div>
+      <p>This is a user-friendlier encapsulation of the HTTP daemon. It uses
+the engine module defined in <code>Uq_engines</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:engine_req_state">
+  <a href="index.html#/type:engine_req_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> engine_req_state = [ <div class="cons">| `Received_header</div><div class="cons">| `Receiving_body</div><div class="cons">| `Received_request</div><div class="cons">| `Finishing</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_engine_config">
+  <a href="index.html#/classtype:http_engine_config" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_engine_config = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/">Nethttpd_reactor</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/#/classtype:http_processor_config">http_processor_config</a>
+    </div>
+    
+  <div class="region" id="/classtype:http_engine_config/method:config_input_flow_control">
+  <a href="index.html#/classtype:http_engine_config/method:config_input_flow_control" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_input_flow_control : bool
+  
+      <div class="doc">
+        
+      <p>If <code>true</code>, the engine stops reading input tokens from the HTTP kernel when
+there is data in the input channel of the engine not yet read. If <code>false</code>,
+all available input tokens are fetched from the kernel and buffered up
+in the input channel.</p>
+      
+      <p>In general, this <b>should</b> be set to <code>true</code>. However, this is only possible
+when the user of the engine is prepared for flow control. In particular,
+all data contained in the input channel must be immediately read, or else
+the engine blocks. By calling <code>input_ch_async # request_notification</code>, the
+user can be notified when there is data to read.</p>
+      
+      <p>When set to <code>false</code>, the engine never blocks, but the price is that the
+input channel may become as large as needed to store the whole request.</p>
+      
+      <p>The option <code>config_limit_pipeline_size</code> does not have any effect for engines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_engine_config/method:config_output_flow_control">
+  <a href="index.html#/classtype:http_engine_config/method:config_output_flow_control" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_output_flow_control : bool
+  
+      <div class="doc">
+        
+      <p>If <code>true</code>, the engine signals the user when there is already enough data
+to output, and no more output should be generated. The user can query
+this state by calling <code>output_ch_async # can_output</code>, and react
+accordingly. The user can also ignore this signal, and the output channel
+buffers all data.</p>
+      
+      <p>If <code>false</code>, the mentioned method <code>can_output</code> returns always <code>true</code>. This
+turns off flow control in the case it is implemented by the user of the
+engine, but actually not wanted.</p>
+      
+      <p>The internal processing of data is not affected by this configuration option.
+In doubt, set it to <code>true</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_http_engine_config">
+  <a href="index.html#/val:default_http_engine_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_http_engine_config : <a href="index.html#/classtype:http_engine_config">http_engine_config</a>
+    
+      <div class="doc">
+        
+      <p>The default config:</p>
+      <ul><li><code>config_input_flow_control=false</code></li><li><code>config_output_flow_control=true</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:modify_http_engine_config">
+  <a href="index.html#/class:modify_http_engine_config" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> modify_http_engine_config : 
+    ?modify_http_protocol_config:(<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_protocol_config">http_protocol_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/">Nethttpd_kernel</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_kernel/#/classtype:http_protocol_config">http_protocol_config</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?modify_http_processor_config:(<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/">Nethttpd_reactor</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/#/classtype:http_processor_config">http_processor_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/">Nethttpd_reactor</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/#/classtype:http_processor_config">http_processor_config</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_input_flow_control:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?config_output_flow_control:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:http_engine_config">http_engine_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:http_engine_config">http_engine_config</a>
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Modifies the passed config object as specified by the optional
+arguments.</p>
+      
+      <p><code>modify_http_protocol_config</code> and <code>modify_http_processor_config</code>:
+These functions can be used to modify the
+parts of the config object that are inherited from <code>http_protocol_config</code>
+and <code>http_processor_config</code>, respectively:
+For example:</p>
+      <pre><code>        let new_cfg =
+          new modify_http_engine_config
+            ~modify_http_protocol_config:
+               (new Nethttpd_kernel.modify_http_protocol_config
+                  ~config_suppress_broken_pipe:true)
+            ~modify_http_processor_config:
+               (new Nethttpd_reactor.modify_http_processor_config
+                  ~config_timeout:15.0)
+            old_cfg</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:extended_async_environment">
+  <a href="index.html#/classtype:extended_async_environment" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> extended_async_environment = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:extended_environment">extended_environment</a>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Environment also providing asynchronous views to I/O</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:extended_async_environment/method:input_ch_async">
+  <a href="index.html#/classtype:extended_async_environment/method:input_ch_async" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_ch_async : <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:async_in_channel">async_in_channel</a>
+  
+      <div class="doc">
+        
+      <p>This is the <code>input_ch</code> channel taken as asynchonous channel. This type of
+channel indicates when data is available to read, and also sends notifications.
+Note that this is only an alternate interface of the <code>input_ch</code> object.</p>
+      
+      <p>The method <code>can_input</code> returns true when there is at least one byte of
+the body to read, or the EOF has been seen. The channel buffers any arriving
+data (which can be limited in amount by <code>config_pipeline_size</code>).</p>
+      
+      <p>The behaviour of this channel is influenced by the configuration option
+<code>config_input_flow_control</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:extended_async_environment/method:output_ch_async">
+  <a href="index.html#/classtype:extended_async_environment/method:output_ch_async" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_ch_async : <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:async_out_channel">async_out_channel</a>
+  
+      <div class="doc">
+        
+      <p>This is the <code>output_ch</code> channel taken as asynchronous channel. This type of
+channel indicates when space is available for further output, and also sends
+notifications.
+Note that this is only an alternate interface of the <code>output_ch</code> object.</p>
+      
+      <p>The method <code>can_output</code> returns <code>true</code> only when the internal buffer is empty,
+i.e. all data have been transmitted to the client. Independent of this, the
+channel buffers all data written to it.</p>
+      
+      <p>The behaviour of this channel is influenced by the configuration option
+<code>config_output_flow_control</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_header_notification">
+  <a href="index.html#/classtype:http_request_header_notification" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_request_header_notification = 
+      <div class="doc">
+        
+      <p>Notification that a new request header has arrived</p>
+      
+      <p>This object notifies the user that a new request header has arrived.
+The header is accessible by the <code>environment</code> object. The channels
+also contained in this object are locked at this moment. The user must
+now either call <code>schedule_accept_body</code> or <code>schedule_reject_body</code>. The
+user will get a second notification (a <code>http_request_notification</code>, below)
+when the request body has completely arrived (in case of acceptance), or
+immediately (in case of rejection). One can also call <code>schedule_finish</code>
+at any time to drop the current request.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_request_header_notification/method:req_state">
+  <a href="index.html#/classtype:http_request_header_notification/method:req_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> req_state : <a href="index.html#/type:engine_req_state">engine_req_state</a>
+  
+      <div class="doc">
+        
+      <p>Returns the request processing state which is <code>`Received_header</code> at the
+moment when this notification is delivered.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_header_notification/method:environment">
+  <a href="index.html#/classtype:http_request_header_notification/method:environment" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> environment : <a href="index.html#/classtype:extended_async_environment">extended_async_environment</a>
+  
+      <div class="doc">
+        
+      <p>The request environment. Depending on the request processing state, parts
+of the environment are already set up or still unaccessible (&quot;locked&quot;).
+In the state <code>`Received_header</code> only the request header and the
+derived fields are accessible, and the input and output channels are
+locked. In the state <code>`Receiving_body</code> the input channel is unlocked,
+but it is not yet filled (reading from it may cause the exception
+<code>Buffer_underrun</code>). The output channel remains locked.
+In the state <code>`Received_request</code>, the input channel is unlocked and filled
+with data, and the output channel is unlocked, too.</p>
+      
+      <p>This environment is not fully CGI-compatible. In particular, the following
+differences exist:</p>
+      <ul><li>There is no <code>cgi_path_info</code> and no <code>cgi_path_translated</code>.</li><li>The user is always unauthenticated.</li><li>The <code>Status</code> response header works as in CGI. The <code>Location</code> header, however,
+must be a full URL when set (only browser redirects)</li><li>When the request body is transmitted by chunked encoding, the header
+<code>Content-Length</code> is not set. In CGI this is interpreted as missing body.
+It is unlikely that clients send requests with chunked encoding, as this
+may cause interoperability problems anyway.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_header_notification/method:schedule_accept_body">
+  <a href="index.html#/classtype:http_request_header_notification/method:schedule_accept_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> schedule_accept_body : on_request:(<a href="index.html#/classtype:http_request_notification">http_request_notification</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?on_error:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Schedules that the request body is accepted. In terms of HTTP, this sends the
+&quot;100 Continue&quot; response when necessary. One can reply with a positive or
+negative message.</p>
+      
+      <p>This method returns immediately, and sets callbacks for certain events.
+When the body has completely arrived (or is empty), the function
+<code>on_request</code> is called back. The argument is the full request notification
+(see below).</p>
+      
+      <p>When the request is dropped for some reason, <code>on_error</code> is called back instead.
+This can be used to free resources, for example.</p>
+      
+      <p>Neither of the callbacks must raise exceptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_header_notification/method:schedule_reject_body">
+  <a href="index.html#/classtype:http_request_header_notification/method:schedule_reject_body" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> schedule_reject_body : on_request:(<a href="index.html#/classtype:http_request_notification">http_request_notification</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?on_error:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Schedules that the request body is rejected. In terms of HTTP, this prevents
+sending the &quot;100 Continue&quot; response. Any arriving request body is silently
+discarded. One should immediately reply with an error mesage.
+negative message.</p>
+      
+      <p>This method returns immediately, and sets callbacks for certain events.
+When the body has completely arrived (or is empty), the function
+<code>on_request</code> is called back. The argument is the full request notification
+(see below).</p>
+      
+      <p>When the request is dropped for some reason, <code>on_error</code> is called back instead.
+This can be used to free resources, for example.</p>
+      
+      <p>Neither of the callbacks must raise exceptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_header_notification/method:schedule_finish">
+  <a href="index.html#/classtype:http_request_header_notification/method:schedule_finish" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> schedule_finish : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Schedules that the request is finished. This method should be called after
+the regular processing of the request to ensure that the HTTP protocol
+is fulfilled. If the request body has not been
+fully read, this is now done, and its data are dropped. If the response
+is incomplete, it is completed. If the error is not recoverable, a &quot;Server
+Error&quot; is generated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_notification">
+  <a href="index.html#/classtype:http_request_notification" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_request_notification = 
+      <div class="doc">
+        
+      <p>Notification that the whole request has arrived</p>
+      
+      <p>This object notifies the user that the request has fully arrived (including
+the body if accepted), and can now be responded. The <code>environment</code> is the
+same as in the request header notification, but the channels are now
+unlocked.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:http_request_notification/method:req_state">
+  <a href="index.html#/classtype:http_request_notification/method:req_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> req_state : <a href="index.html#/type:engine_req_state">engine_req_state</a>
+  
+      <div class="doc">
+        
+      <p>Returns the request processing state which is <code>`Received_request</code> at the
+moment when this notification is delivered.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_notification/method:environment">
+  <a href="index.html#/classtype:http_request_notification/method:environment" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> environment : <a href="index.html#/classtype:extended_async_environment">extended_async_environment</a>
+  
+      <div class="doc">
+        
+      <p>The request environment. See above.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_request_notification/method:schedule_finish">
+  <a href="index.html#/classtype:http_request_notification/method:schedule_finish" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> schedule_finish : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Schedules that the request is finished. See above.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:http_engine">
+  <a href="index.html#/class:http_engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> http_engine : 
+    on_request_header:<a href="index.html#/classtype:http_request_header_notification">http_request_header_notification</a> <span class="rarr"><span>-&gt;</span></span> unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:http_engine_config">http_engine_config</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/class:unix_event_system">unix_event_system</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    [unit] <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This engine processes the requests arriving on the file descriptor using
+the Unix event system. Whenever a new request header arrives, the function
+<code>on_request_header</code> is called back, and must handle the request.</p>
+      
+      <p>Unless aborted using the <code>abort</code> method, this engine is always successful.
+Errors are logged, but not returned as result.</p>
+      
+      <p>The file descriptor is closed after processing all HTTP requests and
+responses. It is also closed on error and when the engine is aborted.</p>
+      
+      <p>An aborted engine does not try to clean up resources external to the
+engine, e.g. by calling the <code>on_error</code> functions. This is up to the user.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_engine_processing_config">
+  <a href="index.html#/classtype:http_engine_processing_config" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_engine_processing_config = 
+  <div class="region" id="/classtype:http_engine_processing_config/method:config_synch_input">
+  <a href="index.html#/classtype:http_engine_processing_config/method:config_synch_input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_synch_input : (<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:async_in_channel">async_in_channel</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>The &quot;input synchronizer&quot;: It is called as <code>obj # config_synch_input f ch</code>
+to create a synchronous input channel from an asynchronous one, <code>ch</code>.
+The function <code>f</code> must be called back by the synchronizer when synchronisation
+is established, and with the synchronous channel <code>ch'</code> as argument.
+In particular, the task of the synchronizer is to turn blocking reads of
+<code>ch'</code> into non-blocking reads of <code>ch</code>. In general there are two ways of
+implementation:</p>
+      <ul><li>Buffer all input from <code>ch</code> until the end of the channel is reached,
+then call <code>f</code> with a wrapper channel <code>ch'</code> that just reads from the
+buffer.</li><li>Run <code>f</code> in a different thread that blocks whenever there is nothing to
+read from <code>ch</code>.</li></ul>
+      <p>Both implementations are allowed, i.e. <b>it is allowed that <code>f</code> runs in
+a different thread</b>.</p>
+      
+      <p>CHECK: How to handle exceptions raised from <code>f</code>? Idea: <code>f</code> is obliged to
+close <code>ch'</code> in this case, even if <code>ch</code> is not yet at the end. The rest of
+exception handling is up to the user. - The complementary must also be true:
+When there is an error in the engine, <code>ch</code> must be closed to signal the
+other thread that we have a problem.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_engine_processing_config/method:config_synch_output">
+  <a href="index.html#/classtype:http_engine_processing_config/method:config_synch_output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config_synch_output : (<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:async_out_channel">async_out_channel</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>The &quot;output synchronizer&quot;: It is called as <code>obj # config_synch_output f ch</code>
+to create a synchronous output channel from an asynchronous one, <code>ch</code>.
+The function <code>f</code> must be called back by the synchronizer when synchronisation
+is established, and with the synchronous channel <code>ch'</code> as argument.
+In particular, the task of the synchronizer is to turn blocking writes to
+<code>ch'</code> into non-blocking writes to <code>ch</code>. In general there are two ways of
+implementation:</p>
+      <ul><li>Call <code>f</code>, then buffer all output to <code>ch'</code> until the end of the channel is
+reached, and finally output the contents of the buffer in an asynchronous
+way.</li><li>Run <code>f</code> in a different thread that blocks whenever there is no space to
+write to <code>ch</code>.</li></ul>
+      <p>Both implementations are allowed, i.e. <b>it is allowed that <code>f</code> runs in
+a different thread</b>.</p>
+      
+      <p>CHECK: Exceptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:buffering_engine_processing_config">
+  <a href="index.html#/class:buffering_engine_processing_config" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> buffering_engine_processing_config : <a href="index.html#/classtype:http_engine_processing_config">http_engine_processing_config</a>
+    
+      <div class="doc">
+        
+      <p>Implements the synchronisation by buffering</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_engine_processing_context">
+  <a href="index.html#/classtype:http_engine_processing_context" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_engine_processing_context = 
+  <div class="region" id="/classtype:http_engine_processing_context/method:engine">
+  <a href="index.html#/classtype:http_engine_processing_context/method:engine" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> engine : unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+  
+      <div class="doc">
+        
+      <p>The engine doing HTTP</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_connection">
+  <a href="index.html#/val:process_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_connection : <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_reactor/">Nethttpd_reactor</a>.#http_processor_config <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_engine_processing_config">http_engine_processing_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/class:unix_event_system">unix_event_system</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/">Nethttpd_types</a>.<a href="../../../../ocamlnet.3.7.7/src/nethttpd/nethttpd_types/#/classtype:http_service">http_service</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:http_engine_processing_context">http_engine_processing_context</a>
+    
+      <div class="doc">
+        
+      <p>Sets up an engine that processes all requests using the service description.
+This function returns immediately, one needs to <code>Unixqueue.run</code> the event
+system to start the engine.</p>
+      
+      <p>The passed <code>http_engine_processing_config</code> is crucial for good performance.
+XXX</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging of this module</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

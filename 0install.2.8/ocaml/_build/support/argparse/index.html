@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Argparse</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Argparse</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Parsing command-line arguments</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:Usage_error">
+  <a href="index.html#/exn:Usage_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Usage_error <span class="keyword">of</span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:raw_option">
+  <a href="index.html#/type:raw_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> raw_option = string * string list
+    
+      <div class="doc">
+        
+      <p>The option name and its arguments. e.g. (&quot;--wrapper&quot;; <code>&quot;echo&quot;</code>)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:option_reader">
+  <a href="index.html#/classtype:option_reader" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['b] option_reader = 
+  <div class="region" id="/classtype:option_reader/method:read">
+  <a href="index.html#/classtype:option_reader/method:read" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read : string <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> completion:int option <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p><code>read opt_name first_arg stream completion</code>.
+Extract as many elements from the stream as this option needs.
+<code>completion</code> indicates when we're doing completion (so don't
+raise an error if the arguments are malformed unless this is None).
+When <code>Some 0</code>, the next item in the stream is being completed, etc.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:option_reader/method:get_arg_types">
+  <a href="index.html#/classtype:option_reader/method:get_arg_types" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_arg_types : int <span class="rarr"><span>-&gt;</span></span> 'b list
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Takes a stream of arguments and takes as many as are needed for the option.
+e.g. <code>[&quot;--version&quot;; &quot;--help&quot;]</code> takes <code>[&quot;--version&quot;]</code> and leaves <code>[&quot;--help&quot;]</code>
+while <code>[&quot;--version&quot;; &quot;1.0&quot;]</code> takes <code>[&quot;--version&quot;; &quot;1.0&quot;]</code> and leaves <code>[]</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:option_parser">
+  <a href="index.html#/classtype:option_parser" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['a, 'b] option_parser = 
+  <div class="region" id="/classtype:option_parser/method:get_reader">
+  <a href="index.html#/classtype:option_parser/method:get_reader" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get_reader : 'b <a href="index.html#/classtype:option_reader">option_reader</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:option_parser/method:parse">
+  <a href="index.html#/classtype:option_parser/method:parse" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> parse : string list <span class="rarr"><span>-&gt;</span></span> 'a
+  
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:opt_spec">
+  <a href="index.html#/type:opt_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b) opt_spec = string list * int * string * ('a, 'b) <a href="index.html#/classtype:option_parser">option_parser</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:argparse_spec">
+  <a href="index.html#/type:argparse_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b) argparse_spec = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:argparse_spec/field:options_spec">
+  <a href="index.html#/type:argparse_spec/field:options_spec" class="anchor">#</a>
+  options_spec
+  </div>
+  </td><td>: ('a, 'b) <a href="index.html#/type:opt_spec">opt_spec</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:argparse_spec/field:no_more_options">
+  <a href="index.html#/type:argparse_spec/field:no_more_options" class="anchor">#</a>
+  no_more_options
+  </div>
+  </td><td>: string list <span class="rarr"><span>-&gt;</span></span> bool</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:complete">
+  <a href="index.html#/type:complete" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'b complete = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:complete/cons:CompleteNothing">
+  <a href="index.html#/type:complete/cons:CompleteNothing" class="anchor">#</a>
+  | CompleteNothing
+  </div>
+  </td><td>(*</td><td class="doc">There are no possible completions</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:complete/cons:CompleteOptionName">
+  <a href="index.html#/type:complete/cons:CompleteOptionName" class="anchor">#</a>
+  | CompleteOptionName <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">Complete this partial option name</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:complete/cons:CompleteOption">
+  <a href="index.html#/type:complete/cons:CompleteOption" class="anchor">#</a>
+  | CompleteOption <span class="keyword">of</span> (string * 'b <a href="index.html#/classtype:option_reader">option_reader</a> * string list * int)
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:complete/cons:CompleteArg">
+  <a href="index.html#/type:complete/cons:CompleteArg" class="anchor">#</a>
+  | CompleteArg <span class="keyword">of</span> int
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:complete/cons:CompleteLiteral">
+  <a href="index.html#/type:complete/cons:CompleteLiteral" class="anchor">#</a>
+  | CompleteLiteral <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">This is the single possible completion</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_args">
+  <a href="index.html#/val:read_args" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_args : ?cword:int <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:argparse_spec">argparse_spec</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:raw_option">raw_option</a> list * string list * 'b <a href="index.html#/type:complete">complete</a>
+    
+      <div class="doc">
+        
+      <p><code>cword</code> is the index in <code>input_args</code> that we are trying to complete, or None if we're not completing.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:parsed_options">
+  <a href="index.html#/type:parsed_options" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a parsed_options
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_options">
+  <a href="index.html#/val:parse_options" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_options : ('a, 'b) <a href="index.html#/type:opt_spec">opt_spec</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:raw_option">raw_option</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:parsed_options">parsed_options</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_options">
+  <a href="index.html#/val:iter_options" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_options : 'a <a href="index.html#/type:parsed_options">parsed_options</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Invoke the callback on each option. If it raises <code>Safe_exception</code>, add the name of the option to the error message.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Handy wrappers for option handlers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:no_arg_reader">
+  <a href="index.html#/val:no_arg_reader" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> no_arg_reader : 'b <a href="index.html#/classtype:option_reader">option_reader</a>
+    
+      <div class="doc">
+        
+      <p>The trivial reader for options which take no arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:no_arg">
+  <a href="index.html#/class:no_arg" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] no_arg : 
+    'a
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a, 'b] <a href="index.html#/classtype:option_parser">option_parser</a>
+    
+    
+      <div class="doc">
+        
+      <p>Always returns a constant value (e.g. --help becomes ShowHelp) .</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:one_arg">
+  <a href="index.html#/class:one_arg" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] one_arg : 
+    'b
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string <span class="rarr"><span>-&gt;</span></span> 'a
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a, 'b] <a href="index.html#/classtype:option_parser">option_parser</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:two_arg">
+  <a href="index.html#/class:two_arg" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a, 'b] two_arg : 
+    'b
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    'b
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a
+    <span class="rarr"><span>-&gt;</span></span>
+    ['a, 'b] <a href="index.html#/classtype:option_parser">option_parser</a>
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format_options">
+  <a href="index.html#/val:format_options" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format_options : <a href="../../../../../ocaml.4.02.1+doc/lex/common/">Common</a>.system <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:opt_spec">opt_spec</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Print out these options in a formatted list.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Xml_print</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Xml_print</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Printer for XML.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:encode_unsafe_char">
+  <a href="index.html#/val:encode_unsafe_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_unsafe_char : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The encoder maps strings to HTML and <em>must</em> encode the unsafe characters
+<code>'&lt;'</code>, <code>'&gt;'</code>, <code>'&quot;'</code>, <code>'&amp;'</code> and the control characters 0-8, 11-12, 14-31, 127
+to HTML entities. <code>encode_unsafe</code> is the default for <code>?encode</code> in <code>output</code>
+and <code>pretty_print</code> below. Other implementations are provided by the module
+<code>Netencoding</code> in the
+<a href="http://www.ocaml-programming.de/programming/ocamlnet.html">OcamlNet</a>
+library, e.g.:
+<code>let encode = Netencoding.Html.encode ~in_enc:`Enc_iso88591 ~out_enc:`Enc_usascii ()</code>,
+Where national characters are replaced by HTML entities.
+The user is of course free to write her own implementation.</p>
+      
+        
+  <div class="tag see-also">
+    <span class="label">See also</span> <a href="http://www.ocaml-programming.de/programming/ocamlnet.html">http://www.ocaml-programming.de/programming/ocamlnet.html</a> OcamlNet
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode_unsafe_char_and_at">
+  <a href="index.html#/val:encode_unsafe_char_and_at" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_unsafe_char_and_at : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>In addition, encode <code>&quot;@&quot;</code> as <code>&quot;&amp;#64;&quot;</code> in the hope that this will fool
+simple minded email address harvesters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compose_decl">
+  <a href="index.html#/val:compose_decl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compose_decl : ?version:string <span class="rarr"><span>-&gt;</span></span> ?encoding:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>encoding</code> is the name of the character encoding, e.g. <code>&quot;US-ASCII&quot;</code> or <code>&quot;UTF-8&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compose_doctype">
+  <a href="index.html#/val:compose_doctype" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compose_doctype : string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_number">
+  <a href="index.html#/val:string_of_number" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_number : float <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert a float to a string using a compact representation compatible with Javascript norme.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Utf8">
+  <a href="index.html#/module:Utf8" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Utf8 : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Utf8 normalizer and encoder for HTML.</p>
+      
+      <p>Given a module <code>Htmlprinter</code> produced by one of the functors in [root:Xml_print], this modules is used as following:
+</p>
+      <pre><code>    let encode x = fst (Utf8.normalize_html x) in
+    Htmlprinter.print ~encode document</code></pre>
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Utf8/type:utf8">
+  <a href="index.html#/module:Utf8/type:utf8" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> utf8 = string
+    
+      <div class="doc">
+        
+      <p><code>normalize str</code> take a possibly invalid utf-8 string
+and return a valid utf-8 string
+where invalid bytes have been replaced by
+the replacement character <code>U+FFFD</code>.
+The returned boolean is true if invalid bytes were found</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Utf8/val:normalize">
+  <a href="index.html#/module:Utf8/val:normalize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> normalize : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Utf8/type:utf8">utf8</a> * bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Utf8/val:normalize_html">
+  <a href="index.html#/module:Utf8/val:normalize_html" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> normalize_html : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Utf8/type:utf8">utf8</a> * bool
+    
+      <div class="doc">
+        
+      <p>Same as <code>normalize</code> plus some extra work :
+It encode '&lt;' , '&gt;' , '&quot;' , '&amp;' characters with
+corresponding entities and replaced invalid html
+character by <code>U+FFFD</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (Xml : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Iterable">Iterable</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (I : <span class="keyword">sig</span>
+    <div class="sig">
+  <div class="region" id="/module:Make/modarg:2:I/val:emptytags">
+  <a href="index.html#/module:Make/modarg:2:I/val:emptytags" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> emptytags : string list
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (O : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Output">Output</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Printer">Printer</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Printer/type:out">out</a> := <a href="index.html#/module:Make/modarg:3:O">O</a>.<a href="index.html#/module:Make/modarg:3:O/type:out">out</a> <span class="keyword">and</span> <span class="keyword">type</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Printer/type:xml_elt">xml_elt</a> := <a href="index.html#/module:Make/modarg:1:Xml">Xml</a>.<a href="index.html#/module:Make/modarg:1:Xml/type:elt">elt</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_typed">
+  <a href="index.html#/module:Make_typed" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_typed : <span class="keyword">functor</span> (Xml : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Iterable">Iterable</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Typed_xml : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_xml">Typed_xml</a> <span class="keyword">with</span> <span class="keyword">module</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_xml/module:Xml">Xml</a> := <a href="index.html#/module:Make_typed/modarg:1:Xml">Xml</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (O : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Output">Output</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_printer">Typed_printer</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_printer/type:out">out</a> := <a href="index.html#/module:Make_typed/modarg:3:O">O</a>.<a href="index.html#/module:Make_typed/modarg:3:O/type:out">out</a> <span class="keyword">and</span> <span class="keyword">type</span> 'a <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_printer/type:elt">elt</a> := 'a <a href="index.html#/module:Make_typed/modarg:2:Typed_xml">Typed_xml</a>.<a href="index.html#/module:Make_typed/modarg:2:Typed_xml/type:elt">elt</a> <span class="keyword">and</span> <span class="keyword">type</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_printer/type:doc">doc</a> := <a href="index.html#/module:Make_typed/modarg:2:Typed_xml">Typed_xml</a>.<a href="index.html#/module:Make_typed/modarg:2:Typed_xml/type:doc">doc</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_simple">
+  <a href="index.html#/module:Make_simple" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_simple : <span class="keyword">functor</span> (Xml : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Iterable">Iterable</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (F : <span class="keyword">sig</span>
+    <div class="sig">
+  <div class="region" id="/module:Make_simple/modarg:2:F/val:emptytags">
+  <a href="index.html#/module:Make_simple/modarg:2:F/val:emptytags" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> emptytags : string list
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    ) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Simple_printer">Simple_printer</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Simple_printer/type:xml_elt">xml_elt</a> := <a href="index.html#/module:Make_simple/modarg:1:Xml">Xml</a>.<a href="index.html#/module:Make_simple/modarg:1:Xml/type:elt">elt</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make_typed_simple">
+  <a href="index.html#/module:Make_typed_simple" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make_typed_simple : <span class="keyword">functor</span> (Xml : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Iterable">Iterable</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (Typed_xml : <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_xml">Typed_xml</a> <span class="keyword">with</span> <span class="keyword">module</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_xml/module:Xml">Xml</a> := <a href="index.html#/module:Make_typed_simple/modarg:1:Xml">Xml</a>) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/">Xml_sigs</a>.<a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_simple_printer">Typed_simple_printer</a> <span class="keyword">with</span> <span class="keyword">type</span> 'a <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_simple_printer/type:elt">elt</a> := 'a <a href="index.html#/module:Make_typed_simple/modarg:2:Typed_xml">Typed_xml</a>.<a href="index.html#/module:Make_typed_simple/modarg:2:Typed_xml/type:elt">elt</a> <span class="keyword">and</span> <span class="keyword">type</span> <a href="../../../../tyxml.3.4.0/_build/lib/xml_sigs/#/modtype:Typed_simple_printer/type:doc">doc</a> := <a href="index.html#/module:Make_typed_simple/modarg:2:Typed_xml">Typed_xml</a>.<a href="index.html#/module:Make_typed_simple/modarg:2:Typed_xml/type:doc">doc</a></div>
+      
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Shell_fs</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Shell_fs</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shell filesystem</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module emulates a filesystem by submitting shell commands.
+For example, a directory listing is retrieved via the <code>ls</code>
+utility instead of opening the directory directly. This also
+works when logging in to a remote machine, e.g. via <code>ssh</code>.</p>
+      
+      <p>The following standard POSIX commands are used:</p>
+      <ul><li><code>dd</code> with options <code>if</code>, <code>of</code>, <code>bs</code>, <code>skip</code>, <code>conv=notrunc</code>,
+and optionally <code>excl</code> (the latter is a GNU extension)</li><li><code>test</code> with options <code>-d</code>, <code>-e</code>, <code>-f</code>, <code>-r</code>, <code>-s</code>, <code>-w</code>, <code>-x</code></li><li><code>ls</code> with options <code>-1</code>, <code>-n</code>, <code>-d</code>, <code>-a</code>, <code>-L</code></li><li><code>rm</code> with options <code>-r</code> and <code>-f</code></li><li><code>mv</code> with option <code>-f</code></li><li><code>ln</code> with option <code>-s</code></li><li><code>mkdir</code> with options <code>-p</code></li><li><code>rmdir</code></li><li><code>cp</code> with option <code>-p</code></li></ul>
+      <p>In addition to this, the commands may be embedded in one-line shell
+scripts.</p>
+      
+      <p>Filenames with leading minus chars are not supported.</p>
+      
+      <p>Error reporting is less accurate than for a local filesystem.</p>
+      
+      <p><b>Example.</b> List a directory on a remote system:</p>
+      <pre><code>      let fs = 
+        Shell_fs.shell_fs 
+          (Shell_fs.ssh_interpreter ~host:&quot;moon&quot; ())
+      let files =
+        fs # readdir [] &quot;/this/is/a/directory/on/moon&quot;</code></pre>
+        
+      </div>
+    
+  <div class="region" id="/type:command_context">
+  <a href="index.html#/type:command_context" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> command_context = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:command_context/field:sfs_command">
+  <a href="index.html#/type:command_context/field:sfs_command" class="anchor">#</a>
+  sfs_command
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The command line</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:command_context/field:sfs_stdin">
+  <a href="index.html#/type:command_context/field:sfs_stdin" class="anchor">#</a>
+  sfs_stdin
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/shell/shell/">Shell</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell/#/type:producer">producer</a></td><td>;</td><td>(*</td><td class="doc">stdin from here</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:command_context/field:sfs_stdout">
+  <a href="index.html#/type:command_context/field:sfs_stdout" class="anchor">#</a>
+  sfs_stdout
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/shell/shell/">Shell</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell/#/type:consumer">consumer</a></td><td>;</td><td>(*</td><td class="doc">stdout goes here</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:command_context/field:sfs_stderr">
+  <a href="index.html#/type:command_context/field:sfs_stderr" class="anchor">#</a>
+  sfs_stderr
+  </div>
+  </td><td>: <a href="../../../../ocamlnet.3.7.7/src/shell/shell/">Shell</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell/#/type:consumer">consumer</a></td><td>;</td><td>(*</td><td class="doc">stderr goes here</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:command_context/field:sfs_status">
+  <a href="index.html#/type:command_context/field:sfs_status" class="anchor">#</a>
+  <span class="keyword">mutable</span> sfs_status
+  </div>
+  </td><td>: <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a> option</td><td>;</td><td>(*</td><td class="doc">The exit code is put here</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:command_interpreter">
+  <a href="index.html#/type:command_interpreter" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> command_interpreter
+    
+      <div class="doc">
+        
+      <p>The interpreter runs the command, and fills in <code>sfs_status</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:local_interpreter">
+  <a href="index.html#/val:local_interpreter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> local_interpreter : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command_interpreter">command_interpreter</a>
+    
+      <div class="doc">
+        
+      <p>Executes commands on the local machine</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cmd_interpreter">
+  <a href="index.html#/val:cmd_interpreter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cmd_interpreter : (<a href="index.html#/type:command_context">command_context</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/">Shell_sys</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell_sys/#/type:command">command</a> list) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command_interpreter">command_interpreter</a>
+    
+      <div class="doc">
+        
+      <p>Creates a command interpreter from a function that creates the
+real command (as pipeline) to execute</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ssh_interpreter">
+  <a href="index.html#/val:ssh_interpreter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ssh_interpreter : ?options:string list <span class="rarr"><span>-&gt;</span></span> ?user:string <span class="rarr"><span>-&gt;</span></span> host:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command_interpreter">command_interpreter</a>
+    
+      <div class="doc">
+        
+      <p>Executes commands via ssh on the machine <code>host</code> as <code>user</code> (defaults
+to current user). <code>options</code> are further command-line options.
+By default, only <code>-o BatchMode yes</code> is passed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:shell_stream_fs">
+  <a href="index.html#/classtype:shell_stream_fs" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> shell_stream_fs = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:stream_fs">stream_fs</a>
+    </div>
+    
+  <div class="region" id="/classtype:shell_stream_fs/method:last_stderr">
+  <a href="index.html#/classtype:shell_stream_fs/method:last_stderr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> last_stderr : string
+  
+      <div class="doc">
+        
+      <p>The stderr output of the last operation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:shell_fs">
+  <a href="index.html#/class:shell_fs" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> shell_fs : 
+    ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?root:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?dd_has_excl:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?tmp_directory:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?tmp_prefix:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/type:command_interpreter">command_interpreter</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:shell_stream_fs">shell_stream_fs</a>
+    
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shell_fs">
+  <a href="index.html#/val:shell_fs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shell_fs : ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?root:string <span class="rarr"><span>-&gt;</span></span> ?dd_has_excl:bool <span class="rarr"><span>-&gt;</span></span> ?tmp_directory:string <span class="rarr"><span>-&gt;</span></span> ?tmp_prefix:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command_interpreter">command_interpreter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:shell_stream_fs">shell_stream_fs</a>
+    
+      <div class="doc">
+        
+      <p>The shell filesystem.</p>
+      <ul><li><code>encoding</code>: the assumed character encoding of the filenames.
+<code>None</code> by default.</li><li><code>root</code>: the root of the file tree that is accessed. This can
+be an absolute path, or a relative path.</li><li><code>dd_has_excl</code>: whether the <code>dd</code> command support &quot;conv=excl&quot;.
+Default is <code>false</code>; this is a GNU extension.</li><li><code>tmp_directory</code> and <code>tmp_prefix</code> are only meaningful for
+the <code>write_file</code> method which creates a temporary file.
+See <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/val:make_temporary_file">make_temporary_file</a> for more information.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Utility functions for developing other implementations of
+<code>shell_stream_fs</code></h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:execute">
+  <a href="index.html#/val:execute" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> execute : <a href="index.html#/type:command_interpreter">command_interpreter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:command_context">command_context</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Starts this command. It is not waited until the command is finished.
+One can either call <code>wait</code> for this, or one of the adapter
+functions below.</p>
+      
+      <p>One can only start one command at a time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait">
+  <a href="index.html#/val:wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait : <a href="index.html#/type:command_interpreter">command_interpreter</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Waits until the running command is finished</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_stream_adapter">
+  <a href="index.html#/val:output_stream_adapter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_stream_adapter : ci:<a href="index.html#/type:command_interpreter">command_interpreter</a> <span class="rarr"><span>-&gt;</span></span> close_in:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> skip:int64 <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell/">Shell</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell/#/type:consumer">consumer</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    
+      <div class="doc">
+        
+      <p>Arranges that the output of a shell command is made available as
+an <code>in_obj_channel</code>:</p>
+      <pre><code>let (c, ch) = output_stream_adapter ~ci ~close_in ~skip</code></pre>
+      <p>The consumer <code>p</code> can be used in a <code>command_context</code> for either
+<code>sfs_stdout</code> or <code>sfs_stderr</code>. The channel <code>ch</code> is an input
+channel, and when reading from it will return the bytes of
+stdout or stderr.</p>
+      
+      <p><code>close_in</code> is called as post-hook when the <code>close_in</code> method of
+<code>ch</code> is called.</p>
+      
+      <p><code>skip</code> bytes of stdout/stderr are skipped at the beginning of the
+stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_stream_adapter">
+  <a href="index.html#/val:input_stream_adapter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_stream_adapter : ci:<a href="index.html#/type:command_interpreter">command_interpreter</a> <span class="rarr"><span>-&gt;</span></span> close_out:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/shell/shell/">Shell</a>.<a href="../../../../ocamlnet.3.7.7/src/shell/shell/#/type:producer">producer</a> * <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+    
+      <div class="doc">
+        
+      <p>Arranges that the input of a shell command is made available as
+an <code>out_obj_channel</code>:</p>
+      <pre><code>let (p, ch) = input_stream_adapter ~ci ~close_in</code></pre>
+      <p>The producer <code>p</code> can be used in a <code>command_context</code> for
+<code>sfs_stdin</code>. The channel <code>ch</code> is an output
+channel, and bytes written to it will appear in stdin of the
+executed command.</p>
+      
+      <p><code>close_out</code> is called as post-hook when the <code>close_out</code> method of
+<code>ch</code> is called.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_sem</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_sem</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Semaphores</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Semaphores are here defined as values that reside in shared heaps
+([root:Netmcore_heap]), for example in the header field of
+[root:Netmcore_array] or somewhere else in heap-allocated
+data structures.</p>
+      
+      <p>In order to ensure that the semaphore is in the heap, the
+special function <code>create</code> must be used to initialize it
+there. As <code>create</code> requires a mutator as argument, this is
+only possible by calling <code>create</code> from the callback of
+<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/val:modify">modify</a>.</p>
+      
+      <p>Semaphores are special values, and cannot be copied or moved.</p>
+      
+      <p>Note that [root:Netsys_posix] provides wrappers for direct use
+of the semaphore functionality of the OS. These wrappers, however,
+cannot be used together with heaps, because semaphores are
+there represented as bigarrays, which cannot be pushed to heaps.
+This module here uses a trick to make it possible nevertheless.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:semaphore">
+  <a href="index.html#/type:semaphore" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> semaphore
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dummy">
+  <a href="index.html#/val:dummy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dummy : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:semaphore">semaphore</a>
+    
+      <div class="doc">
+        
+      <p>A dummy semaphore is non-functional, but can be used to put something
+into <code>semaphore</code>-typed variables</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:mutator">mutator</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:semaphore">semaphore</a>
+    
+      <div class="doc">
+        
+      <p><code>create m value</code>: Creates a semaphore with initial <code>value</code>, and
+pushes it to the heap, using the mutator <code>m</code>.</p>
+      
+      <p>After being pushed to the heap, the semaphore can be used. It is
+nonsense to copy it outside the heap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:destroy">
+  <a href="index.html#/val:destroy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> destroy : <a href="index.html#/type:semaphore">semaphore</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Destroys the semaphore</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getvalue">
+  <a href="index.html#/val:getvalue" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getvalue : <a href="index.html#/type:semaphore">semaphore</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the value of the semaphore</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:post">
+  <a href="index.html#/val:post" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> post : <a href="index.html#/type:semaphore">semaphore</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Increments the semaphore by one, and notifies one of the waiting
+processes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait">
+  <a href="index.html#/val:wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait : <a href="index.html#/type:semaphore">semaphore</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:sem_wait_behavior">sem_wait_behavior</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Decrements the semaphore by one. Semaphores cannot become negative.
+If the semaphore is already 0, the wait behavior defines how to go
+on:</p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:sem_wait_behavior">sem_wait_behavior</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:sem_wait_behavior/cons:SEM_WAIT_BLOCK">SEM_WAIT_BLOCK</a>: Wait until the semaphore is
+posted</li><li><a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:sem_wait_behavior">sem_wait_behavior</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:sem_wait_behavior/cons:SEM_WAIT_NONBLOCK">SEM_WAIT_NONBLOCK</a>: Raise <code>EAGAIN</code></li></ul>
+      <p>Waiting is restarted after running a signal handler.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

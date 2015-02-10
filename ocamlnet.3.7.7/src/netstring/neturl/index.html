@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Neturl</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Neturl</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Uniform Resource Locators (URLs)</p>
+      
+      <p><b>Contents</b></p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/">Neturl</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/#/label:interface">interface</a></li></ul>
+      <p>The tutorial has been moved to [root:Neturl_tut].</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:interface">
+  <a href="index.html#/label:interface" class="anchor">#</a>
+  
+    <h1 class="section level_1">Interface</h1>
+    
+  </div>
+  
+      <p>This module provides functions to parse URLs, to print URLs, to
+store URLs, to modify URLs, and to apply relative URLs.</p>
+      
+      <p>URLs are strings formed according to pattern (1) or (2):</p>
+      <ol><li><code>scheme://user;userparams:password@host:port/path;params?query#fragment</code></li><li><code>scheme:other;params?query#fragment</code></li></ol>
+      <p>The word at the beginning of the URL identifies the URL scheme
+(such as &quot;http&quot; or &quot;file&quot;). Depending on the scheme, not all of the
+parts are allowed, or parts may be omitted. This module defines the
+type <code>url_syntax</code> whose values describe which parts are allowed/required/
+not allowed for a concrete URL scheme (see below).</p>
+      
+      <p>Not all characters are allowed in a URL. Some characters are allowed,
+but have the special task to separate the various parts of the URL
+(reserved characters).
+However, it is possible to include even invalid or reserved characters
+as normal content by applying the <code>%</code>-encoding on these characters:
+A <code>'%'</code> indicates that an encoded character follows, and the character
+is denoted by a two-digit hexadecimal number (e.g. <code>%2f</code> for <code>'/'</code>).
+In the following descriptions, the term &quot;encoded string&quot; means a string
+containing such <code>%</code>-encoded characters, and the &quot;decoded string&quot; means a
+string not containing such characters.
+See the module <a href="../../../../ocamlnet.3.7.7/src/netstring/netencoding/">Netencoding</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netencoding/#/module:Url">Url</a> for functions encoding or decoding
+strings.</p>
+      
+      <p>The type <code>url</code> describes values storing the components of a URL,
+and the <code>url_syntax</code> for the URL. In general, the components are
+stored as encoded strings; however, not for all components the
+<code>%</code>-encoding is applicable.</p>
+      
+      <p>For convenience, the functions creating, modifying, and accessing
+URLs can handle both encoded and decoded strings. In order to
+avoid errors, the functions pass strings even in their decoded form.</p>
+      
+      <p>Note that there is currently no function to compare URLs. The
+canoncical comparison ( <code>=</code> ) is not applicable because the same URL
+may be written in different ways.</p>
+      
+      <p>Note that nothing is said about the character set/encoding of URLs.
+Some protocols and standards prefer UTF-8 as fundamental encoding
+and apply the <code>%</code>-encoding on top of it; i.e. the byte sequence
+representing a character in UTF-8 is <code>%</code>-encoded.</p>
+      
+      <p><b>Standards Compliance</b></p>
+      
+      <p>This module implements RFC 1738 and RFC 1808. There is also a newer
+RFC, 2396, updating the former RFCs, but this module is not fully
+compatible with RFC 2396. The following (minor) problems may occur:</p>
+      <ul><li>The module escapes more characters than needed. All characters that
+are &quot;unsafe&quot; or &quot;reserved&quot; in either RFC document are escaped.</li><li>URL parameters (appended with a &quot;;&quot;) are handled as in RFCs 1738/1808.
+In RFC 2396, every path component may have parameters, and the
+algorithm to resolve relative URLs is different in this point.
+If it is required to apply RFC 2396, one can disable URL parameters
+in the syntax, and extract them from the path by a self-written
+postprocessor. Usually, this is only required for <code>imap</code> URLs.</li></ul>
+      <p>In one point, RFC 2396 is preferred:</p>
+      <ul><li>Authorities may be terminated by a question mark, as in
+<code>&quot;http://host?query&quot;</code>. This is illegal in RFC 1738. The consequence
+is, however, that question marks in user strings must be escaped.</li></ul>
+      <p>RFC 3986 introduces IPv6 addresses. These are now supported (but see
+the comments below).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Malformed_URL">
+  <a href="index.html#/exn:Malformed_URL" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Malformed_URL
+    
+      <div class="doc">
+        
+      <p>Raised by a number of functions when encountering a badly formed
+URL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract_url_scheme">
+  <a href="index.html#/val:extract_url_scheme" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract_url_scheme : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the URL scheme from the string representation of an URL.
+E.g. <code>extract_url_scheme &quot;http://host/path&quot; = &quot;http&quot;</code>.
+The scheme name is always converted to lowercase characters.
+Raises <code>Malformed_URL</code> if the scheme name is not found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:url_syntax_option">
+  <a href="index.html#/type:url_syntax_option" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> url_syntax_option = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:url_syntax_option/cons:Url_part_not_recognized">
+  <a href="index.html#/type:url_syntax_option/cons:Url_part_not_recognized" class="anchor">#</a>
+  | Url_part_not_recognized
+  </div>
+  </td><td>(*</td><td class="doc">The part, even if there, is not even recognized</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:url_syntax_option/cons:Url_part_allowed">
+  <a href="index.html#/type:url_syntax_option/cons:Url_part_allowed" class="anchor">#</a>
+  | Url_part_allowed
+  </div>
+  </td><td>(*</td><td class="doc">The part can be present</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:url_syntax_option/cons:Url_part_required">
+  <a href="index.html#/type:url_syntax_option/cons:Url_part_required" class="anchor">#</a>
+  | Url_part_required
+  </div>
+  </td><td>(*</td><td class="doc">The part must be present</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:url_syntax">
+  <a href="index.html#/type:url_syntax" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> url_syntax = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_scheme">
+  <a href="index.html#/type:url_syntax/field:url_enable_scheme" class="anchor">#</a>
+  url_enable_scheme
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_user">
+  <a href="index.html#/type:url_syntax/field:url_enable_user" class="anchor">#</a>
+  url_enable_user
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_user_param">
+  <a href="index.html#/type:url_syntax/field:url_enable_user_param" class="anchor">#</a>
+  url_enable_user_param
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_password">
+  <a href="index.html#/type:url_syntax/field:url_enable_password" class="anchor">#</a>
+  url_enable_password
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_host">
+  <a href="index.html#/type:url_syntax/field:url_enable_host" class="anchor">#</a>
+  url_enable_host
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_port">
+  <a href="index.html#/type:url_syntax/field:url_enable_port" class="anchor">#</a>
+  url_enable_port
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_path">
+  <a href="index.html#/type:url_syntax/field:url_enable_path" class="anchor">#</a>
+  url_enable_path
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_param">
+  <a href="index.html#/type:url_syntax/field:url_enable_param" class="anchor">#</a>
+  url_enable_param
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_query">
+  <a href="index.html#/type:url_syntax/field:url_enable_query" class="anchor">#</a>
+  url_enable_query
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_fragment">
+  <a href="index.html#/type:url_syntax/field:url_enable_fragment" class="anchor">#</a>
+  url_enable_fragment
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_other">
+  <a href="index.html#/type:url_syntax/field:url_enable_other" class="anchor">#</a>
+  url_enable_other
+  </div>
+  </td><td>: <a href="index.html#/type:url_syntax_option">url_syntax_option</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_accepts_8bits">
+  <a href="index.html#/type:url_syntax/field:url_accepts_8bits" class="anchor">#</a>
+  url_accepts_8bits
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_is_valid">
+  <a href="index.html#/type:url_syntax/field:url_is_valid" class="anchor">#</a>
+  url_is_valid
+  </div>
+  </td><td>: <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> bool</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:url_syntax/field:url_enable_relative">
+  <a href="index.html#/type:url_syntax/field:url_enable_relative" class="anchor">#</a>
+  url_enable_relative
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Values of type <code>url_syntax</code> describe which components of an URL are
+recognized, which are allowed (and optional), and which are required.
+Not all combinations are valid; the predicate expressed by the
+function <code>url_syntax_is_valid</code> must hold.</p>
+      
+      <p>The function <code>url_is_valid</code> is applied when a fresh URL is created
+and must return <code>true</code>. This function allows it to add an arbitrary
+validity criterion to <code>url_syntax</code>. (Note that the URL passed to
+this function is not fully working; you can safely assume that the
+accessor functions <code>url_scheme</code> etc. can be applied to it.)</p>
+      
+      <p>Switch <code>url_accepts_8bit</code>: If <code>true</code>, the bytes with code 128 to
+255 are treated like alphanumeric characters; if <code>false</code> these bytes
+are illegal (but it is still possible to include such byte in their
+encoded form: <code>%80</code> to <code>%FF</code>).</p>
+      
+      <p>Switch <code>url_enable_relative</code>: If <code>true</code>, the syntax allows relative
+URLs in principle. Actually, parsing of relative URLs is possible
+when the optional parts are flagged as <code>Url_part_allowed</code> and not
+as <code>Url_part_required</code>. However, it is useful to specify URL syntaxes
+always as absolute URLs, and to weaken them on demand when a relative
+URL is found by the parser. This switch enables that. In particular,
+the function <code>partial_url_syntax</code> checks this flag.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:url">
+  <a href="index.html#/type:url" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> url
+    
+      <div class="doc">
+        
+      <p>Values of type <code>url</code> describe concrete URLs. Every URL must have
+a fundamental <code>url_syntax</code>, and it is only possible to create URLs
+conforming to the syntax. See <code>make_url</code> for further information.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_syntax_is_valid">
+  <a href="index.html#/val:url_syntax_is_valid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_syntax_is_valid : <a href="index.html#/type:url_syntax">url_syntax</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Checks whether the passed <code>url_syntax</code> is valid. This means:</p>
+      <ul><li>If passwords are recognized, users (and hosts) must be recognized, too</li><li>If ports are recognized, hosts must be recognized, too</li><li>If users are recognized, hosts must be recognized, too</li><li>Either the syntax recognizes one of the phrases
+{ user, password, host, port, path }, or the syntax recognized
+the phrase 'other'.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:partial_url_syntax">
+  <a href="index.html#/val:partial_url_syntax" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> partial_url_syntax : <a href="index.html#/type:url_syntax">url_syntax</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url_syntax">url_syntax</a>
+    
+      <div class="doc">
+        
+      <p>Transforms the syntax into another syntax where all required parts are
+changed into optional parts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:null_url_syntax">
+  <a href="index.html#/val:null_url_syntax" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> null_url_syntax : <a href="index.html#/type:url_syntax">url_syntax</a>
+    
+      <div class="doc">
+        
+      <p>An URL syntax that recognizes nothing. Use this as base for your own
+definitions, e.g.
+</p>
+      <pre><code>     let my_syntax = { null_url_syntax with
+                         url_enable_host = Url_part_required; ... }</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ip_url_syntax">
+  <a href="index.html#/val:ip_url_syntax" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ip_url_syntax : <a href="index.html#/type:url_syntax">url_syntax</a>
+    
+      <div class="doc">
+        
+      <p>Syntax for IP based protocols. This syntax allows scheme, user,
+password, host, port, path, param, query, fragment, but not &quot;other&quot;.
+It does not accept 8 bit bytes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:common_url_syntax">
+  <a href="index.html#/val:common_url_syntax" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> common_url_syntax : (string, <a href="index.html#/type:url_syntax">url_syntax</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Syntax descriptions for common URL schemes. The key of the hashtable
+is the scheme name, and the value is the corresponding syntax.</p>
+      <ul><li><code>&quot;file&quot;</code>: scheme, host?, path</li><li><code>&quot;ftp&quot;</code>: scheme, user?, password?, host, port?, path?, param?
+Note: param is not checked.</li><li><code>&quot;http&quot;</code>, <code>&quot;https&quot;</code>:
+scheme, user?, password?, host, port?, path?, query?</li><li><code>&quot;mailto&quot;</code>: scheme, other, query? (RFC 2368)</li><li><code>&quot;pop&quot;</code>, <code>&quot;pops&quot;</code>: scheme, user?, user_param?, password?, host, port?
+Note: user_param is not checked.
+(RFC 2384)</li><li><code>&quot;imap&quot;</code>, <code>&quot;imaps&quot;</code>: scheme, user?, user_param?, password?, host, port?,
+path?, query? (RFC 2192)
+Note: &quot;param&quot; is intentionally not recognized to get the resolution of
+relative URLs as described in the RFC. When analysing this kind of URL,
+it is recommended to re-parse it with &quot;param&quot; enabled.</li><li><code>&quot;news&quot;</code>: scheme, other (RFC 1738)</li><li><code>&quot;nntp&quot;</code>, <code>&quot;nntps&quot;</code>: scheme, host, port?, path (with two components)
+(RFC 1738)</li><li><code>&quot;data&quot;</code>: scheme, other (RFC 2397). &quot;other&quot; is not further decomposed.</li><li><code>&quot;ipp&quot;</code>, <code>&quot;ipps&quot;</code>: scheme, host, port? , path?, query? (RFC 3510)</li><li><code>&quot;cid&quot;</code>, <code>&quot;mid&quot;</code>: Content/message identifiers: scheme, other</li></ul>
+      <p>Notes:</p>
+      <ul><li>These syntax descriptions can be weakened for partial/relative URLs
+by changing the required parts to optional parts: See the function
+<code>partial_url_syntax</code>.</li><li>None of the descriptions allows fragments. These can be enabled by
+setting <code>url_enable_fragment</code> to <code>Url_part_allowed</code>. E.g.
+<pre><code>{ file_url_syntax with url_enable_fragment = Url_part_allowed }</code></pre></li><li>8 bit bytes are not accepted</li><li>A large number of standardised scheme syntaxes are not available,
+e.g. gopher, prospero, wais. The selection is a bit subjective,
+but I have tried to omit protocols that are no longer in common
+use, or that are very special.</li><li>The LDAP URL syntax (RFC 1959) does not fit into our scheme, it
+is omitted for now because of this.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:null_url">
+  <a href="index.html#/val:null_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> null_url : <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>A URL without any component and <code>null_url_syntax</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make_url">
+  <a href="index.html#/val:make_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_url : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> ?scheme:string <span class="rarr"><span>-&gt;</span></span> ?user:string <span class="rarr"><span>-&gt;</span></span> ?user_param:string list <span class="rarr"><span>-&gt;</span></span> ?password:string <span class="rarr"><span>-&gt;</span></span> ?host:string <span class="rarr"><span>-&gt;</span></span> ?addr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> ?port:int <span class="rarr"><span>-&gt;</span></span> ?socksymbol:<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a> <span class="rarr"><span>-&gt;</span></span> ?path:string list <span class="rarr"><span>-&gt;</span></span> ?param:string list <span class="rarr"><span>-&gt;</span></span> ?query:string <span class="rarr"><span>-&gt;</span></span> ?fragment:string <span class="rarr"><span>-&gt;</span></span> ?other:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url_syntax">url_syntax</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Creates a URL from components:</p>
+      <ul><li>The components <code>scheme</code> and <code>host</code> are simple strings to which the
+<code>%</code>-encoding is not applicable. <code>host</code> may be a (DNS) name, an
+IPv4 address as &quot;dotted quad&quot;, or an IPv6 address enclosed in
+brackets.</li><li><code>addr</code> also sets <code>host</code>, but directly from an <code>inet_addr</code>.</li><li>The component <code>port</code> is a simple number. Of course, the <code>%</code>-encoding
+is not applicable, too.</li><li><code>socksymbol</code> sets both <code>host</code> and <code>port</code> from the socksymbol of
+type <code>`Inet</code> or <code>`Inet_byname</code>.</li><li>The components <code>user</code>, <code>password</code>, <code>query</code>, <code>fragment</code>, and <code>other</code>
+are strings which may contain <code>%</code>-encoded characters. By default,
+you can pass any string for these components, and problematic characters
+are automatically encoded. If you set <code>encoded:true</code>, the passed
+strings must already be encoded, but the function checks whether
+the encoding is syntactically correct.
+Note that for <code>query</code> even the characters <code>'?'</code> and <code>'='</code> are encoded
+by default, so you need to set <code>encoded:true</code> to pass a reasonable
+query string.</li><li>The components <code>user_param</code>, <code>path</code> and <code>param</code> are lists of strings which may
+contain <code>%</code>-encoded characters. Again, the default is to pass
+decoded strings to the function, and the function encodes them
+automatically, and by setting <code>encoded:true</code> the caller is responsible
+for encoding the strings. Passing empty lists for these components
+means that they are not part of the constructed URL.
+See below for the respresentation of these components.</li></ul>
+      <p><code>socksymbol</code> has precedence over <code>addr</code>, which has precedence over
+<code>host</code>. <code>socksymbol</code> also has precedence over <code>port</code>.</p>
+      
+      <p>The strings representing the components do not
+contain the characters separating the components from each other.</p>
+      
+      <p>The created URL must conform to the <code>url_syntax</code>, i.e.:</p>
+      <ul><li>The URL must only contain components which are recognized by the
+syntax</li><li>The URL must contain components which are required by the syntax</li><li>The URL must fulfill the predicate expressed by the <code>url_is_valid</code>
+function of the syntax.</li></ul>
+      <p>The path of a URL is represented as a list of <code>'/'</code>-separated path
+components. i.e.</p>
+      
+      <p><code>[ s1; s2; ...; sN ]</code> represents the path
+<code>s1 ^ &quot;/&quot; ^ s2 ^ &quot;/&quot; ^ ... ^ &quot;/&quot; ^ sN</code></p>
+      
+      <p>As special cases:</p>
+      <ul><li><code>[]</code> is the non-existing path</li><li><code>[ &quot;&quot; ]</code> is <code>&quot;/&quot;</code></li><li><code>[ &quot;&quot;;&quot;&quot; ]</code> is illegal</li></ul>
+      <p>Except of <code>s1</code> and <code>sN</code>, the path components must not be empty strings.</p>
+      
+      <p>To avoid ambiguities, it is illegal to create URLs with both relative
+paths (<code>s1 &lt;&gt; &quot;&quot;</code>) and host components.</p>
+      
+      <p>Parameters of URLs (<code>param</code> and <code>user_param</code>) are components
+beginning with <code>';'</code>. The list
+of parameters is represented as list of strings where the strings
+contain the value following <code>';'</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:modify_url">
+  <a href="index.html#/val:modify_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> modify_url : ?syntax:<a href="index.html#/type:url_syntax">url_syntax</a> <span class="rarr"><span>-&gt;</span></span> ?encoded:bool <span class="rarr"><span>-&gt;</span></span> ?scheme:string <span class="rarr"><span>-&gt;</span></span> ?user:string <span class="rarr"><span>-&gt;</span></span> ?user_param:string list <span class="rarr"><span>-&gt;</span></span> ?password:string <span class="rarr"><span>-&gt;</span></span> ?host:string <span class="rarr"><span>-&gt;</span></span> ?addr:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> ?port:int <span class="rarr"><span>-&gt;</span></span> ?socksymbol:<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a> <span class="rarr"><span>-&gt;</span></span> ?path:string list <span class="rarr"><span>-&gt;</span></span> ?param:string list <span class="rarr"><span>-&gt;</span></span> ?query:string <span class="rarr"><span>-&gt;</span></span> ?fragment:string <span class="rarr"><span>-&gt;</span></span> ?other:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Modifies the passed components and returns the modified URL.
+The modfied URL shares unmodified components with the original
+URL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove_from_url">
+  <a href="index.html#/val:remove_from_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove_from_url : ?scheme:bool <span class="rarr"><span>-&gt;</span></span> ?user:bool <span class="rarr"><span>-&gt;</span></span> ?user_param:bool <span class="rarr"><span>-&gt;</span></span> ?password:bool <span class="rarr"><span>-&gt;</span></span> ?host:bool <span class="rarr"><span>-&gt;</span></span> ?port:bool <span class="rarr"><span>-&gt;</span></span> ?path:bool <span class="rarr"><span>-&gt;</span></span> ?param:bool <span class="rarr"><span>-&gt;</span></span> ?query:bool <span class="rarr"><span>-&gt;</span></span> ?fragment:bool <span class="rarr"><span>-&gt;</span></span> ?other:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Removes the <code>true</code> components from the URL, and returns the modified
+URL.
+The modfied URL shares unmodified components with the original
+URL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_url">
+  <a href="index.html#/val:default_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_url : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> ?scheme:string <span class="rarr"><span>-&gt;</span></span> ?user:string <span class="rarr"><span>-&gt;</span></span> ?user_param:string list <span class="rarr"><span>-&gt;</span></span> ?password:string <span class="rarr"><span>-&gt;</span></span> ?host:string <span class="rarr"><span>-&gt;</span></span> ?port:int <span class="rarr"><span>-&gt;</span></span> ?path:string list <span class="rarr"><span>-&gt;</span></span> ?param:string list <span class="rarr"><span>-&gt;</span></span> ?query:string <span class="rarr"><span>-&gt;</span></span> ?fragment:string <span class="rarr"><span>-&gt;</span></span> ?other:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Adds missing components and returns the modified URL.
+The modfied URL shares unmodified components with the original
+URL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:undefault_url">
+  <a href="index.html#/val:undefault_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> undefault_url : ?scheme:string <span class="rarr"><span>-&gt;</span></span> ?user:string <span class="rarr"><span>-&gt;</span></span> ?user_param:string list <span class="rarr"><span>-&gt;</span></span> ?password:string <span class="rarr"><span>-&gt;</span></span> ?host:string <span class="rarr"><span>-&gt;</span></span> ?port:int <span class="rarr"><span>-&gt;</span></span> ?path:string list <span class="rarr"><span>-&gt;</span></span> ?param:string list <span class="rarr"><span>-&gt;</span></span> ?query:string <span class="rarr"><span>-&gt;</span></span> ?fragment:string <span class="rarr"><span>-&gt;</span></span> ?other:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Removes components from the URL if they have the passed value, and
+returns the modified URL.
+Note: The values must always be passed in <b>encoded</b> form!
+The modfied URL shares unmodified components with the original
+URL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_syntax_of_url">
+  <a href="index.html#/val:url_syntax_of_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_syntax_of_url : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url_syntax">url_syntax</a>
+    
+      <div class="doc">
+        
+      <p>Returns the <code>url_syntax</code> record of a URL.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_of_string">
+  <a href="index.html#/val:url_of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_of_string : <a href="index.html#/type:url_syntax">url_syntax</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Parses the passed string according to the passed <code>url_syntax</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_url">
+  <a href="index.html#/val:string_of_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_url : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the URL as string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_url">
+  <a href="index.html#/val:parse_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_url : ?schemes:(string, <a href="index.html#/type:url_syntax">url_syntax</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?base_syntax:<a href="index.html#/type:url_syntax">url_syntax</a> <span class="rarr"><span>-&gt;</span></span> ?accept_8bits:bool <span class="rarr"><span>-&gt;</span></span> ?enable_fragment:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Parses the string and returns the URL the string represents.
+If the URL is absolute (i.e. begins with a scheme like
+&quot;http:...&quot;), the syntax will be looked up in <code>schemes</code>.
+If the URL is relative, the <code>base_syntax</code> will be taken
+if passed. Without <code>base_syntax</code>, relative URLs cannot be
+parsed.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">schemes</span> This hashtable maps scheme names to syntax descriptions.
+The default is <code>common_url_syntax</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">base_syntax</span> If passed, the function can parse relative URLs
+according to this syntax. If not passed, the function will raise
+<code>Malformed_URL</code> on a relative URL.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">accept_8bits</span> If <code>false</code>, the default, it depends on the
+syntax descriptions in <code>schemes</code> whether 8 bit characters are
+accepted in the input or not. If <code>true</code>, 8 bit characters are
+always accepted.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">enable_fragment</span> If <code>false</code>, the default, it depends on the
+syntax descriptions in <code>schemes</code> whether fragment identifiers
+(e.g. &quot;#fragment&quot;) are recognized or not. If <code>true</code>, fragments
+are always recognized.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fixup_url_string">
+  <a href="index.html#/val:fixup_url_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fixup_url_string : ?escape_hash:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Escapes some unsafe or &quot;unwise&quot; characters that are commonly used
+in URL strings: space, &lt; &gt; { } ^ \\ | and double quotes.
+Call this function before parsing the URL to support these
+characters.</p>
+      
+      <p>If <code>escape_hash</code> is set, '#' is also escaped.</p>
+      
+      <p>Change: Since Ocamlnet-3.4, square brackets are no longer fixed up,
+because they have now a legal use to denote IPv6 addresses.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_provides">
+  <a href="index.html#/val:url_provides" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_provides : ?scheme:bool <span class="rarr"><span>-&gt;</span></span> ?user:bool <span class="rarr"><span>-&gt;</span></span> ?user_param:bool <span class="rarr"><span>-&gt;</span></span> ?password:bool <span class="rarr"><span>-&gt;</span></span> ?host:bool <span class="rarr"><span>-&gt;</span></span> ?port:bool <span class="rarr"><span>-&gt;</span></span> ?path:bool <span class="rarr"><span>-&gt;</span></span> ?param:bool <span class="rarr"><span>-&gt;</span></span> ?query:bool <span class="rarr"><span>-&gt;</span></span> ?fragment:bool <span class="rarr"><span>-&gt;</span></span> ?other:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns <code>true</code> iff the URL has all of the components passed with
+<code>true</code> value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_scheme">
+  <a href="index.html#/val:url_scheme" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_scheme : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_user">
+  <a href="index.html#/val:url_user" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_user : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_user_param">
+  <a href="index.html#/val:url_user_param" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_user_param : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_password">
+  <a href="index.html#/val:url_password" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_password : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_host">
+  <a href="index.html#/val:url_host" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_host : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_port">
+  <a href="index.html#/val:url_port" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_port : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_path">
+  <a href="index.html#/val:url_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_path : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_param">
+  <a href="index.html#/val:url_param" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_param : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_query">
+  <a href="index.html#/val:url_query" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_query : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_fragment">
+  <a href="index.html#/val:url_fragment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_fragment : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_other">
+  <a href="index.html#/val:url_other" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_other : ?encoded:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return components of the URL. The functions return decoded strings
+unless <code>encoded:true</code> is set.
+If the component does not exist, the exception <code>Not_found</code>
+is raised.</p>
+      
+      <p>Note that IPv6 addresses, when returned by <code>url_host</code>, are enclosed
+in square brackets. Modules calling <code>url_host</code> may require porting
+to support this syntax variant.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_addr">
+  <a href="index.html#/val:url_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_addr : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a>
+    
+      <div class="doc">
+        
+      <p>If the <code>host</code> part of the URL is an IP address, the address is returned.
+Works for IPv4 and IPv6 addresses. Otherwise <code>Not_found</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:url_socksymbol">
+  <a href="index.html#/val:url_socksymbol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> url_socksymbol : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/type:socksymbol">socksymbol</a>
+    
+      <div class="doc">
+        
+      <p><code>url_socksymbol url default_port</code>: Returns the <code>host</code> and <code>port</code> parts
+of the URL as <code>socksymbol</code>. If the port is missing in the URL,
+<code>default_port</code> is substituted. If the <code>host</code> is missing in the URL
+the exception <code>Not_found</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:split_path">
+  <a href="index.html#/val:split_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> split_path : string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Splits a <code>'/'</code>-separated path into components (e.g. to set up the
+<code>path</code> argument of <code>make_url</code>).
+E.g.
+</p>
+      <pre><code>     split_path &quot;a/b/c&quot; = [ &quot;a&quot;; &quot;b&quot;; &quot;c&quot; ],
+     split_path &quot;/a/b&quot;  = [ &quot;&quot;; &quot;a&quot;; &quot;b&quot; ],
+     split_path &quot;a/b/&quot;  = [ &quot;a&quot;; &quot;b&quot;; &quot;&quot; ]</code></pre>
+      <p>
+Beware that <code>split_path &quot;..&quot;</code> returns <code>[&quot;..&quot;]</code> while <code>split_path &quot;../&quot;</code>
+returns <code>[&quot;..&quot;; &quot;&quot;]</code>. The two will behave differently, for example
+when used with <a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/">Neturl</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/#/val:apply_relative_url">apply_relative_url</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:join_path">
+  <a href="index.html#/val:join_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> join_path : string list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Concatenates the path components (reverse function of split_path).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:norm_path">
+  <a href="index.html#/val:norm_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> norm_path : string list <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Removes <code>&quot;.&quot;</code> and <code>&quot;..&quot;</code> from the path if possible. Deletes double slashes.</p>
+      
+      <p><b>Examples</b></p>
+      <ul><li><code>norm_path [&quot;.&quot;] = []</code><br/>means: &quot;.&quot; = &quot;&quot;</li><li><code>norm_path [&quot;.&quot;; &quot;&quot;] = []</code><br/>means: &quot;./&quot; = &quot;&quot;</li><li><code>norm_path [&quot;a&quot;; &quot;.&quot;] = [&quot;a&quot;; &quot;&quot;]</code><br/>means: &quot;a/.&quot; = &quot;a/&quot;</li><li><code>norm_path [&quot;a&quot;; &quot;b&quot;; &quot;.&quot;] = [&quot;a&quot;; &quot;b&quot;; &quot;&quot;]</code><br/>means: &quot;a/b/.&quot; = &quot;a/b/&quot;</li><li><code>norm_path [&quot;a&quot;; &quot;.&quot;; &quot;b&quot;; &quot;.&quot;] = [&quot;a&quot;; &quot;b&quot;; &quot;&quot;]</code><br/>means: &quot;a/./b/.&quot; = &quot;a/b/&quot;</li><li><code>norm_path [&quot;..&quot;] = [&quot;..&quot;; &quot;&quot;]</code><br/>means: &quot;..&quot; = &quot;../&quot;</li><li><code>norm_path [&quot;..&quot;; &quot;&quot;] = [&quot;..&quot;; &quot;&quot;]</code><br/>means: &quot;../&quot; = &quot;../&quot;</li><li><code>norm_path [&quot;a&quot;; &quot;b&quot;; &quot;..&quot;; &quot;c&quot; ] = [&quot;a&quot;; &quot;c&quot;]</code><br/>means: &quot;a/b/../c&quot; = &quot;a/c&quot;</li><li><code>norm_path [&quot;a&quot;; &quot;b&quot;; &quot;..&quot;; &quot;c&quot;; &quot;&quot;] = [&quot;a&quot;; &quot;c&quot;; &quot;&quot;]</code><br/>means: &quot;a/b/../c/&quot; = &quot;a/c/&quot;</li><li><code>norm_path [&quot;&quot;;&quot;&quot;;&quot;a&quot;;&quot;&quot;;&quot;b&quot;] = [&quot;&quot;; &quot;a&quot;; &quot;b&quot;]</code><br/>means: &quot;//a//b&quot; = &quot;/a/b&quot;</li><li><code>norm_path [&quot;a&quot;; &quot;b&quot;; &quot;&quot;; &quot;..&quot;; &quot;c&quot;; &quot;&quot;] = [&quot;a&quot;; &quot;c&quot;; &quot;&quot;]</code><br/>means: &quot;a/b//../c/&quot; = &quot;a/c/&quot;</li><li><code>norm_path [&quot;a&quot;; &quot;..&quot;] = []</code><br/>means: &quot;a/..&quot; = &quot;&quot;</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:apply_relative_url">
+  <a href="index.html#/val:apply_relative_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> apply_relative_url : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p><code>apply_relative_url base rel</code>:
+Interprets <code>rel</code> relative to <code>base</code> and returns the new URL. This
+function implements RFC 1808.</p>
+      
+      <p>It is not necessary that <code>rel</code> has the same syntax as <code>base</code>.
+Note, however, that it is checked whether the resulting URL is
+syntactically correct with the syntax of <code>base</code>. If not, the
+exception <code>Malformed_URL</code> will be raised.</p>
+      
+      <p>Examples (the URLs are represented as strings, see <a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/">Neturl</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/#/val:split_path">split_path</a>
+to split them for <a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/">Neturl</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/neturl/#/val:make_url">make_url</a>):</p>
+      
+      <p>base=&quot;x/y&quot;, url=&quot;a/b&quot; =&gt; result=&quot;x/a/b&quot;
+base=&quot;x/y/&quot;, url=&quot;a/b&quot; =&gt; result=&quot;x/y/a/b&quot;
+base=&quot;x/y/..&quot;, url=&quot;a/b&quot; =&gt; result=&quot;x/y/a/b&quot; (beware!)
+base=&quot;x/y/../&quot;, url=&quot;a/b&quot; =&gt; result=&quot;x/a/b&quot;</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ensure_absolute_url">
+  <a href="index.html#/val:ensure_absolute_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ensure_absolute_url : ?base:<a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>If the anonymous URL is absolute, it is just returned as result of
+this function. If the URL is relative, it is tried to make it
+absolute by resolving it relative to <code>base</code>. If there is no <code>base</code>
+or if the the base URL does not allow the parts that would be added
+(e.g. if the anonymous URL possesses a fragment and <code>base</code> does not
+allow that), this will fail, and the function raises <code>Malformed_URL</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:file_url_of_local_path">
+  <a href="index.html#/val:file_url_of_local_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file_url_of_local_path : ?getcwd:(unit <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:url">url</a>
+    
+      <div class="doc">
+        
+      <p>Generates a URL with &quot;file&quot; scheme from the passed path name. The
+URL is always absolute, i.e. the current directory is prepended if the
+path is not absolute.</p>
+      
+      <p>Note that no character set conversions are performed.</p>
+      
+      <p>Win32: The input path name may use forward or backward slashes.
+Absolute paths with drive letters and UNC paths are recognised.
+Relative paths with drive letters, however, are not recognised
+(e.g. <code>&quot;c:file&quot;</code>), as it is not possible to access the drive-specific
+working directory from the O'Caml runtime.</p>
+      
+      <p>Cygwin: The input path name may use forward or backward slashes.
+Absolute paths with drive letters and UNC paths are recognised.
+The former are translated to <code>&quot;/cygdrive&quot;</code> names.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">getcwd</span> The function returns the path taken as current working
+directory. Note that for
+Win32 this must be either an absolute name with drive letter,
+or an UNC path. Default: <code>Sys.getcwd</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:local_path_of_file_url">
+  <a href="index.html#/val:local_path_of_file_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> local_path_of_file_url : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Extracts the path from an absolute file URL, and returns a
+correct path name.</p>
+      
+      <p>If the URL is not a file URL, or is not absolute, the function will
+fail.</p>
+      
+      <p>Win32: The URL must either contain a drive letter, or must refer
+to another host.</p>
+      
+      <p>Cygwin: Drive letters and remote URLs are recognised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_url">
+  <a href="index.html#/val:print_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_url : <a href="index.html#/type:url">url</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Printer for the toploop.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

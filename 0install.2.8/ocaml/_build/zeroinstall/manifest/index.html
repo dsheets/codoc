@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Manifest</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Manifest</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Generating the .manifest files</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:alg">
+  <a href="index.html#/type:alg" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> alg = string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:digest">
+  <a href="index.html#/type:digest" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> digest = string * string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_digest">
+  <a href="index.html#/val:parse_digest" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_digest : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:digest">digest</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_digest_loose">
+  <a href="index.html#/val:parse_digest_loose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_digest_loose : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:digest">digest</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:format_digest">
+  <a href="index.html#/val:format_digest" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> format_digest : <a href="index.html#/type:digest">digest</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:algorithm_names">
+  <a href="index.html#/val:algorithm_names" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> algorithm_names : string list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:generate_manifest">
+  <a href="index.html#/val:generate_manifest" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> generate_manifest : Support.Common.system <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:alg">alg</a> <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>generate_manifest system alg dir</code> scans <code>dir</code> and return the contents of the generated manifest.
+If the directory contains a .manifest file at the top level, it is ignored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hash_manifest">
+  <a href="index.html#/val:hash_manifest" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hash_manifest : <a href="index.html#/type:alg">alg</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Generate the final overall hash value of the manifest.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_manifest_file">
+  <a href="index.html#/val:add_manifest_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_manifest_file : Support.Common.system <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:alg">alg</a> <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Writes a .manifest file into 'dir', and returns the digest.
+You should call Stores.fixup_permissions before this to ensure that the permissions are correct.
+On exit, dir itself has mode 555. Subdirectories are not changed.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the value part of the digest of the manifest.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:verify">
+  <a href="index.html#/val:verify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> verify : Support.Common.system <span class="rarr"><span>-&gt;</span></span> digest:<a href="index.html#/type:digest">digest</a> <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Ensure that directory 'dir' generates the given digest.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">digest</span> the required digest (usually this is just <code>Filename.basename dir</code>)
+For a non-error return:<ul><li>The calculated digest of the contents must match <code>digest</code>.</li><li>If there is a .manifest file, then its digest must also match.</li></ul>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_tree_with_verify">
+  <a href="index.html#/val:copy_tree_with_verify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_tree_with_verify : Support.Common.system <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath <span class="rarr"><span>-&gt;</span></span> Support.Common.filepath <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:digest">digest</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Copy directory source to be a subdirectory of target if it matches the required_digest.
+manifest_data is normally source/.manifest. source and manifest_data are not trusted
+(will typically be under the control of another user).
+The copy is first done to a temporary directory in target, then renamed to the final name
+only if correct. Therefore, an invalid 'target/required_digest' will never exist.
+A successful return means than target/required_digest now exists (whether we created it or not).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:hash">
+  <a href="index.html#/type:hash" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> hash = string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mtime">
+  <a href="index.html#/type:mtime" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mtime = float
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:size">
+  <a href="index.html#/type:size" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> size = <a href="../../../../../ocaml.4.02.1+doc/stdlib/int64/">Int64</a>.<a href="../../../../../ocaml.4.02.1+doc/stdlib/int64/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:manifest_dir">
+  <a href="index.html#/type:manifest_dir" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> manifest_dir = (Support.Common.filepath * <a href="index.html#/type:tree_node">tree_node</a>) list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:tree_node">
+  <a href="index.html#/type:tree_node" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> tree_node = [ <div class="cons">| `dir <span class="keyword">of</span> <a href="index.html#/type:manifest_dir">manifest_dir</a></div><div class="cons">| `symlink <span class="keyword">of</span> <a href="index.html#/type:hash">hash</a> * <a href="index.html#/type:size">size</a></div><div class="cons">| `file <span class="keyword">of</span> bool * <a href="index.html#/type:hash">hash</a> * <a href="index.html#/type:mtime">mtime</a> * <a href="index.html#/type:size">size</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_manifest">
+  <a href="index.html#/val:parse_manifest" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_manifest : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:manifest_dir">manifest_dir</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

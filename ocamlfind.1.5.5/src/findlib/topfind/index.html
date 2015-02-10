@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Topfind</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Topfind</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Load packages from toploops and scripts</p>
+      
+      <p>The <code>Topfind</code> module is part of the <code>findlib</code> package. The module
+depends on the presence of a toploop. When building a toploop, it is
+automatically linked in if &quot;findlib&quot; is linked in, e.g.
+</p>
+      <pre><code>   ocamlfind ocamlmktop ...options... -package findlib -linkpkg </code></pre>
+      <p>When the platform supports DLLs, another possibility to get a toploop
+with findlib directives is to load the file &quot;topfind&quot; (normally installed
+in the standard library directory):
+</p>
+      <pre><code>   $ ocaml
+           Objective Caml version 3.04
+   # #use &quot;topfind&quot;;;
+   Findlib has been successfully loaded. Additional directives:
+     #require &quot;package&quot;;;      to load a package
+     #list;;                   to list the available packages
+     #camlp4o;;                to load camlp4 (standard syntax)
+     #camlp4r;;                to load camlp4 (revised syntax)
+     Topfind.reset();;         to force that packages will be reloaded
+   ~ : unit = ()
+   # _</code></pre>
+      <p>This works even in scripts (but the startup message is suppressed in this
+case).</p>
+      
+      <p>The module is not thread-safe; if used in a multi-threaded script, all
+packgage loading must have happened before the first thread forks.</p>
+      
+      <p>The Topfind module contains some functions simplifying package loading
+in scripts. Most important, there is a new directive <code>#require</code> for
+the same purpose (see below).</p>
+      
+      <p>The <code>Topfind</code> module needs some initialization, in particular the
+<code>predicates</code> variable needs to be
+set, and the packages already compiled into the toploop needs to be
+declared by the <code>don't_load</code>
+function. If the toploop has been built by <code>ocamlfind</code>,
+the necessary initialization is
+automatically compiled in.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Directives</h1>
+    </div>
+      <p>This module also defines the following directives for the toploop:</p>
+      <ul><li><code>#require &quot;&lt;package&gt;&quot;</code>
+loads the package (and if necessary the prerequisites of the package)</li><li><code>#camlp4o</code>
+loads camlp4 and selects standard syntax</li><li><code>#camlp4r</code>
+loads camlp4 and selects revised syntax</li><li><code>#list</code>
+lists the available packages (calls external command &quot;ocamlfind&quot;)</li><li><code>#thread</code>
+enables multi-threading if possible</li><li><code>#predicates &quot;p1,p2,...&quot;</code>
+adds these predicates</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Functions and variables</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:predicates">
+  <a href="index.html#/val:predicates" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> predicates : string list <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>The list of predicates used for package loading</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_predicates">
+  <a href="index.html#/val:add_predicates" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_predicates : string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds predicates to the list of predicates</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:syntax">
+  <a href="index.html#/val:syntax" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> syntax : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Emulates the <code>-syntax</code> option</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:standard_syntax">
+  <a href="index.html#/val:standard_syntax" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> standard_syntax : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds predicates that select the standard syntax. Same as
+<code>syntax &quot;camlp4o&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:revised_syntax">
+  <a href="index.html#/val:revised_syntax" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> revised_syntax : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds predicates that select the revised syntax. Same as
+<code>syntax &quot;camlp4r&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:don't_load">
+  <a href="index.html#/val:don't_load" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> don't_load : string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The packages named in pkglist are added to the list of packages which
+are already loaded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:don't_load_deeply">
+  <a href="index.html#/val:don't_load_deeply" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> don't_load_deeply : string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The packages named in pkglist and all direct and indirect ancestors
+are added to the list of packages which are already loaded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load">
+  <a href="index.html#/val:load" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load : string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The packages from the passed package list are loaded, from left to
+right, but packages that have already been loaded are left out.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_deeply">
+  <a href="index.html#/val:load_deeply" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_deeply : string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The packages from the passed package list and all direct or indirect
+ancestors are loaded in topological order. Packages that have already
+been loaded are left out.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reset">
+  <a href="index.html#/val:reset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reset : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>All entries in the list of loaded packages that have been added by
+<code>load</code> or <code>load_deeply</code> functions are removed from this list. This
+means that if you execute the same <code>load</code> or <code>load_deeply</code> functions
+again, the packages will be reloaded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:announce">
+  <a href="index.html#/val:announce" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> announce : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Output the startup message</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:log">
+  <a href="index.html#/val:log" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> log : (string <span class="rarr"><span>-&gt;</span></span> unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Function used to log messages from this module.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

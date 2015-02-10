@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>LTerm_read_line</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">LTerm_read_line</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Interactive line input</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>For a complete example of usage of this module, look at the shell
+example (examples/shell.ml) distributed with Lambda-Term.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Interrupt">
+  <a href="index.html#/exn:Interrupt" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Interrupt
+    
+      <div class="doc">
+        
+      <p>Exception raised when the user presses <code>Ctrl^D</code> with an empty
+input.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:prompt">
+  <a href="index.html#/type:prompt" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> prompt = <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Type of prompts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:history">
+  <a href="index.html#/type:history" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> history = <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p>Type of histories. It is a list of entries from the most
+recent to the oldest.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Completion</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:common_prefix">
+  <a href="index.html#/val:common_prefix" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> common_prefix : string list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the common prefix of a list of words.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup">
+  <a href="index.html#/val:lookup" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p><code>lookup word words</code> lookup for completion of <code>word</code> into
+<code>words</code>. It returns all words starting with <code>word</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup_assoc">
+  <a href="index.html#/val:lookup_assoc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup_assoc : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> * 'a) list <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> * 'a) list
+    
+      <div class="doc">
+        
+      <p><code>lookup_assoc word words</code> does the same as <a href="index.html#/val:lookup">lookup</a> but works
+on associative list.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Actions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:action">
+  <a href="index.html#/type:action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> action = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Edit">
+  <a href="index.html#/type:action/cons:Edit" class="anchor">#</a>
+  | Edit <span class="keyword">of</span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_edit/">LTerm_edit</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_edit/#/type:action">action</a>
+  </div>
+  </td><td>(*</td><td class="doc">An edition action.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Interrupt_or_delete_next_char">
+  <a href="index.html#/type:action/cons:Interrupt_or_delete_next_char" class="anchor">#</a>
+  | Interrupt_or_delete_next_char
+  </div>
+  </td><td>(*</td><td class="doc">Interrupt if at the beginning of an empty line, or delete
+the next character.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Complete">
+  <a href="index.html#/type:action/cons:Complete" class="anchor">#</a>
+  | Complete
+  </div>
+  </td><td>(*</td><td class="doc">Complete current input.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Complete_bar_next">
+  <a href="index.html#/type:action/cons:Complete_bar_next" class="anchor">#</a>
+  | Complete_bar_next
+  </div>
+  </td><td>(*</td><td class="doc">Go to the next possible completion in the completion bar.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Complete_bar_prev">
+  <a href="index.html#/type:action/cons:Complete_bar_prev" class="anchor">#</a>
+  | Complete_bar_prev
+  </div>
+  </td><td>(*</td><td class="doc">Go to the previous possible completion in the completion
+bar.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Complete_bar_first">
+  <a href="index.html#/type:action/cons:Complete_bar_first" class="anchor">#</a>
+  | Complete_bar_first
+  </div>
+  </td><td>(*</td><td class="doc">Goto the beginning of the completion bar.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Complete_bar_last">
+  <a href="index.html#/type:action/cons:Complete_bar_last" class="anchor">#</a>
+  | Complete_bar_last
+  </div>
+  </td><td>(*</td><td class="doc">Goto the end of the completion bar.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Complete_bar">
+  <a href="index.html#/type:action/cons:Complete_bar" class="anchor">#</a>
+  | Complete_bar
+  </div>
+  </td><td>(*</td><td class="doc">Complete current input using the completion bar.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:History_prev">
+  <a href="index.html#/type:action/cons:History_prev" class="anchor">#</a>
+  | History_prev
+  </div>
+  </td><td>(*</td><td class="doc">Go to the previous entry of the history.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:History_next">
+  <a href="index.html#/type:action/cons:History_next" class="anchor">#</a>
+  | History_next
+  </div>
+  </td><td>(*</td><td class="doc">Go to the next entry of the history.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Accept">
+  <a href="index.html#/type:action/cons:Accept" class="anchor">#</a>
+  | Accept
+  </div>
+  </td><td>(*</td><td class="doc">Accept the current input.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Clear_screen">
+  <a href="index.html#/type:action/cons:Clear_screen" class="anchor">#</a>
+  | Clear_screen
+  </div>
+  </td><td>(*</td><td class="doc">Clear the screen.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Prev_search">
+  <a href="index.html#/type:action/cons:Prev_search" class="anchor">#</a>
+  | Prev_search
+  </div>
+  </td><td>(*</td><td class="doc">Search backward in the history.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Cancel_search">
+  <a href="index.html#/type:action/cons:Cancel_search" class="anchor">#</a>
+  | Cancel_search
+  </div>
+  </td><td>(*</td><td class="doc">Cancel search mode.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Break">
+  <a href="index.html#/type:action/cons:Break" class="anchor">#</a>
+  | Break
+  </div>
+  </td><td>(*</td><td class="doc">Raise <code>Sys.Break</code>.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:action/cons:Suspend">
+  <a href="index.html#/type:action/cons:Suspend" class="anchor">#</a>
+  | Suspend
+  </div>
+  </td><td>(*</td><td class="doc">Suspend the program.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Type of actions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bindings">
+  <a href="index.html#/val:bindings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bindings : <a href="index.html#/type:action">action</a> list <a href="../../../../zed.1.4/_build/src/zed_input/">Zed_input</a>.<a href="../../../../zed.1.4/_build/src/zed_input/#/module:Make">Make</a>(<a href="../../../../lambda-term.1.8/_build/src/lTerm_key/">LTerm_key</a>).<a href="../../../../zed.1.4/_build/src/zed_input/#/module:Make/type:t">t</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Bindings.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bind">
+  <a href="index.html#/val:bind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bind : <a href="../../../../lambda-term.1.8/_build/src/lTerm_key/">LTerm_key</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_key/#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:action">action</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>bind seq actions</code> associates <code>actions</code> to the given
+sequence.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unbind">
+  <a href="index.html#/val:unbind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unbind : <a href="../../../../lambda-term.1.8/_build/src/lTerm_key/">LTerm_key</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_key/#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unbind seq</code> unbinds <code>seq</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:actions">
+  <a href="index.html#/val:actions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> actions : (<a href="index.html#/type:action">action</a> * string) list
+    
+      <div class="doc">
+        
+      <p>List of actions with their names, except <a href="index.html#/type:action/cons:Edit">Edit</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:doc_of_action">
+  <a href="index.html#/val:doc_of_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc_of_action : <a href="index.html#/type:action">action</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>doc_of_action action</code> returns a short description of the
+action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:action_of_name">
+  <a href="index.html#/val:action_of_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> action_of_name : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:action">action</a>
+    
+      <div class="doc">
+        
+      <p><code>action_of_name str</code> converts the given action name into an
+action. Action name are the same as variants name but lowercased
+and with '_' replaced by '-'. It raises <code>Not_found</code> if the name
+does not correspond to an action. It also recognizes edition
+actions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:name_of_action">
+  <a href="index.html#/val:name_of_action" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name_of_action : <a href="index.html#/type:action">action</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>name_of_action act</code> returns the name of the given action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">The read-line engine</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:macro">
+  <a href="index.html#/val:macro" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> macro : <a href="index.html#/type:action">action</a> <a href="../../../../zed.1.4/_build/src/zed_macro/">Zed_macro</a>.<a href="../../../../zed.1.4/_build/src/zed_macro/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>The global macro recorder.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mode">
+  <a href="index.html#/type:mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mode = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:mode/cons:Edition">
+  <a href="index.html#/type:mode/cons:Edition" class="anchor">#</a>
+  | Edition
+  </div>
+  </td><td>(*</td><td class="doc">Editing.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:mode/cons:Search">
+  <a href="index.html#/type:mode/cons:Search" class="anchor">#</a>
+  | Search
+  </div>
+  </td><td>(*</td><td class="doc">Backward search.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:mode/cons:Set_counter">
+  <a href="index.html#/type:mode/cons:Set_counter" class="anchor">#</a>
+  | Set_counter
+  </div>
+  </td><td>(*</td><td class="doc">Setting the macro counter value.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:mode/cons:Add_counter">
+  <a href="index.html#/type:mode/cons:Add_counter" class="anchor">#</a>
+  | Add_counter
+  </div>
+  </td><td>(*</td><td class="doc">Adding a value to the macro counter.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>The current read-line mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine">
+  <a href="index.html#/class:engine" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> ['a] engine : 
+    ?history:<a href="index.html#/type:history">history</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?clipboard:<a href="../../../../zed.1.4/_build/src/zed_edit/">Zed_edit</a>.<a href="../../../../zed.1.4/_build/src/zed_edit/#/type:clipboard">clipboard</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?macro:<a href="index.html#/type:action">action</a> <a href="../../../../zed.1.4/_build/src/zed_macro/">Zed_macro</a>.<a href="../../../../zed.1.4/_build/src/zed_macro/#/type:t">t</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Result</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:engine/method:eval">
+  <a href="index.html#/class:engine/method:eval" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> eval : 'a
+  
+      <div class="doc">
+        
+      <p>Evaluates the contents of the engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Actions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:engine/method:insert">
+  <a href="index.html#/class:engine/method:insert" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> insert : <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Inserts the given character. Note that is it also possible to
+manipulate directly the edition context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:send_action">
+  <a href="index.html#/class:engine/method:send_action" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> send_action : <a href="index.html#/type:action">action</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Evolves according to the given action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">State</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:engine/method:edit">
+  <a href="index.html#/class:engine/method:edit" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> edit : unit <a href="../../../../zed.1.4/_build/src/zed_edit/">Zed_edit</a>.<a href="../../../../zed.1.4/_build/src/zed_edit/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>The edition engine used by this read-line engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:context">
+  <a href="index.html#/class:engine/method:context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> context : unit <a href="../../../../zed.1.4/_build/src/zed_edit/">Zed_edit</a>.<a href="../../../../zed.1.4/_build/src/zed_edit/#/type:context">context</a>
+  
+      <div class="doc">
+        
+      <p>The context for the edition engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:clipboard">
+  <a href="index.html#/class:engine/method:clipboard" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> clipboard : <a href="../../../../zed.1.4/_build/src/zed_edit/">Zed_edit</a>.<a href="../../../../zed.1.4/_build/src/zed_edit/#/type:clipboard">clipboard</a>
+  
+      <div class="doc">
+        
+      <p>The clipboard used by the edition engine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:macro">
+  <a href="index.html#/class:engine/method:macro" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> macro : <a href="index.html#/type:action">action</a> <a href="../../../../zed.1.4/_build/src/zed_macro/">Zed_macro</a>.<a href="../../../../zed.1.4/_build/src/zed_macro/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>The macro recorder.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:input_prev">
+  <a href="index.html#/class:engine/method:input_prev" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_prev : <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>The input before the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:input_next">
+  <a href="index.html#/class:engine/method:input_next" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_next : <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>The input after the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:mode">
+  <a href="index.html#/class:engine/method:mode" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> mode : <a href="index.html#/type:mode">mode</a> <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>The current mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:stylise">
+  <a href="index.html#/class:engine/method:stylise" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> stylise : bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> * int
+  
+      <div class="doc">
+        
+      <p>Returns the stylised input and the position of the cursor. The
+argument is <code>true</code> if this is for the last drawing or <code>false</code>
+otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:history">
+  <a href="index.html#/class:engine/method:history" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> history : (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> list * <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> list) <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>The history zipper.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:message">
+  <a href="index.html#/class:engine/method:message" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> message : <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> option <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>A message to display in the completion box. When <code>None</code> the
+completion should be displayed, and when <code>Some msg</code> <code>msg</code>
+should be displayed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Completion</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:engine/method:completion_words">
+  <a href="index.html#/class:engine/method:completion_words" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> completion_words : (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> * <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>) list <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>Current possible completions. Each completion is of the form
+<code>(word, suffix)</code> where <code>word</code> is the completion itself and
+<code>suffix</code> is a suffix to add if the completion is choosen.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:completion_index">
+  <a href="index.html#/class:engine/method:completion_index" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> completion_index : int <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>The position in the completion bar.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:set_completion">
+  <a href="index.html#/class:engine/method:set_completion" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_completion : ?index:int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> * <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>) list <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>set_completion ?index start words</code> sets the current
+completions. <code>start</code> is the position of the beginning of the word
+being completed and <code>words</code> is the list of possible
+completions with their suffixes. <code>index</code> is the position in the completion
+bar, default to <code>0</code>. The result is made available
+through the <a href="index.html#/class:engine/method:completion_words">completion_words</a> signal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:completion">
+  <a href="index.html#/class:engine/method:completion" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> completion : unit
+  
+      <div class="doc">
+        
+      <p>Ask for computing completion for current input. This method
+should call <a href="index.html#/class:engine/method:set_completion">set_completion</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:complete">
+  <a href="index.html#/class:engine/method:complete" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> complete : unit
+  
+      <div class="doc">
+        
+      <p>Complete current input. This is the method called when the
+user presses Tab.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:engine/method:show_box">
+  <a href="index.html#/class:engine/method:show_box" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> show_box : bool
+  
+      <div class="doc">
+        
+      <p>Whether to show the box or not. It default to <code>true</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>The read-line engine. If no clipboard is provided,
+<a href="../../../../lambda-term.1.8/_build/src/lTerm_edit/">LTerm_edit</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_edit/#/val:clipboard">clipboard</a> is used. If no macro recorder is provided,
+<a href="index.html#/val:macro">macro</a> is used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract">
+  <a href="index.html#/class:abstract" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> ['a] abstract : 
+  <div class="region" id="/class:abstract/method:eval">
+  <a href="index.html#/class:abstract/method:eval" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> eval : 'a
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:send_action">
+  <a href="index.html#/class:abstract/method:send_action" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> send_action : <a href="index.html#/type:action">action</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:insert">
+  <a href="index.html#/class:abstract/method:insert" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> insert : <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:edit">
+  <a href="index.html#/class:abstract/method:edit" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> edit : unit <a href="../../../../zed.1.4/_build/src/zed_edit/">Zed_edit</a>.<a href="../../../../zed.1.4/_build/src/zed_edit/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:context">
+  <a href="index.html#/class:abstract/method:context" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> context : unit <a href="../../../../zed.1.4/_build/src/zed_edit/">Zed_edit</a>.<a href="../../../../zed.1.4/_build/src/zed_edit/#/type:context">context</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:clipboard">
+  <a href="index.html#/class:abstract/method:clipboard" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> clipboard : <a href="../../../../zed.1.4/_build/src/zed_edit/">Zed_edit</a>.<a href="../../../../zed.1.4/_build/src/zed_edit/#/type:clipboard">clipboard</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:macro">
+  <a href="index.html#/class:abstract/method:macro" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> macro : <a href="index.html#/type:action">action</a> <a href="../../../../zed.1.4/_build/src/zed_macro/">Zed_macro</a>.<a href="../../../../zed.1.4/_build/src/zed_macro/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:stylise">
+  <a href="index.html#/class:abstract/method:stylise" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> stylise : bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> * int
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:history">
+  <a href="index.html#/class:abstract/method:history" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> history : (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> list * <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> list) <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:message">
+  <a href="index.html#/class:abstract/method:message" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> message : <a href="../../../../lambda-term.1.8/_build/src/lTerm_text/">LTerm_text</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_text/#/type:t">t</a> option <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:input_prev">
+  <a href="index.html#/class:abstract/method:input_prev" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> input_prev : <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:input_next">
+  <a href="index.html#/class:abstract/method:input_next" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> input_next : <a href="../../../../zed.1.4/_build/src/zed_rope/">Zed_rope</a>.<a href="../../../../zed.1.4/_build/src/zed_rope/#/type:t">t</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:completion_words">
+  <a href="index.html#/class:abstract/method:completion_words" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> completion_words : (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> * <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>) list <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:completion_index">
+  <a href="index.html#/class:abstract/method:completion_index" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> completion_index : int <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:set_completion">
+  <a href="index.html#/class:abstract/method:set_completion" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> set_completion : ?index:int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a> * <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>) list <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:completion">
+  <a href="index.html#/class:abstract/method:completion" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> completion : unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:complete">
+  <a href="index.html#/class:abstract/method:complete" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> complete : unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:show_box">
+  <a href="index.html#/class:abstract/method:show_box" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> show_box : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:abstract/method:mode">
+  <a href="index.html#/class:abstract/method:mode" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> mode : <a href="index.html#/type:mode">mode</a> <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Abstract version of <a href="index.html#/class:engine">engine</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Predefined classes</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:read_line">
+  <a href="index.html#/class:read_line" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> read_line : 
+    ?history:<a href="index.html#/type:history">history</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> [<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>] <a href="index.html#/class:engine">engine</a>
+    </div>
+    
+  <div class="region" id="/class:read_line/method:eval">
+  <a href="index.html#/class:read_line/method:eval" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> eval : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Returns the result as a UTF-8 encoded string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>Simple read-line engine which returns the result as a string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:read_password">
+  <a href="index.html#/class:read_password" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> read_password : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> [<a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>] <a href="index.html#/class:engine">engine</a>
+    </div>
+    
+  <div class="region" id="/class:read_password/method:eval">
+  <a href="index.html#/class:read_password/method:eval" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> eval : <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Returns the result as a UTF-8 encoded string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+      <div class="doc">
+        
+      <p>Read-line engine for reading a password. The <code>stylise</code> method
+default to replacing all characters by <code>'*'</code>. You can also for
+example completely disable displaying the password by doing:</p>
+      <pre><code>      method stylise = ([||], 0)</code></pre>
+      <p>Also showing completion is disabled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:read_keyword_result">
+  <a href="index.html#/type:read_keyword_result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a read_keyword_result = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:read_keyword_result/cons:Rk_value">
+  <a href="index.html#/type:read_keyword_result/cons:Rk_value" class="anchor">#</a>
+  | Rk_value <span class="keyword">of</span> 'a
+  </div>
+  </td><td>(*</td><td class="doc">The user typed a correct keyword and this is its associated
+value.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:read_keyword_result/cons:Rk_error">
+  <a href="index.html#/type:read_keyword_result/cons:Rk_error" class="anchor">#</a>
+  | Rk_error <span class="keyword">of</span> <a href="../../../../zed.1.4/_build/src/zed_utf8/">Zed_utf8</a>.<a href="../../../../zed.1.4/_build/src/zed_utf8/#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">The user did not enter a correct keyword and this is what he
+typed instead.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>The result of reading a keyword.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:read_keyword">
+  <a href="index.html#/class:read_keyword" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> ['a] read_keyword : 
+    ?history:<a href="index.html#/type:history">history</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> ['a <a href="index.html#/type:read_keyword_result">read_keyword_result</a>] <a href="index.html#/class:engine">engine</a>
+    </div>
+    
+  <div class="region" id="/class:read_keyword/method:eval">
+  <a href="index.html#/class:read_keyword/method:eval" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> eval : 'a <a href="index.html#/type:read_keyword_result">read_keyword_result</a>
+  
+      <div class="doc">
+        
+      <p>If the input correspond to a keyword, returns its associated
+value. otherwise returns <code>`Error input</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:read_keyword/method:keywords">
+  <a href="index.html#/class:read_keyword/method:keywords" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> keywords : (string * 'a) list
+  
+      <div class="doc">
+        
+      <p>List of keywords with their associated values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+    
+      <div class="doc">
+        
+      <p>Read a keyword.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Running in a terminal</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:term">
+  <a href="index.html#/class:term" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> ['a] term : 
+    <a href="../../../../lambda-term.1.8/_build/src/lTerm/">LTerm</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm/#/type:t">t</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> ['a] <a href="index.html#/class:abstract">abstract</a>
+    </div>
+    
+  <div class="region" id="/class:term/method:run">
+  <a href="index.html#/class:term/method:run" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> run : 'a <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Run this read-line instance.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:exec">
+  <a href="index.html#/class:term/method:exec" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> exec : <a href="index.html#/type:action">action</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Executes a list of actions. Rememver to call <code>Zed_macro.add
+        self#macro action</code> if you overload this method.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:draw_update">
+  <a href="index.html#/class:term/method:draw_update" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> draw_update : unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Updates current display and put the cursor at current edition
+position.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:draw_success">
+  <a href="index.html#/class:term/method:draw_success" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> draw_success : unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Draws after accepting current input.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:draw_failure">
+  <a href="index.html#/class:term/method:draw_failure" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> draw_failure : unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Draws after an exception has been raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:prompt">
+  <a href="index.html#/class:term/method:prompt" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> prompt : <a href="index.html#/type:prompt">prompt</a> <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>The signal holding the prompt.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:set_prompt">
+  <a href="index.html#/class:term/method:set_prompt" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_prompt : <a href="index.html#/type:prompt">prompt</a> <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Sets the prompt signal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:size">
+  <a href="index.html#/class:term/method:size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> size : <a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/">LTerm_geom</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_geom/#/type:size">size</a> <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>The size of the terminal. This can be used for computing the
+prompt.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:key_sequence">
+  <a href="index.html#/class:term/method:key_sequence" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> key_sequence : <a href="../../../../lambda-term.1.8/_build/src/lTerm_key/">LTerm_key</a>.<a href="../../../../lambda-term.1.8/_build/src/lTerm_key/#/type:t">t</a> list <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>The currently typed key sequence.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:completion_start">
+  <a href="index.html#/class:term/method:completion_start" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> completion_start : int <a href="../../../../react.1.2.0/_build/src/react/">React</a>.<a href="../../../../react.1.2.0/_build/src/react/#/type:signal">signal</a>
+  
+      <div class="doc">
+        
+      <p>Index of the first displayed word in the completion bar.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:hide">
+  <a href="index.html#/class:term/method:hide" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> hide : unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Hide this read-line instance. It remains invisible until
+<a href="index.html#/class:term/method:show">show</a> is called.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/method:show">
+  <a href="index.html#/class:term/method:show" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> show : unit <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Show this read-line instance if it has been previously
+hidden.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:term/var:visible">
+  <a href="index.html#/class:term/var:visible" class="anchor">#</a>
+  
+  <div class="classval">
+  <span class="keyword">val</span> <span class="keyword">mutable</span> visible : bool
+  
+      <div class="doc">
+        
+      <p>Whether the instance is visible.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+    
+      <div class="doc">
+        
+      <p>Class for read-line instances running in a terminal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

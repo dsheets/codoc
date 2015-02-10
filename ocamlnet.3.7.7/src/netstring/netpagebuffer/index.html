@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netpagebuffer</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netpagebuffer</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Buffer for page-aligned I/O</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This kind of buffer uses page-aligned bigarrays. Data can only be
+added to the end, or deleted at the beginning of the buffer.</p>
+      
+      <p>The idea of this buffer is that input data is added to the last
+page of the buffer only (with <code>add_inplace</code>). If then all previous
+input was already a multiple of the page size, it is ensured that
+the new input is added at a page boundary. This kind of input operation
+can often be accelerated by the OS (&quot;zero copy network I/O&quot;).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>create <code>blocksize</code>: creates new buffer with this <code>blocksize</code>, which must
+be a whole multiple of the page size of the OS</p>
+      
+      <p>The <code>blocksize</code> is normally either</p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/val:default_block_size">default_block_size</a>, or</li><li><a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/val:small_block_size">small_block_size</a></li></ul>
+      <p>These cases are optimized, and the buffer is allocated in a shared
+pool.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:contents">
+  <a href="index.html#/val:contents" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> contents : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the contents as string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>The length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sub">
+  <a href="index.html#/val:sub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sub : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a substring</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_to_string">
+  <a href="index.html#/val:blit_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_to_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Blits contents to a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blit_to_memory">
+  <a href="index.html#/val:blit_to_memory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blit_to_memory : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Blits contents to another memory buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_string">
+  <a href="index.html#/val:add_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a string to the end of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_sub_string">
+  <a href="index.html#/val:add_sub_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_sub_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a sub string to the end of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_sub_memory">
+  <a href="index.html#/val:add_sub_memory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_sub_memory : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a sub memory buffer to the end of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_inplace">
+  <a href="index.html#/val:add_inplace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_inplace : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>add_inplace b f</code>: Calls <code>f m pos len</code> where <code>m</code> is the last page
+of the buffer, and <code>pos</code> is the first free byte on the page, and
+<code>len</code> is the number of free bytes on the page. The function <code>f</code> is
+expected to store new data in <code>m</code> from <code>pos</code> to <code>pos+n-1</code> and to
+return <code>n</code>. The number <code>n</code> is also returned as final result.</p>
+      
+      <p>It is ensured that <code>f</code> is called with a value of <code>len&gt;=1</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:page_for_additions">
+  <a href="index.html#/val:page_for_additions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> page_for_additions : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> * int * int
+    
+      <div class="doc">
+        
+      <p><code>let (m,pos,len) = page_for_additions b</code>: Returns the last page
+in <code>m</code>, the first free byte on the page in <code>pos</code>, and
+the number of free bytes on the page in <code>len</code>. (The same values
+the function <code>f</code> would have got as arguments in <code>add_inplace</code>.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:advance">
+  <a href="index.html#/val:advance" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> advance : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>advance b n</code>: Marks further <code>n</code> bytes in the last page of the
+buffer as used. These bytes are not modified in any way - it is
+expected that the user calls <code>page_for_additions</code> first, and sets
+these <code>n</code> bytes to new values directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:page_for_consumption">
+  <a href="index.html#/val:page_for_consumption" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> page_for_consumption : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> * int * int
+    
+      <div class="doc">
+        
+      <p><code>let (m,pos,len) = page_for_consumption b</code>: Returns the first page
+in <code>m</code>, the first used byte on the page in <code>pos</code>, and
+the number of used bytes on the page in <code>len</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_hd">
+  <a href="index.html#/val:delete_hd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_hd : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_hd b n</code>: Deletes <code>n</code> bytes from the beginning of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Deletes all contents of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Searching</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:index_from">
+  <a href="index.html#/val:index_from" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> index_from : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>index_from nb k c</code>: Searches the character <code>c</code> in the buffer beginning
+at position <code>k</code>. If found, the position of the left-most occurence is
+returned. Otherwise, <code>Not_found</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

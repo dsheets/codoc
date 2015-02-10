@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netshm</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netshm</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shared memory for O'Caml programs using multi-processing</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Shared Memory Descriptors</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:shm_descr">
+  <a href="index.html#/type:shm_descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> shm_descr
+    
+      <div class="doc">
+        
+      <p>A shared memory descriptor refers to a shared memory object.
+Such a descriptor must only be opened once for every process.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:shm_type">
+  <a href="index.html#/type:shm_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> shm_type = [ <div class="cons">| `POSIX</div><div class="cons">| `File</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:supported_types">
+  <a href="index.html#/val:supported_types" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> supported_types : <a href="index.html#/type:shm_type">shm_type</a> list
+    
+      <div class="doc">
+        
+      <p>The types supported for this OS</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:shm_name">
+  <a href="index.html#/type:shm_name" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> shm_name = [ <div class="cons">| `POSIX <span class="keyword">of</span> string</div><div class="cons">| `File <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>A <code>shm_name</code> is a name for a shared memory object.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_type_of_name">
+  <a href="index.html#/val:shm_type_of_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shm_type_of_name : <a href="index.html#/type:shm_name">shm_name</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_type">shm_type</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:open_shm">
+  <a href="index.html#/val:open_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> open_shm : <a href="index.html#/type:shm_name">shm_name</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:open_flag">open_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_descr">shm_descr</a>
+    
+      <div class="doc">
+        
+      <p>Opens the shared memory object.</p>
+      
+      <p>For <code>POSIX_shm</code> not all open flags can be specified. The flags
+are limited to <code>O_RDONLY</code>, <code>O_RDWR</code>, <code>O_CREAT</code>, <code>O_EXCL</code> and
+<code>O_TRUNC</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_unique_shm">
+  <a href="index.html#/val:create_unique_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_unique_shm : <a href="index.html#/type:shm_name">shm_name</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_descr">shm_descr</a>
+    
+      <div class="doc">
+        
+      <p>Create a shared memory object under a name that is derived
+from the passed <code>shm_name</code>. The actual name can be queried with
+<code>name_of_shm</code> (below).</p>
+      
+      <p>For <code>POSIX</code> and <code>File</code> names, deriving works by replacing
+the 'X' letters in the file name by random digits and letters.
+For example, if the name is <code>File &quot;/my/directory/ocaml.XXXXXX&quot;</code>
+six random characters are generated and replace the 'X' letters
+such that the file is unique.</p>
+      
+      <p>The integer is the file permission.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:name_of_shm">
+  <a href="index.html#/val:name_of_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name_of_shm : <a href="index.html#/type:shm_descr">shm_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_name">shm_name</a>
+    
+      <div class="doc">
+        
+      <p>Returns the name of an object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_shm">
+  <a href="index.html#/val:close_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_shm : <a href="index.html#/type:shm_descr">shm_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Closes the object. The object remains existent and can be
+opened again.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unlink_shm">
+  <a href="index.html#/val:unlink_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlink_shm : <a href="index.html#/type:shm_name">shm_name</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Removes the name permanently from the system</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chmod_shm">
+  <a href="index.html#/val:chmod_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chmod_shm : <a href="index.html#/type:shm_descr">shm_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:chown_shm">
+  <a href="index.html#/val:chown_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> chown_shm : <a href="index.html#/type:shm_descr">shm_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set file permission bits, user and group ownership of the object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:locking_method">
+  <a href="index.html#/type:locking_method" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> locking_method = [ <div class="cons">| `No_locking</div><div class="cons">| `Record_locking</div> ]
+    
+      <div class="doc">
+        
+      <p>The locking method is used to ensure that parallel read and write
+operations to the memory object do not interfer with each other.
+If <code>No_locking</code> is selected, such protection is not done - this
+is ok if only read accesses occur or if the user can ensure that
+never a write access is done in parallel with another access.
+The locking method must be compatible with the type of shared memory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:best_locking_method">
+  <a href="index.html#/val:best_locking_method" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> best_locking_method : <a href="index.html#/type:shm_type">shm_type</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:locking_method">locking_method</a>
+    
+      <div class="doc">
+        
+      <p>Return the best locking method other than <code>No_locking</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Shared Memory Tables</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>This is a quite basic data structure implemented for shared memory:
+hash tables with <code>int32</code> as key and one-dimensional <code>int32</code>
+bigarray as values.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The semantics resembles the <code>Hashtbl</code> of stdlib</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:shm_table">
+  <a href="index.html#/type:shm_table" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> shm_table
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:int32_array">
+  <a href="index.html#/type:int32_array" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> int32_array = (int32, <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:int32_elt">int32_elt</a>, <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:c_layout">c_layout</a>) <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1">Array1</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array1/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Corrupt_file">
+  <a href="index.html#/exn:Corrupt_file" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Corrupt_file <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Raised when a violation of the object format is detected</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Deadlock">
+  <a href="index.html#/exn:Deadlock" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Deadlock
+    
+      <div class="doc">
+        
+      <p>Raised when a deadlock situation was detected. Deadlocks can occur
+when the <code>group</code> function is used</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:manage">
+  <a href="index.html#/val:manage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> manage : ?pagesize:int <span class="rarr"><span>-&gt;</span></span> ?init:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:locking_method">locking_method</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_descr">shm_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_table">shm_table</a>
+    
+      <div class="doc">
+        
+      <p>Starts managing an open shared memory object as <code>shm_table</code>. If
+the object is empty, it is automatically enlarged to the
+minimum size and initialized. If the object is non-empty it is
+expected that it already contains a valid <code>shm_table</code> structure.</p>
+      
+      <p>The object automatically grows in size when new elements are
+added to the object. By removing elements, however, the
+object is never shrinked. Unused memory is held back for later
+reallocation by the same <code>shm_table</code>.</p>
+      
+      <p>By default, the table uses a page size of 256 bytes. The page size is
+the unit of memory allocation. The parameter <code>pagesize</code> overrides
+this default. The page size must be at least 160 and divisible by 4.
+The page size must be the same when the table was created.</p>
+      
+      <p>By passing <code>init</code> it is enforced that the table is re-initialized
+(deleted and again created). The argument of <code>init</code> is a hint
+for the number of elements the table will contain. The data
+structure is then created such that this many elements can be added
+without needing expensive data reorganization.</p>
+      
+      <p>Special note for using <code>shm_table</code> with multiple processes: Every
+process must create its own <code>shm_descr</code>, and every process must
+call <code>manage</code> to manage it. It is not sufficient to just fork
+a new process, and to keep using the already existing
+<code>shm_descr</code> or <code>shm_table</code> in the subprocess. (This doesn't work
+because the underlying file descriptor would be shared.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:group">
+  <a href="index.html#/val:group" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> group : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p>Execute a sequence of operations in a group:</p>
+      <pre><code>      let r =
+         group table
+           (fun arg -&gt;
+              operation1; operation2; ...)
+           arg</code></pre>
+      <p>Operations can be any reading or writing functions from below. The
+effect is that the locking requirements of the operations are merged,
+so that no operation of another process can interfer with the grouped
+sequence. Note, however, that this gives no real atomicity as there
+is no way to roll back half-executed sequences.</p>
+      
+      <p>Groups can be nested.</p>
+      
+      <p>An example of <code>group</code> is to set a binding depending on the previous
+value of the binding. Here, we add 1:</p>
+      <pre><code>      let add_one table =
+         group table
+           (fun key -&gt;
+             let ba =
+               try find table key 
+               with Not_found -&gt; 
+                 Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout 1 in
+             ba.{ 0 } &lt;- Int32.succ ba.{ 0 };
+             replace table key ba
+           )</code></pre>
+      <p>Grouping protects the update from modifications done by other processes
+at the same time. In particular, without grouping it can happen that
+another process also modifies the same value between <code>find</code> and
+<code>replace</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:int32_array">int32_array</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add tbl key value</code>: Adds the binding of <code>key</code> to <code>value</code> to the
+table. Previous bindings are not removed, but simply hidden.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find">
+  <a href="index.html#/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:int32_array">int32_array</a>
+    
+      <div class="doc">
+        
+      <p><code>find tbl key</code>: Finds the current binding of <code>key</code> in <code>tbl</code> or
+raises <code>Not_found</code> if no such binding exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_all">
+  <a href="index.html#/val:find_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_all : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:int32_array">int32_array</a> list
+    
+      <div class="doc">
+        
+      <p><code>find_all tbl key</code> returns the list of all data
+associated with <code>key</code> in <code>tbl</code>.
+The current binding is returned first, then the previous
+bindings, in reverse order of introduction in the table.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mem">
+  <a href="index.html#/val:mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>mem tbl key</code> checks if <code>key</code> is bound in <code>tbl</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>remove tbl key</code> removes the current binding of <code>key</code> in <code>tbl</code>,
+restoring the previous binding if it exists.
+It does nothing if <code>key</code> is not bound in <code>tbl</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace">
+  <a href="index.html#/val:replace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:int32_array">int32_array</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>replace tbl key value</code> replaces the current binding of <code>key</code>
+in <code>tbl</code> by a binding of <code>key</code> to <code>value</code>. If <code>key</code> is unbound in <code>tbl</code>,
+a binding of <code>key</code> to <code>value</code> is added to <code>tbl</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : (int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:int32_array">int32_array</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter f tbl</code> applies <code>f</code> to all bindings in table <code>tbl</code>.
+<code>f</code> receives the key as first argument, and the associated value
+as second argument. Each binding is presented exactly once to <code>f</code>.
+The order in which the bindings are passed to <code>f</code> is unspecified.
+However, if the table contains several bindings for the same key,
+they are passed to <code>f</code> in reverse order of introduction, that is,
+the most recent binding is passed first.</p>
+      
+      <p>While the iteration is in progress, the table is read-locked.
+That means you cannot modify it during the iteration.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_keys">
+  <a href="index.html#/val:iter_keys" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_keys : (int32 <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter_keys f tbl</code> applies <code>f</code> to all keys in table <code>tbl</code>. If there
+are several bindings for a key, <code>f</code> is only called once.</p>
+      
+      <p>While the iteration is in progress, the table is locked.
+That means you cannot modify it during the iteration.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : (int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:int32_array">int32_array</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>fold f tbl init</code> computes
+<code>(f kN dN ... (f k1 d1 init)...)</code>,
+where <code>k1 ... kN</code> are the keys of all bindings in <code>tbl</code>,
+and <code>d1 ... dN</code> are the associated values.
+Each binding is presented exactly once to <code>f</code>.
+The order in which the bindings are passed to <code>f</code> is unspecified.
+However, if the table contains several bindings for the same key,
+they are passed to <code>f</code> in reverse order of introduction, that is,
+the most recent binding is passed first.</p>
+      
+      <p>While the iteration is in progress, the table is locked.
+That means you cannot modify it during the iteration.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>length tbl</code> returns the number of bindings in <code>tbl</code>.
+Multiple bindings are counted multiply, so <code>length</code>
+gives the number of times <code>iter</code> calls its first argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Enhanced API to shared memory tables</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Next">
+  <a href="index.html#/exn:Next" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Next
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Break">
+  <a href="index.html#/exn:Break" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Break
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_blocks">
+  <a href="index.html#/val:read_blocks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_blocks : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:int32_array">int32_array</a> option <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>find_blocks tbl key f</code>: The values may be stored in several
+disk blocks. This interface allows one to access the values block by
+block. As <code>find_all</code>, all bindings for <code>key</code> in <code>tbl</code> are determined
+in reverse order, i.e. the newest binding first, the oldest last.
+For every binding <code>value</code>, the function <code>f</code> is invoked in a sequence
+<code>f (Some v1)</code>, <code>f (Some v2)</code>, ..., <code>f (Some vN)</code>, <code>f None</code>
+where
+<code>value</code> is the array concatenation of <code>v1</code>, <code>v2</code>, ..., <code>vN</code>.
+The function <code>f</code> may raise the exception <code>Next</code> to go
+directly to the start of the next binding of <code>key</code>.
+The exception <code>Break</code> stops the iteration immediately.</p>
+      
+      <p>Note that the <code>int32_array</code> fragments <code>vK</code> point to shared memory.
+Any assignment would modify the shared memory object directly!
+The binding is at that time, however, only read-locked, so this
+should be avoided.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:write_op">
+  <a href="index.html#/type:write_op" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> write_op = [ <div class="cons">| `Remove_binding</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ctrl_op">
+  <a href="index.html#/type:ctrl_op" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ctrl_op = [ <div class="cons">| `Nop</div><div class="cons">| <a href="index.html#/type:write_op">write_op</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_blocks">
+  <a href="index.html#/val:write_blocks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_blocks : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:write_op">write_op</a> list <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:int32_array">int32_array</a> option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:ctrl_op">ctrl_op</a>) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>write_blocks tbl ops key f</code>: Like <code>read_blocks</code> this function iterates
+over the blocks of all bindings for <code>key</code>. For every binding <code>value</code>,
+the function <code>f</code> is invoked in a sequence
+<code>f (Some v1)</code>, <code>f (Some v2)</code>, ..., <code>f (Some vN)</code>, <code>f None</code>.
+Unlike <code>read_blocks</code> the function <code>f</code> returns a value.
+The last non-<code>`Nop</code> result value in this sequence determines the
+modification to carry out for the binding:</p>
+      <ul><li><code>`Remove_binding</code>: The whole binding is removed from the table.</li></ul>
+      <p>If all invocations of <code>f</code> just return <code>`Nop</code>, no further modification
+is done.</p>
+      
+      <p>The modifications must be announced in the <code>ops</code> argument. It is
+not allowed that <code>f</code> returns a value not being a member of <code>ops</code>
+(except <code>`Nop</code>).</p>
+      
+      <p>It is possible to raise the special exceptions <code>Next</code> and <code>Break</code>
+just as for <code>read_blocks</code>.</p>
+      
+      <p>Note that the <code>int32_array</code> fragments <code>vK</code> point to shared memory.
+Any assignment will modify the shared memory object directly!
+The binding is at that time write-locked, so such assignments
+are protected against concurrent writes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dump">
+  <a href="index.html#/val:dump" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dump : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bigarray">
+  <a href="index.html#/val:bigarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bigarray : int array <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:int32_array">int32_array</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:memory">
+  <a href="index.html#/val:memory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> memory : <a href="index.html#/type:shm_table">shm_table</a> <span class="rarr"><span>-&gt;</span></span> (int32, <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:int32_elt">int32_elt</a>, <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/type:c_layout">c_layout</a>) <a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/">Bigarray</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array2">Array2</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/bigarray/bigarray/#/module:Array2/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

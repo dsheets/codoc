@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Hashcons</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Hashcons</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Hash tables for hash consing.</p>
+      
+      <p>Hash consed values are of the
+following type <code>hash_consed</code>. The field <code>tag</code> contains a unique
+integer (for values hash consed with the same table). The field
+<code>hkey</code> contains the hash key of the value (without modulo) for
+possible use in other hash tables (and internally when hash
+consing tables are resized). The field <code>node</code> contains the value
+itself.</p>
+      
+      <p>Hash consing tables are using weak pointers, so that values that are no
+more referenced from anywhere else can be erased by the GC.</p>
+      
+        
+  <div class="tag author">
+    <span class="label">Author</span> Jean-Christophe FILLIATRE
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:hash_consed">
+  <a href="index.html#/type:hash_consed" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a hash_consed = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:hash_consed/field:hkey">
+  <a href="index.html#/type:hash_consed/field:hkey" class="anchor">#</a>
+  hkey
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:hash_consed/field:tag">
+  <a href="index.html#/type:hash_consed/field:tag" class="anchor">#</a>
+  tag
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:hash_consed/field:node">
+  <a href="index.html#/type:hash_consed/field:node" class="anchor">#</a>
+  node
+  </div>
+  </td><td>: 'a</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+      <div class="doc">
+        
+      <p>Generic part, using ocaml generic equality and hash function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create n</code> creates an empty table of initial size <code>n</code>. The table
+will grow as needed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Removes all elements from the table.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hashcons">
+  <a href="index.html#/val:hashcons" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hashcons : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:hash_consed">hash_consed</a>
+    
+      <div class="doc">
+        
+      <p><code>hashcons t n</code> hash-cons the value <code>n</code> using table <code>t</code> i.e. returns
+any existing value in <code>t</code> equal to <code>n</code>, if any; otherwise, allocates
+a new one hash-consed value of node <code>n</code> and returns it.
+As a consequence the returned value is physically equal to
+any equal value already hash-consed using table <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('a <a href="index.html#/type:hash_consed">hash_consed</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter f t</code> iterates <code>f</code> over all elements of <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stats">
+  <a href="index.html#/val:stats" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stats : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int * int * int * int * int * int
+    
+      <div class="doc">
+        
+      <p>Return statistics on the table. The numbers are, in order:
+table length, number of entries, sum of bucket lengths,
+smallest bucket length, median bucket length, biggest bucket length.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Functorial interface.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/modtype:HashedType">
+  <a href="index.html#/modtype:HashedType" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> HashedType = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:HashedType/type:t">
+  <a href="index.html#/modtype:HashedType/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:HashedType/val:equal">
+  <a href="index.html#/modtype:HashedType/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : <a href="index.html#/modtype:HashedType/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:HashedType/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:HashedType/val:hash">
+  <a href="index.html#/modtype:HashedType/val:hash" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hash : <a href="index.html#/modtype:HashedType/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S">
+  <a href="index.html#/modtype:S" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> S = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:S/type:key">
+  <a href="index.html#/modtype:S/type:key" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> key
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/type:t">
+  <a href="index.html#/modtype:S/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:create">
+  <a href="index.html#/modtype:S/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:clear">
+  <a href="index.html#/modtype:S/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:hashcons">
+  <a href="index.html#/modtype:S/val:hashcons" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hashcons : <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:key">key</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:key">key</a> <a href="index.html#/type:hash_consed">hash_consed</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:iter">
+  <a href="index.html#/modtype:S/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : (<a href="index.html#/modtype:S/type:key">key</a> <a href="index.html#/type:hash_consed">hash_consed</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:stats">
+  <a href="index.html#/modtype:S/val:stats" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stats : <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int * int * int * int * int * int
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (H : <a href="index.html#/modtype:HashedType">HashedType</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:S/type:key">key</a> = <a href="index.html#/module:Make/modarg:1:H">H</a>.<a href="index.html#/module:Make/modarg:1:H/type:t">t</a></div>
+      
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

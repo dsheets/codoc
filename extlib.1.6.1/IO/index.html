@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>IO</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">IO</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>High-order abstract I/O.</p>
+      
+      <p>IO module simply deals with abstract inputs/outputs. It provides a
+set of methods for working with these IO as well as several
+constructors that enable to write to an underlying channel, buffer,
+or enum.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:input">
+  <a href="index.html#/type:input" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> input
+    
+      <div class="doc">
+        
+      <p>The abstract input type.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:output">
+  <a href="index.html#/type:output" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a output
+    
+      <div class="doc">
+        
+      <p>The abstract output type, <code>'a</code> is the accumulator data, it is returned
+when the <code>close_out</code> function is called.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:No_more_input">
+  <a href="index.html#/exn:No_more_input" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_more_input
+    
+      <div class="doc">
+        
+      <p>This exception is raised when reading on an input with the <code>read</code> or
+<code>nread</code> functions while there is no available token to read.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Input_closed">
+  <a href="index.html#/exn:Input_closed" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Input_closed
+    
+      <div class="doc">
+        
+      <p>This exception is raised when reading on a closed input.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Output_closed">
+  <a href="index.html#/exn:Output_closed" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Output_closed
+    
+      <div class="doc">
+        
+      <p>This exception is raised when reading on a closed output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Standard API</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:read">
+  <a href="index.html#/val:read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> char
+    
+      <div class="doc">
+        
+      <p>Read a single char from an input or raise <code>No_more_input</code> if
+no input available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nread">
+  <a href="index.html#/val:nread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nread : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>nread i n</code> reads a string of size up to <code>n</code> from an input.
+The function will raise <code>No_more_input</code> if no input is available.
+It will raise <code>Invalid_argument</code> if <code>n</code> &lt; 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_nread">
+  <a href="index.html#/val:really_nread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_nread : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>really_nread i n</code> reads a string of exactly <code>n</code> characters
+from the input. Raises <code>No_more_input</code> if at least <code>n</code> characters are
+not available. Raises <code>Invalid_argument</code> if <code>n</code> &lt; 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input">
+  <a href="index.html#/val:input" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>input i s p l</code> reads up to <code>l</code> characters from the given input, storing
+them in string <code>s</code>, starting at character number <code>p</code>. It returns the actual
+number of characters read or raise <code>No_more_input</code> if no character can be
+read. It will raise <code>Invalid_argument</code> if <code>p</code> and <code>l</code> do not designate a
+valid substring of <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_input">
+  <a href="index.html#/val:really_input" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_input : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>really_input i s p l</code> reads exactly <code>l</code> characters from the given input,
+storing them in the string <code>s</code>, starting at position <code>p</code>. For consistency with
+<a href="../../extlib.1.6.1/IO/">IO</a>.<a href="../../extlib.1.6.1/IO/#/type:input">input</a> it returns <code>l</code>. Raises <code>No_more_input</code> if at <code>l</code> characters are
+not available. Raises <code>Invalid_argument</code> if <code>p</code> and <code>l</code> do not designate a
+valid substring of <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_in">
+  <a href="index.html#/val:close_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_in : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Close the input. It can no longer be read from.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write">
+  <a href="index.html#/val:write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a single char to an output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nwrite">
+  <a href="index.html#/val:nwrite" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nwrite : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a string to an output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output">
+  <a href="index.html#/val:output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>output o s p l</code> writes up to <code>l</code> characters from string <code>s</code>, starting at
+offset <code>p</code>. It returns the number of characters written. It will raise
+<code>Invalid_argument</code> if <code>p</code> and <code>l</code> do not designate a valid substring of <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_output">
+  <a href="index.html#/val:really_output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_output : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>really_output o s p l</code> writes exactly <code>l</code> characters from string <code>s</code> onto
+the the output, starting with the character at offset <code>p</code>. For consistency with
+<a href="../../extlib.1.6.1/IO/">IO</a>.<a href="../../extlib.1.6.1/IO/#/type:output">output</a> it returns <code>l</code>. Raises <code>Invalid_argument</code> if <code>p</code> and <code>l</code> do not
+designate a valid substring of <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush">
+  <a href="index.html#/val:flush" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Flush an output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_out">
+  <a href="index.html#/val:close_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_out : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Close the output and return its accumulator data.
+It can no longer be written.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Creation of IO Inputs/Outputs</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:input_string">
+  <a href="index.html#/val:input_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a>
+    
+      <div class="doc">
+        
+      <p>Create an input that will read from a string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_string">
+  <a href="index.html#/val:output_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_string : unit <span class="rarr"><span>-&gt;</span></span> string <a href="index.html#/type:output">output</a>
+    
+      <div class="doc">
+        
+      <p>Create an output that will write into a string in an efficient way.
+When closed, the output returns all the data written into it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_strings">
+  <a href="index.html#/val:output_strings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_strings : unit <span class="rarr"><span>-&gt;</span></span> string list <a href="index.html#/type:output">output</a>
+    
+      <div class="doc">
+        
+      <p>Create an output that will write into a string in an efficient way.
+When closed, the output returns all the data written into it.
+Several strings are used in case the output size excess max_string_length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_channel">
+  <a href="index.html#/val:input_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_channel : <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a>
+    
+      <div class="doc">
+        
+      <p>Create an input that will read from a channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_channel">
+  <a href="index.html#/val:output_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_channel : <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:output">output</a>
+    
+      <div class="doc">
+        
+      <p>Create an output that will write into a channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_enum">
+  <a href="index.html#/val:input_enum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_enum : char <a href="../../extlib.1.6.1/enum/">Enum</a>.<a href="../../extlib.1.6.1/enum/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a>
+    
+      <div class="doc">
+        
+      <p>Create an input that will read from an <code>enum</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_enum">
+  <a href="index.html#/val:output_enum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_enum : unit <span class="rarr"><span>-&gt;</span></span> char <a href="../../extlib.1.6.1/enum/">Enum</a>.<a href="../../extlib.1.6.1/enum/#/type:t">t</a> <a href="index.html#/type:output">output</a>
+    
+      <div class="doc">
+        
+      <p>Create an output that will write into an <code>enum</code>. The
+final enum is returned when the output is closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_in">
+  <a href="index.html#/val:create_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_in : read:(unit <span class="rarr"><span>-&gt;</span></span> char) <span class="rarr"><span>-&gt;</span></span> input:(string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> close:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a>
+    
+      <div class="doc">
+        
+      <p>Fully create an input by giving all the needed functions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_out">
+  <a href="index.html#/val:create_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_out : write:(char <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> output:(string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> flush:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> close:(unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:output">output</a>
+    
+      <div class="doc">
+        
+      <p>Fully create an output by giving all the needed functions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Utilities</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:scanf">
+  <a href="index.html#/val:scanf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> scanf : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b, 'c, 'd) <a href="../../ocaml.4.02.1+doc/stdlib/scanf/">Scanf</a>.<a href="../../ocaml.4.02.1+doc/stdlib/scanf/#/type:scanner">scanner</a>
+    
+      <div class="doc">
+        
+      <p>The scanf function works for any input.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printf">
+  <a href="index.html#/val:printf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printf : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> ('b, unit, string, unit) <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p>The printf function works for any output.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_all">
+  <a href="index.html#/val:read_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_all : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>read all the contents of the input until <code>No_more_input</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pipe">
+  <a href="index.html#/val:pipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pipe : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a> * unit <a href="index.html#/type:output">output</a>
+    
+      <div class="doc">
+        
+      <p>Create a pipe between an input and an ouput. Data written from
+the output can be read from the input.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pos_in">
+  <a href="index.html#/val:pos_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos_in : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a> * (unit <span class="rarr"><span>-&gt;</span></span> int)
+    
+      <div class="doc">
+        
+      <p>Create an input that provide a count function of the number of bytes
+read from it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pos_out">
+  <a href="index.html#/val:pos_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos_out : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:output">output</a> * (unit <span class="rarr"><span>-&gt;</span></span> int)
+    
+      <div class="doc">
+        
+      <p>Create an output that provide a count function of the number of bytes
+written through it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cast_output">
+  <a href="index.html#/val:cast_output" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> cast_output : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:output">output</a>
+    = &quot;%identity&quot; 
+    
+      <div class="doc">
+        
+      <p>You can safely transform any output to an unit output in a safe way
+by using this function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Binary files API</h6>
+    </div>
+      <p>Here is some API useful for working with binary files, in particular
+binary files generated by C applications. By default, encoding of
+multibyte integers is low-endian. The BigEndian module provide multibyte
+operations with other encoding.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Overflow">
+  <a href="index.html#/exn:Overflow" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Overflow <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Exception raised when a read or write operation cannot be completed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_byte">
+  <a href="index.html#/val:read_byte" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_byte : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Read an unsigned 8-bit integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_signed_byte">
+  <a href="index.html#/val:read_signed_byte" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_signed_byte : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Read an signed 8-bit integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_ui16">
+  <a href="index.html#/val:read_ui16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_ui16 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Read an unsigned 16-bit word.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_i16">
+  <a href="index.html#/val:read_i16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_i16 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Read a signed 16-bit word.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_i32">
+  <a href="index.html#/val:read_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_i32 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Read a signed 32-bit integer. Raise <code>Overflow</code> if the
+read integer cannot be represented as a Caml 31-bit integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_real_i32">
+  <a href="index.html#/val:read_real_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_real_i32 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int32
+    
+      <div class="doc">
+        
+      <p>Read a signed 32-bit integer as an OCaml int32.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_i64">
+  <a href="index.html#/val:read_i64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_i64 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Read a signed 64-bit integer as an OCaml int64.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_float32">
+  <a href="index.html#/val:read_float32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_float32 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Read an IEEE single precision floating point value (32 bits).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_double">
+  <a href="index.html#/val:read_double" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_double : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Read an IEEE double precision floating point value (64 bits).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_string">
+  <a href="index.html#/val:read_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_string : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Read a null-terminated string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_line">
+  <a href="index.html#/val:read_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_line : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Read a LF or CRLF terminated string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_byte">
+  <a href="index.html#/val:write_byte" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_byte : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write an unsigned 8-bit byte.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_ui16">
+  <a href="index.html#/val:write_ui16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_ui16 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write an unsigned 16-bit word.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_i16">
+  <a href="index.html#/val:write_i16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_i16 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a signed 16-bit word.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_i32">
+  <a href="index.html#/val:write_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_i32 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a signed 32-bit integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_real_i32">
+  <a href="index.html#/val:write_real_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_real_i32 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write an OCaml int32.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_i64">
+  <a href="index.html#/val:write_i64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_i64 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write an OCaml int64.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_float32">
+  <a href="index.html#/val:write_float32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_float32 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write an IEEE single precision floating point value (32 bits).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_double">
+  <a href="index.html#/val:write_double" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_double : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write an IEEE double precision floating point value (64 bits).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_string">
+  <a href="index.html#/val:write_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_string : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a string and append an null character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_line">
+  <a href="index.html#/val:write_line" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_line : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a line and append a LF (it might be converted
+to CRLF on some systems depending on the underlying IO).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian">
+  <a href="index.html#/module:BigEndian" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> BigEndian : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Same as operations above, but use big-endian encoding</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:BigEndian/val:read_ui16">
+  <a href="index.html#/module:BigEndian/val:read_ui16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_ui16 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:read_i16">
+  <a href="index.html#/module:BigEndian/val:read_i16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_i16 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:read_i32">
+  <a href="index.html#/module:BigEndian/val:read_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_i32 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:read_real_i32">
+  <a href="index.html#/module:BigEndian/val:read_real_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_real_i32 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int32
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:read_i64">
+  <a href="index.html#/module:BigEndian/val:read_i64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_i64 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:read_float32">
+  <a href="index.html#/module:BigEndian/val:read_float32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_float32 : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:read_double">
+  <a href="index.html#/module:BigEndian/val:read_double" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_double : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:write_ui16">
+  <a href="index.html#/module:BigEndian/val:write_ui16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_ui16 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:write_i16">
+  <a href="index.html#/module:BigEndian/val:write_i16" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_i16 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:write_i32">
+  <a href="index.html#/module:BigEndian/val:write_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_i32 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:write_real_i32">
+  <a href="index.html#/module:BigEndian/val:write_real_i32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_real_i32 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int32 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:write_i64">
+  <a href="index.html#/module:BigEndian/val:write_i64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_i64 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:write_float32">
+  <a href="index.html#/module:BigEndian/val:write_float32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_float32 : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:BigEndian/val:write_double">
+  <a href="index.html#/module:BigEndian/val:write_double" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_double : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Bits API</h6>
+    </div>
+      <p>This enable you to read and write from an IO bit-by-bit or several bits
+at the same time.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:in_bits">
+  <a href="index.html#/type:in_bits" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> in_bits
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:out_bits">
+  <a href="index.html#/type:out_bits" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> out_bits
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Bits_error">
+  <a href="index.html#/exn:Bits_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Bits_error
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_bits">
+  <a href="index.html#/val:input_bits" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_bits : <a href="index.html#/type:input">input</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:in_bits">in_bits</a>
+    
+      <div class="doc">
+        
+      <p>Read bits from an input</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_bits">
+  <a href="index.html#/val:output_bits" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_bits : 'a <a href="index.html#/type:output">output</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:out_bits">out_bits</a>
+    
+      <div class="doc">
+        
+      <p>Write bits to an output</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_bits">
+  <a href="index.html#/val:read_bits" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_bits : <a href="index.html#/type:in_bits">in_bits</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Read up to 31 bits, raise Bits_error if n &lt; 0 or n &gt; 31</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_bits">
+  <a href="index.html#/val:write_bits" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_bits : <a href="index.html#/type:out_bits">out_bits</a> <span class="rarr"><span>-&gt;</span></span> nbits:int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write up to 31 bits represented as a value, raise Bits_error if nbits &lt; 0
+or nbits &gt; 31 or the value representation excess nbits.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush_bits">
+  <a href="index.html#/val:flush_bits" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush_bits : <a href="index.html#/type:out_bits">out_bits</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Flush remaining unwritten bits, adding up to 7 bits which values 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drop_bits">
+  <a href="index.html#/val:drop_bits" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop_bits : <a href="index.html#/type:in_bits">in_bits</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Drop up to 7 buffered bits and restart to next input character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Generic IO Object Wrappers</h6>
+    </div>
+      <p>Theses OO Wrappers have been written to provide easy support of ExtLib
+IO by external librairies. If you want your library to support ExtLib
+IO without actually requiring ExtLib to compile, you can should implement
+the classes <code>in_channel</code>, <code>out_channel</code>, <code>poly_in_channel</code> and/or
+<code>poly_out_channel</code> which are the common IO specifications established
+for ExtLib, OCamlNet and Camomile.</p>
+      
+      <p>(see http://www.ocaml-programming.de/tmp/IO-Classes.html for more details).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:in_channel">
+  <a href="index.html#/class:in_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> in_channel : 
+    <a href="index.html#/type:input">input</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:in_channel/method:input">
+  <a href="index.html#/class:in_channel/method:input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:in_channel/method:close_in">
+  <a href="index.html#/class:in_channel/method:close_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_in : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:out_channel">
+  <a href="index.html#/class:out_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> out_channel : 
+    'a <a href="index.html#/type:output">output</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:out_channel/method:output">
+  <a href="index.html#/class:out_channel/method:output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:out_channel/method:flush">
+  <a href="index.html#/class:out_channel/method:flush" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> flush : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:out_channel/method:close_out">
+  <a href="index.html#/class:out_channel/method:close_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_out : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:in_chars">
+  <a href="index.html#/class:in_chars" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> in_chars : 
+    <a href="index.html#/type:input">input</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:in_chars/method:get">
+  <a href="index.html#/class:in_chars/method:get" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> get : unit <span class="rarr"><span>-&gt;</span></span> char
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:in_chars/method:close_in">
+  <a href="index.html#/class:in_chars/method:close_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_in : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:out_chars">
+  <a href="index.html#/class:out_chars" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> out_chars : 
+    'a <a href="index.html#/type:output">output</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+  <div class="region" id="/class:out_chars/method:put">
+  <a href="index.html#/class:out_chars/method:put" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> put : char <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:out_chars/method:flush">
+  <a href="index.html#/class:out_chars/method:flush" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> flush : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:out_chars/method:close_out">
+  <a href="index.html#/class:out_chars/method:close_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_out : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_in_channel">
+  <a href="index.html#/val:from_in_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_in_channel : <a href="index.html#/class:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_out_channel">
+  <a href="index.html#/val:from_out_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_out_channel : <a href="index.html#/class:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:output">output</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_in_chars">
+  <a href="index.html#/val:from_in_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_in_chars : <a href="index.html#/class:in_chars">in_chars</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input">input</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_out_chars">
+  <a href="index.html#/val:from_out_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_out_chars : <a href="index.html#/class:out_chars">out_chars</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="index.html#/type:output">output</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

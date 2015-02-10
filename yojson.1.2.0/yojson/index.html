@@ -1,0 +1,3331 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../codoc.css"/>
+    <title>Yojson</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Yojson</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The Yojson library provides runtime functions for reading and writing JSON
+data from OCaml. It addresses a few shortcomings of its predecessor
+json-wheel and is about twice as fast (2.7x reading, 1.3x writing; results
+may vary).
+The design goals of Yojson are the following:</p>
+      <ul><li>Reducing inter-package dependencies by the use of polymorphic
+variants for the JSON tree type.</li><li>Allowing type-aware serializers/deserializers
+to read and write directly without going through a generic JSON tree,
+for efficiency purposes.
+Readers and writers of all JSON syntaxic elements are provided
+but are undocumented and meant to be used by generated OCaml code.</li><li>Distinguishing between ints and floats.</li><li>Providing optional extensions of the JSON syntax.
+These extensions include comments, arbitrary strings,
+optional quotes around field names, tuples and variants.</li></ul>
+        
+  <div class="tag author">
+    <span class="label">Author</span> Martin Jambon
+  </div>
+  
+  <div class="tag see-also">
+    <span class="label">See also</span> <a href="http://json.org">http://json.org</a> JSON specification
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Shared types and functions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:version">
+  <a href="index.html#/val:version" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> version : string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Json_error">
+  <a href="index.html#/exn:Json_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Json_error <span class="keyword">of</span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:json_error">
+  <a href="index.html#/val:json_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> json_error : string <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:lexer_state">
+  <a href="index.html#/type:lexer_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lexer_state = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:lexer_state/field:buf">
+  <a href="index.html#/type:lexer_state/field:buf" class="anchor">#</a>
+  buf
+  </div>
+  </td><td>: <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a></td><td>;</td><td>(*</td><td class="doc">Buffer used to accumulate substrings</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:lexer_state/field:lnum">
+  <a href="index.html#/type:lexer_state/field:lnum" class="anchor">#</a>
+  <span class="keyword">mutable</span> lnum
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Current line number (counting from 1)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:lexer_state/field:bol">
+  <a href="index.html#/type:lexer_state/field:bol" class="anchor">#</a>
+  <span class="keyword">mutable</span> bol
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Absolute position of the first character of the current line
+(counting from 0)</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:lexer_state/field:fname">
+  <a href="index.html#/type:lexer_state/field:fname" class="anchor">#</a>
+  <span class="keyword">mutable</span> fname
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">Name referencing the input file in error messages</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Lexer_state">
+  <a href="index.html#/module:Lexer_state" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Lexer_state : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Lexer_state/type:t">
+  <a href="index.html#/module:Lexer_state/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="index.html#/type:lexer_state">lexer_state</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Lexer_state/type:t/field:buf">
+  <a href="index.html#/module:Lexer_state/type:t/field:buf" class="anchor">#</a>
+  buf
+  </div>
+  </td><td>: <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Lexer_state/type:t/field:lnum">
+  <a href="index.html#/module:Lexer_state/type:t/field:lnum" class="anchor">#</a>
+  <span class="keyword">mutable</span> lnum
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Lexer_state/type:t/field:bol">
+  <a href="index.html#/module:Lexer_state/type:t/field:bol" class="anchor">#</a>
+  <span class="keyword">mutable</span> bol
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Lexer_state/type:t/field:fname">
+  <a href="index.html#/module:Lexer_state/type:t/field:fname" class="anchor">#</a>
+  <span class="keyword">mutable</span> fname
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init_lexer">
+  <a href="index.html#/val:init_lexer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init_lexer : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:lexer_state">lexer_state</a>
+    
+      <div class="doc">
+        
+      <p>Create a fresh lexer_state record.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Basic JSON tree type</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Basic">
+  <a href="index.html#/module:Basic" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Basic : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module supports standard JSON nodes only, i.e. no special syntax
+for variants or tuples as supported by <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/module:Safe">Safe</a>.
+Arbitrary integers are not supported as they must all fit within the
+standard OCaml int type (31 or 63 bits depending on the platform).</p>
+      
+      <p>The main advantage of this module is its simplicity.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Type of the JSON tree</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Basic/type:json">
+  <a href="index.html#/module:Basic/type:json" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json = [ <div class="cons">| `Null</div><div class="cons">| `Bool <span class="keyword">of</span> bool</div><div class="cons">| `Int <span class="keyword">of</span> int</div><div class="cons">| `Float <span class="keyword">of</span> float</div><div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Assoc <span class="keyword">of</span> (string * <a href="index.html#/module:Basic/type:json">json</a>) list</div><div class="cons">| `List <span class="keyword">of</span> <a href="index.html#/module:Basic/type:json">json</a> list</div> ]
+    
+      <div class="doc">
+        
+      <p>All possible cases defined in Yojson:</p>
+      <ul><li>`Null: JSON null</li><li>`Bool of bool: JSON boolean</li><li>`Int of int: JSON number without decimal point or exponent.</li><li>`Intlit of string: JSON number without decimal point or exponent,
+preserved as a string.</li><li>`Float of float: JSON number, Infinity, -Infinity or NaN.</li><li>`Floatlit of string: JSON number, Infinity, -Infinity or NaN,
+preserved as a string.</li><li>`String of string: JSON string. Bytes in the range 128-255 are preserved
+as-is without encoding validation for both reading
+and writing.</li><li>`Stringlit of string: JSON string literal including the double quotes.</li><li>`Assoc of (string * json) list: JSON object.</li><li>`List of json list: JSON array.</li><li>`Tuple of json list: Tuple (non-standard extension of JSON).
+Syntax: <code>(&quot;abc&quot;, 123)</code>.</li><li>`Variant of (string * json option): Variant (non-standard extension of JSON).
+Syntax: <code>&lt;&quot;Foo&quot;&gt;</code> or <code>&lt;&quot;Bar&quot;:123&gt;</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON writers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Basic/val:to_string">
+  <a href="index.html#/module:Basic/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create</code>. The buffer is cleared of all contents
+before starting and right before returning.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> initial length of the output buffer.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">std</span> use only standard JSON syntax,
+i.e. convert tuples and variants into standard JSON (if applicable),
+refuse to print NaN and infinities,
+require the root node to be either an object or an array.
+Default is <code>false</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:to_channel">
+  <a href="index.html#/module:Basic/val:to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_channel_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_channel</code> returns but the <code>out_channel</code> is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:to_output">
+  <a href="index.html#/module:Basic/val:to_output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_output : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> &lt; output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int; .. &gt; <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an OO channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_output_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_output</code> returns but the channel itself is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:to_file">
+  <a href="index.html#/module:Basic/val:to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:to_outbuf">
+  <a href="index.html#/module:Basic/val:to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an existing buffer.
+See <code>to_string</code> for the role of the optional argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_to_string">
+  <a href="index.html#/module:Basic/val:stream_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a string.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_to_channel">
+  <a href="index.html#/module:Basic/val:stream_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a channel.
+See <code>to_channel</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_to_file">
+  <a href="index.html#/module:Basic/val:stream_to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_to_outbuf">
+  <a href="index.html#/module:Basic/val:stream_to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+an existing buffer.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Miscellaneous</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Basic/val:sort">
+  <a href="index.html#/module:Basic/val:sort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sort : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Sort object fields (stable sort, comparing field names
+and treating them as byte sequences)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON pretty-printing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Basic/val:pretty_format">
+  <a href="index.html#/module:Basic/val:pretty_format" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_format : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../easy-format.1.0.2/easy_format/">Easy_format</a>.<a href="../../easy-format.1.0.2/easy_format/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convert into a pretty-printable tree.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+  <div class="tag see-also">
+    <span class="label">See also</span> <a href="http://martin.jambon.free.fr/easy-format.html">http://martin.jambon.free.fr/easy-format.html</a> Easy-format
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:pretty_to_string">
+  <a href="index.html#/module:Basic/val:pretty_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_string : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Pretty-print into a string.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:pretty_to_channel">
+  <a href="index.html#/module:Basic/val:pretty_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_channel : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty-print to a channel.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:prettify">
+  <a href="index.html#/module:Basic/val:prettify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prettify : ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Combined parser and pretty-printer.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:compact">
+  <a href="index.html#/module:Basic/val:compact" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compact : ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Combined parser and printer.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON readers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Basic/val:from_string">
+  <a href="index.html#/module:Basic/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> use this buffer at will during parsing instead of creating
+a new one.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">fname</span> data file name to be used in error messages. It does
+not have to be a real file.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">lnum</span> number of the first line of input. Default is 1.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:from_channel">
+  <a href="index.html#/module:Basic/val:from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a channel.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:from_file">
+  <a href="index.html#/module:Basic/val:from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a file.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/type:lexer_state">
+  <a href="index.html#/module:Basic/type:lexer_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lexer_state = <a href="index.html#/module:Lexer_state">Lexer_state</a>.<a href="index.html#/module:Lexer_state/type:t">t</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Basic/type:lexer_state/field:buf">
+  <a href="index.html#/module:Basic/type:lexer_state/field:buf" class="anchor">#</a>
+  buf
+  </div>
+  </td><td>: <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Basic/type:lexer_state/field:lnum">
+  <a href="index.html#/module:Basic/type:lexer_state/field:lnum" class="anchor">#</a>
+  <span class="keyword">mutable</span> lnum
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Basic/type:lexer_state/field:bol">
+  <a href="index.html#/module:Basic/type:lexer_state/field:bol" class="anchor">#</a>
+  <span class="keyword">mutable</span> bol
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Basic/type:lexer_state/field:fname">
+  <a href="index.html#/module:Basic/type:lexer_state/field:fname" class="anchor">#</a>
+  <span class="keyword">mutable</span> fname
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>This alias is provided for backward compatibility.
+New code should refer to <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/type:lexer_state">lexer_state</a> directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:init_lexer">
+  <a href="index.html#/module:Basic/val:init_lexer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init_lexer : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:lexer_state">lexer_state</a>
+    
+      <div class="doc">
+        
+      <p>This alias is provided for backward compatibility.
+New code should use <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/val:init_lexer">init_lexer</a> directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:from_lexbuf">
+  <a href="index.html#/module:Basic/val:from_lexbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_lexbuf : <a href="index.html#/module:Basic/type:lexer_state">lexer_state</a> <span class="rarr"><span>-&gt;</span></span> ?stream:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a lexbuf.
+A valid initial <code>lexer_state</code> can be created with <code>init_lexer</code>.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">stream</span> indicates whether more data may follow. The default value
+is false and indicates that only JSON whitespace can be found between
+the end of the JSON value and the end of the input.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_from_string">
+  <a href="index.html#/module:Basic/val:stream_from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a string.
+Whitespace between JSON values is fine but not required.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_from_channel">
+  <a href="index.html#/module:Basic/val:stream_from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a channel.
+Whitespace between JSON values is fine but not required.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">fin</span> finalization function executed once when the end of the
+stream is reached either because there is no more input or because
+the input could not be parsed, raising an exception.<br/>See <code>from_string</code> for the meaning of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_from_file">
+  <a href="index.html#/module:Basic/val:stream_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a file.
+Whitespace between JSON values is fine but not required.</p>
+      
+      <p>See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:stream_from_lexbuf">
+  <a href="index.html#/module:Basic/val:stream_from_lexbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_lexbuf : <a href="index.html#/module:Basic/type:lexer_state">lexer_state</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a lexbuf.
+A valid initial <code>lexer_state</code> can be created with <code>init_lexer</code>.
+Whitespace between JSON values is fine but not required.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/type:json_line">
+  <a href="index.html#/module:Basic/type:json_line" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json_line = [ <div class="cons">| `Json <span class="keyword">of</span> <a href="index.html#/module:Basic/type:json">json</a></div><div class="cons">| `Exn <span class="keyword">of</span> exn</div> ]
+    
+      <div class="doc">
+        
+      <p>The type of values resulting from a parsing attempt of a JSON value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:linestream_from_channel">
+  <a href="index.html#/module:Basic/val:linestream_from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linestream_from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json_line">json_line</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values, one per line, from a channel.
+Exceptions raised when reading malformed lines are caught
+and represented using <code>`Exn</code>.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.
+See <code>from_string</code> for the meaning of the other optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/val:linestream_from_file">
+  <a href="index.html#/module:Basic/val:linestream_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linestream_from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json_line">json_line</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values, one per line, from a file.
+Exceptions raised when reading malformed lines are caught
+and represented using <code>`Exn</code>.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.
+See <code>from_string</code> for the meaning of the other optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util">
+  <a href="index.html#/module:Basic/module:Util" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Util : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module provides combinators for extracting fields from JSON
+values. This approach is recommended for reading a few fields
+from data returned by public APIs. However for more complex applications
+we recommend <a href="https://github.com/MyLifeLabs/atdgen">Atdgen</a>.</p>
+      
+      <p>Here is some sample JSON data:
+</p>
+      <pre>{
+  &quot;id&quot;: &quot;398eb027&quot;,
+  &quot;name&quot;: &quot;John Doe&quot;,
+  &quot;pages&quot;: [
+    {
+      &quot;id&quot;: 1,
+      &quot;title&quot;: &quot;The Art of Flipping Coins&quot;,
+      &quot;url&quot;: &quot;http://example.com/398eb027/1&quot;
+    },
+    {
+      &quot;id&quot;: 2,
+      &quot;deleted&quot;: true
+    },
+    {
+      &quot;id&quot;: 3,
+      &quot;title&quot;: &quot;Artichoke Salad&quot;,
+      &quot;url&quot;: &quot;http://example.com/398eb027/3&quot;
+    },
+    {
+      &quot;id&quot;: 4,
+      &quot;title&quot;: &quot;Flying Bananas&quot;,
+      &quot;url&quot;: &quot;http://example.com/398eb027/4&quot;
+    }
+  ]
+}</pre>
+      <p>In order to extract the &quot;id&quot; field, assuming it is mandatory,
+we would use the following OCaml code that operates on single JSON
+nodes:
+</p>
+      <pre>open Yojson.Basic.Util
+...
+  let id = json |&gt; member &quot;id&quot; |&gt; to_string in
+  ...</pre>
+      <p>In order to extract all the &quot;title&quot; fields, we would write the following
+OCaml code that operates on lists of JSON nodes, skipping
+undefined nodes and nodes of unexpected type:
+</p>
+      <pre>open Yojson.Basic.Util
+
+let extract_titles (json : Yojson.Basic.json) : string list =
+  [json]
+    |&gt; filter_member &quot;pages&quot;
+    |&gt; flatten
+    |&gt; filter_member &quot;title&quot;
+    |&gt; filter_string</pre>
+        
+      </div>
+    
+  <div class="region" id="/module:Basic/module:Util/exn:Type_error">
+  <a href="index.html#/module:Basic/module:Util/exn:Type_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Type_error <span class="keyword">of</span> string * <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Raised when the JSON value is not of the correct type to support an
+operation, e.g. <code>member</code> on an <code>`Int</code>. The string message explains the
+mismatch.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/exn:Undefined">
+  <a href="index.html#/module:Basic/module:Util/exn:Undefined" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Undefined <span class="keyword">of</span> string * <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Raised when the equivalent JavaScript operation on the JSON value would
+return undefined. Currently this only happens when an array index is out
+of bounds.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:(|&gt;)">
+  <a href="index.html#/module:Basic/module:Util/val:(%7C%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (|&gt;) : 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p>Forward pipe operator; useful for composing JSON access functions
+without too many parentheses</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:member">
+  <a href="index.html#/module:Basic/module:Util/val:member" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> member : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p><code>member k obj</code> returns the value associated with the key <code>k</code> in the JSON
+object <code>obj</code>, or <code>`Null</code> if <code>k</code> is not present in <code>obj</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:index">
+  <a href="index.html#/module:Basic/module:Util/val:index" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> index : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p><code>index i arr</code> returns the value at index <code>i</code> in the JSON array <code>arr</code>.
+Negative indices count from the end of the list (so -1 is the last
+element).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:map">
+  <a href="index.html#/module:Basic/module:Util/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : (<a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p><code>map f arr</code> calls the function <code>f</code> on each element of the JSON array
+<code>arr</code>, and returns a JSON array containing the results.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_assoc">
+  <a href="index.html#/module:Basic/module:Util/val:to_assoc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_assoc : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/module:Basic/type:json">json</a>) list
+    
+      <div class="doc">
+        
+      <p>Extract the items of a JSON object or raise <code>Type_error</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_option">
+  <a href="index.html#/module:Basic/module:Util/val:to_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_option : (<a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p>Return <code>None</code> if the JSON value is null or map the JSON value
+to <code>Some</code> value using the provided function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_bool">
+  <a href="index.html#/module:Basic/module:Util/val:to_bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_bool : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Extract a boolean value or raise <code>Type_error</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_bool_option">
+  <a href="index.html#/module:Basic/module:Util/val:to_bool_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_bool_option : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> bool option
+    
+      <div class="doc">
+        
+      <p>Extract <code>Some</code> boolean value,
+return <code>None</code> if the value is null,
+or raise <code>Type_error</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_number">
+  <a href="index.html#/module:Basic/module:Util/val:to_number" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_number : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Extract a number or raise <code>Type_error</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_number_option">
+  <a href="index.html#/module:Basic/module:Util/val:to_number_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_number_option : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> float option
+    
+      <div class="doc">
+        
+      <p>Extract <code>Some</code> number,
+return <code>None</code> if the value is null,
+or raise <code>Type_error</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_float">
+  <a href="index.html#/module:Basic/module:Util/val:to_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_float : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Extract a float value or raise <code>Type_error</code>.
+<code>to_number</code> is generally preferred as it also works with int literals.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_float_option">
+  <a href="index.html#/module:Basic/module:Util/val:to_float_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_float_option : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> float option
+    
+      <div class="doc">
+        
+      <p>Extract <code>Some</code> float value,
+return <code>None</code> if the value is null,
+or raise <code>Type_error</code> otherwise.
+<code>to_number_option</code> is generally preferred as it also works
+with int literals.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_int">
+  <a href="index.html#/module:Basic/module:Util/val:to_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_int : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Extract an int from a JSON int or raise <code>Type_error</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_int_option">
+  <a href="index.html#/module:Basic/module:Util/val:to_int_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_int_option : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> int option
+    
+      <div class="doc">
+        
+      <p>Extract <code>Some</code> int from a JSON int,
+return <code>None</code> if the value is null,
+or raise <code>Type_error</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_list">
+  <a href="index.html#/module:Basic/module:Util/val:to_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_list : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> list
+    
+      <div class="doc">
+        
+      <p>Extract a list from JSON array or raise <code>Type_error</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_string">
+  <a href="index.html#/module:Basic/module:Util/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Extract a string from a JSON string or raise <code>Type_error</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:to_string_option">
+  <a href="index.html#/module:Basic/module:Util/val:to_string_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string_option : <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>Extract <code>Some</code> string from a JSON string,
+return <code>None</code> if the value is null,
+or raise <code>Type_error</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:convert_each">
+  <a href="index.html#/module:Basic/module:Util/val:convert_each" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> convert_each : (<a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> 'a list
+    
+      <div class="doc">
+        
+      <p>The conversion functions above cannot be used with <code>map</code>, because they do
+not return JSON values. This convenience function <code>convert_each to_f arr</code>
+is equivalent to <code>List.map to_f (to_list arr)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Exception-free filters</h3>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following functions operate on lists of JSON nodes.
+None of them raises an exception when a certain kind of node is expected
+but no node or the wrong kind of node is found.
+Instead of raising an exception, nodes that are not as expected
+are simply ignored.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Basic/module:Util/val:filter_map">
+  <a href="index.html#/module:Basic/module:Util/val:filter_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_map : ('a <span class="rarr"><span>-&gt;</span></span> 'b option) <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> 'b list
+    
+      <div class="doc">
+        
+      <p><code>filter_map f l</code> maps each element of the list <code>l</code> to an optional value
+using function <code>f</code> and unwraps the resulting values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:flatten">
+  <a href="index.html#/module:Basic/module:Util/val:flatten" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flatten : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> list
+    
+      <div class="doc">
+        
+      <p>Expects JSON arrays and returns all their elements as a single
+list. <code>flatten l</code> is equivalent to <code>List.flatten (filter_list l)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_index">
+  <a href="index.html#/module:Basic/module:Util/val:filter_index" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_index : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> list
+    
+      <div class="doc">
+        
+      <p>Expects JSON arrays and returns all their elements existing at the given
+position.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_list">
+  <a href="index.html#/module:Basic/module:Util/val:filter_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_list : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> list list
+    
+      <div class="doc">
+        
+      <p>Expects JSON arrays and unwraps them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_member">
+  <a href="index.html#/module:Basic/module:Util/val:filter_member" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_member : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic/type:json">json</a> list
+    
+      <div class="doc">
+        
+      <p>Expects JSON objects and returns all the fields of the given name
+(at most one field per object).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_assoc">
+  <a href="index.html#/module:Basic/module:Util/val:filter_assoc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_assoc : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/module:Basic/type:json">json</a>) list list
+    
+      <div class="doc">
+        
+      <p>Expects JSON objects and unwraps them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_bool">
+  <a href="index.html#/module:Basic/module:Util/val:filter_bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_bool : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> bool list
+    
+      <div class="doc">
+        
+      <p>Expects JSON booleans and unwraps them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_int">
+  <a href="index.html#/module:Basic/module:Util/val:filter_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_int : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> int list
+    
+      <div class="doc">
+        
+      <p>Expects JSON integers (<code>`Int</code> nodes) and unwraps them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_float">
+  <a href="index.html#/module:Basic/module:Util/val:filter_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_float : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> float list
+    
+      <div class="doc">
+        
+      <p>Expects JSON floats (<code>`Float</code> nodes) and unwraps them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_number">
+  <a href="index.html#/module:Basic/module:Util/val:filter_number" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_number : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> float list
+    
+      <div class="doc">
+        
+      <p>Expects JSON numbers (<code>`Int</code> or <code>`Float</code>) and unwraps them.
+Ints are converted to floats.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Basic/module:Util/val:filter_string">
+  <a href="index.html#/module:Basic/module:Util/val:filter_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_string : <a href="index.html#/module:Basic/type:json">json</a> list <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Expects JSON strings and unwraps them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Multipurpose JSON tree type</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Safe">
+  <a href="index.html#/module:Safe" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Safe : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module supports a specific syntax for variants and tuples
+in addition to the standard JSON nodes.
+Arbitrary integers are supported and represented as a decimal string
+using <code>`Intlit</code> when they cannot be represented using OCaml's int type.</p>
+      
+      <p>This module is recommended for intensive use
+or OCaml-friendly use of JSON.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Type of the JSON tree</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Safe/type:json">
+  <a href="index.html#/module:Safe/type:json" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json = [ <div class="cons">| `Null</div><div class="cons">| `Bool <span class="keyword">of</span> bool</div><div class="cons">| `Int <span class="keyword">of</span> int</div><div class="cons">| `Intlit <span class="keyword">of</span> string</div><div class="cons">| `Float <span class="keyword">of</span> float</div><div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Assoc <span class="keyword">of</span> (string * <a href="index.html#/module:Safe/type:json">json</a>) list</div><div class="cons">| `List <span class="keyword">of</span> <a href="index.html#/module:Safe/type:json">json</a> list</div><div class="cons">| `Tuple <span class="keyword">of</span> <a href="index.html#/module:Safe/type:json">json</a> list</div><div class="cons">| `Variant <span class="keyword">of</span> string * <a href="index.html#/module:Safe/type:json">json</a> option</div> ]
+    
+      <div class="doc">
+        
+      <p>All possible cases defined in Yojson:</p>
+      <ul><li>`Null: JSON null</li><li>`Bool of bool: JSON boolean</li><li>`Int of int: JSON number without decimal point or exponent.</li><li>`Intlit of string: JSON number without decimal point or exponent,
+preserved as a string.</li><li>`Float of float: JSON number, Infinity, -Infinity or NaN.</li><li>`Floatlit of string: JSON number, Infinity, -Infinity or NaN,
+preserved as a string.</li><li>`String of string: JSON string. Bytes in the range 128-255 are preserved
+as-is without encoding validation for both reading
+and writing.</li><li>`Stringlit of string: JSON string literal including the double quotes.</li><li>`Assoc of (string * json) list: JSON object.</li><li>`List of json list: JSON array.</li><li>`Tuple of json list: Tuple (non-standard extension of JSON).
+Syntax: <code>(&quot;abc&quot;, 123)</code>.</li><li>`Variant of (string * json option): Variant (non-standard extension of JSON).
+Syntax: <code>&lt;&quot;Foo&quot;&gt;</code> or <code>&lt;&quot;Bar&quot;:123&gt;</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:to_basic">
+  <a href="index.html#/module:Safe/val:to_basic" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_basic : <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Basic">Basic</a>.<a href="index.html#/module:Basic/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Tuples are converted to JSON arrays,
+Variants are converted to JSON strings or arrays of a string (constructor)
+and a json value (argument).
+Long integers are converted to JSON strings.</p>
+      
+      <p>Examples:
+</p>
+      <pre>`Tuple [ `Int 1; `Float 2.3 ]   -&gt;    `List [ `Int 1; `Float 2.3 ]
+`Variant (&quot;A&quot;, None)            -&gt;    `String &quot;A&quot;
+`Variant (&quot;B&quot;, Some x)          -&gt;    `List [ `String &quot;B&quot;, x ]
+`Intlit &quot;12345678901234567890&quot;  -&gt;    `String &quot;12345678901234567890&quot;</pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON writers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Safe/val:to_string">
+  <a href="index.html#/module:Safe/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create</code>. The buffer is cleared of all contents
+before starting and right before returning.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> initial length of the output buffer.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">std</span> use only standard JSON syntax,
+i.e. convert tuples and variants into standard JSON (if applicable),
+refuse to print NaN and infinities,
+require the root node to be either an object or an array.
+Default is <code>false</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:to_channel">
+  <a href="index.html#/module:Safe/val:to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_channel_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_channel</code> returns but the <code>out_channel</code> is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:to_output">
+  <a href="index.html#/module:Safe/val:to_output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_output : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> &lt; output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int; .. &gt; <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an OO channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_output_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_output</code> returns but the channel itself is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:to_file">
+  <a href="index.html#/module:Safe/val:to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:to_outbuf">
+  <a href="index.html#/module:Safe/val:to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an existing buffer.
+See <code>to_string</code> for the role of the optional argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_to_string">
+  <a href="index.html#/module:Safe/val:stream_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a string.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_to_channel">
+  <a href="index.html#/module:Safe/val:stream_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a channel.
+See <code>to_channel</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_to_file">
+  <a href="index.html#/module:Safe/val:stream_to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_to_outbuf">
+  <a href="index.html#/module:Safe/val:stream_to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+an existing buffer.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Miscellaneous</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Safe/val:sort">
+  <a href="index.html#/module:Safe/val:sort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sort : <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Sort object fields (stable sort, comparing field names
+and treating them as byte sequences)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON pretty-printing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Safe/val:pretty_format">
+  <a href="index.html#/module:Safe/val:pretty_format" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_format : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../easy-format.1.0.2/easy_format/">Easy_format</a>.<a href="../../easy-format.1.0.2/easy_format/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convert into a pretty-printable tree.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+  <div class="tag see-also">
+    <span class="label">See also</span> <a href="http://martin.jambon.free.fr/easy-format.html">http://martin.jambon.free.fr/easy-format.html</a> Easy-format
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:pretty_to_string">
+  <a href="index.html#/module:Safe/val:pretty_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_string : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Pretty-print into a string.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:pretty_to_channel">
+  <a href="index.html#/module:Safe/val:pretty_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_channel : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty-print to a channel.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:prettify">
+  <a href="index.html#/module:Safe/val:prettify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prettify : ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Combined parser and pretty-printer.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:compact">
+  <a href="index.html#/module:Safe/val:compact" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compact : ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Combined parser and printer.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON readers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Safe/val:from_string">
+  <a href="index.html#/module:Safe/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> use this buffer at will during parsing instead of creating
+a new one.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">fname</span> data file name to be used in error messages. It does
+not have to be a real file.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">lnum</span> number of the first line of input. Default is 1.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:from_channel">
+  <a href="index.html#/module:Safe/val:from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a channel.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:from_file">
+  <a href="index.html#/module:Safe/val:from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a file.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/type:lexer_state">
+  <a href="index.html#/module:Safe/type:lexer_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lexer_state = <a href="index.html#/module:Lexer_state">Lexer_state</a>.<a href="index.html#/module:Lexer_state/type:t">t</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Safe/type:lexer_state/field:buf">
+  <a href="index.html#/module:Safe/type:lexer_state/field:buf" class="anchor">#</a>
+  buf
+  </div>
+  </td><td>: <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Safe/type:lexer_state/field:lnum">
+  <a href="index.html#/module:Safe/type:lexer_state/field:lnum" class="anchor">#</a>
+  <span class="keyword">mutable</span> lnum
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Safe/type:lexer_state/field:bol">
+  <a href="index.html#/module:Safe/type:lexer_state/field:bol" class="anchor">#</a>
+  <span class="keyword">mutable</span> bol
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Safe/type:lexer_state/field:fname">
+  <a href="index.html#/module:Safe/type:lexer_state/field:fname" class="anchor">#</a>
+  <span class="keyword">mutable</span> fname
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>This alias is provided for backward compatibility.
+New code should refer to <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/type:lexer_state">lexer_state</a> directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:init_lexer">
+  <a href="index.html#/module:Safe/val:init_lexer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init_lexer : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:lexer_state">lexer_state</a>
+    
+      <div class="doc">
+        
+      <p>This alias is provided for backward compatibility.
+New code should use <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/val:init_lexer">init_lexer</a> directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:from_lexbuf">
+  <a href="index.html#/module:Safe/val:from_lexbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_lexbuf : <a href="index.html#/module:Safe/type:lexer_state">lexer_state</a> <span class="rarr"><span>-&gt;</span></span> ?stream:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a lexbuf.
+A valid initial <code>lexer_state</code> can be created with <code>init_lexer</code>.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">stream</span> indicates whether more data may follow. The default value
+is false and indicates that only JSON whitespace can be found between
+the end of the JSON value and the end of the input.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_from_string">
+  <a href="index.html#/module:Safe/val:stream_from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a string.
+Whitespace between JSON values is fine but not required.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_from_channel">
+  <a href="index.html#/module:Safe/val:stream_from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a channel.
+Whitespace between JSON values is fine but not required.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">fin</span> finalization function executed once when the end of the
+stream is reached either because there is no more input or because
+the input could not be parsed, raising an exception.<br/>See <code>from_string</code> for the meaning of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_from_file">
+  <a href="index.html#/module:Safe/val:stream_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a file.
+Whitespace between JSON values is fine but not required.</p>
+      
+      <p>See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:stream_from_lexbuf">
+  <a href="index.html#/module:Safe/val:stream_from_lexbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_lexbuf : <a href="index.html#/module:Safe/type:lexer_state">lexer_state</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a lexbuf.
+A valid initial <code>lexer_state</code> can be created with <code>init_lexer</code>.
+Whitespace between JSON values is fine but not required.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/type:json_line">
+  <a href="index.html#/module:Safe/type:json_line" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json_line = [ <div class="cons">| `Json <span class="keyword">of</span> <a href="index.html#/module:Safe/type:json">json</a></div><div class="cons">| `Exn <span class="keyword">of</span> exn</div> ]
+    
+      <div class="doc">
+        
+      <p>The type of values resulting from a parsing attempt of a JSON value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:linestream_from_channel">
+  <a href="index.html#/module:Safe/val:linestream_from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linestream_from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json_line">json_line</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values, one per line, from a channel.
+Exceptions raised when reading malformed lines are caught
+and represented using <code>`Exn</code>.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.
+See <code>from_string</code> for the meaning of the other optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Safe/val:linestream_from_file">
+  <a href="index.html#/module:Safe/val:linestream_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linestream_from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Safe/type:json_line">json_line</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values, one per line, from a file.
+Exceptions raised when reading malformed lines are caught
+and represented using <code>`Exn</code>.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.
+See <code>from_string</code> for the meaning of the other optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">JSON tree type with literal int/float/string leaves</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Raw">
+  <a href="index.html#/module:Raw" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Raw : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Ints, floats and strings literals are systematically preserved using
+<code>`Intlit</code>, <code>`Floatlit</code> and <code>`Stringlit</code>.
+This module also supports the specific syntax for variants and tuples
+supported by <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/module:Safe">Safe</a>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Type of the JSON tree</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Raw/type:json">
+  <a href="index.html#/module:Raw/type:json" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json = [ <div class="cons">| `Null</div><div class="cons">| `Bool <span class="keyword">of</span> bool</div><div class="cons">| `Intlit <span class="keyword">of</span> string</div><div class="cons">| `Floatlit <span class="keyword">of</span> string</div><div class="cons">| `Stringlit <span class="keyword">of</span> string</div><div class="cons">| `Assoc <span class="keyword">of</span> (string * <a href="index.html#/module:Raw/type:json">json</a>) list</div><div class="cons">| `List <span class="keyword">of</span> <a href="index.html#/module:Raw/type:json">json</a> list</div><div class="cons">| `Tuple <span class="keyword">of</span> <a href="index.html#/module:Raw/type:json">json</a> list</div><div class="cons">| `Variant <span class="keyword">of</span> string * <a href="index.html#/module:Raw/type:json">json</a> option</div> ]
+    
+      <div class="doc">
+        
+      <p>All possible cases defined in Yojson:</p>
+      <ul><li>`Null: JSON null</li><li>`Bool of bool: JSON boolean</li><li>`Int of int: JSON number without decimal point or exponent.</li><li>`Intlit of string: JSON number without decimal point or exponent,
+preserved as a string.</li><li>`Float of float: JSON number, Infinity, -Infinity or NaN.</li><li>`Floatlit of string: JSON number, Infinity, -Infinity or NaN,
+preserved as a string.</li><li>`String of string: JSON string. Bytes in the range 128-255 are preserved
+as-is without encoding validation for both reading
+and writing.</li><li>`Stringlit of string: JSON string literal including the double quotes.</li><li>`Assoc of (string * json) list: JSON object.</li><li>`List of json list: JSON array.</li><li>`Tuple of json list: Tuple (non-standard extension of JSON).
+Syntax: <code>(&quot;abc&quot;, 123)</code>.</li><li>`Variant of (string * json option): Variant (non-standard extension of JSON).
+Syntax: <code>&lt;&quot;Foo&quot;&gt;</code> or <code>&lt;&quot;Bar&quot;:123&gt;</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON writers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Raw/val:to_string">
+  <a href="index.html#/module:Raw/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create</code>. The buffer is cleared of all contents
+before starting and right before returning.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> initial length of the output buffer.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">std</span> use only standard JSON syntax,
+i.e. convert tuples and variants into standard JSON (if applicable),
+refuse to print NaN and infinities,
+require the root node to be either an object or an array.
+Default is <code>false</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:to_channel">
+  <a href="index.html#/module:Raw/val:to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_channel_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_channel</code> returns but the <code>out_channel</code> is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:to_output">
+  <a href="index.html#/module:Raw/val:to_output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_output : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> &lt; output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int; .. &gt; <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an OO channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_output_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_output</code> returns but the channel itself is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:to_file">
+  <a href="index.html#/module:Raw/val:to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:to_outbuf">
+  <a href="index.html#/module:Raw/val:to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an existing buffer.
+See <code>to_string</code> for the role of the optional argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_to_string">
+  <a href="index.html#/module:Raw/val:stream_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a string.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_to_channel">
+  <a href="index.html#/module:Raw/val:stream_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a channel.
+See <code>to_channel</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_to_file">
+  <a href="index.html#/module:Raw/val:stream_to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_to_outbuf">
+  <a href="index.html#/module:Raw/val:stream_to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+an existing buffer.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Miscellaneous</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Raw/val:sort">
+  <a href="index.html#/module:Raw/val:sort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sort : <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Sort object fields (stable sort, comparing field names
+and treating them as byte sequences)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON pretty-printing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Raw/val:pretty_format">
+  <a href="index.html#/module:Raw/val:pretty_format" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_format : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../easy-format.1.0.2/easy_format/">Easy_format</a>.<a href="../../easy-format.1.0.2/easy_format/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convert into a pretty-printable tree.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+  <div class="tag see-also">
+    <span class="label">See also</span> <a href="http://martin.jambon.free.fr/easy-format.html">http://martin.jambon.free.fr/easy-format.html</a> Easy-format
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:pretty_to_string">
+  <a href="index.html#/module:Raw/val:pretty_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_string : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Pretty-print into a string.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:pretty_to_channel">
+  <a href="index.html#/module:Raw/val:pretty_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_channel : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty-print to a channel.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:prettify">
+  <a href="index.html#/module:Raw/val:prettify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prettify : ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Combined parser and pretty-printer.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:compact">
+  <a href="index.html#/module:Raw/val:compact" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compact : ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Combined parser and printer.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON readers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Raw/val:from_string">
+  <a href="index.html#/module:Raw/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> use this buffer at will during parsing instead of creating
+a new one.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">fname</span> data file name to be used in error messages. It does
+not have to be a real file.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">lnum</span> number of the first line of input. Default is 1.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:from_channel">
+  <a href="index.html#/module:Raw/val:from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a channel.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:from_file">
+  <a href="index.html#/module:Raw/val:from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a file.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/type:lexer_state">
+  <a href="index.html#/module:Raw/type:lexer_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lexer_state = <a href="index.html#/module:Lexer_state">Lexer_state</a>.<a href="index.html#/module:Lexer_state/type:t">t</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Raw/type:lexer_state/field:buf">
+  <a href="index.html#/module:Raw/type:lexer_state/field:buf" class="anchor">#</a>
+  buf
+  </div>
+  </td><td>: <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Raw/type:lexer_state/field:lnum">
+  <a href="index.html#/module:Raw/type:lexer_state/field:lnum" class="anchor">#</a>
+  <span class="keyword">mutable</span> lnum
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Raw/type:lexer_state/field:bol">
+  <a href="index.html#/module:Raw/type:lexer_state/field:bol" class="anchor">#</a>
+  <span class="keyword">mutable</span> bol
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Raw/type:lexer_state/field:fname">
+  <a href="index.html#/module:Raw/type:lexer_state/field:fname" class="anchor">#</a>
+  <span class="keyword">mutable</span> fname
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>This alias is provided for backward compatibility.
+New code should refer to <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/type:lexer_state">lexer_state</a> directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:init_lexer">
+  <a href="index.html#/module:Raw/val:init_lexer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init_lexer : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:lexer_state">lexer_state</a>
+    
+      <div class="doc">
+        
+      <p>This alias is provided for backward compatibility.
+New code should use <a href="../../yojson.1.2.0/yojson/">Yojson</a>.<a href="../../yojson.1.2.0/yojson/#/val:init_lexer">init_lexer</a> directly.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:from_lexbuf">
+  <a href="index.html#/module:Raw/val:from_lexbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_lexbuf : <a href="index.html#/module:Raw/type:lexer_state">lexer_state</a> <span class="rarr"><span>-&gt;</span></span> ?stream:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON value from a lexbuf.
+A valid initial <code>lexer_state</code> can be created with <code>init_lexer</code>.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">stream</span> indicates whether more data may follow. The default value
+is false and indicates that only JSON whitespace can be found between
+the end of the JSON value and the end of the input.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_from_string">
+  <a href="index.html#/module:Raw/val:stream_from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a string.
+Whitespace between JSON values is fine but not required.
+See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_from_channel">
+  <a href="index.html#/module:Raw/val:stream_from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a channel.
+Whitespace between JSON values is fine but not required.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">fin</span> finalization function executed once when the end of the
+stream is reached either because there is no more input or because
+the input could not be parsed, raising an exception.<br/>See <code>from_string</code> for the meaning of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_from_file">
+  <a href="index.html#/module:Raw/val:stream_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a file.
+Whitespace between JSON values is fine but not required.</p>
+      
+      <p>See <code>from_string</code> for the meaning of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:stream_from_lexbuf">
+  <a href="index.html#/module:Raw/val:stream_from_lexbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_from_lexbuf : <a href="index.html#/module:Raw/type:lexer_state">lexer_state</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values from a lexbuf.
+A valid initial <code>lexer_state</code> can be created with <code>init_lexer</code>.
+Whitespace between JSON values is fine but not required.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/type:json_line">
+  <a href="index.html#/module:Raw/type:json_line" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json_line = [ <div class="cons">| `Json <span class="keyword">of</span> <a href="index.html#/module:Raw/type:json">json</a></div><div class="cons">| `Exn <span class="keyword">of</span> exn</div> ]
+    
+      <div class="doc">
+        
+      <p>The type of values resulting from a parsing attempt of a JSON value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:linestream_from_channel">
+  <a href="index.html#/module:Raw/val:linestream_from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linestream_from_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fin:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json_line">json_line</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values, one per line, from a channel.
+Exceptions raised when reading malformed lines are caught
+and represented using <code>`Exn</code>.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.
+See <code>from_string</code> for the meaning of the other optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Raw/val:linestream_from_file">
+  <a href="index.html#/module:Raw/val:linestream_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linestream_from_file : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?fname:string <span class="rarr"><span>-&gt;</span></span> ?lnum:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Raw/type:json_line">json_line</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Input a sequence of JSON values, one per line, from a file.
+Exceptions raised when reading malformed lines are caught
+and represented using <code>`Exn</code>.</p>
+      
+      <p>See <code>stream_from_channel</code> for the meaning of the optional <code>fin</code>
+argument.
+See <code>from_string</code> for the meaning of the other optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Supertype of all JSON tree types</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Type of the JSON tree</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:json">
+  <a href="index.html#/type:json" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json = [ <div class="cons">| `Null</div><div class="cons">| `Bool <span class="keyword">of</span> bool</div><div class="cons">| `Int <span class="keyword">of</span> int</div><div class="cons">| `Intlit <span class="keyword">of</span> string</div><div class="cons">| `Float <span class="keyword">of</span> float</div><div class="cons">| `Floatlit <span class="keyword">of</span> string</div><div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Stringlit <span class="keyword">of</span> string</div><div class="cons">| `Assoc <span class="keyword">of</span> (string * <a href="index.html#/type:json">json</a>) list</div><div class="cons">| `List <span class="keyword">of</span> <a href="index.html#/type:json">json</a> list</div><div class="cons">| `Tuple <span class="keyword">of</span> <a href="index.html#/type:json">json</a> list</div><div class="cons">| `Variant <span class="keyword">of</span> string * <a href="index.html#/type:json">json</a> option</div> ]
+    
+      <div class="doc">
+        
+      <p>All possible cases defined in Yojson:</p>
+      <ul><li>`Null: JSON null</li><li>`Bool of bool: JSON boolean</li><li>`Int of int: JSON number without decimal point or exponent.</li><li>`Intlit of string: JSON number without decimal point or exponent,
+preserved as a string.</li><li>`Float of float: JSON number, Infinity, -Infinity or NaN.</li><li>`Floatlit of string: JSON number, Infinity, -Infinity or NaN,
+preserved as a string.</li><li>`String of string: JSON string. Bytes in the range 128-255 are preserved
+as-is without encoding validation for both reading
+and writing.</li><li>`Stringlit of string: JSON string literal including the double quotes.</li><li>`Assoc of (string * json) list: JSON object.</li><li>`List of json list: JSON array.</li><li>`Tuple of json list: Tuple (non-standard extension of JSON).
+Syntax: <code>(&quot;abc&quot;, 123)</code>.</li><li>`Variant of (string * json option): Variant (non-standard extension of JSON).
+Syntax: <code>&lt;&quot;Foo&quot;&gt;</code> or <code>&lt;&quot;Bar&quot;:123&gt;</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:json_max">
+  <a href="index.html#/type:json_max" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> json_max = <a href="index.html#/type:json">json</a>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON writers</h2>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string">
+  <a href="index.html#/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create</code>. The buffer is cleared of all contents
+before starting and right before returning.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> initial length of the output buffer.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">std</span> use only standard JSON syntax,
+i.e. convert tuples and variants into standard JSON (if applicable),
+refuse to print NaN and infinities,
+require the root node to be either an object or an array.
+Default is <code>false</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_channel">
+  <a href="index.html#/val:to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_channel_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_channel</code> returns but the <code>out_channel</code> is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_output">
+  <a href="index.html#/val:to_output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_output : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> &lt; output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int; .. &gt; <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an OO channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buf</span> allows to reuse an existing buffer created with
+<code>Bi_outbuf.create_output_writer</code> on the same channel.
+<code>buf</code> is flushed right
+before <code>to_output</code> returns but the channel itself is
+not flushed automatically.<br/>See <code>to_string</code> for the role of the other optional arguments.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_file">
+  <a href="index.html#/val:to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_outbuf">
+  <a href="index.html#/val:to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a compact JSON value to an existing buffer.
+See <code>to_string</code> for the role of the optional argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stream_to_string">
+  <a href="index.html#/val:stream_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_string : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a string.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stream_to_channel">
+  <a href="index.html#/val:stream_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_channel : ?buf:<a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a channel.
+See <code>to_channel</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stream_to_file">
+  <a href="index.html#/val:stream_to_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_file : ?len:int <span class="rarr"><span>-&gt;</span></span> ?std:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+a file.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stream_to_outbuf">
+  <a href="index.html#/val:stream_to_outbuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stream_to_outbuf : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../biniou.1.0.9/bi_outbuf/">Bi_outbuf</a>.<a href="../../biniou.1.0.9/bi_outbuf/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <a href="../../ocaml.4.02.1+doc/stdlib/stream/">Stream</a>.<a href="../../ocaml.4.02.1+doc/stdlib/stream/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a newline-separated sequence of compact one-line JSON values to
+an existing buffer.
+See <code>to_string</code> for the role of the optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Miscellaneous</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:sort">
+  <a href="index.html#/val:sort" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sort : <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a>
+    
+      <div class="doc">
+        
+      <p>Sort object fields (stable sort, comparing field names
+and treating them as byte sequences)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">JSON pretty-printing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:pretty_format">
+  <a href="index.html#/val:pretty_format" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_format : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../easy-format.1.0.2/easy_format/">Easy_format</a>.<a href="../../easy-format.1.0.2/easy_format/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convert into a pretty-printable tree.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+  <div class="tag see-also">
+    <span class="label">See also</span> <a href="http://martin.jambon.free.fr/easy-format.html">http://martin.jambon.free.fr/easy-format.html</a> Easy-format
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pretty_to_string">
+  <a href="index.html#/val:pretty_to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_string : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Pretty-print into a string.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pretty_to_channel">
+  <a href="index.html#/val:pretty_to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pretty_to_channel : ?std:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:json">json</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty-print to a channel.
+See <code>to_string</code> for the role of the optional <code>std</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

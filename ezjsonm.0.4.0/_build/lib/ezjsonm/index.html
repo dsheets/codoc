@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Ezjsonm</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Ezjsonm</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>An easy interface on top of the <code>Jsonm</code> library.</p>
+      
+      <p>This version provides more convenient (but far less flexible)
+input and output functions that go to and from <code>string</code> values.
+This avoids the need to write signal code, which is useful for
+quick scripts that manipulate JSON.</p>
+      
+      <p>More advanced users should go straight to the <code>Jsonm</code> library and
+use it directly, rather than be saddled with the Ezjsonm interface
+below.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Basic types</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:value">
+  <a href="index.html#/type:value" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> value = [ <div class="cons">| `Null</div><div class="cons">| `Bool <span class="keyword">of</span> bool</div><div class="cons">| `Float <span class="keyword">of</span> float</div><div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `A <span class="keyword">of</span> <a href="index.html#/type:value">value</a> list</div><div class="cons">| `O <span class="keyword">of</span> (string * <a href="index.html#/type:value">value</a>) list</div> ]
+    
+      <div class="doc">
+        
+      <p>JSON fragments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = [ <div class="cons">| `A <span class="keyword">of</span> <a href="index.html#/type:value">value</a> list</div><div class="cons">| `O <span class="keyword">of</span> (string * <a href="index.html#/type:value">value</a>) list</div> ]
+    
+      <div class="doc">
+        
+      <p>Well-formed JSON documents.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:value">
+  <a href="index.html#/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Cast a JSON well-formed document into a JSON fragment.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wrap">
+  <a href="index.html#/val:wrap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wrap : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>wrap v</code> wraps the value <code>v</code> into a JSON object. To use when it is
+not possible to statically know that <code>v</code> is a value JSON value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unwrap">
+  <a href="index.html#/val:unwrap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unwrap : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p><code>unwrap t</code> is the reverse of <code>wrap</code>. It expects <code>t</code> to be a
+singleton JSON object and it return the unique element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Reading JSON documents</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:from_channel">
+  <a href="index.html#/val:from_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_channel : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON document from an input channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_string">
+  <a href="index.html#/val:from_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Read a JSON document from a string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_src">
+  <a href="index.html#/val:from_src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_src : <a href="../../../../jsonm.0.9.1/_build/src/jsonm/">Jsonm</a>.<a href="../../../../jsonm.0.9.1/_build/src/jsonm/#/type:src">src</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Low-level function to read directly from a <code>Jsonm</code> source.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Writing JSON documents</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:to_channel">
+  <a href="index.html#/val:to_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_channel : ?minify:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a JSON document to an output channel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_buffer">
+  <a href="index.html#/val:to_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_buffer : ?minify:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Write a JSON document to a buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string">
+  <a href="index.html#/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : ?minify:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Write a JSON document to a string. This goes via an intermediate
+buffer and so may be slow on large documents.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_dst">
+  <a href="index.html#/val:to_dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_dst : ?minify:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../jsonm.0.9.1/_build/src/jsonm/">Jsonm</a>.<a href="../../../../jsonm.0.9.1/_build/src/jsonm/#/type:dst">dst</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Low-level function to write directly to a <code>Jsonm</code> destination.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Constructors</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:unit">
+  <a href="index.html#/val:unit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unit : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>`Null</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bool">
+  <a href="index.html#/val:bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bool : bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>`Bool b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string">
+  <a href="index.html#/val:string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>`String s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:strings">
+  <a href="index.html#/val:strings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> strings : string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>`A [`String s1; ..; `String sn]</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int">
+  <a href="index.html#/val:int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Same as <code>`Float (int_of_string i)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int32">
+  <a href="index.html#/val:int32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int32 : int32 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int64">
+  <a href="index.html#/val:int64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int64 : int64 <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:float">
+  <a href="index.html#/val:float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float : float <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Some as <code>`Float f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:list">
+  <a href="index.html#/val:list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list : ('a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>) <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Build a list of values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:option">
+  <a href="index.html#/val:option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> option : ('a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>) <span class="rarr"><span>-&gt;</span></span> 'a option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Either <code>`Null</code> or a JSON value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dict">
+  <a href="index.html#/val:dict" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dict : (string * <a href="index.html#/type:value">value</a>) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Build a dictionnary.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pair">
+  <a href="index.html#/val:pair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pair : ('a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>) <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>) <span class="rarr"><span>-&gt;</span></span> 'a * 'b <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Build a pair.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:triple">
+  <a href="index.html#/val:triple" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> triple : ('a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>) <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>) <span class="rarr"><span>-&gt;</span></span> ('c <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>) <span class="rarr"><span>-&gt;</span></span> 'a * 'b * 'c <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Build a triple.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Accessors</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Parse_error">
+  <a href="index.html#/exn:Parse_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Parse_error <span class="keyword">of</span> <a href="index.html#/type:value">value</a> * string
+    
+      <div class="doc">
+        
+      <p>All the following accessor functions expect the provided JSON
+document to be of a certain kind. In case this is not the case,
+<code>Parse_error</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_unit">
+  <a href="index.html#/val:get_unit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_unit : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Check that the JSON document is <code>`Null</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_bool">
+  <a href="index.html#/val:get_bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_bool : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Extract <code>b</code> from <code>`Bool b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_string">
+  <a href="index.html#/val:get_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_string : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Extract <code>s</code> from <code>`String s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_strings">
+  <a href="index.html#/val:get_strings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_strings : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Extract <code>s1;..;sn</code> from <code>`A [`String s1; ...; `String sn]</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_int">
+  <a href="index.html#/val:get_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_int : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Extract an integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_int32">
+  <a href="index.html#/val:get_int32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_int32 : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> int32
+    
+      <div class="doc">
+        
+      <p>Extract a 32-bits integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_int64">
+  <a href="index.html#/val:get_int64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_int64 : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Extract a 64-bits integer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_float">
+  <a href="index.html#/val:get_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_float : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Extract a float.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_list">
+  <a href="index.html#/val:get_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_list : (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a list
+    
+      <div class="doc">
+        
+      <p>Extract elements from a JSON array.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_option">
+  <a href="index.html#/val:get_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_option : (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p>Extract an optional document.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_dict">
+  <a href="index.html#/val:get_dict" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_dict : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> (string * <a href="index.html#/type:value">value</a>) list
+    
+      <div class="doc">
+        
+      <p>Extract the elements from a dictionnary document.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_pair">
+  <a href="index.html#/val:get_pair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_pair : (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a * 'b
+    
+      <div class="doc">
+        
+      <p>Extract the pair.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_triple">
+  <a href="index.html#/val:get_triple" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_triple : (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> 'a * 'b * 'c
+    
+      <div class="doc">
+        
+      <p>Extract the triple.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">High-level functions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:mem">
+  <a href="index.html#/val:mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Is the given path valid if the provided JSON document.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find">
+  <a href="index.html#/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Find the sub-document adressed by the given path. Raise
+<code>Not_found</code> if the path is invalid.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:update">
+  <a href="index.html#/val:update" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> update : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a> option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Update the sub-document addressed by the given path. If the
+provided value is <code>None</code>, then removes the sub-document.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map">
+  <a href="index.html#/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : (<a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a> option) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Apply a given function to a subdocument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encode_string">
+  <a href="index.html#/val:encode_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encode_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Convert a (possibly non-valid UTF8) string to a JSON object.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decode_string">
+  <a href="index.html#/val:decode_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode_string : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>Convert a JSON object to a (possibly non-valid UTF8)
+string. Return <code>None</code> if the JSON object is not a valid string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decode_string_exn">
+  <a href="index.html#/val:decode_string_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode_string_exn : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Convert a JSON object to a (possibly non-valid UTF8) string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_sexp">
+  <a href="index.html#/val:to_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_sexp : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Type.t
+    
+      <div class="doc">
+        
+      <p>Convert a JSON object to an S-expression.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_sexp">
+  <a href="index.html#/val:of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_sexp : Sexplib.Type.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:value">value</a>
+    
+      <div class="doc">
+        
+      <p>Convert an S-expression to a JSON object.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Error handling</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Parse_error">
+  <a href="index.html#/exn:Parse_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Parse_error <span class="keyword">of</span> <a href="index.html#/type:value">value</a> * string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_error">
+  <a href="index.html#/val:parse_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_error : <a href="index.html#/type:value">value</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, 'b) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Raise <code>Parse_error</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

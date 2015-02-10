@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Solver_core</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Solver_core</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Select a compatible set of components to run a program.
+See <code>Solver</code> for the instantiation of this functor on the
+actual 0install types.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (Model : <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/sigs/">Sigs</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/sigs/#/modtype:SOLVER_INPUT">SOLVER_INPUT</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Make/type:diagnostics">
+  <a href="index.html#/module:Make/type:diagnostics" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> diagnostics
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/type:selection">
+  <a href="index.html#/module:Make/type:selection" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> selection = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Make/type:selection/field:impl">
+  <a href="index.html#/module:Make/type:selection/field:impl" class="anchor">#</a>
+  impl
+  </div>
+  </td><td>: <a href="index.html#/module:Make/modarg:1:Model">Model</a>.<a href="index.html#/module:Make/modarg:1:Model/type:impl">impl</a></td><td>;</td><td>(*</td><td class="doc">The implementation chosen to fill the role</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Make/type:selection/field:commands">
+  <a href="index.html#/module:Make/type:selection/field:commands" class="anchor">#</a>
+  commands
+  </div>
+  </td><td>: <a href="index.html#/module:Make/modarg:1:Model">Model</a>.<a href="index.html#/module:Make/modarg:1:Model/type:command_name">command_name</a> list</td><td>;</td><td>(*</td><td class="doc">The commands required</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Make/type:selection/field:diagnostics">
+  <a href="index.html#/module:Make/type:selection/field:diagnostics" class="anchor">#</a>
+  diagnostics
+  </div>
+  </td><td>: <a href="index.html#/module:Make/type:diagnostics">diagnostics</a></td><td>;</td><td>(*</td><td class="doc">Extra information useful for diagnostics</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/module:RoleMap">
+  <a href="index.html#/module:Make/module:RoleMap" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> RoleMap : <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/sigs/">Sigs</a>.<a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/sigs/#/modtype:MAP">MAP</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="../../../../../0install.2.8/ocaml/_build/zeroinstall/sigs/#/modtype:MAP/type:key">key</a> = <a href="index.html#/module:Make/modarg:1:Model">Model</a>.<a href="index.html#/module:Make/modarg:1:Model/module:Role">Role</a>.<a href="index.html#/module:Make/modarg:1:Model/module:Role/type:t">t</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:do_solve">
+  <a href="index.html#/module:Make/val:do_solve" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> do_solve : ?dummy_impl:<a href="index.html#/module:Make/modarg:1:Model">Model</a>.<a href="index.html#/module:Make/modarg:1:Model/type:impl">impl</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/modarg:1:Model">Model</a>.<a href="index.html#/module:Make/modarg:1:Model/type:requirements">requirements</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Make/type:selection">selection</a> <a href="index.html#/module:Make/module:RoleMap">RoleMap</a>.<a href="index.html#/module:Make/module:RoleMap/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p><code>do_solve model req</code> finds an implementation matching the given requirements, plus any other implementations needed
+to satisfy its dependencies.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">dummy_impl</span> adds a lowest-ranked (but valid) implementation to
+every interface, so we can always select something. Useful for diagnostics.
+You should ensure that <code>Model.get_command</code> always returns a dummy command for dummy_impl too.
+Note: always try without a <code>dummy_impl</code> first, or it may miss a valid solution.
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> None if the solve fails (only happens if <code>closest_match</code> is false).
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:explain">
+  <a href="index.html#/module:Make/val:explain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> explain : <a href="index.html#/module:Make/type:diagnostics">diagnostics</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Request diagnostics-of-last-resort (fallback used when <code>Diagnostics</code> can't work out what's wrong).
+Gets a report from the underlying SAT solver.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

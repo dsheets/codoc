@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>Cudf_parser</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Cudf_parser</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Parser for CUDF related documents</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:cudf_parser">
+  <a href="index.html#/type:cudf_parser" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cudf_parser
+    
+      <div class="doc">
+        
+      <p>a CUDF parser opened on some input source</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Parse_error">
+  <a href="index.html#/exn:Parse_error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Parse_error <span class="keyword">of</span> string * <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/type:loc">loc</a>
+    
+      <div class="doc">
+        
+      <p>Error during parsing (syntax error, type error, ...). Arguments are error
+message and error location.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_in_channel">
+  <a href="index.html#/val:from_in_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_in_channel : ?typedecl:<a href="../../../cudf.0.7/_build/cudf_conf/">Cudf_conf</a>.<a href="../../../cudf.0.7/_build/cudf_conf/#/type:stanza_typedecl">stanza_typedecl</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cudf_parser">cudf_parser</a>
+    
+      <div class="doc">
+        
+      <p>create a CUDF parser reading data from an input channel</p>
+      
+        
+  <div class="tag param">
+    <span class="label">typedecl</span> (initial) per-stanza and per-property type declarations to
+be used while parsing. Default: [root:Cudf_conf].stanza_typedecl
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_IO_in_channel">
+  <a href="index.html#/val:from_IO_in_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_IO_in_channel : ?typedecl:<a href="../../../cudf.0.7/_build/cudf_conf/">Cudf_conf</a>.<a href="../../../cudf.0.7/_build/cudf_conf/#/type:stanza_typedecl">stanza_typedecl</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../merlin.2.1.1/src/frontend/IO/">IO</a>.input <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cudf_parser">cudf_parser</a>
+    
+      <div class="doc">
+        
+      <p>create a CUDF parser reading data from an Extlib input channel</p>
+      
+        
+  <div class="tag param">
+    <span class="label">typedecl</span> (initial) per-stanza and per-property type declarations to
+be used while parsing. Default: [root:Cudf_conf].stanza_typedecl
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_file">
+  <a href="index.html#/val:from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_file : ?typedecl:<a href="../../../cudf.0.7/_build/cudf_conf/">Cudf_conf</a>.<a href="../../../cudf.0.7/_build/cudf_conf/#/type:stanza_typedecl">stanza_typedecl</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cudf_parser">cudf_parser</a>
+    
+      <div class="doc">
+        
+      <p>create a CUDF parser reading data from a file</p>
+      
+        
+  <div class="tag param">
+    <span class="label">typedecl</span> as per [root:Cudf_parser].from_in_channel
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close">
+  <a href="index.html#/val:close" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close : <a href="index.html#/type:cudf_parser">cudf_parser</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Dispose a CUDF parser.</p>
+      
+      <p>Afterwards, the parser should not be used any longer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Full CUDF document parsing</h6>
+    </div>
+      <p>&quot;parse_*&quot; functions offer plain syntax parsing, with no semantic
+interpretation of what is being parsed. &quot;load_*&quot; functions offer
+the latter, hence also checking for semantic constraints (such as
+the lack of key duplication).</p>
+      
+      <p>All full parsing function are granted to raise only
+<a href="../../../cudf.0.7/_build/cudf_parser/">Cudf_parser</a>.<a href="../../../cudf.0.7/_build/cudf_parser/#/exn:Parse_error">Parse_error</a>; finer grained exception are mapped to it.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:parse">
+  <a href="index.html#/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : <a href="index.html#/type:cudf_parser">cudf_parser</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:preamble">preamble</a> option * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:package">package</a> list * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:request">request</a> option
+    
+      <div class="doc">
+        
+      <p>parse a CUDF document (or a universe) as a whole</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> a triple <code>preamble, packages, request</code> where preamble and request
+are returned only if actually met in the parsed document. Note that a
+document with no request part is not a valid CUDF document (but might still
+be used to represent solver solutions, for instance).
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Parse_error</code> when an error during parsing is encountered (might be a
+syntax error, a type error, ..)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load">
+  <a href="index.html#/val:load" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load : <a href="index.html#/type:cudf_parser">cudf_parser</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:preamble">preamble</a> option * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:request">request</a> option
+    
+      <div class="doc">
+        
+      <p>same as <a href="../../../cudf.0.7/_build/cudf_parser/">Cudf_parser</a>.<a href="../../../cudf.0.7/_build/cudf_parser/#/val:parse">parse</a>, but additionally loads the package
+list as an abstract <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:universe">universe</a>.</p>
+      
+      <p><b>Note</b>: to load compact universes (i.e. only containing package names,
+versions, and installed status) that will be tested as solutions you should
+use <a href="../../../cudf.0.7/_build/cudf_parser/">Cudf_parser</a>.<a href="../../../cudf.0.7/_build/cudf_parser/#/val:load_solution">load_solution</a> instead: the present function does not
+expand missing metadata with respect to the initial status.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Parse_error</code> as [root:Cudf_parser].parse does
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Cudf.Constraint_violation</code> as [root:Cudf].load_universe does
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_solution">
+  <a href="index.html#/val:load_solution" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_solution : <a href="index.html#/type:cudf_parser">cudf_parser</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:preamble">preamble</a> option * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:universe">universe</a>
+    
+      <div class="doc">
+        
+      <p>Load a solution wrt to a given CUDF document, whose universe is given.</p>
+      
+      <p>Solution format is as per Appendix B of CUDF 2.0 spec</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Parse_error</code> as [root:Cudf_parser].parse does
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_from_file">
+  <a href="index.html#/val:parse_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_from_file : ?typedecl:<a href="../../../cudf.0.7/_build/cudf_conf/">Cudf_conf</a>.<a href="../../../cudf.0.7/_build/cudf_conf/#/type:stanza_typedecl">stanza_typedecl</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:preamble">preamble</a> option * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:package">package</a> list * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:request">request</a> option
+    
+      <div class="doc">
+        
+      <p>Shorthand: parse a file given its name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_from_file">
+  <a href="index.html#/val:load_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_from_file : ?typedecl:<a href="../../../cudf.0.7/_build/cudf_conf/">Cudf_conf</a>.<a href="../../../cudf.0.7/_build/cudf_conf/#/type:stanza_typedecl">stanza_typedecl</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:preamble">preamble</a> option * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:request">request</a> option
+    
+      <div class="doc">
+        
+      <p>Shorthand: load from a file given its name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:load_solution_from_file">
+  <a href="index.html#/val:load_solution_from_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> load_solution_from_file : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:universe">universe</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:preamble">preamble</a> option * <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:universe">universe</a>
+    
+      <div class="doc">
+        
+      <p>Shorthand: load a solution from a file given its name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Item-by-item CUDF parsing</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:parse_item">
+  <a href="index.html#/val:parse_item" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_item : <a href="index.html#/type:cudf_parser">cudf_parser</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../cudf.0.7/_build/cudf/#/type:cudf_item">cudf_item</a>
+    
+      <div class="doc">
+        
+      <p>Parse the next information item (either a package description, a user
+request, or a preamble) from the given input channel.</p>
+      
+      <p>Beware that parsing is stateful; in particular when the preamble is parsed,
+the list of allowed properties for future package stanzas is internally
+updated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Low-level parsing functions</h6>
+    </div>
+      <p>The following parsing function usually raise fine grained exceptions such
+as <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/exn:Syntax_error">Syntax_error</a> and <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/exn:Type_error">Type_error</a>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:loc_map">
+  <a href="index.html#/type:loc_map" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> loc_map = (string * <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/type:loc">loc</a>) list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:parse_stanza">
+  <a href="index.html#/val:parse_stanza" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_stanza : <a href="index.html#/type:cudf_parser">cudf_parser</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:loc_map">loc_map</a> * string <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/type:stanza">stanza</a>
+    
+      <div class="doc">
+        
+      <p>Parse a file stanza (i.e., a RFC822-like stanza, with the notable
+simplification that all field/value pairs are one-liners). Strip
+any heading blanks lines leading to the first available
+field/value pair.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> an associative list mapping field name to field values and a
+location map mapping field names to locations
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>End_of_file</code> if no other stanza is available due to reached EOF
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Cudf_types.Syntax_error</code> when a syntax error is encountered
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:type_check_stanza">
+  <a href="index.html#/val:type_check_stanza" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> type_check_stanza : ?locs:<a href="index.html#/type:loc_map">loc_map</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/type:stanza">stanza</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/type:typedecl">typedecl</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/type:typed_value">typed_value</a> <a href="../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../cudf.0.7/_build/cudf_types/#/type:stanza">stanza</a>
+    
+      <div class="doc">
+        
+      <p>Type check an untyped stanza according to a given set of type declarations.
+Also take care of default values, adding missing properties where needed;
+fail if a required property is missing.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">loc</span> location map from prop name to locations, default is None
+(i.e. use dummy locations)
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Syntax_error</code> if a property does not match its declared type; this
+exception is also raised when an undeclared property is encountered
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Type_error</code> when a property has a value of the wrong type
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

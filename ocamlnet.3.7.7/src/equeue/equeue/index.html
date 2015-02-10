@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Equeue</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Equeue</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Equeue</code> implements generic event queues. An <b>event system</b>
+consists of an event queue, a list of event handlers, and an
+event source. The queue has FIFO semantics, i.e. the first event
+is processed next, and new events are appended to its end. When
+an event is delivered to an event handler, all handlers are tried
+until a handler accepts the event (or the event is dropped if no
+such handler can be found). See below how a handler can indicate
+whether to accept or reject an event.</p>
+      
+      <p>When the queue is empty, the event source is called once. The source
+can add events to the queue, in order to continue event processing.
+If the queue remains empty, the execution of the event system
+stops.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p><b>THREAD SAFETY</b></p>
+      
+      <p>The module can be used in multi-threaded program provided no
+event system is shared by several threads, or if so, access to
+functions is serialized.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+      <div class="doc">
+        
+      <p>This is the type of an event system with events of type 'a</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Reject">
+  <a href="index.html#/exn:Reject" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Reject
+    
+      <div class="doc">
+        
+      <p>May be raised by event handlers to reject events</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Terminate">
+  <a href="index.html#/exn:Terminate" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Terminate
+    
+      <div class="doc">
+        
+      <p>May be raised by event handlers to accept events while terminating
+themselves</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Out_of_handlers">
+  <a href="index.html#/exn:Out_of_handlers" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Out_of_handlers
+    
+      <div class="doc">
+        
+      <p>Raised by <code>run</code> when the event source adds new events to the queue
+but there are no event handlers to process them</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?string_of_event:('a <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new event system that has an event source, but is
+otherwise empty. The argument of type <code>'a t -&gt; unit</code> is the
+event source. The source can call <code>add_event</code> to put new events
+into the queue.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">string_of_event</span> Optionally, one can pass a printer for events.
+This has only an effect for debugging output.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_event">
+  <a href="index.html#/val:add_event" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_event : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Puts an event into the event queue of the system.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_handler">
+  <a href="index.html#/val:add_handler" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_handler : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adds a handler to the list of handlers of the system.</p>
+      
+      <p>An event handler is called with the event system and the event as
+arguments. The handler can return in various ways:</p>
+      <ul><li>Return normally: This means that the event is accepted by the
+handler. No other handler will be asked to process the event.</li><li>Raise <code>Reject</code>: The event is rejected by the handler. The other
+handlers are asked to process the event.</li><li>Raise <code>Terminate</code>: The event is accepted, but the handler is
+terminated, i.e. will never be called again.</li><li>Raise another exception: The event is deferred, and will be
+processed again in the future, but after the already queued events.
+Furthermore, the exception falls through to the caller of
+<code>run</code>.</li></ul>
+      <p>The handler can add new events and new event handlers. The latter
+will be activated when the next event is processed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:run">
+  <a href="index.html#/val:run" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> run : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Running a system means that, unless the queue is empty, the events
+at the time of the <code>run</code> invocation and all later added events are
+gone through. Each event is presented to the handlers until one
+handler accepts the event. Events rejected by all handlers are
+dropped silently. If there is no pending event the default event
+source is called once. If there are still no events the system stops
+and returns. If there are events to process but no handlers which
+can do them all events are silently dropped, and the default event
+source is called once.</p>
+      
+      <p>The exception <code>Out_of_handlers</code> is raised if there are events but no
+handlers after the event source has been called. This is considered
+as a programming error, and would cause infinite looping if not
+detected.</p>
+      
+      <p>Note that there is an implicit order among the handlers which is
+simply the order the handlers have been added to the system. This
+means that you can set a fallback handler which catches any unprocessed
+event by adding it last.</p>
+      
+      <p>Note that the events are processed in the order they happen. There
+is no mechanism to assign priorities to events.</p>
+      
+      <p>Handlers are allowed to raise arbitrary exceptions. Exceptions other
+than Reject and Terminate are not caught, so the caller has to do this
+if appropriate. It is possible to restart an event system by just
+calling <code>run</code> again.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_running">
+  <a href="index.html#/val:is_running" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_running : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the event loop is active</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/type:debug_target">
+  <a href="index.html#/module:Debug/type:debug_target" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> debug_target = [ <div class="cons">| `Any</div><div class="cons">| `Process <span class="keyword">of</span> int</div><div class="cons">| `Thread <span class="keyword">of</span> int</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enable [root:Netlog] debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:set_debug_mode">
+  <a href="index.html#/module:Debug/val:set_debug_mode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_debug_mode : bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets <code>enable</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:set_debug_target">
+  <a href="index.html#/module:Debug/val:set_debug_target" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_debug_target : <a href="index.html#/module:Debug/type:debug_target">debug_target</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Restricts debugging to this target.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

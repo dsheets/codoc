@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_stream</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_stream</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Data streams</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+      <div class="doc">
+        
+      <p>Type of a stream holding values of type <code>'a</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Naming convention: in this module all function taking a function
+which is applied to all element of the streams are suffixed by:</p>
+      <ul><li><code>_s</code> when the function returns a thread and calls are serialised</li><li><code>_p</code> when the function returns a thread and calls are parallelised</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Construction</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:from">
+  <a href="index.html#/val:from" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from : (unit <span class="rarr"><span>-&gt;</span></span> 'a option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>from f</code> creates an stream from the given input function. <code>f</code> is
+called each time more input is needed, and the stream ends when
+<code>f</code> returns <code>None</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_direct">
+  <a href="index.html#/val:from_direct" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_direct : (unit <span class="rarr"><span>-&gt;</span></span> 'a option) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>from_direct f</code> does the same as <a href="index.html#/val:from">from</a> but with a function
+that does not return a thread. It is better than wrapping <code>f</code>
+into a function which return a thread.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Closed">
+  <a href="index.html#/exn:Closed" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Closed
+    
+      <div class="doc">
+        
+      <p>Exception raised by the push function of a push-stream when
+pushing an element after the end of stream (<code>= None</code>) have been
+pushed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> * ('a option <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p><code>create ()</code> returns a new stream and a push function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_with_reference">
+  <a href="index.html#/val:create_with_reference" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_with_reference : unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> * ('a option <span class="rarr"><span>-&gt;</span></span> unit) * ('b <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p><code>create_with_reference ()</code> returns a new stream and a push
+function. The last function allows to set a reference to an
+external source. This prevent the external source from being
+garbage collected.</p>
+      
+      <p>For example, to convert a reactive event to a stream:</p>
+      <pre><code>        let stream, push, set_ref = Lwt_stream.create_with_reference () in
+        set_ref (map_event push event)</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Full">
+  <a href="index.html#/exn:Full" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Full
+    
+      <div class="doc">
+        
+      <p>Exception raised by the push function of a bounded push-stream
+when the stream queue is full and a thread is already waiting to
+push an element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push">
+  <a href="index.html#/classtype:bounded_push" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> ['a] bounded_push = 
+  <div class="region" id="/classtype:bounded_push/method:size">
+  <a href="index.html#/classtype:bounded_push/method:size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> size : int
+  
+      <div class="doc">
+        
+      <p>Size of the stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push/method:resize">
+  <a href="index.html#/classtype:bounded_push/method:resize" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> resize : int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Change the size of the stream queue. Note that the new size
+can smaller than the current stream queue size.</p>
+      
+      <p>It raises <code>Invalid_argument</code> if <code>size &lt; 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push/method:push">
+  <a href="index.html#/classtype:bounded_push/method:push" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> push : 'a <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>Pushes a new element to the stream. If the stream is full then
+it will block until one element is consumed. If another thread
+is already blocked on <a href="index.html#/classtype:bounded_push/method:push">push</a>, it raises <a href="index.html#/exn:Full">Full</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push/method:close">
+  <a href="index.html#/classtype:bounded_push/method:close" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close : unit
+  
+      <div class="doc">
+        
+      <p>Closes the stream. Any thread currently blocked on <a href="index.html#/classtype:bounded_push/method:push">push</a>
+will fail with <a href="index.html#/exn:Closed">Closed</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push/method:count">
+  <a href="index.html#/classtype:bounded_push/method:count" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> count : int
+  
+      <div class="doc">
+        
+      <p>Number of elements in the stream queue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push/method:blocked">
+  <a href="index.html#/classtype:bounded_push/method:blocked" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> blocked : bool
+  
+      <div class="doc">
+        
+      <p>Is a thread is blocked on <a href="index.html#/classtype:bounded_push/method:push">push</a> ?</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push/method:closed">
+  <a href="index.html#/classtype:bounded_push/method:closed" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> closed : bool
+  
+      <div class="doc">
+        
+      <p>Is the stream closed ?</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:bounded_push/method:set_reference">
+  <a href="index.html#/classtype:bounded_push/method:set_reference" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_reference : 'a . 'a <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Set the reference to an external source.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Type of sources for bounded push-streams.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_bounded">
+  <a href="index.html#/val:create_bounded" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_bounded : int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/classtype:bounded_push">bounded_push</a>
+    
+      <div class="doc">
+        
+      <p><code>create_bounded size</code> returns a new stream and a bounded push
+source. The stream can hold a maximum of <code>size</code> elements. When
+this limit is reached, pushing a new element will block until
+one is consumed.</p>
+      
+      <p>Note that you cannot clone or parse (with <a href="index.html#/val:parse">parse</a>) a bounded
+stream. These functions will raise <code>Invalid_argument</code> if you try
+to do so.</p>
+      
+      <p>It raises <code>Invalid_argument</code> if <code>size &lt; 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_list">
+  <a href="index.html#/val:of_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_list : 'a list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_list l</code> creates a stream returning all elements of <code>l</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_array">
+  <a href="index.html#/val:of_array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_array : 'a array <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_array a</code> creates a stream returning all elements of <code>a</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_string">
+  <a href="index.html#/val:of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_string : string <span class="rarr"><span>-&gt;</span></span> char <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_string str</code> creates a stream returning all characters of
+<code>str</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clone">
+  <a href="index.html#/val:clone" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clone : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>clone st</code> clone the given stream. Operations on each stream
+will not affect the other.</p>
+      
+      <p>For example:</p>
+      <pre><code>        # let st1 = Lwt_stream.of_list [1; 2; 3];;
+        val st1 : int Lwt_stream.t = &lt;abstr&gt;
+        # let st2 = Lwt_stream.clone st1;;
+        val st2 : int Lwt_stream.t = &lt;abstr&gt;
+        # lwt x = Lwt_stream.next st1;;
+        val x : int = 1
+        # lwt y = Lwt_stream.next st2;;
+        val y : int = 1</code></pre>
+      <p>It raises <code>Invalid_argument</code> if <code>st</code> is a bounded
+push-stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Destruction</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:to_list">
+  <a href="index.html#/val:to_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_list : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the list of elements of the given stream</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string">
+  <a href="index.html#/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : char <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the word composed of all characters of the given
+stream</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Data retreival</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/exn:Empty">
+  <a href="index.html#/exn:Empty" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Empty
+    
+      <div class="doc">
+        
+      <p>Exception raised when trying to retreive data from an empty
+stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:peek">
+  <a href="index.html#/val:peek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> peek : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>peek st</code> returns the first element of the stream, if any,
+without removing it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:npeek">
+  <a href="index.html#/val:npeek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> npeek : int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>npeek n st</code> returns at most the first <code>n</code> elements of <code>st</code>,
+without removing them.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>get st</code> remove and returns the first element of the stream, if
+any.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nget">
+  <a href="index.html#/val:nget" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nget : int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>nget n st</code> remove and returns at most the first <code>n</code> elements of
+<code>st</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_while">
+  <a href="index.html#/val:get_while" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_while : ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_while_s">
+  <a href="index.html#/val:get_while_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_while_s : ('a <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>get_while f st</code> returns the longest prefix of <code>st</code> where all
+elements satisfy <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:next">
+  <a href="index.html#/val:next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>next st</code> remove and returns the next element of the stream, of
+fail with <a href="index.html#/exn:Empty">Empty</a> if the stream is empty.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:last_new">
+  <a href="index.html#/val:last_new" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> last_new : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>last_new st</code> returns the last element that can be obtained
+without sleepping, or wait for one if no one is already
+available.</p>
+      
+      <p>If fails with <a href="index.html#/exn:Empty">Empty</a> if the stream has no more elements</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:junk">
+  <a href="index.html#/val:junk" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> junk : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>junk st</code> remove the first element of <code>st</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:njunk">
+  <a href="index.html#/val:njunk" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> njunk : int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>njunk n st</code> removes at most the first <code>n</code> elements of the
+stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:junk_while">
+  <a href="index.html#/val:junk_while" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> junk_while : ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:junk_while_s">
+  <a href="index.html#/val:junk_while_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> junk_while_s : ('a <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>junk_while f st</code> removes all elements at the beginning of the
+streams which satisfy <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:junk_old">
+  <a href="index.html#/val:junk_old" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> junk_old : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>junk_old st</code> removes all elements that are ready to be read
+without yeilding from <code>st</code>.</p>
+      
+      <p>For example the <code>read_password</code> function of <code>Lwt_read_line</code> use
+that to junk key previously typed by the user.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_available">
+  <a href="index.html#/val:get_available" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_available : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list
+    
+      <div class="doc">
+        
+      <p><code>get_available st</code> returns all available elements of <code>l</code> without
+blocking</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_available_up_to">
+  <a href="index.html#/val:get_available_up_to" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_available_up_to : int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list
+    
+      <div class="doc">
+        
+      <p><code>get_available_up_to n st</code> returns up to <code>n</code> elements of <code>l</code>
+without blocking</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_empty">
+  <a href="index.html#/val:is_empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_empty : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>is_empty st</code> returns wether the given stream is empty</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:on_terminate">
+  <a href="index.html#/val:on_terminate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on_terminate : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>on_terminate st f</code> executes <code>f</code> when the end of the stream <code>st</code>
+is reached. Note that the stream may still contains elements if
+<a href="index.html#/val:peek">peek</a> or similar was used.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Stream transversal</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Note: all the following functions are destructive.</p>
+      
+      <p>For example:</p>
+      <pre><code>      # let st1 = Lwt_stream.of_list [1; 2; 3];;
+      val st1 : int Lwt_stream.t = &lt;abstr&gt;
+      # let st2 = Lwt_stream.map string_of_int st1;;
+      val st2 : string Lwt_stream.t = &lt;abstr&gt;
+      # lwt x = Lwt_stream.next st1;;
+      val x : int = 1
+      # lwt y = Lwt_stream.next st2;;
+      val y : string = &quot;2&quot;</code></pre>
+        
+      </div>
+    
+  <div class="region" id="/val:choose">
+  <a href="index.html#/val:choose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> choose : 'a <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>choose l</code> creates an stream from a list of streams. The
+resulting stream will returns elements returned by any stream of
+<code>l</code> in an unspecified order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map">
+  <a href="index.html#/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_s">
+  <a href="index.html#/val:map_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_s : ('a <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>map f st</code> maps the value returned by <code>st</code> with <code>f</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter">
+  <a href="index.html#/val:filter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter : ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_s">
+  <a href="index.html#/val:filter_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_s : ('a <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>filter f st</code> keeps only value <code>x</code> such that <code>f x</code> is <code>true</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_map">
+  <a href="index.html#/val:filter_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_map : ('a <span class="rarr"><span>-&gt;</span></span> 'b option) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_map_s">
+  <a href="index.html#/val:filter_map_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_map_s : ('a <span class="rarr"><span>-&gt;</span></span> 'b option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>filter_map f st</code> filter and map <code>st</code> at the same time</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_list">
+  <a href="index.html#/val:map_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_list : ('a <span class="rarr"><span>-&gt;</span></span> 'b list) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_list_s">
+  <a href="index.html#/val:map_list_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_list_s : ('a <span class="rarr"><span>-&gt;</span></span> 'b list <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>map_list f st</code> applies <code>f</code> on each element of <code>st</code> and flattens
+the lists returned</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold_s">
+  <a href="index.html#/val:fold_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_s : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>fold f s x</code> fold_like function for streams.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_p">
+  <a href="index.html#/val:iter_p" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_p : ('a <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_s">
+  <a href="index.html#/val:iter_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_s : ('a <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>iter f s</code> iterates over all elements of the stream</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find">
+  <a href="index.html#/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_s">
+  <a href="index.html#/val:find_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_s : ('a <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>find f s</code> find an element in a stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_map">
+  <a href="index.html#/val:find_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_map : ('a <span class="rarr"><span>-&gt;</span></span> 'b option) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_map_s">
+  <a href="index.html#/val:find_map_s" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_map_s : ('a <span class="rarr"><span>-&gt;</span></span> 'b option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b option <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>find f s</code> find and map at the same time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:combine">
+  <a href="index.html#/val:combine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> combine : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>combine s1 s2</code> combine two streams. The stream will ends when
+the first stream ends.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:append">
+  <a href="index.html#/val:append" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> append : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>append s1 s2</code> returns a stream which returns all elements of
+<code>s1</code>, then all elements of <code>s2</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:concat">
+  <a href="index.html#/val:concat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> concat : 'a <a href="index.html#/type:t">t</a> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>concat st</code> returns the concatenation of all streams of <code>st</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flatten">
+  <a href="index.html#/val:flatten" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flatten : 'a list <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>flatten st = map_list (fun l -&gt; l) st</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:result">
+  <a href="index.html#/type:result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a result = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:result/cons:Value">
+  <a href="index.html#/type:result/cons:Value" class="anchor">#</a>
+  | Value <span class="keyword">of</span> 'a
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:result/cons:Error">
+  <a href="index.html#/type:result/cons:Error" class="anchor">#</a>
+  | Error <span class="keyword">of</span> exn
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>A value or an error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_exn">
+  <a href="index.html#/val:map_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:result">result</a> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>map_exn s</code> returns a stream that captures all exceptions raised
+by the source of the stream (the function passed to <a href="index.html#/val:from">from</a>).</p>
+      
+      <p>Note that for push-streams (as returned by <a href="index.html#/val:create">create</a>) all
+elements of the mapped streams are values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Parsing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:parse">
+  <a href="index.html#/val:parse" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'b <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>parse st f</code> parses <code>st</code> with <code>f</code>. If <code>f</code> raise an exception,
+<code>st</code> is restored to its previous state.</p>
+      
+      <p>It raises <code>Invalid_argument</code> if <code>st</code> is a bounded
+push-stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Misc</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:hexdump">
+  <a href="index.html#/val:hexdump" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hexdump : char <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>hexdump byte_stream</code> returns a stream which is the same as the
+output of <code>hexdump -C</code>.</p>
+      
+      <p>Basically, here is a simple implementation of <code>hexdump -C</code>:</p>
+      <pre><code>        let () = Lwt_main.run (Lwt_io.write_lines Lwt_io.stdout (Lwt_stream.hexdump (Lwt_io.read_lines Lwt_io.stdin)))</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netsys_oothr</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netsys_oothr</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Object-oriented thread API</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Makes the most important multi-threading primitives available using
+object types. For single-threaded apps, the operations are substituted
+by no-ops.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:mtprovider">
+  <a href="index.html#/classtype:mtprovider" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mtprovider = 
+  <div class="region" id="/classtype:mtprovider/method:single_threaded">
+  <a href="index.html#/classtype:mtprovider/method:single_threaded" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> single_threaded : bool
+  
+      <div class="doc">
+        
+      <p>Whether this is a single-threaded program. In this case, a number
+of methods change their meaning, as described below.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mtprovider/method:create_thread">
+  <a href="index.html#/classtype:mtprovider/method:create_thread" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_thread : 's 't . ('s <span class="rarr"><span>-&gt;</span></span> 't) <span class="rarr"><span>-&gt;</span></span> 's <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:thread">thread</a>
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Starts a new thread, and calls the
+passed function with the passed argument in the new thread
+(like <code>Thread.create</code>).
+In a single-threaded program: fails.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mtprovider/method:self">
+  <a href="index.html#/classtype:mtprovider/method:self" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> self : <a href="index.html#/classtype:thread">thread</a>
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Returns the currently running thread.
+Subsequent calls of <code>self</code> can return different objects for the
+same thread, but the <code>id</code> method will always return the same number.
+In a single-threaded program: Returns a dummy object (see below).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mtprovider/method:yield">
+  <a href="index.html#/classtype:mtprovider/method:yield" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> yield : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: gives a hint that another thread should
+better run now.
+In a single-threaded program: this is a no-op.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mtprovider/method:create_mutex">
+  <a href="index.html#/classtype:mtprovider/method:create_mutex" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_mutex : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:mutex">mutex</a>
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Creates a mutex and returns the object.
+In a single-threaded program: Returns a dummy mutex object (see below).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mtprovider/method:create_condition">
+  <a href="index.html#/classtype:mtprovider/method:create_condition" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> create_condition : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:condition">condition</a>
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Creates a condition variable and returns
+the object.
+In a single-threaded program: Returns a dummy variable (see below).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:thread">
+  <a href="index.html#/classtype:thread" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> thread = 
+  <div class="region" id="/classtype:thread/method:id">
+  <a href="index.html#/classtype:thread/method:id" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> id : int
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Returns the thread ID.
+In a single-threaded program: Returns 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:thread/method:join">
+  <a href="index.html#/classtype:thread/method:join" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> join : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Suspends the calling thread until this
+thread terminates.
+In a single-threaded program: fails</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:thread/method:repr">
+  <a href="index.html#/classtype:thread/method:repr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> repr : exn
+  
+      <div class="doc">
+        
+      <p>May be used internally be the implementation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mutex">
+  <a href="index.html#/classtype:mutex" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> mutex = 
+  <div class="region" id="/classtype:mutex/method:lock">
+  <a href="index.html#/classtype:mutex/method:lock" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> lock : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Suspends the calling thread until the
+mutex is locked.
+In a single-threaded program: This is a no-op</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mutex/method:unlock">
+  <a href="index.html#/classtype:mutex/method:unlock" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> unlock : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Unlocks a mutex.
+In a single-threaded program: This is a no-op</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mutex/method:try_lock">
+  <a href="index.html#/classtype:mutex/method:try_lock" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> try_lock : unit <span class="rarr"><span>-&gt;</span></span> bool
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Tries to immediately lock the mutex,
+and returns whether the lock could be obtained.
+In a single-threaded program: returns <code>true</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:mutex/method:repr">
+  <a href="index.html#/classtype:mutex/method:repr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> repr : exn
+  
+      <div class="doc">
+        
+      <p>May be used internally be the implementation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:condition">
+  <a href="index.html#/classtype:condition" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> condition = 
+  <div class="region" id="/classtype:condition/method:wait">
+  <a href="index.html#/classtype:condition/method:wait" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> wait : <a href="index.html#/classtype:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Wait for the condition to be true
+and use the mutex to protect this situation.
+In a single-threaded program: this is a no-op.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:condition/method:signal">
+  <a href="index.html#/classtype:condition/method:signal" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> signal : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Signal one process that the condition
+holds.
+In a single-threaded program: this is a no-op.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:condition/method:broadcast">
+  <a href="index.html#/classtype:condition/method:broadcast" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> broadcast : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>In a multi-threaded program: Signal all waiting processes that the
+condition holds.
+In a single-threaded program: this is a no-op.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:condition/method:repr">
+  <a href="index.html#/classtype:condition/method:repr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> repr : exn
+  
+      <div class="doc">
+        
+      <p>May be used internally be the implementation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:provider">
+  <a href="index.html#/val:provider" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> provider : <a href="index.html#/classtype:mtprovider">mtprovider</a> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Return the multi-threading provider</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:serialize">
+  <a href="index.html#/val:serialize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> serialize : <a href="index.html#/classtype:mutex">mutex</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>serialize m f arg</code>: Locks <code>m</code>, runs <code>f arg</code>, unlocks <code>m</code>, and returns
+the result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

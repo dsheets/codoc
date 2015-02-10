@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../../codoc.css"/>
+    <title>Lwt_condition</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lwt_condition</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Conditions</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Condition variables to synchronize between threads.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+      <div class="doc">
+        
+      <p>Condition variable type. The type parameter denotes the type of
+value propagated from notifier to waiter.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ()</code> creates a new condition variable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait">
+  <a href="index.html#/val:wait" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait : ?mutex:<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_mutex/">Lwt_mutex</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt_mutex/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>wait mutex condvar</code> will cause the current thread to block,
+awaiting notification for a condition variable, <code>condvar</code>. If
+provided, the <code>mutex</code> must have been previously locked (within
+the scope of <code>Lwt_mutex.with_lock</code>, for example) and is
+temporarily unlocked until the condition is notified. Upon
+notification, <code>mutex</code> is re-locked before <code>wait</code> returns and
+the thread's activity is resumed. When the awaited condition
+is notified, the value parameter passed to <code>notify</code> is
+returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:signal">
+  <a href="index.html#/val:signal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> signal : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>signal condvar value</code> notifies that a condition is ready. A
+single waiting thread will be awoken and will receive the
+notification value which will be returned from <code>wait</code>. Note
+that condition notification is not &quot;sticky&quot;, i.e. if there is
+no waiter when <code>notify</code> is called, the notification will be
+missed and the value discarded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:broadcast">
+  <a href="index.html#/val:broadcast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> broadcast : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>broadcast condvar value</code> notifies all waiting threads. Each
+will be awoken in turn and will receive the same notification
+value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

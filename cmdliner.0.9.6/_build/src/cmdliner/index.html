@@ -1,0 +1,2202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Cmdliner</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Cmdliner</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Declarative definition of command line interfaces.</p>
+      
+      <p><code>Cmdliner</code> provides a simple and compositional mechanism
+to convert command line arguments to OCaml values and pass them to
+your functions. The module automatically handles syntax errors,
+help messages and UNIX man page generation. It supports programs
+with single or multiple commands
+(like <code>darcs</code> or <code>git</code>) and respect most of the
+<a href="http://www.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html">POSIX</a> and
+<a href="http://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html">GNU</a> conventions.</p>
+      
+      <p>Consult the <a href="index.html#/label:basics">basics</a>, details about the supported
+<a href="index.html#/label:cmdline">command line syntax</a> and <a href="index.html#/label:examples">examples</a> of
+use. Open the module to use it, it defines only three modules in
+your scope.</p>
+      
+      <p><em>Release 0.9.6 - Daniel Bünzli &lt;daniel.buenzl i@erratique.ch&gt;</em></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:top">
+  <a href="index.html#/label:top" class="anchor">#</a>
+  
+    <h1 class="section level_1">Interface</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Manpage">
+  <a href="index.html#/module:Manpage" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Manpage : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Man page specification.</p>
+      
+      <p>Man page generation is automatically handled by <code>Cmdliner</code>. The
+[root:block] type is used to define a man page's content.</p>
+      
+      <p>The [root:print] function can be useful if the client wants to define
+other man pages (e.g. to implement a help command).</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Man pages</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Manpage/type:block">
+  <a href="index.html#/module:Manpage/type:block" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> block = [ <div class="cons">| `S <span class="keyword">of</span> string</div><div class="cons">| `P <span class="keyword">of</span> string</div><div class="cons">| `I <span class="keyword">of</span> string * string</div><div class="cons">| `Noblank</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for a block of man page text.</p>
+      <ul><li><code>`S s</code> introduces a new section <code>s</code>.</li><li><code>`P t</code> is a new paragraph with text <code>t</code>.</li><li><code>`I (l,t)</code> is an indented paragraph with label
+<code>l</code> and text <code>t</code>.</li><li><code>`Noblank</code> suppresses the blank line introduced between two blocks.</li></ul>
+      <p>In text strings <code>t</code>, whitespace and newlines are not significant
+and are all collapsed to a single space. In labels <code>l</code> and text
+strings <code>t</code>, the syntax <code>&quot;$(i,italic text)&quot;</code> and <code>&quot;$(b,bold
+      text)&quot;</code> can be used to respectively produce italic and bold
+text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Manpage/type:title">
+  <a href="index.html#/module:Manpage/type:title" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> title = string * int * string * string * string
+    
+      <div class="doc">
+        
+      <p>The type for man page titles. Describes the man page
+<code>title</code>, <code>section</code>, <code>center_footer</code>, <code>left_footer</code>, <code>center_header</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Manpage/type:t">
+  <a href="index.html#/module:Manpage/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="index.html#/module:Manpage/type:title">title</a> * <a href="index.html#/module:Manpage/type:block">block</a> list
+    
+      <div class="doc">
+        
+      <p>The type for a man page. A title and the page text as a list of blocks.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Manpage/val:print">
+  <a href="index.html#/module:Manpage/val:print" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print : ?subst:(string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Pager</div><div class="cons">| `Plain</div><div class="cons">| `Groff</div> ] <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Manpage/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>print ~subst fmt ppf page</code> prints <code>page</code> on <code>ppf</code> in the format <code>fmt</code>.
+If <code>fmt</code> is <code>`Pager</code> the function tries to write the formatted
+result in a pager, if that fails the format <code>`Plain</code> is written
+on <code>ppf</code>. <code>subst</code> can be used to perform variable substitution,
+see <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/val:add_substitute">add_substitute</a> (defaults to the identity).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term">
+  <a href="index.html#/module:Term" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Term : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Terms.</p>
+      
+      <p>A term is evaluated by a program to produce a [root:result].
+A term made of terms referring to <a href="index.html#/module:Arg">command line arguments</a>
+implicitly defines a command line syntax.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Terms</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Term/type:t">
+  <a href="index.html#/module:Term/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> +'a t
+    
+      <div class="doc">
+        
+      <p>The type for terms evaluating to values of type 'a.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:pure">
+  <a href="index.html#/module:Term/val:pure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pure : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>pure v</code> is a term that evaluates to <code>v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:($)">
+  <a href="index.html#/module:Term/val:($)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ($) : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <a href="index.html#/module:Term/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>f $ v</code> is a term that evaluates to the result of applying
+the evaluation of <code>v</code> to the one of <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:app">
+  <a href="index.html#/module:Term/val:app" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> app : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <a href="index.html#/module:Term/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>app</code> is [root:($)].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/type:ret">
+  <a href="index.html#/module:Term/type:ret" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a ret = [ <div class="cons">| `Help <span class="keyword">of</span> [ <div class="cons">| `Pager</div><div class="cons">| `Plain</div><div class="cons">| `Groff</div> ] * string option</div><div class="cons">| `Error <span class="keyword">of</span> bool * string</div><div class="cons">| `Ok <span class="keyword">of</span> 'a</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for command return values. See <a href="index.html#/module:Term/type:ret">ret</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:ret">
+  <a href="index.html#/module:Term/val:ret" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ret : 'a <a href="index.html#/module:Term/type:ret">ret</a> <a href="index.html#/module:Term/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>ret v</code> is a term whose evaluation depends on the case
+to which <code>v</code> evaluates. With :
+</p>
+      <ul><li><code>`Ok r</code>, it evaluates to <code>r</code>.</li><li><code>`Error (usage,e)</code>, the evaluation fails and <code>Cmdliner</code> prints
+the error <code>e</code> and the term's usage if <code>usage</code> is <code>true</code>.</li><li><code>`Help (format, name)</code>, the evaluation fails and <code>Cmdliner</code> prints the
+term's man page in the given <code>format</code> (or the man page for a
+specific <code>name</code> term in case of multiple term evaluation).</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:main_name">
+  <a href="index.html#/module:Term/val:main_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> main_name : string <a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>main_name</code> is a term that evaluates to the &quot;main&quot; term's name.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:choice_names">
+  <a href="index.html#/module:Term/val:choice_names" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> choice_names : string list <a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>choice_names</code> is a term that evaluates to the names of the terms
+to choose from.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:man_format">
+  <a href="index.html#/module:Term/val:man_format" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> man_format : [ <div class="cons">| `Pager</div><div class="cons">| `Plain</div><div class="cons">| `Groff</div> ] <a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>man_format</code> is a term that defines a <code>--man-format</code> option and
+evaluates to a value that can be used with <a href="index.html#/module:Manpage">Manpage</a>.<a href="index.html#/module:Manpage/val:print">print</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:Term/label:tinfo">
+  <a href="index.html#/module:Term/label:tinfo" class="anchor">#</a>
+  
+    <h1 class="section level_1">Term information</h1>
+    
+  </div>
+  
+      <p>Term information defines the name and man page of a term.
+For simple evaluation this is the name of the program and its
+man page. For multiple term evaluation, this is
+the name of a command and its man page.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Term/type:info">
+  <a href="index.html#/module:Term/type:info" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> info
+    
+      <div class="doc">
+        
+      <p>The type for term information.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:info">
+  <a href="index.html#/module:Term/val:info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> info : ?sdocs:string <span class="rarr"><span>-&gt;</span></span> ?man:<a href="index.html#/module:Manpage">Manpage</a>.<a href="index.html#/module:Manpage/type:block">block</a> list <span class="rarr"><span>-&gt;</span></span> ?docs:string <span class="rarr"><span>-&gt;</span></span> ?doc:string <span class="rarr"><span>-&gt;</span></span> ?version:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Term/type:info">info</a>
+    
+      <div class="doc">
+        
+      <p><code>info sdocs man docs doc version name</code> is a term information
+such that:
+</p>
+      <ul><li><code>name</code> is the name of the program or the command.</li><li><code>version</code> is the version string of the program, ignored
+for commands.</li><li><code>doc</code> is a one line description of the program or command used
+for the <code>NAME</code> section of the term's man page. For commands this
+description is also used in the list of commands of the main
+term's man page.</li><li><code>docs</code>, only for commands, the title of the section of the main
+term's man page where it should be listed (defaults to <code>&quot;COMMANDS&quot;</code>).</li><li><code>man</code> is the text of the man page for the term. In the text,
+the variables <code>&quot;$(tname)&quot;</code> and <code>&quot;$(mname)&quot;</code> can respectively be
+used to refer to the value of <code>name</code> and the main term's name.</li><li><code>sdocs</code> defines the title of the section in which the
+standard <code>--help</code> and <code>--version</code> arguments are listed.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:name">
+  <a href="index.html#/module:Term/val:name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name : <a href="index.html#/module:Term/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>name ti</code> is the name of the term information.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Evaluation</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Term/type:result">
+  <a href="index.html#/module:Term/type:result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a result = [ <div class="cons">| `Ok <span class="keyword">of</span> 'a</div><div class="cons">| `Error <span class="keyword">of</span> [ <div class="cons">| `Parse</div><div class="cons">| `Term</div><div class="cons">| `Exn</div> ]</div><div class="cons">| `Version</div><div class="cons">| `Help</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for evaluation results.
+</p>
+      <ul><li><code>`Ok v</code>, the term evaluated successfully and <code>v</code> is the result.</li><li><code>`Version</code>, the version string of the main term was printed
+on the help formatter.</li><li><code>`Help</code>, man page about the term was printed on the help formatter.</li><li><code>`Error `Parse</code>, a command line parse error occured and was
+reported on the error formatter.</li><li><code>`Error `Term</code>, a term evaluation error occured and was reported
+on the error formatter (see <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:ret">ret</a>).</li><li><code>`Error `Exn</code>, an exception <code>e</code> was caught and reported
+on the error formatter (see the <code>~catch</code> parameter of <a href="index.html#/module:Term/val:eval">eval</a>).</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:eval">
+  <a href="index.html#/module:Term/val:eval" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eval : ?help:<a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> ?err:<a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> ?catch:bool <span class="rarr"><span>-&gt;</span></span> ?argv:string array <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:t">t</a> * <a href="index.html#/module:Term/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p><code>eval help err catch argv (t,i)</code> is the evaluation result
+of <code>t</code> with command line arguments <code>argv</code> (defaults to <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:argv">argv</a>).</p>
+      
+      <p>If <code>catch</code> is <code>true</code> (default) uncaught exeptions
+are intercepted and their stack trace is written to the <code>err</code>
+formatter.</p>
+      
+      <p><code>help</code> is the formatter used to print help or version messages
+(defaults to <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/val:std_formatter">std_formatter</a>). <code>err</code> is the formatter
+used to print error messages (defaults to <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/val:err_formatter">err_formatter</a>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:eval_choice">
+  <a href="index.html#/module:Term/val:eval_choice" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eval_choice : ?help:<a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> ?err:<a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> ?catch:bool <span class="rarr"><span>-&gt;</span></span> ?argv:string array <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:t">t</a> * <a href="index.html#/module:Term/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/module:Term/type:t">t</a> * <a href="index.html#/module:Term/type:info">info</a>) list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p><code>eval_choice help err catch argv default (t,i) choices</code> is like <a href="index.html#/module:Term/val:eval">eval</a>
+except that if the first argument on the command line is not an option
+name it will look in <code>choices</code> for a term whose information has this
+name and evaluate it.</p>
+      
+      <p>If the command name is unknown an error is reported. If the name
+is unspecified the &quot;main&quot; term <code>t</code> is evaluated. <code>i</code> defines the
+name and man page of the program.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Term/val:eval_peek_opts">
+  <a href="index.html#/module:Term/val:eval_peek_opts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eval_peek_opts : ?version_opt:bool <span class="rarr"><span>-&gt;</span></span> ?argv:string array <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option * 'a <a href="index.html#/module:Term/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p><code>eval_peek_opts version_opt argv t</code> evaluates <code>t</code>, a term made
+of optional arguments only, with the command line <code>argv</code>
+(defaults to <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:argv">argv</a>). During this evaluation unknown
+optional arguments, and positional arguments are ignored. The
+evaluation returns a pair. The first component has a value if
+the command line, given the <em>partial</em> knoweldge in <code>t</code> would
+be parsed correctly regardless of both the help and version
+request options (the latter only if <code>version_opt</code> is <code>true</code>,
+defaults to <code>false</code>). The second component is the result of
+parsing the command line with the <em>partial</em> knowledge in <code>t</code>
+but without the side effects described in the <a href="index.html#/module:Term/type:result">result</a> type.</p>
+      
+      <p><b>Note.</b> Positional arguments can't be peeked without the full
+specification of the command line: we can't tell apart a
+positional argument from the value of an unknown optional
+argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg">
+  <a href="index.html#/module:Arg" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Arg : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Terms for command line arguments.</p>
+      
+      <p>This module provides functions to define terms that evaluate
+to the arguments provided on the command line.</p>
+      
+      <p>Basic constraints, like the argument type or repeatability, are
+specified by defining a value of type [root:t]. Further contraints can
+be specified during the [root:argterms] to a term.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/module:Arg/label:argconv">
+  <a href="index.html#/module:Arg/label:argconv" class="anchor">#</a>
+  
+    <h1 class="section level_1">Argument converters</h1>
+    
+  </div>
+  
+      <p>An argument converter transforms a string argument of the command
+line to an OCaml value. <a href="index.html#/module:Arg/label:converters">Predefined converters</a>
+are provided for many types of the standard library.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Arg/type:parser">
+  <a href="index.html#/module:Arg/type:parser" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a parser = string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Ok <span class="keyword">of</span> 'a</div><div class="cons">| `Error <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for argument parsers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/type:printer">
+  <a href="index.html#/module:Arg/type:printer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a printer = <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The type for converted argument printers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/type:converter">
+  <a href="index.html#/module:Arg/type:converter" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a converter = 'a <a href="index.html#/module:Arg/type:parser">parser</a> * 'a <a href="index.html#/module:Arg/type:printer">printer</a>
+    
+      <div class="doc">
+        
+      <p>The type for argument converters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:some">
+  <a href="index.html#/module:Arg/val:some" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> some : ?none:string <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>some none c</code> is like the converter <code>c</code> except it returns
+<code>Some</code> value. It is used for command line arguments
+that default to <code>None</code> when absent. <code>none</code> is what to print to
+document the absence (defaults to <code>&quot;&quot;</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:Arg/label:arginfo">
+  <a href="index.html#/module:Arg/label:arginfo" class="anchor">#</a>
+  
+    <h1 class="section level_1">Arguments and their information</h1>
+    
+  </div>
+  
+      <p>Argument information defines the man page information of an argument and,
+for optional arguments, its names.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Arg/type:t">
+  <a href="index.html#/module:Arg/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+      <div class="doc">
+        
+      <p>The type for arguments holding data of type <code>'a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/type:info">
+  <a href="index.html#/module:Arg/type:info" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> info
+    
+      <div class="doc">
+        
+      <p>The type for information about command line arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:info">
+  <a href="index.html#/module:Arg/val:info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> info : ?docs:string <span class="rarr"><span>-&gt;</span></span> ?docv:string <span class="rarr"><span>-&gt;</span></span> ?doc:string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Arg/type:info">info</a>
+    
+      <div class="doc">
+        
+      <p><code>info docs docv doc names</code> defines information for
+an argument.</p>
+      
+      <p><code>names</code> defines the names under which an optional argument
+can be referred to. Strings of length <code>1</code> (<code>&quot;c&quot;</code>) define short
+option names (<code>&quot;-c&quot;</code>), longer strings (<code>&quot;count&quot;</code>) define long
+option names (<code>&quot;--count&quot;</code>). <code>names</code> must be empty for positional
+arguments.</p>
+      <ul><li><code>doc</code> is the man page information of the argument.
+The variable <code>&quot;$(docv)&quot;</code> can be used to refer to the value
+of <code>docv</code> (see below). <a href="index.html#/module:Arg/label:doc_helpers">These functions</a> can help with
+formatting argument values.</li><li><code>docv</code> is for positional and non-flag optional arguments.
+It is a variable name used in the man page to stand for their value.</li><li><code>docs</code> is the title of the man page section in which the argument
+will be listed. For optional arguments this defaults
+to <code>&quot;OPTIONS&quot;</code>. For positional arguments this defaults
+to <code>&quot;ARGUMENTS&quot;</code>. However a positional argument is only listed
+if it has both a <code>doc</code> and <code>docv</code> specified.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:(&amp;)">
+  <a href="index.html#/module:Arg/val:(%26)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&amp;) : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>f &amp; v</code> is <code>f v</code>, a right associative composition operator for
+specifying argument terms.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:Arg/label:optargs">
+  <a href="index.html#/module:Arg/label:optargs" class="anchor">#</a>
+  
+    <h1 class="section level_1">Optional arguments</h1>
+    
+  </div>
+  
+      <p>The information of an optional argument must have at least
+one name or <code>Invalid_argument</code> is raised.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Arg/val:flag">
+  <a href="index.html#/module:Arg/val:flag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flag : <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>flag i</code> is a <code>bool</code> argument defined by an optional flag
+that may appear <em>at most</em> once on the command line under one of
+the names specified by <code>i</code>. The argument holds <code>true</code> if the
+flag is present on the command line and <code>false</code> otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:flag_all">
+  <a href="index.html#/module:Arg/val:flag_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flag_all : <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> bool list <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>flag_all</code> is like <a href="index.html#/module:Arg/val:flag">flag</a> except the flag may appear more than
+once. The argument holds a list that contains one <code>true</code> value per
+occurence of the flag. It holds the empty list if the flag
+is absent from the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:vflag">
+  <a href="index.html#/module:Arg/val:vflag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vflag : 'a <span class="rarr"><span>-&gt;</span></span> ('a * <a href="index.html#/module:Arg/type:info">info</a>) list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>vflag v [v</code><sub>0</sub><code>,i</code><sub>0</sub><code>;...]</code> is an <code>'a</code> argument defined
+by an optional flag that may appear <em>at most</em> once on
+the command line under one of the names specified in the <code>i</code><sub>k</sub>
+values. The argument holds <code>v</code> if the flag is absent from the
+command line and the value <code>v</code><sub>k</sub> if the name under which it appears
+is in <code>i</code><sub>k</sub>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:vflag_all">
+  <a href="index.html#/module:Arg/val:vflag_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vflag_all : 'a list <span class="rarr"><span>-&gt;</span></span> ('a * <a href="index.html#/module:Arg/type:info">info</a>) list <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>vflag_all v l</code> is like <a href="index.html#/module:Arg/val:vflag">vflag</a> except the flag may appear more
+than once. The argument holds the list <code>v</code> if the flag is absent
+from the command line. Otherwise it holds a list that contains one
+corresponding value per occurence of the flag, in the order found on
+the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:opt">
+  <a href="index.html#/module:Arg/val:opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> opt : ?vopt:'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>opt vopt c v i</code> is an <code>'a</code> argument defined by the value of
+an optional argument that may appear <em>at most</em> once on the command
+line under one of the names specified by <code>i</code>. The argument holds
+<code>v</code> if the option is absent from the command line. Otherwise
+it has the value of the option as converted by <code>c</code>.</p>
+      
+      <p>If <code>vopt</code> is provided the value of the optional argument is itself
+optional, taking the value <code>vopt</code> if unspecified on the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:opt_all">
+  <a href="index.html#/module:Arg/val:opt_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> opt_all : ?vopt:'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>opt_all vopt c v i</code> is like <a href="index.html#/module:Arg/val:opt">opt</a> except the optional argument may
+appear more than once. The argument holds a list that contains one value
+per occurence of the flag in the order found on the command line.
+It holds the list <code>v</code> if the flag is absent from the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:Arg/label:posargs">
+  <a href="index.html#/module:Arg/label:posargs" class="anchor">#</a>
+  
+    <h1 class="section level_1">Positional arguments</h1>
+    
+  </div>
+  
+      <p>The information of a positional argument must have no name
+or <code>Invalid_argument</code> is raised. Positional arguments indexing
+is zero-based.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Arg/val:pos">
+  <a href="index.html#/module:Arg/val:pos" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos : ?rev:bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>pos rev n c v i</code> is an <code>'a</code> argument defined by the <code>n</code>th
+positional argument of the command line as converted by <code>c</code>.
+If the positional argument is absent from the command line
+the argument is <code>v</code>.</p>
+      
+      <p>If <code>rev</code> is <code>true</code> (defaults to <code>false</code>), the computed
+position is <code>max-n</code> where <code>max</code> is the position of
+the last positional argument present on the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:pos_all">
+  <a href="index.html#/module:Arg/val:pos_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos_all : 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>pos_all c v i</code> is an <code>'a list</code> argument that holds
+all the positional arguments of the command line as converted
+by <code>c</code> or <code>v</code> if there are none.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:pos_left">
+  <a href="index.html#/module:Arg/val:pos_left" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos_left : ?rev:bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>pos_left rev n c v i</code> is an <code>'a list</code> argument that holds
+all the positional arguments as converted by <code>c</code> found on the left
+of the <code>n</code>th positional argument or <code>v</code> if there are none.</p>
+      
+      <p>If <code>rev</code> is <code>true</code> (defaults to <code>false</code>), the computed
+position is <code>max-n</code> where <code>max</code> is the position of
+the last positional argument present on the command line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:pos_right">
+  <a href="index.html#/module:Arg/val:pos_right" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos_right : ?rev:bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Arg/type:info">info</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/module:Arg/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>pos_right</code> is like <a href="index.html#/module:Arg/val:pos_left">pos_left</a> except it holds all the positional
+arguments found on the right of the specified positional argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:Arg/label:argterms">
+  <a href="index.html#/module:Arg/label:argterms" class="anchor">#</a>
+  
+    <h1 class="section level_1">Arguments as terms</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Arg/val:value">
+  <a href="index.html#/module:Arg/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : 'a <a href="index.html#/module:Arg/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>value a</code> is a term that evaluates to <code>a</code>'s value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:required">
+  <a href="index.html#/module:Arg/val:required" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> required : 'a option <a href="index.html#/module:Arg/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>required a</code> is a term that fails if <code>a</code>'s value is <code>None</code> and
+evaluates to the value of <code>Some</code> otherwise. Use this for required
+positional arguments (it can also be used for defining required
+optional arguments, but from a user interface perspective this
+shouldn't be done, it is a contradiction in terms).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:non_empty">
+  <a href="index.html#/module:Arg/val:non_empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> non_empty : 'a list <a href="index.html#/module:Arg/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>non_empty a</code> is term that fails if <code>a</code>'s list is empty and
+evaluates to <code>a</code>'s list otherwise. Use this for non empty lists
+of positional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:last">
+  <a href="index.html#/module:Arg/val:last" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> last : 'a list <a href="index.html#/module:Arg/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>last a</code> is a term that fails if <code>a</code>'s list is empty and evaluates
+to the value of the last element of the list otherwise. Use this
+for lists of flags or options where the last occurence takes precedence
+over the others.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:Arg/label:converters">
+  <a href="index.html#/module:Arg/label:converters" class="anchor">#</a>
+  
+    <h1 class="section level_1">Predefined converters</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Arg/val:bool">
+  <a href="index.html#/module:Arg/val:bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bool : bool <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>bool</code> converts values with [root:bool_of_string].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:char">
+  <a href="index.html#/module:Arg/val:char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> char : char <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>char</code> converts values by ensuring the argument has a single char.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:int">
+  <a href="index.html#/module:Arg/val:int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int : int <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>int</code> converts values with [root:int_of_string].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:nativeint">
+  <a href="index.html#/module:Arg/val:nativeint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nativeint : nativeint <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>nativeint</code> converts values with <a href="../../../../ocaml.4.02.1+doc/stdlib/nativeint/">Nativeint</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/nativeint/#/val:of_string">of_string</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:int32">
+  <a href="index.html#/module:Arg/val:int32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int32 : int32 <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>int32</code> converts values with <a href="../../../../ocaml.4.02.1+doc/stdlib/int32/">Int32</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/int32/#/val:of_string">of_string</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:int64">
+  <a href="index.html#/module:Arg/val:int64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int64 : int64 <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>int64</code> converts values with <a href="../../../../ocaml.4.02.1+doc/stdlib/int64/">Int64</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/int64/#/val:of_string">of_string</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:float">
+  <a href="index.html#/module:Arg/val:float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float : float <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>float</code> converts values with [root:float_of_string].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:string">
+  <a href="index.html#/module:Arg/val:string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string : string <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>string</code> converts values with the identity function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:enum">
+  <a href="index.html#/module:Arg/val:enum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enum : (string * 'a) list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>enum l p</code> converts values such that unambiguous prefixes of string names
+in <code>l</code> map to the corresponding value of type <code>'a</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>l</code> is empty.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:file">
+  <a href="index.html#/module:Arg/val:file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> file : string <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>file</code> converts a value with the identity function and
+checks with <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:file_exists">file_exists</a> that a file with that name exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:dir">
+  <a href="index.html#/module:Arg/val:dir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dir : string <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>dir</code> converts a value with the identity function and checks
+with <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:file_exists">file_exists</a> and <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:is_directory">is_directory</a>
+that a directory with that name exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:non_dir_file">
+  <a href="index.html#/module:Arg/val:non_dir_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> non_dir_file : string <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>non_dir_file</code> converts a value with the identity function and checks
+with <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:file_exists">file_exists</a> and <a href="../../../../ocaml.4.02.1+doc/stdlib/sys/">Sys</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/sys/#/val:is_directory">is_directory</a>
+that a non directory file with that name exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:list">
+  <a href="index.html#/module:Arg/val:list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list : ?sep:char <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>list sep c</code> splits the argument at each <code>sep</code> (defaults to <code>','</code>)
+character and converts each substrings with <code>c</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:array">
+  <a href="index.html#/module:Arg/val:array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> array : ?sep:char <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'a array <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>array sep c</code> splits the argument at each <code>sep</code> (defaults to <code>','</code>)
+character and converts each substring with <code>c</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:pair">
+  <a href="index.html#/module:Arg/val:pair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pair : ?sep:char <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b) <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>pair sep c0 c1</code> splits the argument at the <em>first</em> <code>sep</code> character
+(defaults to <code>','</code>) and respectively converts the substrings with
+<code>c0</code> and <code>c1</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:t2">
+  <a href="index.html#/module:Arg/val:t2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t2 : ?sep:char <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b) <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><a href="index.html#/module:Arg/val:t2">t2</a> is <a href="index.html#/module:Arg/val:pair">pair</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:t3">
+  <a href="index.html#/module:Arg/val:t3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t3 : ?sep:char <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b * 'c) <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>t3 sep c0 c1 c2</code> splits the argument at the <em>first</em> two <code>sep</code>
+characters (defaults to <code>','</code>) and respectively converts the
+substrings with <code>c0</code>, <code>c1</code> and <code>c2</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:t4">
+  <a href="index.html#/module:Arg/val:t4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t4 : ?sep:char <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'c <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> 'd <a href="index.html#/module:Arg/type:converter">converter</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b * 'c * 'd) <a href="index.html#/module:Arg/type:converter">converter</a>
+    
+      <div class="doc">
+        
+      <p><code>t4 sep c0 c1 c2 c3</code> splits the argument at the <em>first</em> three <code>sep</code>
+characters (defaults to <code>','</code>) respectively converts the substrings
+with <code>c0</code>, <code>c1</code>, <code>c2</code> and <code>c3</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/module:Arg/label:doc_helpers">
+  <a href="index.html#/module:Arg/label:doc_helpers" class="anchor">#</a>
+  
+    <h1 class="section level_1">Documentation formatting helpers</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Arg/val:doc_quote">
+  <a href="index.html#/module:Arg/val:doc_quote" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc_quote : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>doc_quote s</code> quotes the string <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:doc_alts">
+  <a href="index.html#/module:Arg/val:doc_alts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc_alts : ?quoted:bool <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>doc_alts alts</code> documents the alternative tokens <code>alts</code> according
+the number of alternatives. If <code>quoted</code> is <code>true</code> (default)
+the tokens are quoted. The resulting string can be used in
+sentences of the form <code>&quot;$(docv) must be %s&quot;</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>alts</code> is the empty string.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Arg/val:doc_alts_enum">
+  <a href="index.html#/module:Arg/val:doc_alts_enum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc_alts_enum : ?quoted:bool <span class="rarr"><span>-&gt;</span></span> (string * 'a) list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>doc_alts_enum quoted alts</code> is <code>doc_alts quoted (List.map fst alts)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:basics">
+  <a href="index.html#/label:basics" class="anchor">#</a>
+  
+    <h1 class="section level_1">Basics</h1>
+    
+  </div>
+  
+      <p>With <code>Cmdliner</code> your program evaluates a term. A <em>term</em>
+is a value of type <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:t">t</a>. The type parameter indicates
+the type of the result of the evaluation.</p>
+      
+      <p>One way to create terms is by lifting regular OCaml values with
+<a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/val:pure">pure</a>. Terms can be applied to terms evaluating to
+functional values with <a href="index.html#/module:Term">Term</a>.( $ ) (the type for terms is an
+<a href="http://dx.doi.org/10.1017/S0956796807006326">applicative
+functor</a>). For example for the function:
+</p>
+      <pre><code>let revolt () = print_endline &quot;Revolt!&quot;</code></pre>
+      <p>
+the term :
+</p>
+      <pre><code>open Cmdliner;;
+
+let revolt_t = Term.(pure revolt $ pure ())</code></pre>
+      <p>
+is a term that evaluates to the result (and effect) of the <code>revolt</code>
+function.
+Terms are evaluated with <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/val:eval">eval</a>:
+</p>
+      <pre><code>let () = match Term.eval (revolt_t, Term.info &quot;revolt&quot;) with
+| `Error _ -&gt; exit 1 | _ -&gt; exit 0</code></pre>
+      <p>
+This defines a command line program named <code>&quot;revolt&quot;</code>, without command line
+arguments arguments, that just prints <code>&quot;Revolt!&quot;</code> on <code>stdout</code>.
+</p>
+      <pre><code>&gt; ./revolt
+Revolt!</code></pre>
+      <p>
+The combinators in the <a href="index.html#/module:Arg">Arg</a> module allow to extract command
+line argument data as terms. These terms can then be applied to
+lifted OCaml functions to be evaluated by the program.</p>
+      
+      <p>Terms corresponding to command line argument data that are part of
+a term evaluation implicitly define a command line syntax. We
+show this on an concrete example.</p>
+      
+      <p>Consider the <code>chorus</code> function that prints repeatedly a
+given message :
+</p>
+      <pre><code>let chorus count msg =
+  for i = 1 to count do print_endline msg done</code></pre>
+      <p>
+we want to make it available from the command line
+with the synopsis:
+</p>
+      <pre><code>chorus [-c COUNT | --count=COUNT] [MSG]</code></pre>
+      <p>
+where <code>COUNT</code> defaults to <code>10</code> and <code>MSG</code> defaults to <code>&quot;Revolt!&quot;</code>.
+We first define a term corresponding to the <code>--count</code>
+option:
+</p>
+      <pre><code>let count =
+  let doc = &quot;Repeat the message $(docv) times.&quot; in
+  Arg.(value &amp; opt int 10 &amp; info [&quot;c&quot;; &quot;count&quot;] ~docv:&quot;COUNT&quot; ~doc)</code></pre>
+      <p>
+This says that <code>count</code> is a term that evaluates to the
+value of an optional argument of type <code>int</code> that
+defaults to <code>10</code> if unspecified and whose option name is
+either <code>-c</code> or <code>--count</code>. The arguments <code>doc</code> and <code>docv</code> are used to
+generate the option's man page information.</p>
+      
+      <p>The term for the positional argument <code>MSG</code> is:
+</p>
+      <pre><code>let msg =
+  let doc = &quot;The message to print.&quot; in
+  Arg.(value &amp; pos 0 string &quot;Revolt!&quot; &amp; info [] ~docv:&quot;MSG&quot; ~doc)</code></pre>
+      <p>
+which says that <code>msg</code> is a term whose value is
+the positional argument at index <code>0</code> of type <code>string</code> and
+defaults to <code>&quot;Revolt!&quot;</code> if unspecified. Here again
+<code>doc</code> and <code>docv</code> are used for the man page information.</p>
+      
+      <p>The term for executing <code>chorus</code> with these command line arguments
+is :
+</p>
+      <pre><code>let chorus_t = Term.(pure chorus $ count $ msg)</code></pre>
+      <p>
+and we are now ready to define our program:
+</p>
+      <pre><code>let info =
+  let doc = &quot;print a customizable message repeatedly&quot; in
+  let man = [ `S &quot;BUGS&quot;; `P &quot;Email bug reports to &lt;hehey at example.org&gt;.&quot;;] in
+  Term.info &quot;chorus&quot; ~version:&quot;1.6.1&quot; ~doc ~man
+
+let () = match Term.eval (chorus_t, info) with `Error _ -&gt; exit 1 | _ -&gt; exit 0</code></pre>
+      <p>
+The <code>info</code> value created with <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:info">info</a> gives more information
+about the term we execute and is used to generate the program's
+man page. Since we provided a <code>~version</code> string, the program will
+automatically respond to the <code>--version</code> option by printing this
+string.</p>
+      
+      <p>A program using <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/val:eval">eval</a> always responds to the
+<code>--help</code> option by showing the man page about the program generated
+using the information you provided with <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:info">info</a> and <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/type:info">info</a>.
+Here is the output generated by our example :
+</p>
+      <pre>&gt; ./chorus --help
+NAME
+       chorus - print a customizable message repeatedly
+
+SYNOPSIS
+       chorus [OPTION]... [MSG]
+
+ARGUMENTS
+       MSG (absent=Revolt!)
+           The message to print.
+
+OPTIONS
+       -c COUNT, --count=COUNT (absent=10)
+           Repeat the message COUNT times.
+
+       --help[=FMT] (default=pager)
+           Show this help in format FMT (pager, plain or groff).
+
+       --version
+           Show version information.
+
+BUGS
+       Email bug reports to &lt;hehey at example.org&gt;.</pre>
+      <p>If a pager is available, this output is written to a pager.
+This help is also available in plain text or in the
+<a href="http://www.gnu.org/software/groff/groff.html">groff</a> man page format by
+invoking the program with the option <code>--help=plain</code> or <code>--help=groff</code>.</p>
+      
+      <p>For examples of more complex command line definitions look and
+run the <a href="index.html#/label:examples">examples</a>.</p>
+      <div class="region">
+    <h2 class="section level_2">Multiple terms</h2>
+    </div>
+      <p><code>Cmdliner</code> also provides support for programs like <code>darcs</code> or
+<code>git</code> that have multiple commands each with their own syntax:
+</p>
+      <pre><code>prog COMMAND [OPTION]... ARG...</code></pre>
+      <p>
+A command is defined by coupling a term with
+<a href="index.html#/module:Term/label:tinfo">term information</a>. The term information defines the
+command name and its man page. Given a list of commands the function
+<a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/val:eval_choice">eval_choice</a> will execute the term corresponding to the
+<code>COMMAND</code> argument or or a specific &quot;main&quot; term if there is
+no <code>COMMAND</code> argument.</p>
+      <div class="region">
+    <h2 class="section level_2">Manual</h2>
+    </div>
+      <p>Man page sections are printed in the order specified by
+<a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:info">info</a>. The man page information of an argument is listed in
+alphabetical order at the end of the text of the section specified
+by its <a href="index.html#/module:Arg/type:info">argument information</a>. Positional arguments are
+also listed iff both the <code>docv</code> and <code>doc</code> string is specified in
+their argument information.</p>
+      
+      <p>If an argument information mentions a section not specified in
+<a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:info">info</a>, an empty section is created for it. This section is
+inserted just after the <code>&quot;SYNOPSIS&quot;</code> section or after a section
+named <code>&quot;DESCRIPTION&quot;</code> if there is one.</p>
+      
+      <p>The <code>&quot;SYNOPSIS&quot;</code> section of a man page is generated automatically
+from a term's information and its arguments. To substitute your
+own instead, start the term's information man page with
+a <code>&quot;SYNOPSIS&quot;</code> section.</p>
+      
+      <p>Ideally all manual strings should be UTF-8 encoded. However at the
+moment Groff (at least <code>1.19.2</code>) doesn't seem to cope with UTF-8
+input and UTF-8 characters beyond the ASCII set will look garbled.
+Regarding UTF-8 output, generating the man page with <code>-Tutf8</code> maps
+the hyphen-minus <code>U+002D</code> to the minus sign <code>U+2212</code> which makes it
+difficult to search it in the pager, so <code>-Tascii</code> is used for now.
+Conclusion is that it may be better to stick to the ASCII set for now.
+Please contact the author if something seems wrong in this reasoning
+or if you know a work around this.</p>
+      <div class="region">
+    <h2 class="section level_2">Miscellaneous</h2>
+    </div><ul><li>The option name <code>--help</code>, (and <code>--version</code> if you specify a
+version string) is reserved by the module. Using it as a term or
+option name may result in undefined behaviour.</li><li>The evaluation of a term in which the same option name is defined
+by more than one argument is undefined.</li></ul>
+  <div class="region" id="/label:cmdline">
+  <a href="index.html#/label:cmdline" class="anchor">#</a>
+  
+    <h1 class="section level_1">Command line syntax</h1>
+    
+  </div>
+  
+      <p>For programs evaluating a single term the most general form of invocation
+is:
+</p>
+      <ul><li><code>prog [OPTION]... [ARG]...</code></li></ul>
+      <p>
+The program automatically reponds to the <code>--help</code> option by
+printing the help. If a version string is provided in
+the <a href="index.html#/module:Term/label:tinfo">term information</a>, it also automatically responds
+to the <code>--version</code> option by printing this string.</p>
+      
+      <p>Command line arguments are either <a href="index.html#/label:optargs"><em>optional</em></a> or
+<a href="index.html#/label:posargs"><em>positional</em></a>. Both can be freely interleaved but
+since <code>Cmdliner</code> accepts many optional forms this may result in
+ambiguities. The special <a href="index.html#/label:posargs">token <code>--</code></a> can be used to resolve
+them.</p>
+      
+      <p>Programs evaluating multiple terms also add this form of invocation:
+</p>
+      <ul><li><code>prog COMMAND [OPTION]... [ARG]...</code></li></ul>
+      <p>
+Commands automatically respond to the <code>--help</code> option
+by printing their help. The <code>COMMAND</code> string must
+be the first string following the program name and may be specified
+by a prefix as long as it is not ambiguous.</p>
+      
+  <div class="region" id="/label:optargs">
+  <a href="index.html#/label:optargs" class="anchor">#</a>
+  
+    <h2 class="section level_2">Optional arguments</h2>
+    
+  </div>
+  
+      <p>An optional argument is specified on the command line by a <em>name</em> possibly followed by a <em>value</em>.</p>
+      
+      <p>The name of an option can be short or long.
+</p>
+      <ul><li>A <em>short</em> name is a dash followed by a single alphanumeric
+character: <code>&quot;-h&quot;</code>, <code>&quot;-q&quot;</code>, <code>&quot;-I&quot;</code>.</li><li>A <em>long</em> name is two dashes followed by alphanumeric
+characters and dashes: <code>&quot;--help&quot;</code>, <code>&quot;--silent&quot;</code>, <code>&quot;--ignore-case&quot;</code>.</li></ul>
+      <p>More than one name may refer to the same optional argument. For
+example in a given program the names <code>&quot;-q&quot;</code>, <code>&quot;--quiet&quot;</code> and
+<code>&quot;--silent&quot;</code> may all stand for the same boolean argument
+indicating the program to be quiet. Long names
+can be specified by any non ambiguous prefix.</p>
+      
+      <p>The value of an option can be specified in three different ways.
+</p>
+      <ul><li>As the next token on the command line: <code>&quot;-o a.out&quot;</code>,
+<code>&quot;--output a.out&quot;</code>.</li><li>Glued to a short name: <code>&quot;-oa.out&quot;</code>.</li><li>Glued to a long name after an equal character:
+<code>&quot;--output=a.out&quot;</code>.</li></ul>
+      <p>
+Glued forms are especially useful if
+the value itself starts with a dash as is the case for negative numbers,
+<code>&quot;--min=-10&quot;</code>.</p>
+      
+      <p>An optional argument without a value is either a <em>flag</em>
+(see <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:flag">flag</a>, <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:vflag">vflag</a>) or an optional argument with an optional
+value (see the <code>~vopt</code> argument of <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:opt">opt</a>).</p>
+      
+      <p>Short flags can be grouped together to share a single dash and the group
+can end with a short option. For example assuming <code>&quot;-v&quot;</code> and <code>&quot;-x&quot;</code>
+are flags and <code>&quot;-f&quot;</code> is a short option:
+</p>
+      <ul><li><code>&quot;-vx&quot;</code> will be parsed as <code>&quot;-v -x&quot;</code>.</li><li><code>&quot;-vxfopt&quot;</code> will be parsed as <code>&quot;-v -x -fopt&quot;</code>.</li><li><code>&quot;-vxf opt&quot;</code> will be parsed as <code>&quot;-v -x -fopt&quot;</code>.</li><li><code>&quot;-fvx&quot;</code> will be parsed as <code>&quot;-f=vx&quot;</code>.</li></ul>
+  <div class="region" id="/label:posargs">
+  <a href="index.html#/label:posargs" class="anchor">#</a>
+  
+    <h2 class="section level_2">Positional arguments</h2>
+    
+  </div>
+  
+      <p>Positional arguments are tokens on the command line that are not
+option names and are not the value of an optional argument. They
+are numbered from left to right starting with zero.</p>
+      
+      <p>Since positional arguments may be mistaken as the optional value
+of an optional argument or they may need to look like option
+names, anything that follows the special token <code>&quot;--&quot;</code> on the command
+line is considered to be a positional argument.</p>
+      
+  <div class="region" id="/label:examples">
+  <a href="index.html#/label:examples" class="anchor">#</a>
+  
+    <h1 class="section level_1">Examples</h1>
+    
+  </div>
+  
+      <p>These examples are in the <code>test</code> directory of the distribution.</p>
+      
+  <div class="region" id="/label:exrm">
+  <a href="index.html#/label:exrm" class="anchor">#</a>
+  
+    <h2 class="section level_2">A <code>rm</code> command</h2>
+    
+  </div>
+  
+      <p>We define the command line interface of a
+<code>rm</code> command with the synopsis:
+</p>
+      <pre><code>rm [OPTION]... FILE...</code></pre>
+      <p>
+The <code>-f</code>, <code>-i</code> and <code>-I</code> flags define the prompt behaviour of <code>rm</code>,
+represented in our program by the <code>prompt</code> type. If more than one
+of these flags is present on the command line the last one takes
+precedence.</p>
+      
+      <p>To implement this behaviour we map the presence of these flags
+to values of the <code>prompt</code> type by using <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:vflag_all">vflag_all</a>. This
+argument will contain all occurences of the flag on the command
+line and we just take the <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:last">last</a> one to define our term value
+(if there's no occurence the last value of the default list <code>[Always]</code> is
+taken, i.e. the default is <code>Always</code>).
+</p>
+      <pre><code>(* Implementation of the command, we just print the args. *)
+
+type prompt = Always | Once | Never
+let prompt_str = function
+| Always -&gt; &quot;always&quot; | Once -&gt; &quot;once&quot; | Never -&gt; &quot;never&quot;
+
+let rm prompt recurse files =
+  Printf.printf &quot;prompt = %s\nrecurse = %b\nfiles = %s\n&quot;
+    (prompt_str prompt) recurse (String.concat &quot;, &quot; files)
+
+(* Command line interface *)
+
+open Cmdliner;;
+
+let files = Arg.(non_empty &amp; pos_all file [] &amp; info [] ~docv:&quot;FILE&quot;)
+let prompt =
+  let doc = &quot;Prompt before every removal.&quot; in
+  let always = Always, Arg.info [&quot;i&quot;] ~doc in
+  let doc = &quot;Ignore nonexistent files and never prompt.&quot; in
+  let never = Never, Arg.info [&quot;f&quot;; &quot;force&quot;] ~doc in
+  let doc = &quot;Prompt once before removing more than three files, or when
+             removing recursively. Less intrusive than $(b,-i), while
+             still giving protection against most mistakes.&quot;
+  in
+  let once = Once, Arg.info [&quot;I&quot;] ~doc in
+  Arg.(last &amp; vflag_all [Always] [always; never; once])
+
+let recursive =
+  let doc = &quot;Remove directories and their contents recursively.&quot; in
+  Arg.(value &amp; flag &amp; info [&quot;r&quot;; &quot;R&quot;; &quot;recursive&quot;] ~doc)
+
+let cmd =
+  let doc = &quot;remove files or directories&quot; in
+  let man = [
+    `S &quot;DESCRIPTION&quot;;
+    `P &quot;$(tname) removes each specified $(i,FILE). By default it does not
+        remove directories, to also remove them and their contents, use the
+        option $(b,--recursive) ($(b,-r) or $(b,-R)).&quot;;
+    `P &quot;To remove a file whose name starts with a `-', for example
+        `-foo', use one of these commands:&quot;;
+    `P &quot;rm -- -foo&quot;; `Noblank;
+    `P &quot;rm ./-foo&quot;;
+    `P &quot;$(tname) removes symbolic links, not the files referenced by the
+        links.&quot;;
+    `S &quot;BUGS&quot;; `P &quot;Report bugs to &lt;hehey at example.org&gt;.&quot;;
+    `S &quot;SEE ALSO&quot;; `P &quot;$(b,rmdir)(1), $(b,unlink)(2)&quot; ]
+  in
+  Term.(pure rm $ prompt $ recursive $ files),
+  Term.info &quot;rm&quot; ~version:&quot;1.6.1&quot; ~doc ~man
+
+let () = match Term.eval cmd with `Error _ -&gt; exit 1 | _ -&gt; exit 0</code></pre>
+      <p>
+</p>
+      
+  <div class="region" id="/label:excp">
+  <a href="index.html#/label:excp" class="anchor">#</a>
+  
+    <h2 class="section level_2">A <code>cp</code> command</h2>
+    
+  </div>
+  
+      <p>We define the command line interface of a
+<code>cp</code> command with the synopsis:
+</p>
+      <pre><code>cp [OPTION]... SOURCE... DEST</code></pre>
+      <p>
+The <code>DEST</code> argument must be a directory if there is more than
+one <code>SOURCE</code>. This constraint is too complex to be expressed by the
+combinators of <a href="index.html#/module:Arg">Arg</a>. Hence we just give it the <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:string">string</a> type
+and verify the constraint at the beginning of the <code>cp</code>
+implementation. If unsatisfied we return an <code>`Error</code> and
+by using <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:ret">ret</a> on the lifted result <code>cp_t</code> of <code>cp</code>,
+<code>Cmdliner</code> handles the error reporting.
+</p>
+      <pre><code>(* Implementation, we check the dest argument and print the args *)
+
+let cp verbose recurse force srcs dest =
+  if List.length srcs &gt; 1 &amp;&amp;
+  (not (Sys.file_exists dest) || not (Sys.is_directory dest))
+  then
+    `Error (false, dest ^ &quot; is not a directory&quot;)
+  else
+    `Ok (Printf.printf
+     &quot;verbose = %b\nrecurse = %b\nforce = %b\nsrcs = %s\ndest = %s\n&quot;
+      verbose recurse force (String.concat &quot;, &quot; srcs) dest)
+
+(* Command line interface *)
+
+open Cmdliner;;
+
+let verbose =
+  let doc = &quot;Print file names as they are copied.&quot; in
+  Arg.(value &amp; flag &amp; info [&quot;v&quot;; &quot;verbose&quot;] ~doc)
+
+let recurse =
+  let doc = &quot;Copy directories recursively.&quot; in
+  Arg.(value &amp; flag &amp; info [&quot;r&quot;; &quot;R&quot;; &quot;recursive&quot;] ~doc)
+
+let force =
+  let doc = &quot;If a destination file cannot be opened, remove it and try again.&quot;in
+  Arg.(value &amp; flag &amp; info [&quot;f&quot;; &quot;force&quot;] ~doc)
+
+let srcs =
+  let doc = &quot;Source file(s) to copy.&quot; in
+  Arg.(non_empty &amp; pos_left ~rev:true 0 file [] &amp; info [] ~docv:&quot;SOURCE&quot; ~doc)
+
+let dest =
+  let doc = &quot;Destination of the copy. Must be a directory if there is more
+             than one $(i,SOURCE).&quot; in
+  Arg.(required &amp; pos ~rev:true 0 (some string) None &amp; info [] ~docv:&quot;DEST&quot;
+         ~doc)
+
+let cmd =
+  let doc = &quot;copy files&quot; in
+  let man = [
+    `S &quot;BUGS&quot;;
+    `P &quot;Email them to &lt;hehey at example.org&gt;.&quot;;
+    `S &quot;SEE ALSO&quot;;
+    `P &quot;$(b,mv)(1), $(b,scp)(1), $(b,umask)(2), $(b,symlink)(7)&quot; ]
+  in
+  Term.(ret (pure cp $ verbose $ recurse $ force $ srcs $ dest)),
+  Term.info &quot;cp&quot; ~version:&quot;1.6.1&quot; ~doc ~man
+
+let () = match Term.eval cmd with `Error _ -&gt; exit 1 | _ -&gt; exit 0</code></pre>
+  <div class="region" id="/label:extail">
+  <a href="index.html#/label:extail" class="anchor">#</a>
+  
+    <h2 class="section level_2">A <code>tail</code> command</h2>
+    
+  </div>
+  
+      <p>We define the command line interface of a <code>tail</code> command with the
+synopsis:
+</p>
+      <pre><code>tail [OPTION]... [FILE]...</code></pre>
+      <p>The <code>--lines</code> option whose value specifies the number of last lines to
+print has a special syntax where a <code>+</code> prefix indicates to start
+printing from that line number. In the program this is represented by
+the <code>loc</code> type. We define a custom <code>loc</code> <a href="index.html#/module:Arg/label:argconv">argument converter</a>
+for this option.</p>
+      
+      <p>The <code>--follow</code> option has an optional enumerated value. The argument
+converter <code>follow</code>, created with <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:enum">enum</a> parses the option value
+into the enumeration. By using <a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:some">some</a> and the <code>~vopt</code> argument of
+<a href="index.html#/module:Arg">Arg</a>.<a href="index.html#/module:Arg/val:opt">opt</a>, the term corresponding to the option <code>--follow</code> evaluates to
+<code>None</code> if <code>--follow</code> is absent from the command line, to <code>Some Descriptor</code>
+if present but without a value and to <code>Some v</code> if present with a value
+<code>v</code> specified.</p>
+      <pre><code>(* Implementation of the command, we just print the args. *)
+
+type loc = bool * int
+type verb = Verbose | Quiet
+type follow = Name | Descriptor
+
+let str = Printf.sprintf
+let opt_str sv = function None -&gt; &quot;None&quot; | Some v -&gt; str &quot;Some(%s)&quot; (sv v)
+let loc_str (rev, k) = if rev then str &quot;%d&quot; k else str &quot;+%d&quot; k
+let follow_str = function Name -&gt; &quot;name&quot; | Descriptor -&gt; &quot;descriptor&quot;
+let verb_str = function Verbose -&gt; &quot;verbose&quot; | Quiet -&gt; &quot;quiet&quot;
+
+let tail lines follow verb pid files =
+  Printf.printf &quot;lines = %s\nfollow = %s\nverb = %s\npid = %s\nfiles = %s\n&quot;
+    (loc_str lines) (opt_str follow_str follow) (verb_str verb)
+    (opt_str string_of_int pid) (String.concat &quot;, &quot; files)
+
+(* Command line interface *)
+
+open Cmdliner;;
+
+let lines =
+  let loc =
+    let parse s = try
+      if s &lt;&gt; &quot;&quot; &amp;&amp; s.[0] &lt;&gt; '+' then `Ok (true, int_of_string s) else
+      `Ok (false, int_of_string (String.sub s 1 (String.length s - 1)))
+    with Failure _ -&gt; `Error &quot;unable to parse integer&quot;
+    in
+    parse, fun ppf p -&gt; Format.fprintf ppf &quot;%s&quot; (loc_str p)
+  in
+  Arg.(value &amp; opt loc (true, 10) &amp; info [&quot;n&quot;; &quot;lines&quot;] ~docv:&quot;N&quot;
+   ~doc:&quot;Output the last $(docv) lines or use $(i,+)$(docv) to start
+         output after the $(i,N)-1th line.&quot;)
+let follow =
+  let doc = &quot;Output appended data as the file grows. $(docv) specifies how the
+             file should be tracked, by its `name' or by its `descriptor'.&quot; in
+  let follow = Arg.enum [&quot;name&quot;, Name; &quot;descriptor&quot;, Descriptor] in
+  Arg.(value &amp; opt (some follow) ~vopt:(Some Descriptor) None &amp;
+       info [&quot;f&quot;; &quot;follow&quot;] ~docv:&quot;ID&quot; ~doc)
+
+let verb =
+  let doc = &quot;Never output headers giving file names.&quot; in
+  let quiet = Quiet, Arg.info [&quot;q&quot;; &quot;quiet&quot;; &quot;silent&quot;] ~doc in
+  let doc = &quot;Always output headers giving file names.&quot; in
+  let verbose = Verbose, Arg.info [&quot;v&quot;; &quot;verbose&quot;] ~doc in
+  Arg.(last &amp; vflag_all [Quiet] [quiet; verbose])
+
+let pid =
+  let doc = &quot;With -f, terminate after process $(docv) dies.&quot; in
+  Arg.(value &amp; opt (some int) None &amp; info [&quot;pid&quot;] ~docv:&quot;PID&quot; ~doc)
+
+let files = Arg.(value &amp; (pos_all non_dir_file []) &amp; info [] ~docv:&quot;FILE&quot;)
+
+let cmd =
+  let doc = &quot;display the last part of a file&quot; in
+  let man = [
+    `S &quot;DESCRIPTION&quot;;
+    `P &quot;$(tname) prints the last lines of each $(i,FILE) to standard output. If
+        no file is specified reads standard input. The number of printed
+        lines can be  specified with the $(b,-n) option.&quot;;
+    `S &quot;BUGS&quot;;
+    `P &quot;Report them to &lt;hehey at example.org&gt;.&quot;;
+    `S &quot;SEE ALSO&quot;;
+    `P &quot;$(b,cat)(1), $(b,head)(1)&quot; ]
+  in
+  Term.(pure tail $ lines $ follow $ verb $ pid $ files),
+  Term.info &quot;tail&quot; ~version:&quot;1.6.1&quot; ~doc ~man
+
+let () = match Term.eval cmd with `Error _ -&gt; exit 1 | _ -&gt; exit 0</code></pre>
+  <div class="region" id="/label:exdarcs">
+  <a href="index.html#/label:exdarcs" class="anchor">#</a>
+  
+    <h2 class="section level_2">A <code>darcs</code> command</h2>
+    
+  </div>
+  
+      <p>We define the command line interface of a <code>darcs</code> command with the synopsis:
+</p>
+      <pre><code>darcs [COMMAND] ...</code></pre>
+      <p>The <code>--debug</code>, <code>-q</code>, <code>-v</code> and <code>--prehook</code> options are available in
+each command. To avoid having to pass them individually to each
+command we gather them in a record of type <code>copts</code>. By lifting the
+record constructor <code>copts</code> into the term <code>copts_t</code> we now have a term
+that we can pass to the commands to stand for an argument of type
+<code>copts</code>. These options are documented in a section called <code>COMMON
+OPTIONS</code>, since we also want to put <code>--help</code> and <code>--version</code> in this
+section, the term information of commands makes a judicious use of the
+<code>sdocs</code> parameter of <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:info">info</a>.</p>
+      
+      <p>The <code>help</code> command shows help about commands or other topics. The help
+shown for commands is generated by <code>Cmdliner</code> by making an approriate
+use of <a href="index.html#/module:Term">Term</a>.<a href="index.html#/module:Term/type:ret">ret</a> on the lifted <code>help</code> function.</p>
+      
+      <p>If the program is invoked without a command we just want to show the
+help of the program as printed by <code>Cmdliner</code> with <code>--help</code>. This is
+done by the <code>no_cmd</code> term.</p>
+      <pre><code>(* Implementations, just print the args. *)
+
+type verb = Normal | Quiet | Verbose
+type copts = { debug : bool; verb : verb; prehook : string option }
+
+let str = Printf.sprintf
+let opt_str sv = function None -&gt; &quot;None&quot; | Some v -&gt; str &quot;Some(%s)&quot; (sv v)
+let opt_str_str = opt_str (fun s -&gt; s)
+let verb_str = function
+  | Normal -&gt; &quot;normal&quot; | Quiet -&gt; &quot;quiet&quot; | Verbose -&gt; &quot;verbose&quot;
+
+let pr_copts oc copts = Printf.fprintf oc
+    &quot;debug = %b\nverbosity = %s\nprehook = %s\n&quot;
+    copts.debug (verb_str copts.verb) (opt_str_str copts.prehook)
+
+let initialize copts repodir = Printf.printf
+    &quot;%arepodir = %s\n&quot; pr_copts copts repodir
+
+let record copts name email all ask_deps files = Printf.printf
+    &quot;%aname = %s\nemail = %s\nall = %b\nask-deps = %b\nfiles = %s\n&quot;
+    pr_copts copts (opt_str_str name) (opt_str_str email) all ask_deps
+    (String.concat &quot;, &quot; files)
+
+let help copts man_format cmds topic = match topic with
+| None -&gt; `Help (`Pager, None) (* help about the program. *)
+| Some topic -&gt;
+    let topics = &quot;topics&quot; :: &quot;patterns&quot; :: &quot;environment&quot; :: cmds in
+    let conv, _ = Cmdliner.Arg.enum (List.rev_map (fun s -&gt; (s, s)) topics) in
+    match conv topic with
+    | `Error e -&gt; `Error (false, e)
+    | `Ok t when t = &quot;topics&quot; -&gt; List.iter print_endline topics; `Ok ()
+    | `Ok t when List.mem t cmds -&gt; `Help (man_format, Some t)
+    | `Ok t -&gt;
+        let page = (topic, 7, &quot;&quot;, &quot;&quot;, &quot;&quot;), [`S topic; `P &quot;Say something&quot;;] in
+        `Ok (Cmdliner.Manpage.print man_format Format.std_formatter page)
+
+open Cmdliner;;
+
+(* Help sections common to all commands *)
+
+let copts_sect = &quot;COMMON OPTIONS&quot;
+let help_secs = [
+ `S copts_sect;
+ `P &quot;These options are common to all commands.&quot;;
+ `S &quot;MORE HELP&quot;;
+ `P &quot;Use `$(mname) $(i,COMMAND) --help' for help on a single command.&quot;;`Noblank;
+ `P &quot;Use `$(mname) help patterns' for help on patch matching.&quot;; `Noblank;
+ `P &quot;Use `$(mname) help environment' for help on environment variables.&quot;;
+ `S &quot;BUGS&quot;; `P &quot;Check bug reports at http://bugs.example.org.&quot;;]
+
+(* Options common to all commands *)
+
+let copts debug verb prehook = { debug; verb; prehook }
+let copts_t =
+  let docs = copts_sect in
+  let debug =
+    let doc = &quot;Give only debug output.&quot; in
+    Arg.(value &amp; flag &amp; info [&quot;debug&quot;] ~docs ~doc)
+  in
+  let verb =
+    let doc = &quot;Suppress informational output.&quot; in
+    let quiet = Quiet, Arg.info [&quot;q&quot;; &quot;quiet&quot;] ~docs ~doc in
+    let doc = &quot;Give verbose output.&quot; in
+    let verbose = Verbose, Arg.info [&quot;v&quot;; &quot;verbose&quot;] ~docs ~doc in
+    Arg.(last &amp; vflag_all [Normal] [quiet; verbose])
+  in
+  let prehook =
+    let doc = &quot;Specify command to run before this $(mname) command.&quot; in
+    Arg.(value &amp; opt (some string) None &amp; info [&quot;prehook&quot;] ~docs ~doc)
+  in
+  Term.(pure copts $ debug $ verb $ prehook)
+
+(* Commands *)
+
+let initialize_cmd =
+  let repodir =
+    let doc = &quot;Run the program in repository directory $(docv).&quot; in
+    Arg.(value &amp; opt file Filename.current_dir_name &amp; info [&quot;repodir&quot;]
+           ~docv:&quot;DIR&quot; ~doc)
+  in
+  let doc = &quot;make the current directory a repository&quot; in
+  let man = [
+    `S &quot;DESCRIPTION&quot;;
+    `P &quot;Turns the current directory into a Darcs repository. Any
+       existing files and subdirectories become ...&quot;] @ help_secs
+  in
+  Term.(pure initialize $ copts_t $ repodir),
+  Term.info &quot;initialize&quot; ~sdocs:copts_sect ~doc ~man
+
+let record_cmd =
+  let pname =
+    let doc = &quot;Name of the patch.&quot; in
+    Arg.(value &amp; opt (some string) None &amp; info [&quot;m&quot;; &quot;patch-name&quot;] ~docv:&quot;NAME&quot;
+         ~doc)
+  in
+  let author =
+    let doc = &quot;Specifies the author's identity.&quot; in
+    Arg.(value &amp; opt (some string) None &amp; info [&quot;A&quot;; &quot;author&quot;] ~docv:&quot;EMAIL&quot;
+         ~doc)
+  in
+  let all =
+    let doc = &quot;Answer yes to all patches.&quot; in
+    Arg.(value &amp; flag &amp; info [&quot;a&quot;; &quot;all&quot;] ~doc)
+  in
+  let ask_deps =
+    let doc = &quot;Ask for extra dependencies.&quot; in
+    Arg.(value &amp; flag &amp; info [&quot;ask-deps&quot;] ~doc)
+  in
+  let files = Arg.(value &amp; (pos_all file) [] &amp; info [] ~docv:&quot;FILE or DIR&quot;) in
+  let doc = &quot;create a patch from unrecorded changes&quot; in
+  let man =
+    [`S &quot;DESCRIPTION&quot;;
+     `P &quot;Creates a patch from changes in the working tree. If you specify
+      a set of files ...&quot;] @ help_secs
+  in
+  Term.(pure record $ copts_t $ pname $ author $ all $ ask_deps $ files),
+  Term.info &quot;record&quot; ~doc ~sdocs:copts_sect ~man
+
+let help_cmd =
+  let topic =
+    let doc = &quot;The topic to get help on. `topics' lists the topics.&quot; in
+    Arg.(value &amp; pos 0 (some string) None &amp; info [] ~docv:&quot;TOPIC&quot; ~doc)
+  in
+  let doc = &quot;display help about darcs and darcs commands&quot; in
+  let man =
+    [`S &quot;DESCRIPTION&quot;;
+     `P &quot;Prints help about darcs commands and other subjects...&quot;] @ help_secs
+  in
+  Term.(ret (pure help $ copts_t $ Term.man_format $ Term.choice_names $topic)),
+  Term.info &quot;help&quot; ~doc ~man
+
+let default_cmd =
+  let doc = &quot;a revision control system&quot; in
+  let man = help_secs in
+  Term.(ret (pure (fun _ -&gt; `Help (`Pager, None)) $ copts_t)),
+  Term.info &quot;darcs&quot; ~version:&quot;1.6.1&quot; ~sdocs:copts_sect ~doc ~man
+
+let cmds = [initialize_cmd; record_cmd; help_cmd]
+
+let () = match Term.eval_choice default_cmd cmds with
+| `Error _ -&gt; exit 1 | _ -&gt; exit 0</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

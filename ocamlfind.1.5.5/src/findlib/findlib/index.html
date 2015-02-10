@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Findlib</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Findlib</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The primary findlib interface</p>
+      
+      <p>The Findlib module is the primary interface of the findlib library. It
+contains functions to look up packages, to interpret META
+files, and to determine the ancestors of packages.</p>
+      
+      <p>This module must be initialized before it can be used: Call either
+<code>init</code> or <code>init_manually</code> for this.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:No_such_package">
+  <a href="index.html#/exn:No_such_package" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> No_such_package <span class="keyword">of</span> string * string
+    
+      <div class="doc">
+        
+      <p>First arg is the package name not found, second arg contains additional
+info for the user</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Package_loop">
+  <a href="index.html#/exn:Package_loop" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Package_loop <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>A package is required by itself. The arg is the name of the
+package</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : ?env_ocamlpath:string <span class="rarr"><span>-&gt;</span></span> ?env_ocamlfind_destdir:string <span class="rarr"><span>-&gt;</span></span> ?env_ocamlfind_metadir:string <span class="rarr"><span>-&gt;</span></span> ?env_ocamlfind_commands:string <span class="rarr"><span>-&gt;</span></span> ?env_ocamlfind_ignore_dups_in:string <span class="rarr"><span>-&gt;</span></span> ?env_camllib:string <span class="rarr"><span>-&gt;</span></span> ?env_ldconf:string <span class="rarr"><span>-&gt;</span></span> ?config:string <span class="rarr"><span>-&gt;</span></span> ?toolchain:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Initializes the library from the configuration file and the environment.
+By default the
+function reads the file specified at compile time, but you can also
+pass a different file name in the <code>config</code> argument.
+Furthermore, the environment variables OCAMLPATH, OCAMLFIND_DESTDIR,
+OCAMLFIND_COMMANDS, and CAMLLIB are interpreted. By default, the function takes
+the values found in the environment, but you can pass different values
+using the <code>env_*</code> arguments. By setting these values to empty strings
+they are no longer considered.
+The result of the initialization is determined as follows:</p>
+      <ul><li>The default installation directory is the env variable OCAMLFIND_DESTDIR
+(if present and non-empty), and otherwise the variable <code>destdir</code> of the
+configuration file.</li><li>The installation directory for META files is read from the env
+variable OCAMLFIND_METADIR (if present and non-empty), and otherwise
+from the variable <code>metadir</code> of the configuration file, and otherwise
+no such directory is used.
+The special value <code>&quot;none&quot;</code> turns this feature off.</li><li>The search path is the concatenation of the env variable OCAMLPATH
+and the variable <code>path</code> of the config file</li><li>The executables of (ocamlc|ocamlopt|ocamlcp|ocamlmklib|ocamlmktop) are
+determined as follows: if the env variable OCAMLFIND_COMMANDS is set
+and non-empty, its contents specify the executables. Otherwise, if the
+config file variables <code>ocamlc</code>, <code>ocamlopt</code>, <code>ocamlcp</code>, <code>ocamlmklib</code> and
+<code>ocamlmktop</code> are set, their contents specify the executables. Otherwise,
+the obvious default values are chosen: <code>&quot;ocamlc&quot;</code> for <code>ocamlc</code>,
+<code>&quot;ocamlopt&quot;</code> for <code>ocamlopt</code>, and so on.</li><li>The directory of the standard library is the value of the environment
+variable CAMLLIB (or OCAMLLIB), or if unset or empty, the value of
+the configuration variable <code>stdlib</code>, or if unset the built-in location</li><li>The <code>ld.conf</code> file (configuring the dynamic loader) is the value of
+the environment variable OCAMLFIND_LDCONF, or if unset or empty, the
+value of the configuration variable <code>ldconf</code>, or if unset the
+built-in location.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init_manually">
+  <a href="index.html#/val:init_manually" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init_manually : ?ocamlc_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamlopt_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamlcp_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamloptp_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamlmklib_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamlmktop_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamldep_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamlbrowser_command:string <span class="rarr"><span>-&gt;</span></span> ?ocamldoc_command:string <span class="rarr"><span>-&gt;</span></span> ?ignore_dups_in:string <span class="rarr"><span>-&gt;</span></span> ?stdlib:string <span class="rarr"><span>-&gt;</span></span> ?ldconf:string <span class="rarr"><span>-&gt;</span></span> install_dir:string <span class="rarr"><span>-&gt;</span></span> meta_dir:string <span class="rarr"><span>-&gt;</span></span> search_path:string list <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>This is an alternate way to initialize the library directly.
+Environment variables and configuration files are ignored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_location">
+  <a href="index.html#/val:default_location" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_location : unit <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the default installation directory for packages</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:meta_directory">
+  <a href="index.html#/val:meta_directory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> meta_directory : unit <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the META installation directory for packages.
+Returns <code>&quot;&quot;</code> if no such directory is configured.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:search_path">
+  <a href="index.html#/val:search_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> search_path : unit <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Get the search path for packages</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:command">
+  <a href="index.html#/val:command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> command : [ <div class="cons">| `ocamlc</div><div class="cons">| `ocamlopt</div><div class="cons">| `ocamlcp</div><div class="cons">| `ocamloptp</div><div class="cons">| `ocamlmklib</div><div class="cons">| `ocamlmktop</div><div class="cons">| `ocamldep</div><div class="cons">| `ocamlbrowser</div><div class="cons">| `ocamldoc</div> ] <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the name/path of the executable</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ocaml_stdlib">
+  <a href="index.html#/val:ocaml_stdlib" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ocaml_stdlib : unit <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the directory of the standard library</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ocaml_ldconf">
+  <a href="index.html#/val:ocaml_ldconf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ocaml_ldconf : unit <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the file name of <code>ld.conf</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package_directory">
+  <a href="index.html#/val:package_directory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package_directory : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Get the absolute path of the directory where the given package is
+stored.</p>
+      
+      <p>Raises <code>No_such_package</code> if the package cannot be found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ignore_dups_in">
+  <a href="index.html#/val:ignore_dups_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ignore_dups_in : unit <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>If <code>Some d</code>, duplicate packages below <code>d</code> are ignored, and do not
+produce warnings. (Only affects the generation of warnings.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package_property">
+  <a href="index.html#/val:package_property" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package_property : string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>package_property predlist pkg propname</code>:
+Looks up the property <code>propname</code> of package <code>pkg</code> under the assumption
+that the predicates in <code>predlist</code> are true.</p>
+      
+      <p>Raises <code>No_such_package</code> if the package, and <code>Not_found</code> if the property
+cannot be found.</p>
+      
+      <p>EXAMPLES:</p>
+      <ul><li><code>package_property [] &quot;p&quot; &quot;requires&quot;:</code>
+get the value of the <code>requires</code> clause of package <code>p</code></li><li><code>package_property [ &quot;mt&quot;; &quot;byte&quot; ] &quot;p&quot; &quot;archive&quot;:</code>
+get the value of the <code>archive</code> property of package <code>p</code> for multi-
+threaded bytecode applications.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package_ancestors">
+  <a href="index.html#/val:package_ancestors" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package_ancestors : string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p><code>package_ancestors predlist pkg:</code>
+Determines the direct ancestors of package <code>pkg</code> under the assumption
+that the predicates in <code>predlist</code> are true, i.e. the names of the
+packages required by <code>pkg</code>.
+The returned list is unsorted.</p>
+      
+      <p>Raises <code>No_such_package</code> if the package <code>pkg</code> or one of its ancestors
+could not be found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:package_deep_ancestors">
+  <a href="index.html#/val:package_deep_ancestors" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> package_deep_ancestors : string list <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p><code>package_deep_ancestors predlist pkglist:</code>
+determines the list of direct or indirect ancestors of the packages
+named in <code>pkglist</code> under the assumption that the predicates in <code>predlist</code>
+are true.</p>
+      
+      <p>The returned list is topologically sorted: The first element is the
+deepest ancestor; the last element is one of <code>pkglist</code>.</p>
+      
+      <p>Raises <code>No_such_package</code> if one of the packages in <code>pkglist</code> or one of
+the ancestors cannot be found. Raises <code>Package_loop</code> if there is a
+cyclic dependency.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:resolve_path">
+  <a href="index.html#/val:resolve_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resolve_path : ?base:string <span class="rarr"><span>-&gt;</span></span> ?explicit:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Resolves findlib notation in filename paths. The notation
+<code>+name/path</code> can be used to refer to the subdirectory <code>name</code>
+of the standard library directory; the continuation <code>/path</code> is
+optional. The notation <code>@name/path</code> can be used to refer to
+the directory of the package <code>name</code>; the continuation <code>/path</code>
+is optional. For these two notations, absolute paths are returned.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">base</span> When the function is applied on a relative path, the
+<code>base</code> path is prepended. Otherwise, the path is returned as
+it is.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">explicit</span> Changes the meaning of <code>base</code> so that only paths
+count as relative that include at least one slash.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:list_packages">
+  <a href="index.html#/val:list_packages" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list_packages : ?tab:int <span class="rarr"><span>-&gt;</span></span> ?descr:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Prints the list of available packages to the <code>out_channel</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">tab</span> The tabulator width, by default 20
+  </div>
+  
+  <div class="tag param">
+    <span class="label">descr</span> Whether package descriptions are printed. Default: false
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

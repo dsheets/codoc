@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Search</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Search</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Search over the Git objects</h2>
+    </div>
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:succ">
+  <a href="index.html#/type:succ" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> succ = [ <div class="cons">| `Commit <span class="keyword">of</span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a></div><div class="cons">| `Tag <span class="keyword">of</span> string * <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a></div><div class="cons">| `Tree <span class="keyword">of</span> string * <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>Value.t</code> successors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sha1_of_succ">
+  <a href="index.html#/val:sha1_of_succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sha1_of_succ : <a href="index.html#/type:succ">succ</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Return the SHA of the successor value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (S : <a href="../../../../git.1.4.3/_build/lib/store/">Store</a>.<a href="../../../../git.1.4.3/_build/lib/store/#/modtype:S">S</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Make/type:path">
+  <a href="index.html#/module:Make/type:path" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> path = string list
+    
+      <div class="doc">
+        
+      <p>A path can cross different type of Git object boundaries. By
+convention, the empty string <code>&quot;&quot;</code> denotes a <code>Commit.t</code> to <code>Tree.t</code>
+transition, so that <code>mem head [&quot;&quot;;&quot;a&quot;;&quot;b&quot;]</code> will look into the
+Tree/Blob object located under <i>a/b</i> for the head revision.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:succ">
+  <a href="index.html#/module:Make/val:succ" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> succ : <a href="index.html#/module:Make/modarg:1:S">S</a>.<a href="index.html#/module:Make/modarg:1:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:succ">succ</a> list <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Compute the successor values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:mem">
+  <a href="index.html#/module:Make/val:mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem : <a href="index.html#/module:Make/modarg:1:S">S</a>.<a href="index.html#/module:Make/modarg:1:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>mem t sha1 path</code> check wether we can go from the object named
+<code>sha1</code> to an other object following the <code>path</code> labels.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:find">
+  <a href="index.html#/module:Make/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="index.html#/module:Make/modarg:1:S">S</a>.<a href="index.html#/module:Make/modarg:1:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a> option <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>find t sha1 path</code> returns (if it exists) the object named
+<code>sha1</code> to an other object following the <code>path</code> labels.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:find_exn">
+  <a href="index.html#/module:Make/val:find_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_exn : <a href="index.html#/module:Make/modarg:1:S">S</a>.<a href="index.html#/module:Make/modarg:1:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../git.1.4.3/_build/lib/SHA/">SHA</a>.<a href="../../../../git.1.4.3/_build/lib/SHA/#/type:t">t</a> <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>find t sha1 path</code> returns (if it exists) the object named
+<code>sha1</code> to an other object following the <code>path</code> labels. Raise
+<code>Not_found</code> if no such object exist.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

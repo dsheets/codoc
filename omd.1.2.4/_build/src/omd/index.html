@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Omd</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Omd</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A markdown parser in OCaml, with no extra dependencies.</p>
+      
+      <p>This module represents this entire Markdown library written in
+OCaml only.</p>
+      
+      <p>Its main purpose is to allow you to use the Markdown library while
+keeping you away from the other modules.</p>
+      
+      <p>If you want to extend the Markdown parser, you can do it without
+accessing any module of this library but this one, and by doing
+so, you are free from having to maintain a fork of this library.</p>
+      
+      <p>N.B. This module is supposed to be reentrant,
+if it's not then please report the bug.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Representation of Markdown documents</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="index.html#/type:element">element</a> list
+    
+      <div class="doc">
+        
+      <p>Representation of a Markdown document.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:ref_container">
+  <a href="index.html#/type:ref_container" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ref_container = &lt; add_ref : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit; get_ref : string <span class="rarr"><span>-&gt;</span></span> (string * string) option; get_all : (string * (string * string)) list &gt;
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:element">
+  <a href="index.html#/type:element" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> element = <a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:element">element</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:element/cons:H1">
+  <a href="index.html#/type:element/cons:H1" class="anchor">#</a>
+  | H1 <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Header of level 1</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:H2">
+  <a href="index.html#/type:element/cons:H2" class="anchor">#</a>
+  | H2 <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Header of level 2</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:H3">
+  <a href="index.html#/type:element/cons:H3" class="anchor">#</a>
+  | H3 <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Header of level 3</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:H4">
+  <a href="index.html#/type:element/cons:H4" class="anchor">#</a>
+  | H4 <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Header of level 4</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:H5">
+  <a href="index.html#/type:element/cons:H5" class="anchor">#</a>
+  | H5 <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Header of level 5</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:H6">
+  <a href="index.html#/type:element/cons:H6" class="anchor">#</a>
+  | H6 <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Header of level 6</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Paragraph">
+  <a href="index.html#/type:element/cons:Paragraph" class="anchor">#</a>
+  | Paragraph <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">A Markdown paragraph (must be enabled in <a href="index.html#/val:of_string">of_string</a>)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Text">
+  <a href="index.html#/type:element/cons:Text" class="anchor">#</a>
+  | Text <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">Text.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Emph">
+  <a href="index.html#/type:element/cons:Emph" class="anchor">#</a>
+  | Emph <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Emphasis (italic)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Bold">
+  <a href="index.html#/type:element/cons:Bold" class="anchor">#</a>
+  | Bold <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Bold</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Ul">
+  <a href="index.html#/type:element/cons:Ul" class="anchor">#</a>
+  | Ul <span class="keyword">of</span> <a href="index.html#/type:t">t</a> list
+  </div>
+  </td><td>(*</td><td class="doc">Unumbered list</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Ol">
+  <a href="index.html#/type:element/cons:Ol" class="anchor">#</a>
+  | Ol <span class="keyword">of</span> <a href="index.html#/type:t">t</a> list
+  </div>
+  </td><td>(*</td><td class="doc">Ordered (i.e. numbered) list</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Ulp">
+  <a href="index.html#/type:element/cons:Ulp" class="anchor">#</a>
+  | Ulp <span class="keyword">of</span> <a href="index.html#/type:t">t</a> list
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Olp">
+  <a href="index.html#/type:element/cons:Olp" class="anchor">#</a>
+  | Olp <span class="keyword">of</span> <a href="index.html#/type:t">t</a> list
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Code">
+  <a href="index.html#/type:element/cons:Code" class="anchor">#</a>
+  | Code <span class="keyword">of</span> <a href="index.html#/type:name">name</a> * string
+  </div>
+  </td><td>(*</td><td class="doc"><code>Code(lang, code)</code> represent <code>code</code> within the text (Markdown:
+`code`). The language <code>lang</code> cannot be specified from Markdown,
+it can be from <a href="index.html#/val:of_string">of_string</a> though or when programatically
+generating Markdown documents. Beware that the <code>code</code> is taken
+verbatim from Markdown and may contain characters that must be
+escaped for HTML.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Code_block">
+  <a href="index.html#/type:element/cons:Code_block" class="anchor">#</a>
+  | Code_block <span class="keyword">of</span> <a href="index.html#/type:name">name</a> * string
+  </div>
+  </td><td>(*</td><td class="doc"><code>Code_block(lang, code)</code>: a code clock (e.g. indented by 4
+spaces in the text). The first parameter <code>lang</code> is the language
+if specified. Beware that the <code>code</code> is taken verbatim from
+Markdown and may contain characters that must be escaped for
+HTML.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Br">
+  <a href="index.html#/type:element/cons:Br" class="anchor">#</a>
+  | Br
+  </div>
+  </td><td>(*</td><td class="doc">(Forced) line break</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Hr">
+  <a href="index.html#/type:element/cons:Hr" class="anchor">#</a>
+  | Hr
+  </div>
+  </td><td>(*</td><td class="doc">Horizontal rule</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:NL">
+  <a href="index.html#/type:element/cons:NL" class="anchor">#</a>
+  | NL
+  </div>
+  </td><td>(*</td><td class="doc">Newline character. Newline characters that act
+like delimiters (e.g. for paragraphs) are removed from the AST.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Url">
+  <a href="index.html#/type:element/cons:Url" class="anchor">#</a>
+  | Url <span class="keyword">of</span> <a href="index.html#/type:href">href</a> * <a href="index.html#/type:t">t</a> * <a href="index.html#/type:title">title</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Ref">
+  <a href="index.html#/type:element/cons:Ref" class="anchor">#</a>
+  | Ref <span class="keyword">of</span> <a href="index.html#/type:ref_container">ref_container</a> * <a href="index.html#/type:name">name</a> * string * <a href="index.html#/type:fallback">fallback</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Img_ref">
+  <a href="index.html#/type:element/cons:Img_ref" class="anchor">#</a>
+  | Img_ref <span class="keyword">of</span> <a href="index.html#/type:ref_container">ref_container</a> * <a href="index.html#/type:name">name</a> * <a href="index.html#/type:alt">alt</a> * <a href="index.html#/type:fallback">fallback</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Html">
+  <a href="index.html#/type:element/cons:Html" class="anchor">#</a>
+  | Html <span class="keyword">of</span> <a href="index.html#/type:name">name</a> * (string * string option) list * <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Html_block">
+  <a href="index.html#/type:element/cons:Html_block" class="anchor">#</a>
+  | Html_block <span class="keyword">of</span> <a href="index.html#/type:name">name</a> * (string * string option) list * <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Html_comment">
+  <a href="index.html#/type:element/cons:Html_comment" class="anchor">#</a>
+  | Html_comment <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">An HTML comment, including &quot;&lt;!--&quot; and &quot;--&gt;&quot;.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Raw">
+  <a href="index.html#/type:element/cons:Raw" class="anchor">#</a>
+  | Raw <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">Raw: something that shall never be converted</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Raw_block">
+  <a href="index.html#/type:element/cons:Raw_block" class="anchor">#</a>
+  | Raw_block <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">Raw_block: a block with contents that shall never be converted</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Blockquote">
+  <a href="index.html#/type:element/cons:Blockquote" class="anchor">#</a>
+  | Blockquote <span class="keyword">of</span> <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td>(*</td><td class="doc">Quoted block</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:Img">
+  <a href="index.html#/type:element/cons:Img" class="anchor">#</a>
+  | Img <span class="keyword">of</span> <a href="index.html#/type:alt">alt</a> * <a href="index.html#/type:src">src</a> * <a href="index.html#/type:title">title</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:element/cons:X">
+  <a href="index.html#/type:element/cons:X" class="anchor">#</a>
+  | X <span class="keyword">of</span> &lt; name : string; to_html : ?indent:int <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option; to_sexpr : (<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option; to_t : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> option &gt;
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>A element of a Markdown document.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:fallback">
+  <a href="index.html#/type:fallback" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> fallback = &lt; to_string : string; to_t : <a href="index.html#/type:t">t</a> &gt;
+    
+      <div class="doc">
+        
+      <p>Fallback for references in case they refer to non-existant references</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:name">
+  <a href="index.html#/type:name" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> name = string
+    
+      <div class="doc">
+        
+      <p>Markdown reference name.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:alt">
+  <a href="index.html#/type:alt" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> alt = string
+    
+      <div class="doc">
+        
+      <p>HTML img tag attribute.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:src">
+  <a href="index.html#/type:src" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> src = string
+    
+      <div class="doc">
+        
+      <p>HTML attribute.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:href">
+  <a href="index.html#/type:href" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> href = string
+    
+      <div class="doc">
+        
+      <p>HTML attribute.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:title">
+  <a href="index.html#/type:title" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> title = string
+    
+      <div class="doc">
+        
+      <p>HTML attribute.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:code_stylist">
+  <a href="index.html#/type:code_stylist" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> code_stylist = lang:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Function that takes a language name and some code and returns
+that code with style.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Input and Output</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:of_string">
+  <a href="index.html#/val:of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_string : ?extensions:<a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:extensions">extensions</a> <span class="rarr"><span>-&gt;</span></span> ?default_lang:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_string s</code> returns the Markdown representation of the string
+<code>s</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">lang</span> language for blocks of code where it was not
+specified. Default: <code>&quot;&quot;</code>.<br/>If you want to use a custom lexer or parser, use [root:Omd_lexer].lex
+and [root:Omd_parser].parse.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_bigarray">
+  <a href="index.html#/val:of_bigarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_bigarray : ?extensions:<a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:extensions">extensions</a> <span class="rarr"><span>-&gt;</span></span> ?default_lang:<a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../omd.1.2.4/_build/src/omd_lexer/">Omd_lexer</a>.<a href="../../../../omd.1.2.4/_build/src/omd_lexer/#/type:bigstring">bigstring</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>As <a href="index.html#/val:of_string">of_string</a>, but read input from a bigarray rather than from a
+string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_default_lang">
+  <a href="index.html#/val:set_default_lang" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_default_lang : <a href="index.html#/type:name">name</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>set_default_lang lang md</code> return a copy of <code>md</code> where the
+language of all <code>Code</code> or <code>Code_block</code> with an empty language is
+set to <code>lang</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_html">
+  <a href="index.html#/val:to_html" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_html : ?override:(<a href="../../../../omd.1.2.4/_build/src/omd_representation/">Omd_representation</a>.<a href="../../../../omd.1.2.4/_build/src/omd_representation/#/type:element">element</a> <span class="rarr"><span>-&gt;</span></span> string option) <span class="rarr"><span>-&gt;</span></span> ?pindent:bool <span class="rarr"><span>-&gt;</span></span> ?nl2br:bool <span class="rarr"><span>-&gt;</span></span> ?cs:<a href="index.html#/type:code_stylist">code_stylist</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Translate markdown representation into raw HTML. If you need a
+full HTML representation, you mainly have to figure out how to
+convert <code>Html of string</code> and <code>Html_block of string</code>
+into your HTML representation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_markdown">
+  <a href="index.html#/val:to_markdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_markdown : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Translate markdown representation into textual markdown.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_text">
+  <a href="index.html#/val:to_text" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_text : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Translate markdown representation into raw text.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Tansforming Markdown documents</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:toc">
+  <a href="index.html#/val:toc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> toc : ?start:int list <span class="rarr"><span>-&gt;</span></span> ?depth:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>toc md</code> returns <code>toc</code> a table of contents for <code>md</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">start</span> gives the section for which the TOC must be built.
+For example <code>~start:[2;3]</code> will build the TOC for subsections of
+the second <code>H1</code> header, and within that section, the third <code>h2</code>
+header. If a number is <code>0</code>, it means to look for the first
+section at that level but stop if one encounters any other
+subsection. If no subsection exists, an empty TOC <code>[]</code> will be
+returned. Default: <code>[]</code> i.e. list all sections, starting with the
+first <code>H1</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">depth</span> the table of contents. Default: <code>2</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

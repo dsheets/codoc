@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Dns_server</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Dns_server</a></h1> : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/type:ip_endpoint">
+  <a href="index.html#/type:ip_endpoint" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ip_endpoint = <a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/">Ipaddr</a>.<a href="../../../../ipaddr.2.5.0/_build/lib/ipaddr/#/type:t">t</a> * int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:process">
+  <a href="index.html#/type:process" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a process = src:<a href="index.html#/type:ip_endpoint">ip_endpoint</a> <span class="rarr"><span>-&gt;</span></span> dst:<a href="index.html#/type:ip_endpoint">ip_endpoint</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> Dns.Query.answer option <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:PROCESSOR">
+  <a href="index.html#/modtype:PROCESSOR" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> PROCESSOR = <span class="keyword">sig</span>
+    </div>
+    
+    
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> Dns.Protocol.SERVER 
+    </div>
+  
+  <div class="region" id="/modtype:PROCESSOR/val:process">
+  <a href="index.html#/modtype:PROCESSOR/val:process" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process : <a href="index.html#/modtype:PROCESSOR/type:context">context</a> <a href="index.html#/type:process">process</a>
+    
+      <div class="doc">
+        
+      <p>DNS responder function.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">src</span> Server sockaddr
+  </div>
+  
+  <div class="tag param">
+    <span class="label">dst</span> Client sockaddr
+  </div>
+  
+  <div class="tag param">
+    <span class="label">Query</span> packet
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> Answer packet
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:processor">
+  <a href="index.html#/type:processor" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a processor = (<span class="keyword">module</span> <a href="index.html#/modtype:PROCESSOR">PROCESSOR</a> <span class="keyword">with</span> <span class="keyword">type</span> context = 'a)
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_query">
+  <a href="index.html#/val:process_query" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_query : Dns.Buf.t <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> Dns.Buf.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:ip_endpoint">ip_endpoint</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:ip_endpoint">ip_endpoint</a> <span class="rarr"><span>-&gt;</span></span> (<span class="keyword">module</span> <a href="index.html#/modtype:PROCESSOR">PROCESSOR</a>) <span class="rarr"><span>-&gt;</span></span> Dns.Buf.t option <a href="../../../../lwt.2.4.6/_build/src/core/lwt/">Lwt</a>.<a href="../../../../lwt.2.4.6/_build/src/core/lwt/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>process_query ibuf ibuflen obuf src dst processor</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:processor_of_process">
+  <a href="index.html#/val:processor_of_process" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> processor_of_process : Dns.Packet.t <a href="index.html#/type:process">process</a> <span class="rarr"><span>-&gt;</span></span> Dns.Packet.t <a href="index.html#/type:processor">processor</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_of_zonebufs">
+  <a href="index.html#/val:process_of_zonebufs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_of_zonebufs : string list <span class="rarr"><span>-&gt;</span></span> Dns.Packet.t <a href="index.html#/type:process">process</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:process_of_zonebuf">
+  <a href="index.html#/val:process_of_zonebuf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> process_of_zonebuf : string <span class="rarr"><span>-&gt;</span></span> Dns.Packet.t <a href="index.html#/type:process">process</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

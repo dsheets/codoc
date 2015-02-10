@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Zed_utf8</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Zed_utf8</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>UTF-8 enoded strings</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = string
+    
+      <div class="doc">
+        
+      <p>Type of UTF-8 encoded strings.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Invalid">
+  <a href="index.html#/exn:Invalid" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Invalid <span class="keyword">of</span> string * string
+    
+      <div class="doc">
+        
+      <p><code>Invalid(error, text)</code> Exception raised when an invalid UTF-8
+encoded string is encountered. <code>text</code> is the faulty text and
+<code>error</code> is a description of the first error in <code>text</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Out_of_bounds">
+  <a href="index.html#/exn:Out_of_bounds" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Out_of_bounds
+    
+      <div class="doc">
+        
+      <p>Exception raised when trying to access a character which is
+outside the bounds of a string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Validation</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:check_result">
+  <a href="index.html#/type:check_result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> check_result = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:check_result/cons:Correct">
+  <a href="index.html#/type:check_result/cons:Correct" class="anchor">#</a>
+  | Correct <span class="keyword">of</span> int
+  </div>
+  </td><td>(*</td><td class="doc">The string is correctly UTF-8 encoded, and the paramter is
+the length of the string.</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:check_result/cons:Message">
+  <a href="index.html#/type:check_result/cons:Message" class="anchor">#</a>
+  | Message <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">The string is invalid and the parameter is an error
+message.</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>Result of cheking a string for correct UTF-8.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:check">
+  <a href="index.html#/val:check" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:check_result">check_result</a>
+    
+      <div class="doc">
+        
+      <p><code>check str</code> checks that <code>str</code> is a valid UTF-8 encoded
+string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:validate">
+  <a href="index.html#/val:validate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> validate : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Same as check but raises an exception in case the argument is
+not a valid text, otherwise returns the length of the string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:next_error">
+  <a href="index.html#/val:next_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next_error : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int * int * string
+    
+      <div class="doc">
+        
+      <p><code>next_error str ofs</code> returns <code>(ofs', count, msg)</code> where <code>ofs'</code>
+is the offset of the start of the first invalid sequence after
+<code>ofs</code> (inclusive) in <code>str</code>, <code>count</code> is the number of unicode
+character between <code>ofs</code> and <code>ofs'</code> (exclusive) and <code>msg</code> is an
+error message. If there is no error until the end of string then
+<code>ofs</code> is <code>String.length str</code> and <code>msg</code> is the empty string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Construction</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:singleton">
+  <a href="index.html#/val:singleton" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> singleton : <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>singleton ch</code> creates a string of length 1 containing only the
+given character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make">
+  <a href="index.html#/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>make n ch</code> creates a string of length <code>n</code> filled with <code>ch</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:init">
+  <a href="index.html#/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : int <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>init n f</code> returns the contenation of <code>singleton (f 0)</code>,
+<code>singleton (f 1)</code>, ..., <code>singleton (f (n - 1))</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_init">
+  <a href="index.html#/val:rev_init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_init : int <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev_init n f</code> returns the contenation of <code>singleton (f (n -
+      1))</code>, ..., <code>singleton (f 1)</code>, <code>singleton (f 0)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Informations</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the length of the given string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Comparison</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:compare">
+  <a href="index.html#/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Compares two strings (in code point order).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Random access</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>get str idx</code> returns the character at index <code>idx</code> in
+<code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">String manipulation</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:sub">
+  <a href="index.html#/val:sub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sub : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>sub str ofs len</code> Returns the sub-string of <code>str</code> starting at
+<code>ofs</code> and of length <code>len</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:break">
+  <a href="index.html#/val:break" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> break : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>break str pos</code> returns the sub-strings before and after <code>pos</code>
+in <code>str</code>. It is more efficient than creating two sub-strings
+with <a href="index.html#/val:sub">sub</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:before">
+  <a href="index.html#/val:before" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> before : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>before str pos</code> returns the sub-string before <code>pos</code> in <code>str</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:after">
+  <a href="index.html#/val:after" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> after : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>after str pos</code> returns the sub-string after <code>pos</code> in <code>str</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert">
+  <a href="index.html#/val:insert" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>insert str pos sub</code> inserts <code>sub</code> in <code>str</code> at position
+<code>pos</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>remove str pos len</code> removes the <code>len</code> characters at position
+<code>pos</code> in <code>str</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace">
+  <a href="index.html#/val:replace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>replace str pos len repl</code> replaces the <code>len</code> characters at
+position <code>pos</code> in <code>str</code> by <code>repl</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Tranformation</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:rev">
+  <a href="index.html#/val:rev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev str</code> reverses all characters of <code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:concat">
+  <a href="index.html#/val:concat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> concat : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>concat sep l</code> returns the concatenation of all strings of <code>l</code>
+separated by <code>sep</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_concat">
+  <a href="index.html#/val:rev_concat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_concat : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>concat sep l</code> returns the concatenation of all strings of <code>l</code>
+in reverse order separated by <code>sep</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:explode">
+  <a href="index.html#/val:explode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> explode : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p><code>explode str</code> returns the list of all characters of <code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_explode">
+  <a href="index.html#/val:rev_explode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_explode : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p><code>rev_explode str</code> returns the list of all characters of <code>str</code> in
+reverse order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:implode">
+  <a href="index.html#/val:implode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> implode : <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>implode l</code> returns the concatenation of all characters of <code>l</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_implode">
+  <a href="index.html#/val:rev_implode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_implode : <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev_implode l</code> is the same as <code>implode (List.rev l)</code> but more
+efficient.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Text traversals</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter f str</code> applies <code>f</code> an all characters of <code>str</code> starting
+from the left.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_iter">
+  <a href="index.html#/val:rev_iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_iter : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>rev_iter f str</code> applies <code>f</code> an all characters of <code>str</code> starting
+from the right.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>fold f str acc</code> applies <code>f</code> on all characters of <code>str</code>
+starting from the left, accumulating a value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_fold">
+  <a href="index.html#/val:rev_fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_fold : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>rev_fold f str acc</code> applies <code>f</code> on all characters of <code>str</code>
+starting from the right, accumulating a value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map">
+  <a href="index.html#/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>map f str</code> maps all characters of <code>str</code> with <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_map">
+  <a href="index.html#/val:rev_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_map : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev_map f str</code> maps all characters of <code>str</code> with <code>f</code> in reverse
+order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_concat">
+  <a href="index.html#/val:map_concat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_concat : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>map f str</code> maps all characters of <code>str</code> with <code>f</code> and
+concatenate the result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_map_concat">
+  <a href="index.html#/val:rev_map_concat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_map_concat : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev_map f str</code> maps all characters of <code>str</code> with <code>f</code> in reverse
+order and concatenate the result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter">
+  <a href="index.html#/val:filter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>filter f str</code> filters characters of <code>str</code> with <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_filter">
+  <a href="index.html#/val:rev_filter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_filter : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev_filter f str</code> filters characters of <code>str</code> with <code>f</code> in
+reverse order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_map">
+  <a href="index.html#/val:filter_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_map : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> option) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>filter_map f str</code> filters and maps characters of <code>str</code> with
+<code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_filter_map">
+  <a href="index.html#/val:rev_filter_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_filter_map : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> option) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev_filter_map f str</code> filters and maps characters of <code>str</code> with
+<code>f</code> in reverse order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_map_concat">
+  <a href="index.html#/val:filter_map_concat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_map_concat : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> option) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>filter_map f str</code> filters and maps characters of <code>str</code> with <code>f</code>
+and concatenate the result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rev_filter_map_concat">
+  <a href="index.html#/val:rev_filter_map_concat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rev_filter_map_concat : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> option) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rev_filter_map f str</code> filters and maps characters of <code>str</code> with
+<code>f</code> in reverse order and concatenate the result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Scanning</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:for_all">
+  <a href="index.html#/val:for_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> for_all : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>for_all f text</code> returns whether all characters of <code>text</code> verify
+the predicate <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:exists">
+  <a href="index.html#/val:exists" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> exists : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>exists f text</code> returns whether at least one character of <code>text</code>
+verify <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:count">
+  <a href="index.html#/val:count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> count : (<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>count f text</code> returhs the number of characters of <code>text</code>
+verifying <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Tests</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:contains">
+  <a href="index.html#/val:contains" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> contains : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>contains text sub</code> returns whether <code>sub</code> appears in <code>text</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:starts_with">
+  <a href="index.html#/val:starts_with" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> starts_with : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>starts_with text prefix</code> returns <code>true</code> iff <code>s</code> starts with
+<code>prefix</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ends_with">
+  <a href="index.html#/val:ends_with" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ends_with : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>ends_with text suffix</code> returns <code>true</code> iff <code>s</code> ends with
+<code>suffix</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Stripping</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:strip">
+  <a href="index.html#/val:strip" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> strip : ?predicate:(<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>strip ?predicate text</code> returns <code>text</code> without its firsts and
+lasts characters that match <code>predicate</code>. <code>predicate</code> default to
+testing whether the given character has the <code>`White_Space</code>
+unicode property. For example:</p>
+      <pre><code>        strip &quot;\n  foo\n  &quot; = &quot;foo&quot;</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lstrip">
+  <a href="index.html#/val:lstrip" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lstrip : ?predicate:(<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>lstrip ?predicate text</code> is the same as <a href="index.html#/val:strip">strip</a> but it only
+removes characters at the left of <code>text</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rstrip">
+  <a href="index.html#/val:rstrip" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rstrip : ?predicate:(<a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>lstrip ?predicate text</code> is the same as <a href="index.html#/val:strip">strip</a> but it only
+removes characters at the right of <code>text</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lchop">
+  <a href="index.html#/val:lchop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lchop : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>lchop t</code> returns <code>t</code> without is first character. Returns <code>&quot;&quot;</code>
+if <code>t = &quot;&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rchop">
+  <a href="index.html#/val:rchop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rchop : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>rchop t</code> returns <code>t</code> without is last character. Returns <code>&quot;&quot;</code> if
+<code>t = &quot;&quot;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Buffers</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add buf ch</code> is the same as <code>Buffer.add_string buf (singleton
+      ch)</code> but is more efficient.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Escaping</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:escaped_char">
+  <a href="index.html#/val:escaped_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> escaped_char : <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>escaped_char ch</code> returns a string containg <code>ch</code> or an escaped
+version of <code>ch</code> if:</p>
+      <ul><li><code>ch</code> is a control character (code &lt; 32)</li><li><code>ch</code> is the character with code 127</li><li><code>ch</code> is a non-ascii, non-alphabetic character</li></ul>
+      <p>It uses the syntax <code>\xXX</code>, <code>\uXXXX</code>, <code>\UXXXXXX</code> or a specific
+escape sequence <code>\n, \r, ...</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_escaped_char">
+  <a href="index.html#/val:add_escaped_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_escaped_char : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_escaped_char buf ch</code> is the same as <code>Buffer.add_string buf
+      (escaped_char ch)</code> but a bit more efficient.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:escaped">
+  <a href="index.html#/val:escaped" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> escaped : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>escaped text</code> escape all characters of <code>text</code> as with
+<code>escape_char</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_escaped">
+  <a href="index.html#/val:add_escaped" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_escaped : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_escaped_char buf text</code> is the same as <code>Buffer.add_string
+      buf (escaped text)</code> but a bit more efficient.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:escaped_string">
+  <a href="index.html#/val:escaped_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> escaped_string : <a href="../../../../camomile.0.8.5/camomileLibraryDyn/">CamomileLibraryDyn</a>.<a href="../../../../camomile.0.8.5/camomileLibraryDyn/#/module:Camomile">Camomile</a>.<a href="../../../../camomile.0.8.5/camomileLibraryDyn/#/module:Camomile/module:CharEncoding">CharEncoding</a>.<a href="../../../../camomile.0.8.5/camomileLibraryDyn/#/module:Camomile/module:CharEncoding/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>escaped_string enc str</code> escape the string <code>str</code> which is
+encoded with encoding <code>enc</code>. If decoding <code>str</code> with <code>enc</code> fails,
+it escape all non-printable bytes of <code>str</code> with the syntax
+<code>\yAB</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_escaped_string">
+  <a href="index.html#/val:add_escaped_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_escaped_string : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibraryDyn/">CamomileLibraryDyn</a>.<a href="../../../../camomile.0.8.5/camomileLibraryDyn/#/module:Camomile">Camomile</a>.<a href="../../../../camomile.0.8.5/camomileLibraryDyn/#/module:Camomile/module:CharEncoding">CharEncoding</a>.<a href="../../../../camomile.0.8.5/camomileLibraryDyn/#/module:Camomile/module:CharEncoding/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_escaped_char buf enc text</code> is the same as
+<code>Buffer.add_string buf (escaped_string enc text)</code> but a bit more
+efficient.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Safe offset API</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:next">
+  <a href="index.html#/val:next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>next str ofs</code> returns the offset of the next character in
+<code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prev">
+  <a href="index.html#/val:prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prev : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>prev str ofs</code> returns the offset of the previous character in
+<code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract">
+  <a href="index.html#/val:extract" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>extract str ofs</code> returns the code-point at offset <code>ofs</code> in
+<code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract_next">
+  <a href="index.html#/val:extract_next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract_next : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> * int
+    
+      <div class="doc">
+        
+      <p><code>extract_next str ofs</code> returns the code-point at offset <code>ofs</code> in
+<code>str</code> and the offset the next character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:extract_prev">
+  <a href="index.html#/val:extract_prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> extract_prev : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> * int
+    
+      <div class="doc">
+        
+      <p><code>extract_prev str ofs</code> returns the code-point at the previous
+offset in <code>str</code> and this offset.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Unsafe offset API</h6>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>These functions does not check that the given offset is inside the
+bounds of the given string.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:unsafe_next">
+  <a href="index.html#/val:unsafe_next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_next : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>unsafe_next str ofs</code> returns the offset of the next character
+in <code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_prev">
+  <a href="index.html#/val:unsafe_prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_prev : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>unsafe_prev str ofs</code> returns the offset of the previous
+character in <code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_extract">
+  <a href="index.html#/val:unsafe_extract" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_extract : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>unsafe_extract str ofs</code> returns the code-point at offset <code>ofs</code>
+in <code>str</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_extract_next">
+  <a href="index.html#/val:unsafe_extract_next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_extract_next : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> * int
+    
+      <div class="doc">
+        
+      <p><code>unsafe_extract_next str ofs</code> returns the code-point at offset
+<code>ofs</code> in <code>str</code> and the offset the next character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_extract_prev">
+  <a href="index.html#/val:unsafe_extract_prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_extract_prev : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../camomile.0.8.5/camomileLibrary/">CamomileLibrary</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar">UChar</a>.<a href="../../../../camomile.0.8.5/camomileLibrary/#/module:UChar/type:t">t</a> * int
+    
+      <div class="doc">
+        
+      <p><code>unsafe_extract_prev str ofs</code> returns the code-point at the
+previous offset in <code>str</code> and this offset.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netglob</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netglob</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Globbing</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Globbing resolves shell wildcards like &quot;*&quot; and &quot;?&quot;. For example,</p>
+      <pre><code>    let files = Netglob.glob (`String &quot;*.cm[iox]&quot;)</code></pre>
+      <p>would return all files matching this pattern (e.g. module.cmi,
+module.cmo).</p>
+      
+      <p>The main user function is <a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/">Netglob</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/#/val:glob">glob</a>. Globbing accesses the
+local filesystem by default, but one can also run the globbing
+algorithm on any other filesystem, provided the access primitives
+of <a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/">Netglob</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/#/classtype:glob_fsys">glob_fsys</a> are available.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Types and exceptions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:glob_expr">
+  <a href="index.html#/type:glob_expr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> glob_expr = <a href="index.html#/type:glob_expr_atom">glob_expr_atom</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:glob_expr_atom">
+  <a href="index.html#/type:glob_expr_atom" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> glob_expr_atom = [ <div class="cons">| `Literal <span class="keyword">of</span> string</div><div class="cons">| `Star</div><div class="cons">| `Qmark</div><div class="cons">| `Bracket <span class="keyword">of</span> bool * <a href="index.html#/type:glob_set">glob_set</a></div><div class="cons">| `Brace <span class="keyword">of</span> <a href="index.html#/type:glob_expr">glob_expr</a> list</div><div class="cons">| `Tilde <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>Atoms:</p>
+      <ul><li><code>`Literal s</code>: Matches the string literally. The string must not be empty.
+The backslash is not an escape character, but matches the
+backslash character.</li><li><code>`Star</code>: The &quot;*&quot; operator</li><li><code>`Qmark</code>: The &quot;?&quot; operator</li><li><code>`Bracket(negated,set)</code>: The <code>[...]</code> operator. The <code>set</code> argument
+describes the characters that are matched. The <code>negated</code> argument
+is true when the expression is negated (i.e. <code>[^...]</code>).</li><li><code>`Brace l</code>: The <code>{e1,e2,...}</code> operator</li><li><code>`Tilde t</code>: The <code>~username</code> operator. If <code>t=&quot;&quot;</code> the current user
+is meant. The <code>`Tilde</code> atom may only occur at the beginning of the list.
+The <code>`Tilde</code> atom always matches a directory,
+and must be followed by a literal slash (if anything follows).</li></ul>
+      <p>Compatibility: Conforms to POSIX with extensions (braces). Shells often
+implement brace expressions in a slightly different way (braces are
+parsed and expanded in a separate step before the other pattern
+constructors are handled). The cases where this leads to different
+results are quite exotic (e.g. <code>&quot;{~g,~h}1&quot;</code> would mean <code>&quot;~g1 ~h1&quot;</code>, but
+this implementation rejects the pattern).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:glob_set">
+  <a href="index.html#/type:glob_set" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> glob_set = &lt; set : (int * int) list &gt;
+    
+      <div class="doc">
+        
+      <p>A set of code points is given as a list of ranges <code>(from,to)</code>, with
+<code>from &lt;= to</code>. It is allowed that ranges overlap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:valid_glob_expr">
+  <a href="index.html#/type:valid_glob_expr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> valid_glob_expr
+    
+      <div class="doc">
+        
+      <p>A validated <code>glob_expr</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:user_info">
+  <a href="index.html#/classtype:user_info" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> user_info = 
+  <div class="region" id="/classtype:user_info/method:path_encoding">
+  <a href="index.html#/classtype:user_info/method:path_encoding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> path_encoding : <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> option
+  
+      <div class="doc">
+        
+      <p>Paths of filesystems may be encoded</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:user_info/method:home_directory">
+  <a href="index.html#/classtype:user_info/method:home_directory" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> home_directory : string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Returns the home directory of the passed user, or the home
+directory of the current user for the empty string. Raises
+<code>Not_found</code> if the lookup fails.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Access to the user database</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:glob_fsys">
+  <a href="index.html#/classtype:glob_fsys" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> glob_fsys = 
+  <div class="region" id="/classtype:glob_fsys/method:path_encoding">
+  <a href="index.html#/classtype:glob_fsys/method:path_encoding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> path_encoding : <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> option
+  
+      <div class="doc">
+        
+      <p>Paths of filesystems may be encoded</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:glob_fsys/method:read_dir">
+  <a href="index.html#/classtype:glob_fsys/method:read_dir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read_dir : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Returns the file names contained in the directory, without
+path. The names &quot;.&quot; and &quot;..&quot; should be returned. It is acceptable
+to return the empty list for an unreadable directory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:glob_fsys/method:file_is_dir">
+  <a href="index.html#/classtype:glob_fsys/method:file_is_dir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> file_is_dir : string <span class="rarr"><span>-&gt;</span></span> bool
+  
+      <div class="doc">
+        
+      <p>Whether the file name is valid and a directory, or a symlink to
+a directory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:glob_fsys/method:file_exists">
+  <a href="index.html#/classtype:glob_fsys/method:file_exists" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> file_exists : string <span class="rarr"><span>-&gt;</span></span> bool
+  
+      <div class="doc">
+        
+      <p>Whether the file name is valid and refers to an existing file,
+or to a symlink pointing to an existing file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Filesystem primitives. This is intentionally not the same as
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:stream_fs">stream_fs</a> because only a few access functions are needed
+here, and because the functions here should also be capable of accessing
+relative paths (not starting with /). It is possible to turn a
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:stream_fs">stream_fs</a> into <a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/">Netglob</a>.glob_fs by calling
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/">Netglob</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/#/class:of_stream_fs">of_stream_fs</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:glob_mode">
+  <a href="index.html#/type:glob_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> glob_mode = [ <div class="cons">| `Existing_paths</div><div class="cons">| `All_paths</div><div class="cons">| `All_words</div> ]
+    
+      <div class="doc">
+        
+      <p>Modes:</p>
+      <ul><li><code>`Existing_paths</code>: Only paths are returned that really exist</li><li><code>`All_paths</code>: Generated paths not including <code>*</code>, <code>?</code> and
+bracket expressions are returned even if they do not exist.
+For example, globbing for <code>&quot;fictive{1,2,3}&quot;</code> would return
+<code>[&quot;ficitve1&quot;;&quot;fictive2&quot;;&quot;fictive3&quot;]</code> independent of whether
+these files exist.</li><li><code>`All_words</code>: Patterns that cannot be resolved are returned
+as-is (like the shell does)</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:pattern">
+  <a href="index.html#/type:pattern" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> pattern = [ <div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Expr <span class="keyword">of</span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Input for <a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/">Netglob</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/#/val:glob">glob</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Bad_glob_expr">
+  <a href="index.html#/exn:Bad_glob_expr" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Bad_glob_expr <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>An syntax error in the glob expression; the argument is the bad
+expression</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Unsupported_expr">
+  <a href="index.html#/exn:Unsupported_expr" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Unsupported_expr <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>The notations <code>:class:</code>, <code>.symbol.</code>, <code>=eqclass=</code> inside <code>...</code> are
+not supported by this implementation. If they are found, this exception
+will be raised, and the argument is the whole glob expression</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Parsing and printing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:parse_glob_expr">
+  <a href="index.html#/val:parse_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> parse_glob_expr : ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?enable_star:bool <span class="rarr"><span>-&gt;</span></span> ?enable_qmark:bool <span class="rarr"><span>-&gt;</span></span> ?enable_brackets:bool <span class="rarr"><span>-&gt;</span></span> ?enable_braces:bool <span class="rarr"><span>-&gt;</span></span> ?enable_tilde:bool <span class="rarr"><span>-&gt;</span></span> ?enable_escape:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a>
+    
+      <div class="doc">
+        
+      <p>Parses the glob expression. By default, all syntax features are enabled.
+May raise <code>Bad_glob_expr</code> or <code>Unsupported_expr</code>.</p>
+      
+      <p>The glob expressions are POSIX-compliant with the extension of
+brace expressions, and tildes, and the omission of internationalized
+bracket expressions:</p>
+      <ul><li><code>*</code>: Matches a sequence of zero or more arbitrary characters</li><li><code>?</code>: Matches one arbitrary character</li><li><code>[abc]</code>: Matches one of the mentioned characters</li><li><code>[a-z]</code>: Matches one of the characters of the range. This is here
+only permitted when the range falls into the ASCII set. (Otherwise
+the interpretation would be dependent on the encoding.) Note that
+the ASCII restriction does not comply to POSIX.</li><li><code>[!expr]</code> or <code>[^expr]</code>: Negates the bracket expression</li><li><code>{expr,expr,...}</code>: Generates a string for each of the alternatives.
+A brace expression is even recognized if there is no comma, or even
+no contents (i.e. <code>&quot;{expr}&quot;</code> and <code>&quot;{}&quot;</code>). The elements of brace expressions
+may be again glob expressions; nested brace expressions are allowed.</li><li><code>~username</code>: Generates the home directory of this user</li><li><code>~</code>: Generates the home directory of the current user</li><li>If enabled, the backslash character is the escape character. Within
+bracket expressions, the backslash character never escapes.</li><li>Not supported: Collating symbols <code>[.a.]</code>, equivalence classes
+<code>[=a=]</code>, and character classes <code>[:name:]</code>. If they are found, the
+exception <code>Unsupported_expr</code> will be raised.</li></ul>
+      <p>Glob expressions have a character <code>encoding</code>. This defaults to
+<code>`Enc_iso88591</code>. Encodings must be ASCII-compatible.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:validate_glob_expr">
+  <a href="index.html#/val:validate_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> validate_glob_expr : <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:glob_expr">glob_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a>
+    
+      <div class="doc">
+        
+      <p>Checks whether the passed expression is syntactically valid. If so,
+a validated expression is returned. Otherwise, this function fails.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recover_glob_expr">
+  <a href="index.html#/val:recover_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recover_glob_expr : <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:glob_expr">glob_expr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the explicit representation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:encoding_of_glob_expr">
+  <a href="index.html#/val:encoding_of_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoding_of_glob_expr : <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a>
+    
+      <div class="doc">
+        
+      <p>Returns the encoding</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:literal_glob_expr">
+  <a href="index.html#/val:literal_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> literal_glob_expr : <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a>
+    
+      <div class="doc">
+        
+      <p>Returns an expression that matches literally the passed string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_glob_expr">
+  <a href="index.html#/val:print_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_glob_expr : ?escape_in_literals:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Prints the glob expression as string. Meta characters are
+escaped by a backslash when possible. Meta characters are:
+<code>&quot;*&quot;</code>, <code>&quot;?&quot;</code>, <code>&quot;[&quot;], [&quot;]&quot;</code>, <code>&quot;{&quot;</code>, <code>&quot;}&quot;</code>, <code>&quot;,&quot;</code>, <code>&quot;~&quot;</code> and <code>&quot;\\&quot;</code></p>
+      <ul><li><code>escape_in_literals</code>: Whether meta characters in <code>`Literal</code>
+subexpressions are escaped. This is true by default.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Operations on <code>valid_glob_expr</code></h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:expand_glob_expr">
+  <a href="index.html#/val:expand_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> expand_glob_expr : ?user_info:<a href="index.html#/classtype:user_info">user_info</a> <span class="rarr"><span>-&gt;</span></span> ?expand_brace:bool <span class="rarr"><span>-&gt;</span></span> ?expand_tilde:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> list
+    
+      <div class="doc">
+        
+      <p>Resolve generative sub expressions by expanding them. The returned
+list of glob expr no longer contains the expanded constructions.</p>
+      <ul><li><code>expand_brace</code>: Expands <code>`Brace</code> subexpressions.</li><li><code>expand_tilde</code>: Expands <code>`Tilde</code> subexpressions.</li><li><code>user_info</code>: The subset of file system operations needed for tilde
+expansion. Defaults to <a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/">Netglob</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netglob/#/class:local_user_info">local_user_info</a> (see below).</li></ul>
+      <p>Both <code>expand_*</code> options are enabled by default.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:match_glob_expr">
+  <a href="index.html#/val:match_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> match_glob_expr : ?protect_period:bool <span class="rarr"><span>-&gt;</span></span> ?protect_slash:bool <span class="rarr"><span>-&gt;</span></span> ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Matches the glob_expr against a string.</p>
+      
+      <p>The input must neither contain brace expressions nor tildes (i.e. call
+<code>expand_glob_expr</code> first). The function fails if it encounters such an
+expression.</p>
+      <ul><li><code>protect_period</code>: If true, a leading period cannot be not matched by
+<code>*</code>, <code>?</code>, <code>[...]</code>, but only by a literal <code>.</code>. A leading period is
+a <code>.</code> at the beginning of the string to be matched against, or
+if also <code>protect_slash</code> a <code>.</code> after a <code>/</code></li><li><code>protect_slash</code>: If true, a slash cannot be matched by <code>*</code>, <code>?</code>, <code>[...]</code>,
+but only by a literal <code>/</code></li></ul>
+      <p>Both options are enabled by default.</p>
+      <ul><li><code>encoding</code>: The encoding of the string argument. Defaults to the
+encoding of the glob pattern.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:split_glob_expr">
+  <a href="index.html#/val:split_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> split_glob_expr : <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> list
+    
+      <div class="doc">
+        
+      <p>Splits the glob expression into filename components separated by
+literal <code>/</code> characters. For example, for the glob expression
+<code>&quot;a*b/c/d?&quot;</code>, the list <code>[&quot;a*b&quot;; &quot;c&quot;; &quot;d?&quot;]</code> is returned.</p>
+      
+      <p>If the first component begins with a slash, the slash is not removed
+from the first returned list element, e.g. for <code>&quot;/ab/c*&quot;</code>, the list
+<code>[ &quot;/ab&quot;; &quot;c*&quot; ]</code> is computed. Use <code>check_rooted_glob_expr</code> to test this
+case.</p>
+      
+      <p>Several adjacent slashes are handled like a single slash. E.g.
+for <code>&quot;a//b&quot;</code>, the list <code>[&quot;a&quot;; &quot;b&quot;]</code> is returned.</p>
+      
+      <p>If the last component ends with a slash, it is not removed from the
+returned list element, e.g. for <code>&quot;a/b/&quot;</code>, the list <code>[ &quot;a&quot;; &quot;b/&quot; ]</code> is
+returned. Use <code>check_directory_glob_expr</code> to test this case.</p>
+      
+      <p>The glob expression passed to this function must not contain brace
+or tilde expressions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:check_rooted_glob_expr">
+  <a href="index.html#/val:check_rooted_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check_rooted_glob_expr : <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> option
+    
+      <div class="doc">
+        
+      <p>If the glob expression matches the root directory (i.e. the expression
+begins with a literal <code>/</code>), the function returns <code>Some expr'</code>, where
+<code>expr'</code> matches the path relative to the root directory (i.e. the
+expression without the <code>/</code> at the beginning).</p>
+      
+      <p>Otherwise, <code>None</code> is returned.</p>
+      
+      <p>Example: For <code>&quot;/a/b*&quot;</code>, the expression <code>&quot;a/b*&quot;</code> is returned.</p>
+      
+      <p>Special case: for <code>&quot;/&quot;</code>, the expression <code>&quot;&quot;</code> (only matching the empty
+string) is returned.</p>
+      
+      <p>The glob expression passed to this function must not contain brace
+or tilde expressions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:check_directory_glob_expr">
+  <a href="index.html#/val:check_directory_glob_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check_directory_glob_expr : <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:valid_glob_expr">valid_glob_expr</a> option
+    
+      <div class="doc">
+        
+      <p>If the last component of the glob expression matches only directories
+because it ends with a literal <code>/</code> character, the value <code>Some expr'</code> is
+returned where <code>expr'</code> matches the same path without the trailing <code>/</code>.</p>
+      
+      <p>Otherwise, <code>None</code> is returned.</p>
+      
+      <p>Example: For <code>&quot;a/b*/&quot;</code>, the expression <code>&quot;a/b*&quot;</code> is returned.</p>
+      
+      <p>Special case: for <code>&quot;/&quot;</code>, the expression <code>&quot;&quot;</code> (only matching the empty
+string) is returned.</p>
+      
+      <p>The glob expression passed to this function must not contain brace
+or tilde expressions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Globbing</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:glob">
+  <a href="index.html#/val:glob" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> glob : ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?base_dir:string <span class="rarr"><span>-&gt;</span></span> ?protect_period:bool <span class="rarr"><span>-&gt;</span></span> ?fsys:<a href="index.html#/classtype:glob_fsys">glob_fsys</a> <span class="rarr"><span>-&gt;</span></span> ?user_info:<a href="index.html#/classtype:user_info">user_info</a> <span class="rarr"><span>-&gt;</span></span> ?mode:<a href="index.html#/type:glob_mode">glob_mode</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pattern">pattern</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Forms a set of filenames as described below, and matches this set
+against the pattern. The pattern can be given as a <code>`String s</code>
+in which case <code>s</code> is parsed (with all features enabled, and
+it is assumed it has the passed <code>encoding</code>). Alternatively,
+an already parsed <code>`Expr e</code> can be given. (Note that <code>encoding</code>
+is ignored in this case.)</p>
+      
+      <p><b>Slashes must be explicitly matched:</b>
+&quot;/&quot; must literally occur in order to be a candidate for matching.
+It is not matched by <code>*</code> or <code>?</code> or a bracket expression.</p>
+      
+      <p><b>Periods:</b> The leading period is protected if <code>protect_period</code>.
+It must then also literally occur to be matched.</p>
+      
+      <p><b>Anchoring:</b> If the <code>glob_expr</code> begins with a literal &quot;/&quot;, the set
+of filenames is
+anchored at the root directory; otherwise the set is anchored at
+the current directory or, if <code>base_dir</code> is passed, at this directory.
+(If <code>fsys</code> is passed, it is required to also set <code>base_dir</code>.)</p>
+      
+      <p>Initially, the set contains all files of the anchor
+directory (for the root directory, a &quot;/&quot; is prepended).</p>
+      
+      <p>After that, the set is extended by adding the paths of
+subdirectories relative to the anchor directory. Note that the
+constructed set is always infinite, because &quot;.&quot; and &quot;..&quot; are not
+handled specially, and are also regarded as &quot;subdirectories&quot;. However,
+after applying the matching criterion, the returned list is always
+finite.</p>
+      
+      <p>Note that the anchor directory itself is not part of the generated
+set. For example, for the expression &quot;/*&quot; the root directory &quot;/&quot; is
+not returned. As an exception of this rule, for the glob expression
+&quot;/&quot; the file &quot;/&quot; is returned.</p>
+      
+      <p><b>Braces:</b> Brace expressions are handled by expanding them first, even
+before filename generation starts.</p>
+      
+      <p><b>Mode:</b> By default, only existing paths are returned
+(<code>mode=`Existing_paths</code>).
+If no files match, the empty list is returned (and not the pattern
+as the shell does). By passing a different <code>mode</code>, this can be changed:</p>
+      <ul><li><code>`All_paths</code>: It is allowed that non-existing paths
+are returned when the paths do not contain *, ?, or [
+metacharacters after the brace expansion. Path expressions
+with these metacharacters are still checked for existence.</li><li><code>`All_words</code>: When an expression does not refer to existing
+paths, it is returned as such, leaving the metacharacters *, ?, [
+unexpanded (i.e., what the Bourne shell does). Note that
+either all metacharacters are resolved, or none, but not
+a subset of them.</li></ul>
+      <p><b>Encodings:</b> Often, only the pattern has an encoding, but not
+the filesystem (as in Unix). In this case, no conversion is attempted,
+and the byte representation of the pattern is matched with the
+byte representation of the filenames. Good luck.</p>
+      
+      <p>If the filesystem has an encoding, however, conversions may
+be required, and this can cause problems. Usually, network filesystems
+provide an encoding, and the Win32 local filesystem. (For Unix,
+one can pass a custom <code>fsys</code> with encoding knowledge.) Conversion
+problems can be avoided if (1) the encoding of the pattern is a superset
+of the filename encoding. Also, (2) one should not use literals
+in the pattern that cannot be represented in the filename encoding.
+If (2) cannot be satisfied, ensure you have at least
+<code>mode=`Existing_paths</code>, i.e. the default mode (this removes results
+from the returned list when a conversion problem occurs).</p>
+      
+      <p>The return value of <code>glob</code> is encoded in the encoding of the filesystem
+if the filesystem provides an encoding. (If you want to check this
+encoding, pass <code>fsys</code>, e.g. as <code>local_fsys()</code>, and call the
+<code>path_encoding</code> method of <code>fsys</code>.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Remarks</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Examples demonstrating the effect of encodings:</b> (Linux)</p>
+      <pre><code>       let fsys = local_fsys ~encoding:`Enc_utf8()
+       let l = glob ~fsys (`String &quot;\214*&quot;)</code></pre>
+      <p>The byte 214 is O-umlaut in ISO-8859-1 (the default encoding for
+patterns). By passing an <code>fsys</code> argument we change the encoding
+for filenames to UTF-8. For example, if</p>
+      
+      <p>&quot;\195\150ffentlich&quot;</p>
+      
+      <p>was a file in the current directory, it would be found and
+returned in <code>l</code>.</p>
+      
+      <p>Conversions: For example, assume we have a file
+&quot;\226\130\172uro&quot; (EUR-uro in UTF-8). The glob</p>
+      <pre><code>       let fsys = local_fsys ~encoding:`Enc_utf8()
+       let l = glob ~fsys (`String &quot;*&quot;)</code></pre>
+      <p>finds it although the euro sign cannot be represented
+in ISO-8859-1, the default pattern encoding.</p>
+      
+      <p>We run into a problem, however, if we want to generate the
+euro sign even if the file is not present, and the filesystem
+uses an encoding that does not include this sign:</p>
+      <pre><code>       let fsys = local_fsys ~encoding:`Enc_iso88591()
+       let l = glob ~fsys ~encoding:`Enc_utf8 ~mode:`All_paths 
+                  (`String &quot;\226\130\172uro&quot;)</code></pre>
+      <p>This raises an exception <code>Netconversion.Cannot_represent 8364</code>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Notes for Win32:</b></p>
+      <ul><li>Globbing only supports forward slashes, not backslashes as path
+separators</li><li>Globbing does neither recognize drive letters nor UNC
+paths as special cases. This may lead to subtle bugs. Glob
+expressions like &quot;c:/file.*&quot; may or may not work depending on the
+context.</li><li>The usually case-insensitive file system is not taken into account.
+(To be fixed.)</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Default access objects</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/class:local_user_info">
+  <a href="index.html#/class:local_user_info" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> local_user_info : 
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:user_info">user_info</a>
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:local_user_info">
+  <a href="index.html#/val:local_user_info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> local_user_info : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:user_info">user_info</a>
+    
+      <div class="doc">
+        
+      <p>Get the home directory of a user from the local user database.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:local_fsys">
+  <a href="index.html#/class:local_fsys" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> local_fsys : 
+    ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:glob_fsys">glob_fsys</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:local_fsys">
+  <a href="index.html#/val:local_fsys" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> local_fsys : ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:glob_fsys">glob_fsys</a>
+    
+      <div class="doc">
+        
+      <p>Accesses the local filesystem</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:of_stream_fs">
+  <a href="index.html#/class:of_stream_fs" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> of_stream_fs : 
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.#stream_fs
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:glob_fsys">glob_fsys</a>
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_stream_fs">
+  <a href="index.html#/val:of_stream_fs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_stream_fs : <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.#stream_fs <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:glob_fsys">glob_fsys</a>
+    
+      <div class="doc">
+        
+      <p>Use an arbitrary network filesystem for globbing</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Compatibility</h2>
+    </div>
+      <p>This implementation is not fully compatible with the POSIX specs.
+The differences:</p>
+      <ul><li>Missing support for character classes, equivalence classes and
+collating symbols.</li><li>Ranges in brackets are restricted to ASCII.</li><li>Unparseable patterns are indicated by exceptions. POSIX, however,
+requires that such patterns are taken literally. E.g. a pattern &quot;[&quot;
+would match a left bracket in POSIX, but this module throws a
+syntax error.</li><li>If the slash character is protected, it is still allowed inside
+brackets. POSIX, however, requires that the pattern is scanned
+for slashes before brackets. For instance, the pattern &quot;[a/b*]&quot;
+is scanned as <code>[`Literal &quot;[a/b]&quot;; `Star]</code> following the POSIX
+rules while this implementation sees a bracket expression with
+&quot;a&quot;, &quot;b&quot;, &quot;/&quot; and &quot;*&quot; characters.</li><li>The &quot;^&quot; character negates the set if used at the beginning of
+bracket expressions. POSIX leaves this unspecified.</li><li>Brace expresions are an extension (although commonly implemented
+in shells).</li><li>The default globbing mode is <code>`Existing_paths</code> which is not
+defined by POSIX. Use <code>`All_paths</code> for getting POSIX behavior.</li></ul>
+      <p>Compared with popular shells, there are some subtle differences in
+how the various syntax elements (wildcards, braces, tildes) are
+parsed and processed. Shells do it in this order:</p>
+      <ul><li>Parse and expand brace expressions</li><li>Parse and expand tildes</li><li>Split the paths at slashes into path components</li><li>Parse and expand wildcards</li></ul>
+      <p>For example, after expanding braces it is possible to see totally
+new tilde or wildcard expressions, e.g. <code>&quot;~user{1,2}/file&quot;</code> would
+be legal. This implementation here does not support this - we first
+parse the expression, and then interpret it. However, users interested in
+a higher degree of compatibility can call the [root:Netglob] parsing,
+processing and printing functions in the required order, and emulate
+the shell behavior. For example,</p>
+      <pre><code>  let alt_glob pat =
+    let g1 = 
+       parse_glob_expr 
+         ~enable_star:false ~enable_qmark:false ~enable_brackets:false
+         ~enable_tilde:false        (* only braces remain enabled *)
+          pat in
+    let g2_list = 
+       expand_glob_expr g1 in
+    let pat2_list = 
+       List.map (print_glob_expr ~escape_in_literals:false) g2_list in
+    let g3_list =
+       List.map
+         (fun pat2 -&gt; parse_glob_expr ~enable_braces:false pat2) 
+         pat2_list in
+    List.flatten
+      (List.map (fun g3 -&gt; glob (`Expr g3)) g3_list)</code></pre>
+      <p>would parse and expand brace expressions in a separate step before
+running <code>glob</code> on the remaining syntactic elements.</p>
+      
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

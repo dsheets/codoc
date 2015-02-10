@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Uq_io</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Uq_io</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Unified engines for stream I/O</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:in_buffer">
+  <a href="index.html#/type:in_buffer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> in_buffer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:out_buffer">
+  <a href="index.html#/type:out_buffer" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> out_buffer
+    
+      <div class="doc">
+        
+      <p>Buffers that can be attached to a <code>device</code> to get buffered I/O</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:in_device">
+  <a href="index.html#/type:in_device" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> in_device = [ <div class="cons">| `Polldescr <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/">Netsys</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/#/type:fd_style">fd_style</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a></div><div class="cons">| `Multiplex <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:multiplex_controller">multiplex_controller</a></div><div class="cons">| `Async_in <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:async_in_channel">async_in_channel</a> * <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a></div><div class="cons">| `Buffer_in <span class="keyword">of</span> <a href="index.html#/type:in_buffer">in_buffer</a></div><div class="cons">| `Count_in <span class="keyword">of</span> (int <span class="rarr"><span>-&gt;</span></span> unit) * <a href="index.html#/type:in_device">in_device</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Currently supported devices for input:</p>
+      <ul><li><code>`Polldescr(st,fd,esys)</code>: The <code>poll</code> system call is used with file
+descriptor <code>fd</code> to wait for incoming data. The
+event system <code>esys</code> is the underlying event queue. This works
+well for pipes, sockets etc. but not for normal files. The
+style <code>st</code> can be obtained from <code>fd</code> via
+<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/">Netsys</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/#/val:get_fd_style">get_fd_style</a>.</li><li><code>`Multiplex mplex</code>: The multiplex controller <code>mplex</code> is
+used as device.</li><li><code>`Buffer buf</code>: Data comes from the buffer <code>buf</code> (which in turn
+is connected with a second device)</li><li><code>`Count_in(f,d)</code>: Data is read from <code>d</code>, and every time a few
+bytes <code>n</code> are read the function <code>f n</code> is called (which may raise
+an exception)</li></ul>
+      <p>Generally, it is not well supported to read in parallel several times
+from the same device.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:out_device">
+  <a href="index.html#/type:out_device" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> out_device = [ <div class="cons">| `Polldescr <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/">Netsys</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys/#/type:fd_style">fd_style</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> * <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a></div><div class="cons">| `Multiplex <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:multiplex_controller">multiplex_controller</a></div><div class="cons">| `Async_out <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:async_out_channel">async_out_channel</a> * <a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/">Unixqueue</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/unixqueue/#/classtype:event_system">event_system</a></div><div class="cons">| `Buffer_out <span class="keyword">of</span> <a href="index.html#/type:out_buffer">out_buffer</a></div><div class="cons">| `Count_out <span class="keyword">of</span> (int <span class="rarr"><span>-&gt;</span></span> unit) * <a href="index.html#/type:out_device">out_device</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Currently supported devices for output:</p>
+      <ul><li><code>`Polldescr(fd,esys)</code>: The <code>poll</code> system call is used with file
+descriptor <code>fd</code> to wait until data can be output. The
+event system <code>esys</code> is the underlying event queue. This works
+well for pipes, sockets etc. but not for normal files.</li><li><code>`Multiplex mplex</code>: The multiplex controller <code>mplex</code> is
+used as device.</li><li><code>`Buffer buf</code>: Data is written to the buffer <code>buf</code> (which in turn
+is connected with a second device)</li><li><code>`Count_out(f,d)</code>: Data is written to <code>d</code>, and every time a few
+bytes <code>n</code> are written the function <code>f n</code> is called (which may raise
+an exception)</li></ul>
+      <p>Generally, it is not well supported to write in parallel several times
+to the same device.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:in_bdevice">
+  <a href="index.html#/type:in_bdevice" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> in_bdevice = [ <div class="cons">| `Buffer_in <span class="keyword">of</span> <a href="index.html#/type:in_buffer">in_buffer</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Devices with look-ahead</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:string_like">
+  <a href="index.html#/type:string_like" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> string_like = [ <div class="cons">| `String <span class="keyword">of</span> string</div><div class="cons">| `Memory <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a></div> ]
+    
+      <div class="doc">
+        
+      <p>The user can pass data buffers that base either on strings or on
+bigarrays of char (memory). Note that <code>`Memory</code> is not supported
+for all devices or device configurations.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:device_supports_memory">
+  <a href="index.html#/val:device_supports_memory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> device_supports_memory : [ <div class="cons">| <a href="index.html#/type:in_device">in_device</a></div><div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether <code>`Memory</code> buffers are supported</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Line_too_long">
+  <a href="index.html#/exn:Line_too_long" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Line_too_long
+    
+      <div class="doc">
+        
+      <p>May be raised by <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/">Uq_io</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_io/#/val:input_line_e">input_line_e</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Input</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:input_e">
+  <a href="index.html#/val:input_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_e : [&lt; <div class="cons">| <a href="index.html#/type:in_device">in_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:string_like">string_like</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = input_e d s pos len</code>: Reads data from <code>d</code> and puts it into
+the string <code>s</code> starting at <code>pos</code> and with maximum length <code>len</code>.
+When data is available, the engine <code>e</code> transitions to <code>`Done n</code>
+where <code>n</code> is the number of actually read bytes.</p>
+      
+      <p>If <code>len&gt;0</code> and no bytes can be read because the end is reached, the engine
+transitions to <code>`Error End_of_file</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_input_e">
+  <a href="index.html#/val:really_input_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_input_e : [&lt; <div class="cons">| <a href="index.html#/type:in_device">in_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:string_like">string_like</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = input_e d s pos len</code>: Reads data from <code>d</code> and puts it into
+the string <code>s</code> starting at <code>pos</code> and with length <code>len</code>.
+Exactly <code>len</code> bytes are read, and when done,
+the engine <code>e</code> transitions to <code>`Done ()</code>.</p>
+      
+      <p>If the end of the file is reached before <code>len</code> bytes are read,
+the engine transitions to <code>`Error End_of_file</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_line_e">
+  <a href="index.html#/val:input_line_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_line_e : ?max_len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:in_bdevice">in_bdevice</a> <span class="rarr"><span>-&gt;</span></span> string <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = input_line_e d</code>: Reads the next line from <code>d</code> and transitions
+to <code>`Done line</code> when done. Note that this is only supported for a
+buffered device!</p>
+      
+      <p>If the end of the file is already reached when this function is
+called, the engine transitions to <code>`Error End_of_file</code>.</p>
+      
+      <p>If <code>max_len</code> is set, this is the maximum length of the line
+(including LF). If exceeded, the engine transitions to
+<code>`Error Line_too_long</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input_lines_e">
+  <a href="index.html#/val:input_lines_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input_lines_e : ?max_len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:in_bdevice">in_bdevice</a> <span class="rarr"><span>-&gt;</span></span> string list <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = input_lines_e d</code>: Reads as many lines from <code>d</code> as can be
+found in the buffer of <code>d</code>, and transitions to <code>`Done lines</code>. If
+no complete line is in the buffer, the function extends the buffer and
+waits until at least one line is added to the buffer (if necessary,
+this process is repeated).</p>
+      
+      <p>If the end of the file is already reached when this function is
+called, the engine transitions to <code>`Error End_of_file</code>.
+The function never returns an empty list of lines.</p>
+      
+      <p><code>input_lines_e</code> is just an optimized version of <code>input_line_e</code> that
+requires fewer and cheaper blitting operations.</p>
+      
+      <p>If <code>max_len</code> is set, this is the maximum length of the line
+(including LF). If exceeded, the engine transitions to
+<code>`Error Line_too_long</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eof_as_none">
+  <a href="index.html#/val:eof_as_none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eof_as_none : 'a <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/type:final_state">final_state</a> <span class="rarr"><span>-&gt;</span></span> 'a option <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/type:final_state">final_state</a>
+    
+      <div class="doc">
+        
+      <p>Represents EOF as <code>None</code>. Useful in the combination
+</p>
+      <pre><code>input_e d s p l &gt;&gt; eof_as_none</code></pre>
+      <p>
+and
+</p>
+      <pre><code>input_line_e d &gt;&gt; eof_as_none</code></pre>
+      <p>
+where <code>&gt;&gt;</code> is from <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/module:Operators">Operators</a></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Output</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:output_e">
+  <a href="index.html#/val:output_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_e : [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:string_like">string_like</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = output_e d s pos len</code>: Outputs data to <code>d</code> and takes it
+from the string <code>s</code> starting at <code>pos</code> and with maximum length
+<code>len</code>. When data is written, the engine <code>e</code> transitions to <code>`Done n</code>
+where <code>n</code> is the number of actually written bytes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_output_e">
+  <a href="index.html#/val:really_output_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_output_e : [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:string_like">string_like</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = really_output_e d s pos len</code>: Outputs data to <code>d</code> and takes it
+from the string <code>s</code> starting at <code>pos</code> and with length
+<code>len</code>. When all data is written, the engine <code>e</code> transitions to
+<code>`Done ()</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_string_e">
+  <a href="index.html#/val:output_string_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_string_e : [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = output_string_e d s</code>: Outputs the string <code>s</code> to <code>d</code>,
+and transitions to <code>`Done()</code> when done.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_memory_e">
+  <a href="index.html#/val:output_memory_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_memory_e : [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = output_string_e d m</code>: Outputs the bigarray <code>m</code> to <code>d</code>,
+and transitions to <code>`Done()</code> when done.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output_netbuffer_e">
+  <a href="index.html#/val:output_netbuffer_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_netbuffer_e : [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/">Netbuffer</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = output_string_e d b</code>: Outputs the contents of <code>b</code> to <code>d</code>,
+and transitions to <code>`Done()</code> when done.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_eof_e">
+  <a href="index.html#/val:write_eof_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_eof_e : [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = write_eof_e d</code>: For devices supporting half-open connections,
+this engine writes the EOF marker and transitions to
+<code>`Done true</code>. For other devices nothing happens, and the engine
+transitions to <code>`Done false</code>. (In the latter case, the only way to
+signal EOF is to shut down the device, see below.)</p>
+      
+      <p>Note that the effect of <code>write_eof_e</code> cannot be buffered. Because
+of this, the <code>io_buffer</code> flushes all data first (i.e. <code>write_eof_e</code>
+implies the effect of <code>flush_e</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_e">
+  <a href="index.html#/val:copy_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_e : ?small_buffer:bool <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ?len64:int64 <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:in_device">in_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> int64 <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = copy_e d_in d_out</code>: Copies data from <code>d_in</code> to <code>d_out</code>,
+and transitions to <code>`Done n</code> when all data is copied (where
+<code>n</code> are the number of copied bytes).
+By default, <code>d_in</code> is read until end of file. If <code>len</code> is passed,
+at most this number of bytes are copied. The length can also be given
+as <code>int64</code> in <code>len64</code>.</p>
+      
+      <p>By setting <code>small_buffer</code>, the copy buffer consists only of a
+single page. Normally, a bigger buffer is allocated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flush_e">
+  <a href="index.html#/val:flush_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flush_e : [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p><code>let e = flush_e d</code>: If <code>d</code> has an internal buffer, all data is
+written out to <code>d</code>. If there is no such buffer, this is a no-op.
+When done, the engine transitions to <code>`Done()</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Shutdown</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The shutdown is the last part of the protocol. Although it is
+often done autonomously by the kernel, this interface supports
+user-implemented shutdowns (e.g. for SSL).</p>
+      
+      <p>The shutdown can be skipped, and the device can be inactivated
+immediately. For some devices, the other side of the I/O stream
+will then see an error, though.</p>
+      
+      <p>The shutdown is always for both the input and the output circuit
+of the device.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:shutdown_e">
+  <a href="index.html#/val:shutdown_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shutdown_e : ?linger:float <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:in_device">in_device</a></div><div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Performs a regular shutdown of the device. The <code>linger</code> argument
+may be used to configure a non-default linger timeout.
+The engine transitions to <code>`Done()</code> when done.</p>
+      
+      <p>The shutdown also releases the OS resources (closes the descriptor
+etc.), but only if successful.</p>
+      
+      <p>Note that the effect of <code>shutdown_e</code> cannot be buffered. Because
+of this, the <code>io_buffer</code> flushes all data first (i.e. <code>shutdown_e</code>
+implies the effect of <code>flush_e</code>). Input data available in the
+buffer can still be read after the shutdown.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:inactivate">
+  <a href="index.html#/val:inactivate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> inactivate : [&lt; <div class="cons">| <a href="index.html#/type:in_device">in_device</a></div><div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Releases the OS resources immediately. This is the right thing to do
+when aborting the communication, or for cleanup after an I/O error.
+It is wrong to inactivate after a successful shutdown, because the
+shutdown already includes the inactivation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Buffers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:create_in_buffer">
+  <a href="index.html#/val:create_in_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_in_buffer : ?small_buffer:bool <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:in_device">in_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:in_buffer">in_buffer</a>
+    
+      <div class="doc">
+        
+      <p>Provides a buffered version of the <code>in_device</code>.</p>
+      
+      <p>By setting <code>small_buffer</code>, the initial input buffer consists only of a
+single page. Normally, a bigger buffer is allocated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:in_buffer_length">
+  <a href="index.html#/val:in_buffer_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> in_buffer_length : <a href="index.html#/type:in_buffer">in_buffer</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>The length</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:in_buffer_blit">
+  <a href="index.html#/val:in_buffer_blit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> in_buffer_blit : <a href="index.html#/type:in_buffer">in_buffer</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:string_like">string_like</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Blit to a string or memory buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:in_buffer_fill_e">
+  <a href="index.html#/val:in_buffer_fill_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> in_buffer_fill_e : <a href="index.html#/type:in_buffer">in_buffer</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/">Uq_engines</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_engines/#/classtype:engine">engine</a>
+    
+      <div class="doc">
+        
+      <p>Requests that the buffer is filled more than currently, and
+transitions to <code>`Done eof</code> when there is more data, or the
+EOF is reached (eof=true).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_out_buffer">
+  <a href="index.html#/val:create_out_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_out_buffer : ?small_buffer:bool <span class="rarr"><span>-&gt;</span></span> max:int option <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:out_buffer">out_buffer</a>
+    
+      <div class="doc">
+        
+      <p>Provides a buffered version of the <code>out_device</code>. The argument
+<code>max</code> is the maximum number of bytes to buffer. This can also be
+set to <code>None</code> meaning no limit.</p>
+      
+      <p>By setting <code>small_buffer</code>, the initial output buffer consists only of a
+single page. Normally, a bigger buffer is allocated.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_out_buffer">
+  <a href="index.html#/val:filter_out_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_out_buffer : max:int option <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:io_obj_channel">io_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> [&lt; <div class="cons">| <a href="index.html#/type:out_device">out_device</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:out_buffer">out_buffer</a>
+    
+      <div class="doc">
+        
+      <p><code>filter_out_buffer ~max p d</code>: The data written to this device is
+redirected via pipe <code>p</code> and finally written to <code>d</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

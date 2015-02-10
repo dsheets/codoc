@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../codoc.css"/>
+    <title>Graphviz</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Graphviz</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Interface with <i>GraphViz</i></p>
+      
+      <p>This module provides a basic interface with dot and neato,
+two programs of the GraphViz toolbox.
+These tools are available at the following URLs:</p>
+      <ul><li><pre>http://www.graphviz.org</pre></li><li><pre>http://www.research.att.com/sw/tools/graphviz</pre></li></ul>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Common stuff</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Because the neato and dot engines present a lot of common points -
+in particular in the graph description language, large parts of
+the code is shared. The <code>CommonAttributes</code> module defines
+attributes of graphs, vertices and edges that are understood by the
+two engines. Then module <code>DotAttributes</code> and <code>NeatoAttributes</code>
+define attributes specific to dot and neato respectively.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Common types and signatures</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:color">
+  <a href="index.html#/type:color" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> color = int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:color_with_transparency">
+  <a href="index.html#/type:color_with_transparency" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> color_with_transparency = int32
+    
+      <div class="doc">
+        
+      <p>The two least significant bytes encode the transparency information;
+the six most signification are the standard RGB color</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:color_to_color_with_transparency">
+  <a href="index.html#/val:color_to_color_with_transparency" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> color_to_color_with_transparency : <a href="index.html#/type:color">color</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:color_with_transparency">color_with_transparency</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:arrow_style">
+  <a href="index.html#/type:arrow_style" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> arrow_style = [ <div class="cons">| `None</div><div class="cons">| `Normal</div><div class="cons">| `Inv</div><div class="cons">| `Dot</div><div class="cons">| `Odot</div><div class="cons">| `Invdot</div><div class="cons">| `Invodot</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:ATTRIBUTES">
+  <a href="index.html#/modtype:ATTRIBUTES" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> ATTRIBUTES = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>The <code>ATTRIBUTES</code> module type defines the interface for the engines.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:ATTRIBUTES/type:graph">
+  <a href="index.html#/modtype:ATTRIBUTES/type:graph" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> graph
+    
+      <div class="doc">
+        
+      <p>Attributes of graphs.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:ATTRIBUTES/type:vertex">
+  <a href="index.html#/modtype:ATTRIBUTES/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex
+    
+      <div class="doc">
+        
+      <p>Attributes of vertices.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:ATTRIBUTES/type:edge">
+  <a href="index.html#/modtype:ATTRIBUTES/type:edge" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> edge
+    
+      <div class="doc">
+        
+      <p>Attributes of edges.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:ATTRIBUTES/type:subgraph">
+  <a href="index.html#/modtype:ATTRIBUTES/type:subgraph" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> subgraph = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/modtype:ATTRIBUTES/type:subgraph/field:sg_name">
+  <a href="index.html#/modtype:ATTRIBUTES/type:subgraph/field:sg_name" class="anchor">#</a>
+  sg_name
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">Box name.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/modtype:ATTRIBUTES/type:subgraph/field:sg_attributes">
+  <a href="index.html#/modtype:ATTRIBUTES/type:subgraph/field:sg_attributes" class="anchor">#</a>
+  sg_attributes
+  </div>
+  </td><td>: <a href="index.html#/modtype:ATTRIBUTES/type:vertex">vertex</a> list</td><td>;</td><td>(*</td><td class="doc">Box attributes.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/modtype:ATTRIBUTES/type:subgraph/field:sg_parent">
+  <a href="index.html#/modtype:ATTRIBUTES/type:subgraph/field:sg_parent" class="anchor">#</a>
+  sg_parent
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">Nested subgraphs.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Attributes of (optional) boxes around vertices.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h3 class="section level_3">Common attributes</h3>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:CommonAttributes">
+  <a href="index.html#/module:CommonAttributes" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> CommonAttributes : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The <code>CommonAttributes</code> module defines attributes for graphs, vertices and
+edges that are available in the two engines, dot and neato.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:CommonAttributes/type:graph">
+  <a href="index.html#/module:CommonAttributes/type:graph" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> graph = [ <div class="cons">| `Center <span class="keyword">of</span> bool</div><div class="cons">| `Fontcolor <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `Fontname <span class="keyword">of</span> string</div><div class="cons">| `Fontsize <span class="keyword">of</span> int</div><div class="cons">| `Label <span class="keyword">of</span> string</div><div class="cons">| `Orientation <span class="keyword">of</span> [ <div class="cons">| `Portrait</div><div class="cons">| `Landscape</div> ]</div><div class="cons">| `Page <span class="keyword">of</span> float * float</div><div class="cons">| `Pagedir <span class="keyword">of</span> [ <div class="cons">| `TopToBottom</div><div class="cons">| `LeftToRight</div> ]</div><div class="cons">| `Size <span class="keyword">of</span> float * float</div><div class="cons">| `OrderingOut</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of graphs.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CommonAttributes/type:vertex">
+  <a href="index.html#/module:CommonAttributes/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex = [ <div class="cons">| `Color <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `ColorWithTransparency <span class="keyword">of</span> <a href="index.html#/type:color_with_transparency">color_with_transparency</a></div><div class="cons">| `Fontcolor <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `Fontname <span class="keyword">of</span> string</div><div class="cons">| `Fontsize <span class="keyword">of</span> int</div><div class="cons">| `Height <span class="keyword">of</span> float</div><div class="cons">| `Label <span class="keyword">of</span> string</div><div class="cons">| `Orientation <span class="keyword">of</span> float</div><div class="cons">| `Penwidth <span class="keyword">of</span> float</div><div class="cons">| `Peripheries <span class="keyword">of</span> int</div><div class="cons">| `Regular <span class="keyword">of</span> bool</div><div class="cons">| `Shape <span class="keyword">of</span> [ <div class="cons">| `Ellipse</div><div class="cons">| `Box</div><div class="cons">| `Circle</div><div class="cons">| `Doublecircle</div><div class="cons">| `Diamond</div><div class="cons">| `Plaintext</div><div class="cons">| `Record</div><div class="cons">| `Polygon <span class="keyword">of</span> int * float</div> ]</div><div class="cons">| `Style <span class="keyword">of</span> [ <div class="cons">| `Rounded</div><div class="cons">| `Filled</div><div class="cons">| `Solid</div><div class="cons">| `Dashed</div><div class="cons">| `Dotted</div><div class="cons">| `Bold</div><div class="cons">| `Invis</div> ]</div><div class="cons">| `Width <span class="keyword">of</span> float</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of vertices.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:CommonAttributes/type:edge">
+  <a href="index.html#/module:CommonAttributes/type:edge" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> edge = [ <div class="cons">| `Color <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `ColorWithTransparency <span class="keyword">of</span> <a href="index.html#/type:color_with_transparency">color_with_transparency</a></div><div class="cons">| `Decorate <span class="keyword">of</span> bool</div><div class="cons">| `Dir <span class="keyword">of</span> [ <div class="cons">| `Forward</div><div class="cons">| `Back</div><div class="cons">| `Both</div><div class="cons">| `None</div> ]</div><div class="cons">| `Fontcolor <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `Fontname <span class="keyword">of</span> string</div><div class="cons">| `Fontsize <span class="keyword">of</span> int</div><div class="cons">| `Label <span class="keyword">of</span> string</div><div class="cons">| `Labelfontcolor <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `Labelfontname <span class="keyword">of</span> string</div><div class="cons">| `Labelfontsize <span class="keyword">of</span> int</div><div class="cons">| `Penwidth <span class="keyword">of</span> float</div><div class="cons">| `Style <span class="keyword">of</span> [ <div class="cons">| `Solid</div><div class="cons">| `Dashed</div><div class="cons">| `Dotted</div><div class="cons">| `Bold</div><div class="cons">| `Invis</div> ]</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of edges.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Interface with the dot engine</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:DotAttributes">
+  <a href="index.html#/module:DotAttributes" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> DotAttributes : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>DotAttributes</code> extends <code>CommonAttributes</code> and implements <code>ATTRIBUTES</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:DotAttributes/type:graph">
+  <a href="index.html#/module:DotAttributes/type:graph" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> graph = [ <div class="cons">| <a href="index.html#/module:CommonAttributes">CommonAttributes</a>.<a href="index.html#/module:CommonAttributes/type:graph">graph</a></div><div class="cons">| `Bgcolor <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `BgcolorWithTransparency <span class="keyword">of</span> <a href="index.html#/type:color_with_transparency">color_with_transparency</a></div><div class="cons">| `Comment <span class="keyword">of</span> string</div><div class="cons">| `Concentrate <span class="keyword">of</span> bool</div><div class="cons">| `Fontpath <span class="keyword">of</span> string</div><div class="cons">| `Layers <span class="keyword">of</span> string list</div><div class="cons">| `Margin <span class="keyword">of</span> float</div><div class="cons">| `Mclimit <span class="keyword">of</span> float</div><div class="cons">| `Nodesep <span class="keyword">of</span> float</div><div class="cons">| `Nslimit <span class="keyword">of</span> int</div><div class="cons">| `Nslimit1 <span class="keyword">of</span> int</div><div class="cons">| `Ranksep <span class="keyword">of</span> float</div><div class="cons">| `Quantum <span class="keyword">of</span> float</div><div class="cons">| `Rankdir <span class="keyword">of</span> [ <div class="cons">| `TopToBottom</div><div class="cons">| `LeftToRight</div> ]</div><div class="cons">| `Ratio <span class="keyword">of</span> [ <div class="cons">| `Float <span class="keyword">of</span> float</div><div class="cons">| `Fill</div><div class="cons">| `Compress</div><div class="cons">| `Auto</div> ]</div><div class="cons">| `Samplepoints <span class="keyword">of</span> int</div><div class="cons">| `Url <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of graphs. They include all common graph attributes and
+several specific ones. All attributes described in the &quot;dot User's
+Manual, February 4, 2002&quot; are handled, excepted: clusterank, color,
+compound, labeljust, labelloc, ordering, rank, remincross, rotate,
+searchsize and style.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:DotAttributes/type:vertex">
+  <a href="index.html#/module:DotAttributes/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex = [ <div class="cons">| <a href="index.html#/module:CommonAttributes">CommonAttributes</a>.<a href="index.html#/module:CommonAttributes/type:vertex">vertex</a></div><div class="cons">| `Comment <span class="keyword">of</span> string</div><div class="cons">| `Distortion <span class="keyword">of</span> float</div><div class="cons">| `Fillcolor <span class="keyword">of</span> <a href="index.html#/type:color">color</a></div><div class="cons">| `FillcolorWithTransparency <span class="keyword">of</span> <a href="index.html#/type:color_with_transparency">color_with_transparency</a></div><div class="cons">| `Fixedsize <span class="keyword">of</span> bool</div><div class="cons">| `Layer <span class="keyword">of</span> string</div><div class="cons">| `Url <span class="keyword">of</span> string</div><div class="cons">| `Z <span class="keyword">of</span> float</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of nodes. They include all common node attributes and
+several specific ones. All attributes described in the &quot;dot User's
+Manual, February 4, 2002&quot; are handled, excepted: bottomlabel, group,
+shapefile and toplabel.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:DotAttributes/type:edge">
+  <a href="index.html#/module:DotAttributes/type:edge" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> edge = [ <div class="cons">| <a href="index.html#/module:CommonAttributes">CommonAttributes</a>.<a href="index.html#/module:CommonAttributes/type:edge">edge</a></div><div class="cons">| `Arrowhead <span class="keyword">of</span> <a href="index.html#/type:arrow_style">arrow_style</a></div><div class="cons">| `Arrowsize <span class="keyword">of</span> float</div><div class="cons">| `Arrowtail <span class="keyword">of</span> <a href="index.html#/type:arrow_style">arrow_style</a></div><div class="cons">| `Comment <span class="keyword">of</span> string</div><div class="cons">| `Constraint <span class="keyword">of</span> bool</div><div class="cons">| `Headlabel <span class="keyword">of</span> string</div><div class="cons">| `Headport <span class="keyword">of</span> [ <div class="cons">| `N</div><div class="cons">| `NE</div><div class="cons">| `E</div><div class="cons">| `SE</div><div class="cons">| `S</div><div class="cons">| `SW</div><div class="cons">| `W</div><div class="cons">| `NW</div> ]</div><div class="cons">| `Headurl <span class="keyword">of</span> string</div><div class="cons">| `Labelangle <span class="keyword">of</span> float</div><div class="cons">| `Labeldistance <span class="keyword">of</span> float</div><div class="cons">| `Labelfloat <span class="keyword">of</span> bool</div><div class="cons">| `Layer <span class="keyword">of</span> string</div><div class="cons">| `Minlen <span class="keyword">of</span> int</div><div class="cons">| `Samehead <span class="keyword">of</span> string</div><div class="cons">| `Sametail <span class="keyword">of</span> string</div><div class="cons">| `Taillabel <span class="keyword">of</span> string</div><div class="cons">| `Tailport <span class="keyword">of</span> [ <div class="cons">| `N</div><div class="cons">| `NE</div><div class="cons">| `E</div><div class="cons">| `SE</div><div class="cons">| `S</div><div class="cons">| `SW</div><div class="cons">| `W</div><div class="cons">| `NW</div> ]</div><div class="cons">| `Tailurl <span class="keyword">of</span> string</div><div class="cons">| `Weight <span class="keyword">of</span> int</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of edges. They include all common edge attributes and
+several specific ones. All attributes described in the &quot;dot User's
+Manual, February 4, 2002&quot; are handled, excepted: lhead and ltail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:DotAttributes/type:subgraph">
+  <a href="index.html#/module:DotAttributes/type:subgraph" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> subgraph = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:DotAttributes/type:subgraph/field:sg_name">
+  <a href="index.html#/module:DotAttributes/type:subgraph/field:sg_name" class="anchor">#</a>
+  sg_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:DotAttributes/type:subgraph/field:sg_attributes">
+  <a href="index.html#/module:DotAttributes/type:subgraph/field:sg_attributes" class="anchor">#</a>
+  sg_attributes
+  </div>
+  </td><td>: <a href="index.html#/module:DotAttributes/type:vertex">vertex</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:DotAttributes/type:subgraph/field:sg_parent">
+  <a href="index.html#/module:DotAttributes/type:subgraph/field:sg_parent" class="anchor">#</a>
+  sg_parent
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Subgraphs have a name and some vertices.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:GraphWithDotAttrs">
+  <a href="index.html#/modtype:GraphWithDotAttrs" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> GraphWithDotAttrs = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Graph module with dot attributes</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../ocamlgraph.1.8.5/src/sig/">Sig</a>.<a href="../../../ocamlgraph.1.8.5/src/sig/#/modtype:G">G</a> 
+    </div>
+  
+  <div class="region" id="/modtype:GraphWithDotAttrs/val:graph_attributes">
+  <a href="index.html#/modtype:GraphWithDotAttrs/val:graph_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> graph_attributes : <a href="index.html#/modtype:GraphWithDotAttrs/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:graph">graph</a> list
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Vertex attributes</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/modtype:GraphWithDotAttrs/val:default_vertex_attributes">
+  <a href="index.html#/modtype:GraphWithDotAttrs/val:default_vertex_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_vertex_attributes : <a href="index.html#/modtype:GraphWithDotAttrs/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:vertex">vertex</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:GraphWithDotAttrs/val:vertex_name">
+  <a href="index.html#/modtype:GraphWithDotAttrs/val:vertex_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vertex_name : <a href="index.html#/modtype:GraphWithDotAttrs/module:V">V</a>.<a href="index.html#/modtype:GraphWithDotAttrs/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:GraphWithDotAttrs/val:vertex_attributes">
+  <a href="index.html#/modtype:GraphWithDotAttrs/val:vertex_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vertex_attributes : <a href="index.html#/modtype:GraphWithDotAttrs/module:V">V</a>.<a href="index.html#/modtype:GraphWithDotAttrs/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:vertex">vertex</a> list
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Edge attributes</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/modtype:GraphWithDotAttrs/val:default_edge_attributes">
+  <a href="index.html#/modtype:GraphWithDotAttrs/val:default_edge_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_edge_attributes : <a href="index.html#/modtype:GraphWithDotAttrs/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:edge">edge</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:GraphWithDotAttrs/val:edge_attributes">
+  <a href="index.html#/modtype:GraphWithDotAttrs/val:edge_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> edge_attributes : <a href="index.html#/modtype:GraphWithDotAttrs/module:E">E</a>.<a href="index.html#/modtype:GraphWithDotAttrs/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:edge">edge</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:GraphWithDotAttrs/val:get_subgraph">
+  <a href="index.html#/modtype:GraphWithDotAttrs/val:get_subgraph" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_subgraph : <a href="index.html#/modtype:GraphWithDotAttrs/module:V">V</a>.<a href="index.html#/modtype:GraphWithDotAttrs/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:subgraph">subgraph</a> option
+    
+      <div class="doc">
+        
+      <p>The box (if exists) which the vertex belongs to. Boxes with same
+names are not distinguished and so they should have the same
+attributes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot">
+  <a href="index.html#/module:Dot" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Dot : <span class="keyword">functor</span> (X : <span class="keyword">sig</span>
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Graph implementation. Sub-signature of <a href="../../../ocamlgraph.1.8.5/src/sig/">Sig</a>.<a href="../../../ocamlgraph.1.8.5/src/sig/#/modtype:G">G</a></p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Dot/modarg:1:X/type:t">
+  <a href="index.html#/module:Dot/modarg:1:X/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/module:V">
+  <a href="index.html#/module:Dot/modarg:1:X/module:V" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Dot/modarg:1:X/module:V/type:t">
+  <a href="index.html#/module:Dot/modarg:1:X/module:V/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/module:E">
+  <a href="index.html#/module:Dot/modarg:1:X/module:E" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> E : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Dot/modarg:1:X/module:E/type:t">
+  <a href="index.html#/module:Dot/modarg:1:X/module:E/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/module:E/val:src">
+  <a href="index.html#/module:Dot/modarg:1:X/module:E/val:src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> src : <a href="index.html#/module:Dot/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Dot/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Dot/modarg:1:X/module:V/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/module:E/val:dst">
+  <a href="index.html#/module:Dot/modarg:1:X/module:E/val:dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dst : <a href="index.html#/module:Dot/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Dot/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Dot/modarg:1:X/module:V/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:iter_vertex">
+  <a href="index.html#/module:Dot/modarg:1:X/val:iter_vertex" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_vertex : (<a href="index.html#/module:Dot/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Dot/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Dot/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:iter_edges_e">
+  <a href="index.html#/module:Dot/modarg:1:X/val:iter_edges_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_edges_e : (<a href="index.html#/module:Dot/modarg:1:X/module:E">E</a>.<a href="index.html#/module:Dot/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Dot/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Graph, vertex and edge attributes.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Dot/modarg:1:X/val:graph_attributes">
+  <a href="index.html#/module:Dot/modarg:1:X/val:graph_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> graph_attributes : <a href="index.html#/module:Dot/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:graph">graph</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:default_vertex_attributes">
+  <a href="index.html#/module:Dot/modarg:1:X/val:default_vertex_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_vertex_attributes : <a href="index.html#/module:Dot/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:vertex">vertex</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:vertex_name">
+  <a href="index.html#/module:Dot/modarg:1:X/val:vertex_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vertex_name : <a href="index.html#/module:Dot/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Dot/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:vertex_attributes">
+  <a href="index.html#/module:Dot/modarg:1:X/val:vertex_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vertex_attributes : <a href="index.html#/module:Dot/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Dot/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:vertex">vertex</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:get_subgraph">
+  <a href="index.html#/module:Dot/modarg:1:X/val:get_subgraph" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_subgraph : <a href="index.html#/module:Dot/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Dot/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:subgraph">subgraph</a> option
+    
+      <div class="doc">
+        
+      <p>The box (if exists) which the vertex belongs to. Boxes with same
+names are not distinguished and so they should have the same
+attributes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:default_edge_attributes">
+  <a href="index.html#/module:Dot/modarg:1:X/val:default_edge_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_edge_attributes : <a href="index.html#/module:Dot/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:edge">edge</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/modarg:1:X/val:edge_attributes">
+  <a href="index.html#/module:Dot/modarg:1:X/val:edge_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> edge_attributes : <a href="index.html#/module:Dot/modarg:1:X/module:E">E</a>.<a href="index.html#/module:Dot/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:DotAttributes">DotAttributes</a>.<a href="index.html#/module:DotAttributes/type:edge">edge</a> list
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Dot/val:fprint_graph">
+  <a href="index.html#/module:Dot/val:fprint_graph" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprint_graph : <a href="../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Dot/modarg:1:X">X</a>.<a href="index.html#/module:Dot/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>fprint_graph ppf graph</code> pretty prints the graph <code>graph</code> in
+the CGL language on the formatter <code>ppf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Dot/val:output_graph">
+  <a href="index.html#/module:Dot/val:output_graph" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_graph : <a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Dot/modarg:1:X">X</a>.<a href="index.html#/module:Dot/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>output_graph oc graph</code> pretty prints the graph <code>graph</code> in the dot
+language on the channel <code>oc</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">The neato engine</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:NeatoAttributes">
+  <a href="index.html#/module:NeatoAttributes" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> NeatoAttributes : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:NeatoAttributes/type:graph">
+  <a href="index.html#/module:NeatoAttributes/type:graph" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> graph = [ <div class="cons">| <a href="index.html#/module:CommonAttributes">CommonAttributes</a>.<a href="index.html#/module:CommonAttributes/type:graph">graph</a></div><div class="cons">| `Margin <span class="keyword">of</span> float * float</div><div class="cons">| `Start <span class="keyword">of</span> int</div><div class="cons">| `Overlap <span class="keyword">of</span> bool</div><div class="cons">| `Spline <span class="keyword">of</span> bool</div><div class="cons">| `Sep <span class="keyword">of</span> float</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of graphs. They include all common graph attributes and
+several specific ones. All attributes described in the &quot;Neato User's
+manual, April 10, 2002&quot; are handled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:NeatoAttributes/type:vertex">
+  <a href="index.html#/module:NeatoAttributes/type:vertex" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> vertex = [ <div class="cons">| <a href="index.html#/module:CommonAttributes">CommonAttributes</a>.<a href="index.html#/module:CommonAttributes/type:vertex">vertex</a></div><div class="cons">| `Pos <span class="keyword">of</span> float * float</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of nodes. They include all common node attributes and
+several specific ones. All attributes described in the &quot;Neato User's
+manual, April 10, 2002&quot; are handled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:NeatoAttributes/type:edge">
+  <a href="index.html#/module:NeatoAttributes/type:edge" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> edge = [ <div class="cons">| <a href="index.html#/module:CommonAttributes">CommonAttributes</a>.<a href="index.html#/module:CommonAttributes/type:edge">edge</a></div><div class="cons">| `Id <span class="keyword">of</span> string</div><div class="cons">| `Len <span class="keyword">of</span> float</div><div class="cons">| `Weight <span class="keyword">of</span> float</div> ]
+    
+      <div class="doc">
+        
+      <p>Attributes of edges. They include all common edge attributes and
+several specific ones. All attributes described in the &quot;Neato User's
+manual, April 10, 2002&quot; are handled.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:NeatoAttributes/type:subgraph">
+  <a href="index.html#/module:NeatoAttributes/type:subgraph" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> subgraph = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:NeatoAttributes/type:subgraph/field:sg_name">
+  <a href="index.html#/module:NeatoAttributes/type:subgraph/field:sg_name" class="anchor">#</a>
+  sg_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:NeatoAttributes/type:subgraph/field:sg_attributes">
+  <a href="index.html#/module:NeatoAttributes/type:subgraph/field:sg_attributes" class="anchor">#</a>
+  sg_attributes
+  </div>
+  </td><td>: <a href="index.html#/module:NeatoAttributes/type:vertex">vertex</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:NeatoAttributes/type:subgraph/field:sg_parent">
+  <a href="index.html#/module:NeatoAttributes/type:subgraph/field:sg_parent" class="anchor">#</a>
+  sg_parent
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Subgraphs have a name and some vertices.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato">
+  <a href="index.html#/module:Neato" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Neato : <span class="keyword">functor</span> (X : <span class="keyword">sig</span>
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Graph implementation. Sub-signature of <a href="../../../ocamlgraph.1.8.5/src/sig/">Sig</a>.<a href="../../../ocamlgraph.1.8.5/src/sig/#/modtype:G">G</a>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Neato/modarg:1:X/type:t">
+  <a href="index.html#/module:Neato/modarg:1:X/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/module:V">
+  <a href="index.html#/module:Neato/modarg:1:X/module:V" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Neato/modarg:1:X/module:V/type:t">
+  <a href="index.html#/module:Neato/modarg:1:X/module:V/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/module:E">
+  <a href="index.html#/module:Neato/modarg:1:X/module:E" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> E : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Neato/modarg:1:X/module:E/type:t">
+  <a href="index.html#/module:Neato/modarg:1:X/module:E/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/module:E/val:src">
+  <a href="index.html#/module:Neato/modarg:1:X/module:E/val:src" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> src : <a href="index.html#/module:Neato/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Neato/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Neato/modarg:1:X/module:V/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/module:E/val:dst">
+  <a href="index.html#/module:Neato/modarg:1:X/module:E/val:dst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dst : <a href="index.html#/module:Neato/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Neato/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Neato/modarg:1:X/module:V/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:iter_vertex">
+  <a href="index.html#/module:Neato/modarg:1:X/val:iter_vertex" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_vertex : (<a href="index.html#/module:Neato/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Neato/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Neato/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:iter_edges_e">
+  <a href="index.html#/module:Neato/modarg:1:X/val:iter_edges_e" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_edges_e : (<a href="index.html#/module:Neato/modarg:1:X/module:E">E</a>.<a href="index.html#/module:Neato/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Neato/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Graph, vertex and edge attributes.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Neato/modarg:1:X/val:graph_attributes">
+  <a href="index.html#/module:Neato/modarg:1:X/val:graph_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> graph_attributes : <a href="index.html#/module:Neato/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:NeatoAttributes">NeatoAttributes</a>.<a href="index.html#/module:NeatoAttributes/type:graph">graph</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:default_vertex_attributes">
+  <a href="index.html#/module:Neato/modarg:1:X/val:default_vertex_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_vertex_attributes : <a href="index.html#/module:Neato/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:NeatoAttributes">NeatoAttributes</a>.<a href="index.html#/module:NeatoAttributes/type:vertex">vertex</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:vertex_name">
+  <a href="index.html#/module:Neato/modarg:1:X/val:vertex_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vertex_name : <a href="index.html#/module:Neato/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Neato/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:vertex_attributes">
+  <a href="index.html#/module:Neato/modarg:1:X/val:vertex_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vertex_attributes : <a href="index.html#/module:Neato/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Neato/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:NeatoAttributes">NeatoAttributes</a>.<a href="index.html#/module:NeatoAttributes/type:vertex">vertex</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:get_subgraph">
+  <a href="index.html#/module:Neato/modarg:1:X/val:get_subgraph" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_subgraph : <a href="index.html#/module:Neato/modarg:1:X/module:V">V</a>.<a href="index.html#/module:Neato/modarg:1:X/module:V/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:NeatoAttributes">NeatoAttributes</a>.<a href="index.html#/module:NeatoAttributes/type:subgraph">subgraph</a> option
+    
+      <div class="doc">
+        
+      <p>The box (if exists) which the vertex belongs to. Boxes with same
+names are not distinguished and so they should have the same
+attributes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:default_edge_attributes">
+  <a href="index.html#/module:Neato/modarg:1:X/val:default_edge_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_edge_attributes : <a href="index.html#/module:Neato/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:NeatoAttributes">NeatoAttributes</a>.<a href="index.html#/module:NeatoAttributes/type:edge">edge</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/modarg:1:X/val:edge_attributes">
+  <a href="index.html#/module:Neato/modarg:1:X/val:edge_attributes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> edge_attributes : <a href="index.html#/module:Neato/modarg:1:X/module:E">E</a>.<a href="index.html#/module:Neato/modarg:1:X/module:E/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:NeatoAttributes">NeatoAttributes</a>.<a href="index.html#/module:NeatoAttributes/type:edge">edge</a> list
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Neato/val:set_command">
+  <a href="index.html#/module:Neato/val:set_command" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_command : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Several functions provided by this module run the external program
+<i>neato</i>. By default, this command is supposed to be in the default
+path and is invoked by <i>neato</i>. The function
+<code>set_command</code> allows to set an alternative path at run time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/exn:Error">
+  <a href="index.html#/module:Neato/exn:Error" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Error <span class="keyword">of</span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/val:handle_error">
+  <a href="index.html#/module:Neato/val:handle_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> handle_error : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/val:fprint_graph">
+  <a href="index.html#/module:Neato/val:fprint_graph" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprint_graph : <a href="../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Neato/modarg:1:X">X</a>.<a href="index.html#/module:Neato/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>fprint_graph ppf graph</code> pretty prints the graph <code>graph</code> in
+the CGL language on the formatter <code>ppf</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Neato/val:output_graph">
+  <a href="index.html#/module:Neato/val:output_graph" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output_graph : <a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Neato/modarg:1:X">X</a>.<a href="index.html#/module:Neato/modarg:1:X/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>output_graph oc graph</code> pretty prints the graph <code>graph</code> in the dot
+language on the channel <code>oc</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

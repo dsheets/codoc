@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netsys</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netsys</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>System calls missing in the <code>Unix</code> module</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Generic file descriptors</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Not all OS provide generic read/write functions, or some emulation
+layer does not allow to use a descriptor with read/write. In the
+following functions, the style of the descriptor can be passed along
+with the descriptor to select the right I/O method. Effectively,
+the <code>fd_style</code> indicates which I/O function to call. Sometimes it is
+mandatory to call this function, sometimes it is only a good advice
+because the function provides the best interface for the kind of
+descriptor.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:fd_style">
+  <a href="index.html#/type:fd_style" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> fd_style = [ <div class="cons">| `Read_write</div><div class="cons">| `Recv_send <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a></div><div class="cons">| `Recv_send_implied</div><div class="cons">| `Recvfrom_sendto</div><div class="cons">| `W32_pipe</div><div class="cons">| `W32_pipe_server</div><div class="cons">| `W32_event</div><div class="cons">| `W32_process</div><div class="cons">| `W32_input_thread</div><div class="cons">| `W32_output_thread</div> ]
+    
+      <div class="doc">
+        
+      <p>Some information what kind of operations are reasonable for descriptors:</p>
+      <ul><li><code>`Read_write</code>: The descriptor is neither a socket not one of the
+other special cases, so only read/write is possible if read/write
+is possible at all. This style is also used if it is meaningless
+to use data I/O like read/write at all.</li><li><code>`Recv_send(sockaddr,peeraddr)</code>: The descriptor is a connected socket.
+recv/send are the preferred operations.</li><li><code>`Recvfrom_sendto</code>: The descriptor is an unconnected socket, and
+it is possible to ask for addresses when exchanging data, so
+recvfrom/sendto are the preferred operations.</li><li><code>`Recv_send_implied</code>: The descriptor is a socket with implied
+connection. There are no socket addresses.
+recv/send are the preferred operations. It is not possible to call
+<code>getsockname</code> or <code>getpeername</code>.</li><li><code>`W32_pipe</code>: The descriptor is a proxy descriptor for a Win32 named
+pipe as returned by <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/val:pipe_descr">pipe_descr</a>.</li><li><code>`W32_pipe_server</code>: The descriptor is a proxy descriptor for a Win32
+pipe server as returned by
+<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/val:pipe_server_descr">pipe_server_descr</a>.</li><li><code>`W32_event</code>: The descriptor is a Win32 proxy descriptor for an event
+as returned by <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/val:create_event">create_event</a>. It is not possible to
+read/write with these descriptors.</li><li><code>`W32_process</code>: The descriptor is a proxy descriptor for a Win32
+process as returned by
+<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/val:create_process">create_process</a>. It is not possible to read/write
+with these descriptors.</li><li><code>`W32_input_thread</code>: The descriptor is a proxy descriptor for a
+Win32-specific input thread
+as returned by
+<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/val:create_input_thread">create_input_thread</a>.</li><li><code>`W32_output_thread</code>: The descriptor is a proxy descriptor for a
+Win32-specific output thread
+as returned by
+<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/">Netsys_win32</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_win32/#/val:create_output_thread">create_output_thread</a>.</li></ul>
+      <p>Win32: For the exact meaning of proxy descriptors, please see
+[root:Netsys_win32]. In short, a proxy descriptor is an abstract handle
+for the I/O object. The handle itself cannot be used for I/O, however,
+but only some specialized function. The proxy descriptor can only
+be used to dereference the I/O object. Note that the following functions
+like <code>gread</code> and <code>gwrite</code> automatically look up the I/O object behind
+the proxy and call the right I/O function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_fd_style">
+  <a href="index.html#/val:get_fd_style" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_fd_style : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:fd_style">fd_style</a>
+    
+      <div class="doc">
+        
+      <p>Get the file descriptor style</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gread">
+  <a href="index.html#/val:gread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gread : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>gread fd_style fd s pos len</code>: Reads up to <code>len</code> bytes from
+descriptor <code>fd</code> which is supposed to support the I/O style
+<code>fd_style</code>, i.e. the right system call (<code>read</code>, <code>recv</code>,
+<code>recvfrom</code>) is chosen to read from the descriptor.
+After <code>n &lt;= len</code> bytes have been read these are put into
+string <code>s</code> at positions <code>pos</code> to <code>pos+n-1</code>, and <code>n</code> is returned.
+The function can fail with any I/O exception defined for the
+actually performed I/O operation. Whether the operation is blocking
+or non-blocking depends on the descriptor.</p>
+      
+      <p>If <code>len&gt;0</code> but <code>n=0</code> the end of the input data is reached.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blocking_gread">
+  <a href="index.html#/val:blocking_gread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blocking_gread : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>let p = blocking_gread fd_style fd s pos len</code>:
+Like <code>gread</code> up to <code>len</code> bytes are read from <code>fd</code> and stored in <code>s</code>.
+If the I/O operation is blocking but the descriptor is in
+non-blocking mode, this function blocks until the operation can
+be performed. If the operation is interrupted by a signal it is
+automatically restarted.</p>
+      
+      <p>If <code>n &lt; len</code> the end of the input data is reached (where <code>n</code> is the
+returned number).</p>
+      
+      <p>See <code>wait_until_readable</code> below for further information which
+types of descriptors can be handled in non-blocking mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_gread">
+  <a href="index.html#/val:really_gread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_gread : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>really_read fd_style fd s pos len</code>: Reads exactly <code>len</code> bytes from <code>fd</code>
+and stores them in <code>s</code> starting at <code>pos</code>. If the end of file condition
+is seen before <code>len</code> bytes are read, the exception <code>End_of_file</code>
+is raised, and it is unspecified how many bytes have been stored in
+<code>s</code>. Like <code>blocking_gread</code>, non-blocking descriptors are forced
+to block until the operation becomes possible, and interruptions by
+signals are handled.</p>
+      
+      <p>See <code>wait_until_readable</code> below for further information which
+types of descriptors can be handled in non-blocking mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gwrite">
+  <a href="index.html#/val:gwrite" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gwrite : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>gwrite fd_style fd s pos len</code>: Writes up to <code>len</code> bytes to
+descriptor <code>fd</code> which is supposed to support the I/O style
+<code>fd_style</code>, i.e. the right system call (<code>write</code>, <code>send</code>,
+<code>sendto</code>) is chosen to write to the descriptor.
+. The <code>n &lt;= len</code> written bytes are taken from string <code>s</code>,
+starting at position <code>pos</code> until <code>pos+n-1</code>. The number <code>n</code> is
+returned. The function can fail with any I/O exception defined for the
+actually performed I/O operation. Whether the operation is blocking
+or non-blocking depends on the descriptor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_gwrite">
+  <a href="index.html#/val:really_gwrite" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_gwrite : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>really_write fd_style fd s pos len</code>: Writes exactly the <code>len</code> bytes
+from <code>s</code> to <code>fd</code> starting at <code>pos</code>.
+If the I/O operation is blocking but the descriptor is in
+non-blocking mode, this function blocks until the operation can
+be performed. If the operation is interrupted by a signal it is
+automatically restarted.</p>
+      
+      <p>See <code>wait_until_writable</code> below for further information which
+types of descriptors can be handled in non-blocking mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Shutdown_not_supported">
+  <a href="index.html#/exn:Shutdown_not_supported" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Shutdown_not_supported
+    
+      <div class="doc">
+        
+      <p>See <code>gshutdown</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gshutdown">
+  <a href="index.html#/val:gshutdown" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gshutdown : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:shutdown_command">shutdown_command</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>gshutdown fd_style fd cmd</code>: If there is the possibility to shut down
+the connection for this kind of descriptor, the shutdown is tried.
+It is possible that the function raises the <code>EAGAIN</code> Unix error if
+the shutdown operation is non-blocking, and currently not possible.
+It is suggested to wait until the descriptor is writable, and to try
+again then.</p>
+      
+      <p>If there is no shutdown operation for this kind of descriptor, the
+exception <code>Shutdown_not_supported</code> is raised. In this case it is
+usually sufficient to close the descriptor (<code>gclose</code>, see below),
+and when all descriptors to the resource are closed, the resource
+is shut down by the OS.</p>
+      
+      <p>Details by <code>fd_style</code>:</p>
+      <ul><li><code>`Recv_send</code> and <code>`Recv_send_implied</code>: The socket is shut
+down as requested by <code>Unix.shutdown</code>. This only triggers the
+shutdown, but does not wait until it is completed. Also,
+errors are usually not immediately reported.</li><li><code>`W32_pipe</code>: It is only possible to request <code>SHUTDOWN_ALL</code>
+for these descriptors. For other shutdown types, the error
+<code>EPERM</code> is reported. The shutdown is synchronous and completed
+when the function returns.</li><li><code>`W32_pipe_server</code>: It is only possible to request <code>SHUTDOWN_ALL</code>
+for these descriptors. For other shutdown types, the error
+<code>EPERM</code> is reported. A shutdown means here to stop accepting
+new connections. The shutdown is synchronous and completed
+when the function returns.</li><li><code>`W32_output_thread</code>: It is only possible to request <code>SHUTDOWN_SEND</code>
+for these descriptors. A <code>SHUTDOWN_ALL</code> is also interpreted as
+<code>SHUTDOWN_SEND</code>, and a <code>SHUTDOWN_RECEIVE</code> is ignored.
+A shutdown means here that the EOF is appended
+to the output buffer, and when the output thread has written the
+buffer contents, the underlying descriptor (not <code>fd</code>!) will be
+closed. The shutdown operation is non-blocking. If it is not
+possible at the moment of calling, the error <code>EAGAIN</code> is reported.</li><li>Other styles raise <code>Shutdown_not_supported</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_readable">
+  <a href="index.html#/val:is_readable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_readable : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_writable">
+  <a href="index.html#/val:is_writable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_writable : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_prird">
+  <a href="index.html#/val:is_prird" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_prird : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Test whether the descriptor would not block if one of the input,
+output, or priority input operations were done.</p>
+      
+      <p>On POSIX systems the tests work for a wide variety of descriptor
+types (but not for regular files which are assumed to be always
+readable and writable).
+If the <code>poll</code> interface is available it is preferred over the
+<code>select</code> interface to conduct the test.</p>
+      
+      <p>On Win32, the tests are limited to sockets, named pipes and
+event objects. (The latter two only in the form provided by
+[root:Netsys_win32], see there.)</p>
+      
+      <p>Generally, if the blocking status cannot be determined for
+a class of I/O operations, the functions return <code>true</code>, in
+the hope that it is better to block than to never conduct
+the operation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_until_readable">
+  <a href="index.html#/val:wait_until_readable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_until_readable : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_until_writable">
+  <a href="index.html#/val:wait_until_writable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_until_writable : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:wait_until_prird">
+  <a href="index.html#/val:wait_until_prird" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_until_prird : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Wait until an operation for a single descriptor becomes possible.
+The float argument is the timeout (negative value means no timeout).
+Returns whether the operation is possible (<code>true</code>). Otherwise,
+there was a timeout (<code>false</code>).</p>
+      
+      <p>On POSIX systems this works for a wide variety of descriptor
+types (but not for regular files which are assumed to be always
+readable and writable).
+If the <code>poll</code> interface is available it is preferred over the
+<code>select</code> interface to wait for I/O. The functions also catch
+interruptions by signals.</p>
+      
+      <p>On Win32, waiting is limited to sockets, named pipes and
+event objects. (The latter two only in the form provided by
+[root:Netsys_win32], see there.)</p>
+      
+      <p>Generally, if waiting is not supported for
+a class of I/O operations, the functions return immediately <code>true</code>, in
+the hope that it is better to block than to never conduct
+the operation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gclose">
+  <a href="index.html#/val:gclose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gclose : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Shuts down the system object referenced by the descriptor so far
+possible, and closes the descriptor.</p>
+      
+      <p>Errors are logged to [root:Netlog] as <code>`Crit</code> events, and
+do not generate exceptions.</p>
+      
+      <p>The exact semantics of the close operation varies from descriptor
+style to descriptor style. Generally, <code>gclose</code> assumes that all
+I/O is done, and all buffers are flushed, and that one can tear
+down the underlying communication circuits. <code>gclose</code> is always
+the right choice when the I/O channel needs to be aborted after a
+fatal error, and it does not matter whether errors occur or not.
+If a data connection needs to be orderly closed (i.e. without
+data loss), one should first try to finish the communication,
+either by protocol means (e.g. wait for ACK messages), or by
+calling <code>gshutdown</code> first (see above).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Functions for sockets</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:wait_until_connected">
+  <a href="index.html#/val:wait_until_connected" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> wait_until_connected : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>After a non-blocking connect has been initiated, this function can be
+used to wait until (1) the connect is successful, or (2) the connect
+fails, or (3) the operation times out. The <code>float</code> argument is the
+timeout value (negative value means no timeout).
+The function returns <code>true</code> for the cases (1) and (2), and <code>false</code>
+for case (3). The cases (1) and (2) can be further analyzed by
+calling <code>connect_check</code> (see below).</p>
+      
+      <p>On POSIX, this function is identical to <code>wait_until_writable</code>. On
+Win32 the wait condition is slightly different.</p>
+      
+      <p>On Win32, this function also tolerates client proxy descriptors for
+Win32 named pipes. However, there is no waiting - the function
+immediately returns.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:connect_check">
+  <a href="index.html#/val:connect_check" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> connect_check : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Tests whether the socket is connected with the peer after calling
+<code>Unix.connect</code>. If the socket is connected, the function returns normally.
+Otherwise, the current socket error is raised as a <code>Unix.Unix_error</code>
+exception. This function is intended to be called after a
+non-blocking connect has been initiated, and the success or error
+is indicated (e.g. after <code>wait_until_connected</code> returns).</p>
+      
+      <p>Side effect: The per-socket error code may be reset.</p>
+      
+      <p>On Win32, this function also tolerates client proxy descriptors for
+Win32 named pipes. However, there is no real check - the function
+immediately returns.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:domain_of_inet_addr">
+  <a href="index.html#/val:domain_of_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> domain_of_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:socket_domain">socket_domain</a>
+    
+      <div class="doc">
+        
+      <p>Returns the socket domain of Internet addresses, i.e. whether the
+address is IPv4 or IPv6</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:protostring_of_inet_addr">
+  <a href="index.html#/val:protostring_of_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> protostring_of_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:inet_addr_of_protostring">
+  <a href="index.html#/val:inet_addr_of_protostring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> inet_addr_of_protostring : string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a>
+    
+      <div class="doc">
+        
+      <p>Converts an IP address to the 4 bytes (IPv4) or 16 bytes (IPv6)
+representation in network byte order, and vice-versa</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:getpeername">
+  <a href="index.html#/val:getpeername" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> getpeername : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p>like <code>Unix.getpeername</code>, but errors are fixed up. <code>ENOTCONN</code> is
+ensured when the socked is unconnected or shut down.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Helper functions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:is_absolute">
+  <a href="index.html#/val:is_absolute" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_absolute : string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether this file path is absolute. Works for Unix and Win32.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:restart">
+  <a href="index.html#/val:restart" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> restart : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>restart f arg</code> calls <code>f arg</code>, and restarts this call if the
+exception <code>Unix_error(EINTR,_,_)</code> is caught.</p>
+      
+      <p>Note that there are some cases where this handling of <code>EINTR</code> is
+not sufficient:</p>
+      <ul><li>Functions that have a timeout argument like <code>Unix.select</code>: When
+<code>EINTR</code> is caught the timeout should be adjusted.</li><li><code>Unix.connect</code> with a blocking descriptor because this is not
+well-enough specified by POSIX</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:restart_tmo">
+  <a href="index.html#/val:restart_tmo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> restart_tmo : (float <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>restart_tmo f tmo</code> calls <code>f</code> with a timeout argument <code>tmo</code>, and
+restarted the call if the exception <code>Unix_error(EINTR,_,_)</code> is caught.
+In the restart case, the timeout argument is reduced by the
+already elapsed time.</p>
+      
+      <p>Negative timeout arguments are interpreted as &quot;no timeout&quot;.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:restarting_select">
+  <a href="index.html#/val:restarting_select" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> restarting_select : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> list
+    
+      <div class="doc">
+        
+      <p>A wrapper around <code>Unix.select</code> that handles the <code>EINTR</code> condition.</p>
+      
+      <p>Note: This function calls <code>Unix.select</code> and shares all pros and cons
+with <code>Unix.select</code>. In particular, the OS often sets a limit on the
+number (and/or the numeric value) of the descriptors (e.g. for
+Linux it is 1024, for Windows it is 64). On Ocaml 3.11 the Windows
+version of <code>Unix.select</code> includes some support for other types
+of descriptors than sockets.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sleep">
+  <a href="index.html#/val:sleep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sleep : float <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:restarting_sleep">
+  <a href="index.html#/val:restarting_sleep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> restarting_sleep : float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sleep for the passed time. <code>restarting_sleep</code> additionally handles
+<code>EINTR</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unix_error_of_code">
+  <a href="index.html#/val:unix_error_of_code" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unix_error_of_code : int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:error">error</a>
+    
+      <div class="doc">
+        
+      <p>Converts an integer error into the corresponding variant</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int64_of_file_descr">
+  <a href="index.html#/val:int64_of_file_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int64_of_file_descr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Returns the file descriptor as int64 number. Works for all OS.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_fd">
+  <a href="index.html#/val:string_of_fd" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_fd : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return a string describing the descriptor (for debugging)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_sockaddr">
+  <a href="index.html#/val:string_of_sockaddr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_sockaddr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a human-readable string describing the address
+(for debug messages)</p>
+      
+      <p>Note that the reverse (parsing such a string) can be
+accomplished with <a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/">Netsockaddr</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netsockaddr/#/val:socksymbol_of_string">socksymbol_of_string</a> and
+<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_resolver/">Uq_resolver</a>.<a href="../../../../ocamlnet.3.7.7/src/equeue/uq_resolver/#/val:sockaddr_of_socksymbol">sockaddr_of_socksymbol</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_fd_style">
+  <a href="index.html#/val:string_of_fd_style" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_fd_style : <a href="index.html#/type:fd_style">fd_style</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a string describing the fd style (debugging)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_stdin">
+  <a href="index.html#/val:is_stdin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_stdin : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_stdout">
+  <a href="index.html#/val:is_stdout" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_stdout : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_stderr">
+  <a href="index.html#/val:is_stderr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_stderr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the descriptors are stdin/stdout/stderr</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_close_on_exec">
+  <a href="index.html#/val:set_close_on_exec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_close_on_exec : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear_close_on_exec">
+  <a href="index.html#/val:clear_close_on_exec" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear_close_on_exec : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Working versions of the functions with the same name in <code>Unix</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:_exit">
+  <a href="index.html#/val:_exit" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> _exit : int <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;netsys__exit&quot; 
+    
+      <div class="doc">
+        
+      <p>Exit the program immediately without running the atexit handlers.
+The argument is the exit code, just as for <code>exit</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">IP addresses</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:logand_inet_addr">
+  <a href="index.html#/val:logand_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> logand_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the bitwise AND of the two argument addresses</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:logor_inet_addr">
+  <a href="index.html#/val:logor_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> logor_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the bitwise OR of the two argument addresses</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:logxor_inet_addr">
+  <a href="index.html#/val:logxor_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> logxor_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the bitwise XOR of the two argument addresses</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lognot_inet_addr">
+  <a href="index.html#/val:lognot_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lognot_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the bitwise NOT of the argument address</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_ipv4_inet_addr">
+  <a href="index.html#/val:is_ipv4_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_ipv4_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the address is an IPv4 address</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_ipv6_inet_addr">
+  <a href="index.html#/val:is_ipv6_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_ipv6_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the address is an IPv6 address</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_multicast_inet_addr">
+  <a href="index.html#/val:is_multicast_inet_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_multicast_inet_addr : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the address is a multicast address (either IPv4 or IPv6)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Multicast Functions</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:mcast_set_loop">
+  <a href="index.html#/val:mcast_set_loop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mcast_set_loop : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Whether sent multicast messages are received by the sending host</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mcast_set_ttl">
+  <a href="index.html#/val:mcast_set_ttl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mcast_set_ttl : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set TTL/hops value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mcast_add_membership">
+  <a href="index.html#/val:mcast_add_membership" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mcast_add_membership : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Join a multicast group.</p>
+      
+      <p>First inet addr is the group to join. Second inet addr selects the
+network interface (or <code>Unix.inet_addr_any</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mcast_drop_membership">
+  <a href="index.html#/val:mcast_drop_membership" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mcast_drop_membership : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:inet_addr">inet_addr</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Leave a multicast group.</p>
+      
+      <p>First inet addr is the group to leave. Second inet addr selects the
+network interface (or <code>Unix.inet_addr_any</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Profiling</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:moncontrol">
+  <a href="index.html#/val:moncontrol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> moncontrol : bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Interface to the <code>moncontrol</code> routine of the GPROF profiler.
+<code>moncontrol false</code> stops profiling; <code>moncontrol true</code> starts
+profiling again.</p>
+      
+      <p>This is a no-op if the program is not compiler for profiling.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Deprecated</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following interfaces have been replaced by more generic implementations
+that work on more platforms.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:blocking_read">
+  <a href="index.html#/val:blocking_read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blocking_read : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Same as <code>blocking_gread `Read_write</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_read">
+  <a href="index.html#/val:really_read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_read : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>really_gread `Read_write</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_write">
+  <a href="index.html#/val:really_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_write : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same as <code>really_gwrite `Read_write</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following interfaces have been moved to [root:Netsys_posix].</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:shm_open_flag">
+  <a href="index.html#/type:shm_open_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> shm_open_flag = <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/">Netsys_posix</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_posix/#/type:shm_open_flag">shm_open_flag</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_RDONLY">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_RDONLY" class="anchor">#</a>
+  | SHM_O_RDONLY
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_RDWR">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_RDWR" class="anchor">#</a>
+  | SHM_O_RDWR
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_CREAT">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_CREAT" class="anchor">#</a>
+  | SHM_O_CREAT
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_EXCL">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_EXCL" class="anchor">#</a>
+  | SHM_O_EXCL
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:shm_open_flag/cons:SHM_O_TRUNC">
+  <a href="index.html#/type:shm_open_flag/cons:SHM_O_TRUNC" class="anchor">#</a>
+  | SHM_O_TRUNC
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:have_posix_shm">
+  <a href="index.html#/val:have_posix_shm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> have_posix_shm : unit <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_open">
+  <a href="index.html#/val:shm_open" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shm_open : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:shm_open_flag">shm_open_flag</a> list <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_unlink">
+  <a href="index.html#/val:shm_unlink" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shm_unlink : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Further Documentation</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">How to orderly close I/O channels</h2>
+    </div>
+      <p>After reading from uni-directional descriptors, and seeing the
+EOF, it is usually sufficient to call <code>gclose</code> to free OS resources.</p>
+      
+      <p>After writing to uni-directional descriptors one should call
+<code>gshutdown</code> to send an EOF (<code>SHUTDOWN_SEND</code>). For some descriptors
+one will get the exception <code>Shutdown_not_supported</code> which can be
+ignored in this context The <code>gshutdown</code> function cannot,
+however, report in all cases whether the operation was successful.
+As a rule of thumb, error reporting works for local data connections,
+but not always for remote connections, and there is no way to fix
+this. After writing EOF, call <code>gclose</code> to free OS resources.</p>
+      
+      <p>For bidirectional connections, it is even more complicated. If the
+connection is local, a bidirectional connection behaves much like a pair
+of unidirectional connections. However, in the network case, we have
+to go down to the protocol level.</p>
+      
+      <p>For TCP the golden rule is that the client initiates the connection,
+and the client finishes the connection. The case that the server
+finishes the connection is not well-specified - or better, the server needs
+the ACK from the client after triggering the connection termination.
+In practice we have the cases:</p>
+      <ul><li>Client sends EOF, and server replies with EOF: This is the normal
+case for which TCP is designed. Client code can invoke
+<code>gshutdown</code> with <code>SHUTDOWN_SEND</code> and then waits until the EOF from
+the server arrives,
+and then <code>gclose</code>s the descriptor. It may happen that the client
+gets an error if some problem occurs, so this is reliable from the
+perspective of the client. The server first sees the EOF from the
+client, and then responds with another <code>gshutdown</code>, followed by
+<code>gclose</code>. From the server's perspective it does not matter whether
+the operation results in an error or not - the client has lost
+interest anyway.</li><li>Client sends EOF, and server replies with data, and then EOF.
+Here, the client has to read the final data, and then wait for the
+server's EOF after sending its own EOF. On the server's side,
+some data is written before the final EOF. The question is how
+the server can be sure that the data really arrived. Unfortunately,
+there is no way to do so. The server may not get all errors because
+these may arrive at the server computer after <code>gshutdown</code>. There
+is no way to fix this. (One should better fix the application protocol.
+Note
+that even prominent researchers trapped into this problem. For example,
+the first version of HTTP had this problem.)</li><li>Server sends EOF, and client replies with EOF: This is the difficult
+case. Here, the server wants to be sure that the data sent immediately
+before its EOF really arrives at the client. After <code>gshutdown</code>
+it is forbidden to immediately <code>gclose</code>, because this may result
+in a connection reset. Instead, the server has to wait for the
+client's EOF. (This is called &quot;lingering&quot;.) If the client's EOF is
+seen one can <code>gclose</code>.</li><li>Server sends EOF, and client replies with data, followed by EOF:
+I admit I don't know whether TCP can handle this somehow.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Debugging</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enables [root:Netlog]-style debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

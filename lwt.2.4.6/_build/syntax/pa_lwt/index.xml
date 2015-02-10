@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unit><root><base><html src="index.html"><xml src="index.xml"><cmti name="Pa_lwt" src="/home/dsheets/.opam/doc/build/lwt.2.4.6/_build/syntax/pa_lwt.cmti" digest="b67cbd3e65013a797b50ff4c9ff381b7"/></xml></html></base>Pa_lwt</root><digest>b67cbd3e65013a797b50ff4c9ff381b7</digest><import>CamlinternalFormatBasics<digest>ba1be62eb45abd435c75cb59cc46b922</digest></import><import>Pervasives<digest>0d015a5a2136659b0de431be7f1545be</digest></import><source><file>syntax/pa_lwt.mli</file><dir>/home/dsheets/.opam/doc/build/lwt.2.4.6/_build</dir><digest>a1836c883a3f6608f7866548bed6d082</digest></source><doc>Syntactic sugars for lwt</doc><comment>This extension add the following sugars:<newline/><list><item>anonymous bind:</item></list><precode>         write stdio &quot;Hello, &quot; &gt;&gt; write stdio &quot;world!&quot;</precode><newline/><list><item>lwt-binding:</item></list><precode>         lwt ch = get_char stdin in
+         code</precode><newline/>is the same as <code>bind (get_char stdin) (fun ch -&gt; code)</code><newline/>Moreover it supports parallel binding:<newline/><precode>         lwt x = do_something1 ()
+         and y = do_something2 in
+         code</precode><newline/>will let <code>do_something1 ()</code> and <code>do_something2 ()</code> runs then
+bind their result to <code>x</code> and <code>y</code>. It is the same as:<newline/><precode>         let t1 = do_something1
+         and t2 = do_something2 in
+         bind t1 (fun x -&gt; bind t2 (fun y -&gt; code))</precode><newline/><list><item>exception catching:</item></list><precode>         try_lwt
+           &lt;expr&gt;</precode>,<newline/><precode>         try_lwt
+           &lt;expr&gt;
+         with
+           &lt;branches&gt;</precode>,<newline/><precode>         try_lwt
+           &lt;expr&gt;
+         finally
+           &lt;expr&gt;</precode><newline/>and:<newline/><precode>         try_lwt
+           &lt;expr&gt;
+         with
+           &lt;branches&gt;
+         finally
+           &lt;expr&gt;</precode><newline/>For example:<newline/><precode>         try_lwt
+           f x
+         with
+           | Failure msg -&gt;
+               prerr_endline msg;
+               return ()</precode><newline/>is expanded to:<newline/><precode>         catch (fun _ -&gt; f x)
+           (function
+              | Failure msg -&gt;
+                  prerr_endline msg;
+                  return ()
+              | exn -&gt;
+                  Lwt.fail exn)</precode><newline/>Note that the <code>exn -&gt; Lwt.fail exn</code> branch is automatically addedd
+when needed.<newline/>The construction <code>try_lwt &lt;expr&gt;</code> just catch regular exception
+into lwt exception. i.e. it is the same as <code>catch (fun _ -&gt; &lt;expr&gt;) fail</code>.<newline/><list><item>exception raising:</item></list><precode>        raise_lwt &lt;expr&gt;</precode><newline/>This allow exception to be traced when the -lwt-debug switch is passed
+to the syntax extension.<newline/><list><item>assertion:</item></list><precode>        assert_lwt &lt;expr&gt;</precode><newline/><list><item>for loop:</item></list><precode>        for_lwt i = &lt;expr&gt; to &lt;expr&gt; do
+          &lt;expr&gt;
+        done</precode><newline/>and:<newline/><precode>        for_lwt i = &lt;expr&gt; downto &lt;expr&gt; do
+          &lt;expr&gt;
+        done</precode><newline/><list><item>iteration over streams:</item></list><precode>        for_lwt &lt;patt&gt; in &lt;expr&gt; do
+          &lt;expr&gt;
+        done</precode><newline/><list><item>while loop:</item></list><precode>        while_lwt &lt;expr&gt; do
+          &lt;expr&gt;
+        done</precode><newline/><list><item>pattern matching:</item></list><precode>        match_lwt &lt;expr&gt; with
+          | &lt;patt_1&gt; -&gt; &lt;expr_1&gt;
+          ...
+          | &lt;patt_n&gt; -&gt; &lt;expr_n&gt;</precode></comment></unit>

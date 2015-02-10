@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netconversion</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netconversion</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Conversion between character encodings</p>
+      
+      <p><b>Contents</b>
+</p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:preliminaries">preliminaries</a>
+<ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:unicode">unicode</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:subsets">subsets</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:linking">linking</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:domain">domain</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:problems">problems</a></li></ul></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:interface">interface</a>
+<ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:direct_conv">direct_conv</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:cursors">cursors</a>
+<ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:bom">bom</a></li></ul></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:unicode_functions">unicode_functions</a></li></ul></li></ul>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:preliminaries">
+  <a href="index.html#/label:preliminaries" class="anchor">#</a>
+  
+    <h1 class="section level_1">Preliminaries</h1>
+    
+  </div>
+  
+      <p>A <b>character set</b> is a set of characters where every character is
+identified by a <b>code point</b>. An <b>encoding</b> is a way of
+representing characters from a set in byte strings. For example,
+the Unicode character set has more than 96000 characters, and
+the code points have values from 0 to 0x10ffff (not all code points
+are assigned yet). The UTF-8 encoding represents the code points
+by sequences of 1 to 4 bytes. There are also encodings that
+represent code points from several sets, e.g EUC-JP covers four
+sets.</p>
+      
+      <p>Encodings are enumerated by the type <code>encoding</code>, and names follow
+the convention <code>`Enc_*</code>, e.g. <code>`Enc_utf8</code>.
+Character sets are enumerated by the type
+<code>charset</code>, and names follow the convention <code>`Set_*</code>, e.g.
+<code>`Set_unicode</code>.</p>
+      
+      <p>This module deals mainly with encodings. It is important to know
+that the same character set may have several encodings. For example,
+the Unicode character set can be encoded as UTF-8 or UTF-16.
+For the 8 bit character sets, however, there is usually only one
+encoding, e.g <code>`Set_iso88591</code> is always encoded as <code>`Enc_iso88591</code>.</p>
+      
+      <p>In a <b>single-byte encoding</b> every code point is represented by
+one byte. This is what many programmers are accustomed at, and
+what the O'Caml language specially supports: A <code>string</code> is
+a sequence of <code>char</code>s, where <code>char</code> means an 8 bit quantity
+interpreted as character. For example, the following piece of code allocates
+a <code>string</code> of four <code>char</code>s, and assigns them individually:</p>
+      <pre><code>   let s = String.create 4 in
+   s.[0] &lt;- 'G';
+   s.[1] &lt;- 'e';
+   s.[2] &lt;- 'r';
+   s.[3] &lt;- 'd';</code></pre>
+      <p>In a <b>multi-byte encoding</b> there are code points that are represented
+by several bytes. As we still represent such text as <code>string</code>, the
+problem arises that a single <code>char</code>, actually a byte, often represents
+only a fraction of a full multi-byte character. There are two solutions:</p>
+      <ul><li>Give up the principle that text is represented by <code>string</code>.
+This is, for example, the approach chosen by <code>Camomile</code>, another O'Caml
+library dealing with Unicode. Instead, text is represented as
+<code>int array</code>. This way, the algorithms processing the text can
+remain the same.</li><li>Give up the principle that individual characters can be directly
+accessed in a text. This is the primary way chosen by Ocamlnet.
+This means that there is not any longer the possibility to read
+or write the <code>n</code>th character of a text. One can, however, still
+compose texts by just concatenating the strings representing
+individual characters. Furthermore, it is possible to define
+a cursor for a text that moves sequentially along the text.
+The consequence is that programmers are restricted to sequential
+algorithms. Note that the majority of text processing falls into
+this class.</li></ul>
+      <p>The corresponding piece of code for Ocamlnet's Unicode implementation
+is:
+</p>
+      <pre><code>   let b = Buffer.create 80 in
+   Buffer.add b (ustring_of_uchar `Enc_utf8 71);  (* 71 = code point of 'G' *)
+   Buffer.add b (ustring_of_uchar `Enc_utf8 101); (* 101 = code point of 'e' *)
+   Buffer.add b (ustring_of_uchar `Enc_utf8 114); (* 114 = code point of 'r' *)
+   Buffer.add b (ustring_of_uchar `Enc_utf8 100); (* 100 = code point of 'd' *)
+   let s = Buffer.contents b</code></pre>
+      <p>It is important to always remember that a <code>char</code> is no longer
+a character but simply a byte. In many of the following explanations,
+we strictly distinguish between <b>byte positions</b> or <b>byte counts</b>,
+and <b>character positions</b> or <b>character counts</b>.</p>
+      
+      <p>There a number of special effects that usually only occur in
+multi-byte encodings:</p>
+      <ul><li>Bad encodings: Not every byte sequence is legal. When scanning
+such text, the functions will raise the exception <code>Malformed_code</code>
+when they find illegal bytes.</li><li>Unassigned code points: It may happen that a byte sequence is
+a correct representation for a code point, but that the code point
+is unassigned in the character set. When scanning, this is also
+covered by the exception <code>Malformed_code</code>. When converting from
+one encoding to another, it is also possible that the code point
+is only unassigned in the target character set. This case is
+usually handled by a substitution function <code>subst</code>, and if no such
+function is defined, by the exception <code>Cannot_represent</code>.</li><li>Incomplete characters: The trailing bytes of a string may be the
+correct beginning of a byte sequence for a character, but not a
+complete sequence. Of course, if that string is the end of a
+text, this is just illegal, and also a case for <code>Malformed_code</code>.
+However, when text is processed chunk by chunk, this phenomenon
+may happen legally for all chunks but the last. For this reason,
+some of the functions below handle this case specially.</li><li>Byte order marks: Some encodings have both big and little endian
+variants. A byte order mark at the beginning of the text declares
+which variant is actually used. This byte order mark is a
+declaration written like a character, but actually not a
+character.</li></ul>
+      <p>There is a special class of encodings known as <b>ASCII-compatible</b>.
+They are important because there are lots of programs and protocols
+that only interpret bytes from 0 to 127, and treat the bytes from
+128 to 255 as data. These programs can process texts as long as
+the bytes from 0 to 127 are used as in ASCII. Fortunately, many
+encodings are ASCII-compatible, including UTF-8.</p>
+      
+  <div class="region" id="/label:unicode">
+  <a href="index.html#/label:unicode" class="anchor">#</a>
+  
+    <h2 class="section level_2">Unicode</h2>
+    
+  </div>
+  
+      <p><code>Netconversion</code> is centred around Unicode.
+The conversion from one encoding to another works by finding the
+Unicode code point of the character
+to convert, and by representing the code point in the target encoding,
+even if neither encodings have to do with Unicode.
+Of course, this approach requires that all character sets handled
+by <code>Netconversion</code> are subsets of Unicode.</p>
+      
+      <p>The supported range of Unicode code points: 0 to 0xd7ff, 0xe000 to 0xfffd,
+0x10000 to 0x10ffff. All these code points can be represented in
+UTF-8 and UTF-16. <code>Netconversion</code> does not know which of the code
+points are assigned and which not, and because of this, it simply
+allows all code points of the mentioned ranges (but for other character
+sets, the necessary lookup tables exist).</p>
+      
+      <p><b>UTF-8:</b> The UTF-8 representation can have one to four bytes. Malformed
+byte sequences are always rejected, even those that want to cheat the
+reader like &quot;0xc0 0x80&quot; for the code point 0. There is special support
+for the Java variant of UTF-8 (<code>`Enc_java</code>). UTF-8 strings must not
+have a byte order mark (it would be interpreted as &quot;zero-width space&quot;
+character).</p>
+      
+      <p><b>UTF-16:</b> When reading from a string encoded as <code>`Enc_utf16</code>, a byte
+order mark is expected at the beginning. The detected variant
+(<code>`Enc_utf16_le</code> or <code>`Enc_utf16_be</code>) is usually returned by the parsing
+function. The byte order mark is not included into the output string. -
+Some functions of this
+module cannot cope with <code>`Enc_utf16</code> (i.e. UTF-16 without endianess
+annotation), and will fail.</p>
+      
+      <p>Once the endianess is determined, the code point 0xfeff is no longer
+interpreted as byte order mark, but as &quot;zero-width non-breakable space&quot;.</p>
+      
+      <p>Some code points are represented by pairs of 16 bit values, these
+are the so-called &quot;surrogate pairs&quot;. They can only occur in UTF-16.</p>
+      
+  <div class="region" id="/label:subsets">
+  <a href="index.html#/label:subsets" class="anchor">#</a>
+  
+    <h2 class="section level_2">Subsets of Unicode</h2>
+    
+  </div>
+  
+      <p>The non-Unicode character sets are subsets of Unicode. Here, it may
+happen that a Unicode code point does not have a corresponding
+code point. In this case, certain rules are applied to handle
+this (see below). It is, however, ensured that every non-Unicode
+code point has a corresponding Unicode code point. (In other words,
+character sets cannot be supported for which this property does
+not hold.)</p>
+      
+      <p>It is even possible to create further subsets artificially. The
+encoding <code>`Enc_subset(e,def)</code> means to derive a new encoding from
+the existing one <code>e</code>, but to only accept the code points for which
+the definition function <code>def</code> yields the value <code>true</code>. For example,
+the encoding
+</p>
+      <pre><code>`Enc_subset(`Enc_usascii, 
+               fun i -&gt; i &lt;&gt; 34 &amp;&amp; i &lt;&gt; 38 &amp;&amp; i &lt;&gt; 60 &amp;&amp; i &lt;&gt; 62)</code></pre>
+      <p>
+is ASCII without the bracket angles, the quotation mark, and the
+ampersand character, i.e. the subset of ASCII that can be included
+in HTML text without escaping.</p>
+      
+      <p>If a code point is not defined by the encoding but found in a text,
+the reader will raise the exception <code>Malformed_code</code>. When text is
+output, however, the <code>subst</code> function will be called for undefined code
+points (which raises <code>Cannot_represent</code> by default). The <code>subst</code>
+function is an optional argument of many conversion functions that
+allows it to insert a substitution text for undefined code points.
+Note, however, that the substitution text is restricted to at most
+50 characters (because unlimited length would lead to difficult
+problems we would like to avoid).</p>
+      
+  <div class="region" id="/label:linking">
+  <a href="index.html#/label:linking" class="anchor">#</a>
+  
+    <h2 class="section level_2">Linking this module</h2>
+    
+  </div>
+  
+      <p>Many encodings require lookup tables. The following encodings
+are built-in and always supported:</p>
+      <ul><li>Unicode: <code>`Enc_utf8</code>, <code>`Enc_java</code>, <code>`Enc_utf16</code>, <code>`Enc_utf16_le</code>,
+<code>`Enc_utf16_be</code></li><li>Other: <code>`Enc_usascii</code>, <code>`Enc_iso88591</code>, <code>`Enc_empty</code></li></ul>
+      <p>The lookup tables for the other encodings are usually loaded at
+runtime, but it is also possible to embed them in the generated
+binary executable. See the file <code>INSTALL</code> for details. The functions
+<code>available_input_encodings</code> and <code>available_output_encodings</code> can
+be invoked to find out which encodings can be loaded, or are available
+otherwise.</p>
+      
+  <div class="region" id="/label:domain">
+  <a href="index.html#/label:domain" class="anchor">#</a>
+  
+    <h2 class="section level_2">Supported Encodings, Restrictions</h2>
+    
+  </div>
+  
+      <p>I took the mappings from <code>www.unicode.org</code>, and the standard names of
+the character sets from IANA. Obviously, many character sets are missing
+that can be supported; especially ISO646 character sets, and many EBCDIC
+code pages. Stateful encodings like generic ISO-2022 have been omitted
+(stateless subsets of ISO-2022 like EUC can be supported, however;
+currently we support EUC-JP and EUC-KR).</p>
+      
+      <p>Because of the copyright statement from Unicode, I cannot put the
+source tables that describe the mappings into the distribution. They
+are publicly available from <code>www.unicode.org</code>.</p>
+      
+  <div class="region" id="/label:problems">
+  <a href="index.html#/label:problems" class="anchor">#</a>
+  
+    <h2 class="section level_2">Known Problems</h2>
+    
+  </div>
+  <ul><li>The following charsets do not have a bijective mapping to Unicode:
+adobe_standard_encoding, adobe_symbol_encoding,
+adobe_zapf_dingbats_encoding, cp1002 (0xFEBE). The current implementation
+simply removes one of the conflicting code point pairs - this might
+not what you want.</li><li>Japanese encodings:
+JIS X 0208: The character 1/32 is mapped to 0xFF3C, and not
+to 0x005C.</li></ul>
+        
+      </div>
+    
+      <div class="doc">
+        
+  <div class="region" id="/label:interface">
+  <a href="index.html#/label:interface" class="anchor">#</a>
+  
+    <h1 class="section level_1">Interface</h1>
+    
+  </div>
+  
+      <p><b>Naming conventions:</b></p>
+      
+      <p>As it is possible to refer to substrings by either giving a byte
+offset or by counting whole characters, these naming conventions
+are helpful:</p>
+      <ul><li>Labels called <code>range_pos</code> and <code>range_len</code> refer to byte positions of
+characters, or substrings</li><li>Labels called <code>count</code> refer to positions given as the number of characters
+relative to an origin</li></ul>
+      <p>Furthermore:</p>
+      <ul><li>A <code>uchar</code> is a single Unicode code point represented as int</li><li>A <code>ustring</code> is a string of encoded characters</li><li>A <code>uarray</code> is an <code>array of int</code> representing a string</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/exn:Malformed_code">
+  <a href="index.html#/exn:Malformed_code" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Malformed_code
+    
+      <div class="doc">
+        
+      <p>Raised when an illegal byte sequence is found</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Cannot_represent">
+  <a href="index.html#/exn:Cannot_represent" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Cannot_represent <span class="keyword">of</span> int
+    
+      <div class="doc">
+        
+      <p>Raised when a certain Unicode code point cannot be represented in
+the selected output encoding</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:encoding">
+  <a href="index.html#/type:encoding" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> encoding = [ <div class="cons">| `Enc_utf8</div><div class="cons">| `Enc_java</div><div class="cons">| `Enc_utf16</div><div class="cons">| `Enc_utf16_le</div><div class="cons">| `Enc_utf16_be</div><div class="cons">| `Enc_usascii</div><div class="cons">| `Enc_iso88591</div><div class="cons">| `Enc_iso88592</div><div class="cons">| `Enc_iso88593</div><div class="cons">| `Enc_iso88594</div><div class="cons">| `Enc_iso88595</div><div class="cons">| `Enc_iso88596</div><div class="cons">| `Enc_iso88597</div><div class="cons">| `Enc_iso88598</div><div class="cons">| `Enc_iso88599</div><div class="cons">| `Enc_iso885910</div><div class="cons">| `Enc_iso885911</div><div class="cons">| `Enc_iso885913</div><div class="cons">| `Enc_iso885914</div><div class="cons">| `Enc_iso885915</div><div class="cons">| `Enc_iso885916</div><div class="cons">| `Enc_koi8r</div><div class="cons">| `Enc_jis0201</div><div class="cons">| `Enc_eucjp</div><div class="cons">| `Enc_euckr</div><div class="cons">| `Enc_windows1250</div><div class="cons">| `Enc_windows1251</div><div class="cons">| `Enc_windows1252</div><div class="cons">| `Enc_windows1253</div><div class="cons">| `Enc_windows1254</div><div class="cons">| `Enc_windows1255</div><div class="cons">| `Enc_windows1256</div><div class="cons">| `Enc_windows1257</div><div class="cons">| `Enc_windows1258</div><div class="cons">| `Enc_cp437</div><div class="cons">| `Enc_cp737</div><div class="cons">| `Enc_cp775</div><div class="cons">| `Enc_cp850</div><div class="cons">| `Enc_cp852</div><div class="cons">| `Enc_cp855</div><div class="cons">| `Enc_cp856</div><div class="cons">| `Enc_cp857</div><div class="cons">| `Enc_cp860</div><div class="cons">| `Enc_cp861</div><div class="cons">| `Enc_cp862</div><div class="cons">| `Enc_cp863</div><div class="cons">| `Enc_cp864</div><div class="cons">| `Enc_cp865</div><div class="cons">| `Enc_cp866</div><div class="cons">| `Enc_cp869</div><div class="cons">| `Enc_cp874</div><div class="cons">| `Enc_cp1006</div><div class="cons">| `Enc_cp037</div><div class="cons">| `Enc_cp424</div><div class="cons">| `Enc_cp500</div><div class="cons">| `Enc_cp875</div><div class="cons">| `Enc_cp1026</div><div class="cons">| `Enc_cp1047</div><div class="cons">| `Enc_adobe_standard_encoding</div><div class="cons">| `Enc_adobe_symbol_encoding</div><div class="cons">| `Enc_adobe_zapf_dingbats_encoding</div><div class="cons">| `Enc_macroman</div><div class="cons">| `Enc_subset <span class="keyword">of</span> <a href="index.html#/type:encoding">encoding</a> * (int <span class="rarr"><span>-&gt;</span></span> bool)</div><div class="cons">| `Enc_empty</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:charset">
+  <a href="index.html#/type:charset" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> charset = [ <div class="cons">| `Set_unicode</div><div class="cons">| `Set_usascii</div><div class="cons">| `Set_iso88591</div><div class="cons">| `Set_iso88592</div><div class="cons">| `Set_iso88593</div><div class="cons">| `Set_iso88594</div><div class="cons">| `Set_iso88595</div><div class="cons">| `Set_iso88596</div><div class="cons">| `Set_iso88597</div><div class="cons">| `Set_iso88598</div><div class="cons">| `Set_iso88599</div><div class="cons">| `Set_iso885910</div><div class="cons">| `Set_iso885911</div><div class="cons">| `Set_iso885913</div><div class="cons">| `Set_iso885914</div><div class="cons">| `Set_iso885915</div><div class="cons">| `Set_iso885916</div><div class="cons">| `Set_koi8r</div><div class="cons">| `Set_jis0201</div><div class="cons">| `Set_jis0208</div><div class="cons">| `Set_jis0212</div><div class="cons">| `Set_ks1001</div><div class="cons">| `Set_windows1250</div><div class="cons">| `Set_windows1251</div><div class="cons">| `Set_windows1252</div><div class="cons">| `Set_windows1253</div><div class="cons">| `Set_windows1254</div><div class="cons">| `Set_windows1255</div><div class="cons">| `Set_windows1256</div><div class="cons">| `Set_windows1257</div><div class="cons">| `Set_windows1258</div><div class="cons">| `Set_cp437</div><div class="cons">| `Set_cp737</div><div class="cons">| `Set_cp775</div><div class="cons">| `Set_cp850</div><div class="cons">| `Set_cp852</div><div class="cons">| `Set_cp855</div><div class="cons">| `Set_cp856</div><div class="cons">| `Set_cp857</div><div class="cons">| `Set_cp860</div><div class="cons">| `Set_cp861</div><div class="cons">| `Set_cp862</div><div class="cons">| `Set_cp863</div><div class="cons">| `Set_cp864</div><div class="cons">| `Set_cp865</div><div class="cons">| `Set_cp866</div><div class="cons">| `Set_cp869</div><div class="cons">| `Set_cp874</div><div class="cons">| `Set_cp1006</div><div class="cons">| `Set_cp037</div><div class="cons">| `Set_cp424</div><div class="cons">| `Set_cp500</div><div class="cons">| `Set_cp875</div><div class="cons">| `Set_cp1026</div><div class="cons">| `Set_cp1047</div><div class="cons">| `Set_adobe_standard_encoding</div><div class="cons">| `Set_adobe_symbol_encoding</div><div class="cons">| `Set_adobe_zapf_dingbats_encoding</div><div class="cons">| `Set_macroman</div> ]
+    
+      <div class="doc">
+        
+      <p>A <code>charset</code> is simply a set of code points. It does not say how
+the code points are encoded as bytes. Every encoding implies a certain
+charset (or several charsets) that can be encoded, but the reverse is
+not true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><b>Pre-evaluation of the encoding argument:</b></p>
+      
+      <p>A number of the following functions can be made run faster if they are
+called several times for the same encoding. In this case, it is recommended
+to apply the function once partially with the encoding argument, and to
+call the resulting closure instead. For example, <code>ustring_of_uchar</code> supports
+this technique:</p>
+      <pre><code>     let my_ustring_of_uchar = ustring_of_uchar my_enc in
+     let s1 = my_ustring_of_uchar u1 ...
+     let s2 = my_ustring_of_uchar u2 ...</code></pre>
+      <p>This is <b>much</b> faster than</p>
+      <pre><code>     let s1 = ustring_of_uchar my_enc u1 ...
+     let s2 = ustring_of_uchar my_enc u2 ...</code></pre>
+      <p>The availability of this optimization is indicated by the predicate
+PRE_EVAL(<i>arg</i>) where <i>arg</i> identifies the encoding argument.</p>
+      
+      <p><b>Inlining</b></p>
+      
+      <p>When a function can be inlined across module/library boundaries,
+this is indicated by the predicate INLINED. Of course, this works
+only for the ocamlopt compiler.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:encoding_of_string">
+  <a href="index.html#/val:encoding_of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> encoding_of_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a>
+    
+      <div class="doc">
+        
+      <p>Returns the encoding of the name of the encoding. Fails if the
+encoding is unknown.
+E.g. <code>encoding_of_string &quot;iso-8859-1&quot; = `Enc_iso88591</code></p>
+      
+      <p>Punctuation characters (e.g. &quot;-&quot;) and year suffixes (e.g.
+&quot;:1991&quot;) are ignored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_encoding">
+  <a href="index.html#/val:string_of_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_encoding : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the name of the encoding.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_ascii_compatible">
+  <a href="index.html#/val:is_ascii_compatible" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_ascii_compatible : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>&quot;ASCII compatible&quot; means: The bytes 1 to 127 represent the ASCII
+codes 1 to 127, and no other representation of a character contains
+the bytes 1 to 127.</p>
+      
+      <p>For example, ISO-8859-1 is ASCII-compatible because the byte 1 to
+127 mean the same as in ASCII, and all other characters use bytes
+greater than 127. UTF-8 is ASCII-compatible for the same reasons,
+it does not matter that there are multi-byte characters.
+EBCDIC is not ASCII-compatible because the bytes 1 to 127 do not mean
+the same as in ASCII. UTF-16 is not ASCII-compatible because the bytes
+1 to 127 can occur in multi-byte representations of non-ASCII
+characters.</p>
+      
+      <p>The byte 0 has been excluded from this definition because the C
+language uses it with a special meaning that has nothing to do with
+characters, so it is questionable to interpret the byte 0 anyway.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_single_byte">
+  <a href="index.html#/val:is_single_byte" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_single_byte : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the encoding is a single-byte encoding</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:same_encoding">
+  <a href="index.html#/val:same_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> same_encoding : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether both encodings are the same. <code>`Enc_subset</code> encodings are only
+considered as equal when the definition functions are physically the same.</p>
+      
+      <p>Warning: Don't use ( = ) to compare encodings because this may
+fail.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:byte_order_mark">
+  <a href="index.html#/val:byte_order_mark" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> byte_order_mark : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the byte order mark that must occur at the beginning of
+files to indicate whether &quot;little endian&quot; or &quot;big endian&quot; is used.
+If this does not apply to the encoding, an empty string is returned.</p>
+      
+      <p>See also the section about &quot;<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/label:bom">bom</a>&quot; below.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:makechar">
+  <a href="index.html#/val:makechar" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> makechar : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>makechar enc i:</code>
+Creates the string representing the Unicode code point <code>i</code> in encoding
+<code>enc</code>. Raises <code>Not_found</code> if the character is legal but cannot be
+represented in <code>enc</code>.</p>
+      
+      <p>Possible encodings: everything but <code>`Enc_utf16</code>.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>PRE_EVAL(encoding)</li></ul>
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> This function is deprecated since ocamlnet-0.96. Use
+<code>ustring_of_uchar</code> instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_of_uchar">
+  <a href="index.html#/val:ustring_of_uchar" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_of_uchar : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>ustring_of_uchar enc i</code>:
+Creates the string representing the Unicode code point <code>i</code> in encoding
+<code>enc</code>. Raises <code>Cannot_represent i</code> if the character is legal but cannot be
+represented in <code>enc</code>.</p>
+      
+      <p>Possible encodings: everything but <code>`Enc_utf16</code>.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>PRE_EVAL(encoding)</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_unicode">
+  <a href="index.html#/val:to_unicode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_unicode : <a href="index.html#/type:charset">charset</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Maps the code point of the charset to the corresponding
+Unicode code point, or raises <code>Malformed_code</code>, when the
+input number does not correspond to a code point.</p>
+      
+      <p>Note <code>`Set_jis0208</code> and <code>`Set_jis0212</code>: Code points are usually
+given by a row and column number. The numeric code point returned by
+this function is computed by multiplying the row number (1..94) with 96,
+and by adding the column number (1..94), i.e. row*96+column.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>PRE_EVAL(charset)</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_unicode">
+  <a href="index.html#/val:from_unicode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_unicode : <a href="index.html#/type:charset">charset</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Maps the Unicode code point to the corresponding code point of
+the charset, or raises <code>Cannot_represent</code> when there is no such
+corresponding code point.</p>
+      
+      <p>Note <code>`Set_jis0208</code> and <code>`Set_jis0212</code>: Code points are usually
+given by a row and column number. The numeric code point returned by
+this function is computed by multiplying the row number (1..94) with 96,
+and by adding the column number (1..94), i.e. row*96+column.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>PRE_EVAL(charset)</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:available_input_encodings">
+  <a href="index.html#/val:available_input_encodings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> available_input_encodings : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the list of all available encodings that can be used for
+input strings. The list reflects the set of loadable/linked <code>Netmapping</code>
+modules.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:available_output_encodings">
+  <a href="index.html#/val:available_output_encodings" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> available_output_encodings : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the list of all available encodings that can be used for
+output strings. The list reflects the set of loadable/linked <code>Netmapping</code>
+modules.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:user_encoding">
+  <a href="index.html#/val:user_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> user_encoding : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a> option
+    
+      <div class="doc">
+        
+      <p>Determines the preferred user encoding:</p>
+      <ul><li>Unix: This is the character set from the current locale</li><li>Win32: This is derived from the current ANSI code page</li></ul>
+      <p>If an error occurs while determining the result, the value
+<code>None</code> is returned.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:win32_code_pages">
+  <a href="index.html#/val:win32_code_pages" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> win32_code_pages : (int * <a href="index.html#/type:encoding">encoding</a>) list
+    
+      <div class="doc">
+        
+      <p>Mapping between Win32 code page numbers and Ocamlnet encodings.
+This is incomplete. The official list:
+http://msdn.microsoft.com/en-us/library/dd317756%28v=VS.85%29.aspx</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:direct_conv">
+  <a href="index.html#/label:direct_conv" class="anchor">#</a>
+  
+    <h2 class="section level_2">Direct Conversion</h2>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>In order to convert a string from one encoding to another, call
+<code>convert</code> like in</p>
+      <pre><code>let s_utf8 = 
+      convert ~in_enc:`Enc_iso88591 ~out_enc:`Enc_utf8 s_latin1</code></pre>
+      <p>which converts the ISO-8859-1 string <code>s_latin1</code> to the UTF-8 string
+<code>s_utf8</code>.</p>
+      
+      <p>It is also possible to convert while reading from or writing to a file.
+This use case is effectively handled by the class
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/class:conversion_pipe">conversion_pipe</a>.
+See the explanations of this class for examples.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:convert">
+  <a href="index.html#/val:convert" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> convert : ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> in_enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> out_enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Converts the string from <code>in_enc</code> to <code>out_enc</code>, and returns it.
+The string must consist of a whole number of characters. If it
+ends with an incomplete multi-byte character, however, this is
+detected, and the exception <code>Malformed_code</code> will be raised.
+This exception is also raised for other encoding errors in the
+input string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">subst</span> This function is invoked for code points of <code>in_enc</code> that
+cannot be represented in <code>out_enc</code>, and the result of the function
+invocation is substituted (directly, without any further conversion).
+Restriction: The string returned by <code>subst</code> must not be longer than 50
+bytes.
+If <code>subst</code> is missing, <code>Cannot_represent</code> is raised in this case.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_pos</span> Selects a substring for conversion. <code>range_pos</code>
+is the byte position of the first character of the substring.
+(Default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> Selects a substring for conversion. <code>range_len</code>
+is the length of the substring in bytes (Default: Length
+of the input string minus <code>range_pos</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recode_string">
+  <a href="index.html#/val:recode_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recode_string : in_enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> out_enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Recodes a complete string from <code>in_enc</code> to <code>out_enc</code>, and returns it.
+The function <code>subst</code> is invoked for code points of <code>in_enc</code> that cannot
+be represented in <code>out_enc</code>, and the result of the function invocation
+is substituted.
+Restriction: The string returned by <code>subst</code> must not be longer than 50
+bytes.
+If <code>subst</code> is missing, <code>Not_found</code> is raised in this case.</p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> This function is obsolete since ocamlnet-0.96. Use
+<code>convert</code> instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recode">
+  <a href="index.html#/val:recode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recode : in_enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> in_buf:string <span class="rarr"><span>-&gt;</span></span> in_pos:int <span class="rarr"><span>-&gt;</span></span> in_len:int <span class="rarr"><span>-&gt;</span></span> out_enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> out_buf:string <span class="rarr"><span>-&gt;</span></span> out_pos:int <span class="rarr"><span>-&gt;</span></span> out_len:int <span class="rarr"><span>-&gt;</span></span> max_chars:int <span class="rarr"><span>-&gt;</span></span> subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> int * int * <a href="index.html#/type:encoding">encoding</a>
+    
+      <div class="doc">
+        
+      <p>Converts the character sequence contained in the at most <code>in_len</code> bytes
+of <code>in_buf</code> starting at byte position <code>in_pos</code>, and writes the result
+into at most <code>out_len</code> bytes of <code>out_buf</code> starting at byte position
+<code>out_pos</code>. At most <code>max_chars</code> characters are converted from
+<code>in_buf</code> to <code>out_buf</code>.</p>
+      
+      <p>The characters in <code>in_buf</code> are assumed to be encoded as <code>in_enc</code>, and the
+characters in <code>out_buf</code> will be encoded as <code>out_enc</code>. The case
+<code>in_enc = out_enc</code> is not handled specially, and is carried out as
+fast as any other conversion.</p>
+      
+      <p>If there is a code point which cannot be represented in <code>out_enc</code>,
+the function <code>subst</code> is called with the code point as argument, and the
+resulting string (which must already be encoded as <code>out_enc</code>) is
+inserted instead.
+It is possible that <code>subst</code> is called several times for the same
+character. Restriction: The string returned by subst must not be longer
+than 50 bytes.</p>
+      
+      <p>It is allowed that the input buffer ends with an incomplete
+multi-byte character. This character is not converted, i.e. the
+conversion ends just before this character. This special condition
+is not indicated to the caller.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> The triple <code>(in_n, out_n, in_enc')</code> is returned:<ul><li><code>in_n</code> is the actual number of bytes that have been converted from
+<code>in_buf</code>; <code>in_n</code> may be smaller than <code>in_len</code> because of incomplete
+multi-byte characters, or because the output buffer has less space
+for characters than the input buffer, or because of a change
+of the encoding variant.</li><li><code>out_n</code> is the actual number of bytes written into <code>out_buf</code>.</li><li><code>in_enc'</code> is normally identical to <code>in_enc</code>. However, there are cases
+where the encoding can be refined when looking at the byte
+sequence; for example whether a little endian or big endian variant
+of the encoding is used. <code>in_enc'</code> is the variant of <code>in_enc</code> that was
+used for the last converted character.</li></ul>If there is at least one complete character in <code>in_buf</code>, and at least
+space for one complete character in <code>out_buf</code>, and <code>max_chars &gt;= 1</code>, it is
+guaranteed that <code>in_n &gt; 0 &amp;&amp; out_n &gt; 0</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:conversion_pipe">
+  <a href="index.html#/class:conversion_pipe" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> conversion_pipe : 
+    ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    in_enc:<a href="index.html#/type:encoding">encoding</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    out_enc:<a href="index.html#/type:encoding">encoding</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:io_obj_channel">io_obj_channel</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This pipeline class (see <code>Netchannels</code> for more information) can be used
+to recode a netchannel while reading or writing. The argument <code>in_enc</code>
+is the input encoding, and <code>out_enc</code> is the output encoding.</p>
+      
+      <p>The channel must consist of a whole number of characters. If it
+ends with an incomplete multi-byte character, however, this is
+detected, and the exception <code>Malformed_code</code> will be raised.
+This exception is also raised for other encoding errors in the
+channel data.</p>
+      
+      <p><b>Example.</b> Convert ISO-8859-1 to UTF-8 while writing to the file
+<code>&quot;output.txt&quot;</code>:</p>
+      <pre><code>        let ch = new output_channel (open_out &quot;output.txt&quot;) in
+        let encoder = 
+          new conversion_pipe ~in_enc:`Enc_iso88591 ~out_enc:`Enc_utf8 () in
+        let ch' = new output_filter encoder ch in
+        ... (* write to ch' *)
+        ch' # close_out();
+        ch  # close_out();  (* you must close both channels! *)</code></pre>
+      <p>If you write as UTF-16, don't forget to output the byte order
+mark yourself, as the channel does not do this.</p>
+      
+      <p><b>Example.</b> Convert UTF-16 to UTF-8 while reading from the file
+<code>&quot;input.txt&quot;</code>:</p>
+      <pre><code>        let ch = new input_channel (open_in &quot;input.txt&quot;) in
+        let encoder = 
+          new conversion_pipe ~in_enc:`Enc_utf16 ~out_enc:`Enc_utf8 () in
+        let ch' = new input_filter ch encoder in
+        ... (* read from ch' *)
+        ch' # close_in();
+        ch  # close_in();  (* you must close both channels! *)</code></pre>
+        
+  <div class="tag param">
+    <span class="label">subst</span> This function is invoked for code points of <code>in_enc</code> that
+cannot be represented in <code>out_enc</code>, and the result of the function
+invocation is substituted (directly, without any further conversion).
+Restriction: The string returned by <code>subst</code> must not be longer than 50
+bytes.
+If <code>subst</code> is missing, <code>Cannot_represent</code> is raised in this case.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:recoding_pipe">
+  <a href="index.html#/class:recoding_pipe" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> recoding_pipe : 
+    ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    in_enc:<a href="index.html#/type:encoding">encoding</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    out_enc:<a href="index.html#/type:encoding">encoding</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:io_obj_channel">io_obj_channel</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Recodes a channel like <code>conversion_pipe</code>. The difference is that
+<code>subst</code> raises <code>Not_found</code> by default, and not <code>Cannot_represent</code>.</p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> This class is deprecated since ocamlnet-0.96. Use
+<code>conversion_pipe</code> instead.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:cursors">
+  <a href="index.html#/label:cursors" class="anchor">#</a>
+  
+    <h2 class="section level_2">Reading Text Using Cursors</h2>
+    
+  </div>
+  
+      <p>A cursor is a reference to a character in an encoded string. The
+properties of the current character can be obtained, and the cursor
+can be moved relative to its current position.</p>
+      
+      <p>For example, the following loop outputs the Unicode code points
+of all characters of the UTF-8 input string <code>s</code>:</p>
+      <pre><code>   let cs = create_cursor `Enc_utf8 s in
+   while not (cursor_at_end cs) do
+     let n = cursor_char_count cs in
+     let ch = uchar_at cs in
+     printf &quot;At position %d: %d\n&quot; n ch;
+     move cs;
+   done</code></pre>
+      <p>For a more exact definition, cursors are modeled as follows: The reference
+to the encoded string is contained in the cursor. This
+can be a complete string, or an arbitrary substring (denoted by a
+range of valid byte positions). The cursor
+position can be initially set to an arbitrary byte position of the
+encoded string.</p>
+      
+      <p>Cursor positions can be denoted by</p>
+      <ul><li>byte positions <code>p</code> in the encoded string, or by</li><li>character counts <code>n</code> relative to the initial position.</li></ul>
+      <p>Valid cursor positions are:</p>
+      <ul><li><code>n=0</code>: This is always the initial cursor position</li><li><code>n&gt;0</code>: Positive char counts refer to characters right to the initial
+character. The rightmost position is the position <code>n_max</code> past the
+rightmost character. The rightmost position does not have a
+code point.</li><li><code>n&lt;0</code>: Negative char counts refer to characters left to the initial
+character. The leftmost position is the position <code>n_min</code> of the
+leftmost character.</li></ul>
+      <p>For the empty string we have <code>n_min = n_max = 0</code>, complementing the
+above definition.</p>
+      
+      <p>Cursors are moved to the left or right of their current position
+by a whole number of characters. When it is tried to move them
+past the leftmost or rightmost position, the cursor is placed to the
+leftmost or rightmost position, respectively, and the exception
+<code>Cursor_out_of_range</code> is raised.</p>
+      
+      <p>There are two cases of illegal encodings:</p>
+      <ul><li>When the last byte sequence of the encoded string is an incomplete
+multi-byte character, this is detected, and the special exception
+<code>Partial_character</code> is raised when the code point of this character
+is read. Note that this can only happen at position <code>n_max-1</code>. It
+is allowed to move beyond this character to <code>n_max</code>.</li><li>When an illegal byte sequence occurs in the encoded string (including
+an incomplete multi-byte character at the beginning of the string),
+it is not possible to move the cursor to this character, or across
+this character. When it is tried to do so, the cursor stops just
+before the bad sequence, and the exception <code>Malformed_code</code> is
+raised.</li></ul>
+      <p>It is undefined what happens when the encoded string is modified
+while a cursor is in use referring to it.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:cursor">
+  <a href="index.html#/type:cursor" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cursor
+    
+      <div class="doc">
+        
+      <p>A cursor denotes a character position in an encoded string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:End_of_string">
+  <a href="index.html#/exn:End_of_string" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> End_of_string
+    
+      <div class="doc">
+        
+      <p>Raised when it is tried to access the character after the end of the
+string (at position <code>n_max</code>)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Cursor_out_of_range">
+  <a href="index.html#/exn:Cursor_out_of_range" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Cursor_out_of_range
+    
+      <div class="doc">
+        
+      <p>Raised when it is tried to move the cursor beyond the beginning of the
+string or beyond the end of the string. In the latter case, it is
+legal to move the cursor to the position following the last character,
+but it is not possible to move it further.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Partial_character">
+  <a href="index.html#/exn:Partial_character" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Partial_character
+    
+      <div class="doc">
+        
+      <p>Raised when the last character of the string is an incomplete
+multi-byte character, and it is tried to get the code point
+(using <code>uchar_at</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Byte_order_mark">
+  <a href="index.html#/exn:Byte_order_mark" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Byte_order_mark
+    
+      <div class="doc">
+        
+      <p>Raised when it is tried to get the code point of the BOM at the
+beginning of the string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_cursor">
+  <a href="index.html#/val:create_cursor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_cursor : ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> ?initial_rel_pos:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cursor">cursor</a>
+    
+      <div class="doc">
+        
+      <p>Creates a new cursor for the passed string and the passed encoding.
+By default, the allowed range of the cursor is the whole string,
+and the cursor is intially positioned at the beginning of the string.
+The <b>range</b> is the part of the string the cursor can move within.</p>
+      
+      <p><b>Special behaviour for <code>`Enc_utf16</code>:</b> UTF-16 with unspecified
+endianess is handled specially. First, this encoding is only
+accepted when <code>initial_rel_pos=0</code>. Second, the first two bytes
+must be a byte order mark (BOM) (if the string has a length of two
+bytes or more). The BOM counts as character without code point.
+The function <code>uchar_at</code> raises the exception <code>Byte_order_mark</code>
+when the BOM is accessed. Third, when the cursor is moved to the
+next character, the encoding as returned by <code>cursor_encoding</code> is
+changed to either <code>`Enc_utf16_le</code> or <code>`Enc_utf16_be</code> according
+to the BOM. The encoding changes back to <code>`Enc_utf16</code> when the
+cursor is moved back to the initial position.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">range_pos</span> Restricts the range of the cursor to a substring.
+The argument <code>range_pos</code> is the byte position of the beginning
+of the range. (Defaults to 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> Restricts the range of the cursor to a substring.
+The argument <code>range_len</code> is the length of the range.
+(Default: Length of the input string minus <code>range_pos</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">initial_rel_pos</span> The initial position of the cursor, given
+as bytes relative to <code>range_pos</code>. The character at this position
+is considered as the zeroth character of the string (as reported
+by <code>cursor_char_count</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reinit_cursor">
+  <a href="index.html#/val:reinit_cursor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reinit_cursor : ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> ?initial_rel_pos:int <span class="rarr"><span>-&gt;</span></span> ?enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Reuses an existing cursor for a new purpose. The arguments are
+as in <code>create_cursor</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_cursor">
+  <a href="index.html#/val:copy_cursor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_cursor : ?enc:<a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cursor">cursor</a>
+    
+      <div class="doc">
+        
+      <p>Copies the cursor. The copy can be moved independently of the original
+cursor, but is applied to the same string. The copy starts at the
+byte position of the string where the original cursor is currently
+positioned.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">enc</span> Optionally, the assumed
+encoding can be changed to a different one by passing <code>enc</code>.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_target">
+  <a href="index.html#/val:cursor_target" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_target : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the string of the cursor</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_range">
+  <a href="index.html#/val:cursor_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_range : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int * int
+    
+      <div class="doc">
+        
+      <p>Returns the valid range of the cursor as pair <code>(range_pos, range_len)</code></p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_initial_rel_pos">
+  <a href="index.html#/val:cursor_initial_rel_pos" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_initial_rel_pos : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the initial relative byte position of the cursor</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_char_count">
+  <a href="index.html#/val:cursor_char_count" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_char_count : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the character count of the cursor. The initial position
+(when <code>create_cursor</code> was called) has the number 0, positions to the
+right denote positive numbers, and positions to the left negative numbers.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_pos">
+  <a href="index.html#/val:cursor_pos" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_pos : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the byte position of the cursor, i.e. the byte index of
+the string that corresponds to the cursor position. The function
+returns the absolute position (i.e. NOT relative to <code>cursor_range</code>).</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uchar_at">
+  <a href="index.html#/val:uchar_at" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uchar_at : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the Unicode code point of the character at the cursor.
+Raises <code>End_of_string</code> if the cursor is positioned past the last
+character.
+Raises <code>Partial_character</code> if the last character of the analysed
+string range is an incomplete multi-byte character.
+Raises <code>Byte_order_mark</code> if the first character of the string
+is a BOM (when the encoding has BOMs).</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_byte_length">
+  <a href="index.html#/val:cursor_byte_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_byte_length : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the byte length of the representation of the character at the
+cursor. This works also for incomplete multi-byte characters and
+BOMs.
+Raises <code>End_of_string</code> if the cursor is positioned past the last
+character.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_at_end">
+  <a href="index.html#/val:cursor_at_end" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_at_end : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Returns whether the cursor is positioned past the last character.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move">
+  <a href="index.html#/val:move" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move : ?num:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Moves the cursor one character to the right, or if <code>num</code> is passed,
+this number of characters to the right. <code>num</code> can be negative in
+which case the cursor is moved to the left.</p>
+      
+      <p>If the cursor were placed outside the valid range, the cursor
+would go into an illegal state, and because of this, this is
+handled as follows: the cursor moves to the
+leftmost or rightmost position (depending on the direction),
+and the exception <code>Cursor_out_of_range</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_encoding">
+  <a href="index.html#/val:cursor_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_encoding : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a>
+    
+      <div class="doc">
+        
+      <p>Returns the encoding of the cursor. For some encodings, the
+returned encoding depends on the position of the cursor (see
+the note about UTF-8 in <code>create_cursor</code>)</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>INLINED</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_blit">
+  <a href="index.html#/val:cursor_blit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_blit : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int array <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>cursor_blit cs ua pos len</code>: Copies at most <code>len</code> characters as code
+points from
+the cursor position and the following positions to the array <code>ua</code>
+at index <code>pos</code>. The number of copied characters is returned.
+If the cursor is already at the end of the string when this
+function is called, the exception <code>End_of_string</code> will be raised instead,
+and no characters are copied. The cursor positions containing byte
+order marks and partial characters are never copied; this is ensured
+by stopping the copying procedure just before these positions. This
+may even make the function return the number 0.</p>
+      
+      <p>The function tries to copy as many characters as currently available
+in the already decoded part of the string the cursor is attached to.
+In the current implementation, this number is not higher than 250.
+You can call <code>cursor_blit_maxlen</code> to get an upper limit.</p>
+      
+      <p>The function does not move the cursor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_blit_maxlen">
+  <a href="index.html#/val:cursor_blit_maxlen" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_blit_maxlen : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the maximum number of characters <code>cursor_blit</code> can copy
+at the current cursor position. This is the number of characters
+<code>cursor_blit</code> would copy if the <code>len</code> argument were arbitrarily
+large.</p>
+      
+      <p>Note that the value depends on the cursor position and on the
+contents of the cursor string.</p>
+      
+      <p>This function raises <code>End_of_string</code> if the cursor is positioned
+at the end of the string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cursor_blit_positions">
+  <a href="index.html#/val:cursor_blit_positions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cursor_blit_positions : <a href="index.html#/type:cursor">cursor</a> <span class="rarr"><span>-&gt;</span></span> int array <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Works like <code>cursor_blit</code>, but copies the byte positions of the
+characters into <code>ua</code> instead of the code points.</p>
+      
+      <p>When called directly after <code>cursor_blit</code> for the same cursor and
+with the same value of <code>len</code>, this function copies as many characters
+and thus returns the same number:</p>
+      <pre><code>let n1 = cursor_blit     cs ua ua_pos len in
+     let n2 = cursor_blit_pos cs pa pa_pos len in
+     assert (n1 = n2)</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:bom">
+  <a href="index.html#/label:bom" class="anchor">#</a>
+  
+    <h3 class="section level_3">Byte Order Marks</h3>
+    
+  </div>
+  
+      <p>Because UTF-16 allows both little and big endian, files and other
+permanent representations of UTF-16 text are usually prepended by
+a byte order mark (BOM). There is confusion about the BOM among
+Unicode users, so the following explanations may be helpful.</p>
+      
+      <p>Of course, the BOM is only used for external representations like
+files, as the endianess is always known for in-memory representations
+by the running program. This module has three encoding identifiers:</p>
+      <ul><li><code>`Enc_utf16</code>: UTF-16 where the endianess is unknown</li><li><code>`Enc_utf16_le</code>: UTF-16 little endian</li><li><code>`Enc_utf16_be</code>: UTF-16 big endian</li></ul>
+      <p>When a file is read, the endianess is unknown at the beginning.
+This is expressed by <code>`Enc_utf16</code>. When the BOM is read, the encoding
+is refined to either <code>`Enc_utf16_le</code> or <code>`Enc_utf16_be</code>, whatever
+the BOM says. This works as follows: The BOM is the representation
+of the code point 0xfeff as little or big endian, i.e. as byte sequences
+&quot;0xfe 0xff&quot; (big endian) or &quot;0xff 0xfe&quot; (little endian). As the &quot;wrong&quot;
+code point 0xfffe is intentionally unused, the reader can determine
+the endianess.</p>
+      
+      <p>There is one problem, though. Unfortunately, the code point 0xfeff
+is also used for the &quot;zero width non-breakable space&quot; character.
+When this code point occurs later in the text, it is interpreted as
+this character. Of course, this means that one must know whether
+there is a BOM at the beginning, and if not, one must know the
+endianess. One cannot program in the style &quot;well, let's see what is
+coming and guess&quot;.</p>
+      
+      <p>Furthermore, the BOM is only used for encodings where one can specify
+the endianess. It must not be used for UTF-8, for example, as the
+byte order is fixed for this encoding. When a UTF-8 text begins with
+the code point 0xfeff, it is always the &quot;zero width non-breakable space&quot;
+character.</p>
+      
+      <p>The functions of this module can all deal with BOMs when reading
+encoded text. In most cases, the BOM is hidden from the caller,
+and just handled automatically. Cursors, however, treat BOMs as special
+characters outside of the code set (exception <code>Byte_order_mark</code> is
+raised). The writing functions of this module do not generate BOMs,
+however, as there is no way to tell them that a BOM is needed. The
+function <code>byte_order_mark</code> can be used to output the BOM manually.</p>
+      <div class="region">
+    <h3 class="section level_3">Examples for Cursors</h3>
+    </div>
+      <p>Create the cursor:</p>
+      
+      <p><code>let cs = create_cursor `Enc_utf8 &quot;B\195\164r&quot;;;</code></p>
+      
+      <p>The cursor is now positioned at the 'B':</p>
+      
+      <p><code>uchar_at cs</code> <i>returns</i> <code>66</code> (i.e. B)</p>
+      
+      <p>Move the cursor one character to the right. In UTF-8, this is a
+two-byte character consisting of the bytes 195 and 164:</p>
+      
+      <p><code>move cs ;;</code></p>
+      
+      <p><code>uchar_at cs</code> <i>returns</i> <code>228</code> (i.e. a-Umlaut)</p>
+      
+      <p>One can easily move the cursor to the end of the string:</p>
+      
+      <p><code>move ~num:max_int cs ;;</code></p>
+      
+      <p>This raises <code>Cursor_out_of_range</code>, but places the cursor at the end.
+This is the position past the last letter 'r':</p>
+      
+      <p><code>uchar_at cs</code> <i>raises</i> <code>End_of_string</code></p>
+      
+      <p>Go one character to the left:</p>
+      
+      <p><code>move ~num:(-1) cs ;;</code></p>
+      
+      <p><code>uchar_at cs</code> <i>returns</i> <code>114</code> (i.e. r)</p>
+      
+      <p>Cursors can only move relative to their current position. Of course,
+one can easily write a function that moves to an absolute position,
+like</p>
+      <pre><code>let move_abs n cs = 
+      let delta = n - cursor_pos cs in
+      move ~num:delta cs</code></pre>
+      <p>However, this operation is expensive (O(string length)), and should
+be avoided for efficient algorithms. Cursors are not arrays, and an
+algorithm should only be based on cursors when it is possible to
+iterate over the characters of the string one after another.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+  <div class="region" id="/label:unicode_functions">
+  <a href="index.html#/label:unicode_functions" class="anchor">#</a>
+  
+    <h2 class="section level_2">Unicode String Functions</h2>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/val:ustring_length">
+  <a href="index.html#/val:ustring_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_length : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the length of the string in characters. The function fails
+when illegal byte sequences or incomplete characters are found in the
+string with <code>Malformed_code</code>.</p>
+      
+      <p>Evaluation hints:</p>
+      <ul><li>PRE_EVAL(encoding)</li></ul>
+        
+  <div class="tag param">
+    <span class="label">range_pos</span> The byte position of the substring to measure
+(default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> The byte length of the substring to measure
+(default: byte length of the input string minus <code>range_pos</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_iter">
+  <a href="index.html#/val:ustring_iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_iter : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Iterates over the characters of a string, and calls the passed function
+for every code point. The function raises <code>Malformed_code</code> when
+illegal byte sequences or incomplete characters are found.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">encoding</span> specifies the encoding
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_pos</span> The byte position of the substring to iterate over
+(default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> The byte length of the substring to iterate over
+(default: byte length of the input string minus <code>range_pos</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_map">
+  <a href="index.html#/val:ustring_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_map : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> int list) <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Maps every character of a string to a list of characters, and returns
+the concatenated string.
+The <code>encoding</code> argument determines the encoding of both the argument
+and the result string.
+The map function gets every character as its Unicode code point, and
+must return the list of code points to map to.</p>
+      
+      <p>The function raises <code>Malformed_code</code> when
+illegal byte sequences or incomplete characters are found.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">range_pos</span> The byte position of the substring to map
+(default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> The byte length of the substring to map
+(default: byte length of the input string minus <code>range_pos</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_to_lower">
+  <a href="index.html#/val:ustring_to_lower" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_to_lower : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Converts the input string to lowercase.</p>
+      
+      <p>The <code>encoding</code>, <code>range_pos</code>, and <code>range_len</code> arguments work
+as for <code>ustring_map</code>. The exception <code>Malformed_code</code> is raised
+when illegal byte sequences are found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_to_upper">
+  <a href="index.html#/val:ustring_to_upper" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_to_upper : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Converts the input string to uppercase.</p>
+      
+      <p>The <code>encoding</code>, <code>range_pos</code>, and <code>range_len</code> arguments work
+as for <code>ustring_map</code>. The exception <code>Malformed_code</code> is raised
+when illegal byte sequences are found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_to_title">
+  <a href="index.html#/val:ustring_to_title" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_to_title : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Converts the input string to titlecase.</p>
+      
+      <p>The <code>encoding</code>, <code>range_pos</code>, and <code>range_len</code> arguments work
+as for <code>ustring_map</code>. The exception <code>Malformed_code</code> is raised
+when illegal byte sequences are found.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_sub">
+  <a href="index.html#/val:ustring_sub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_sub : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>ustring_sub enc start length s</code>: Returns the substring of <code>s</code> starting
+at character count <code>start</code> and consisting of <code>length</code> characters. Note
+that <code>start</code> and <code>length</code> select the substring by multiples of
+(usually multibyte) characters, not bytes.</p>
+      
+      <p>If the optional byte-based <code>range_pos</code> and <code>range_len</code> arguments are
+present, these arguments are taken to determine a first substring
+before <code>start</code> and <code>length</code> are applied to extract the final
+substring.</p>
+      
+      <p>The function raises <code>Malformed_code</code> when
+illegal byte sequences or incomplete characters are found.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">range_pos</span> The byte position of the substring to extract
+(default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> The byte length of the substring to extract
+(default: byte length of the input string minus <code>range_pos</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_compare">
+  <a href="index.html#/val:ustring_compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_compare : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Compares two strings lexicographically. The first argument is the
+encoding of both strings (which must be the same). The second argument
+is the function that compares two Unicode code points. It must return
+0 if both characters are the same, a negative value if the first
+character is the smaller one, and a positive value if the second
+character is the smaller one.</p>
+      
+      <p>The function raises <code>Malformed_code</code> when
+illegal byte sequences or incomplete characters are found.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">range_pos</span> The byte position of the substring to compare
+(default: 0), referring to the following string argument
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> The byte length of the substring to compare
+(default: byte length of the input string minus <code>range_pos</code>),
+referring to the following string argument
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:code_cmp">
+  <a href="index.html#/val:code_cmp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> code_cmp : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>A compare function for <code>ustring_compare</code>: Normal string comparison:
+This function compares by code point</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ci_code_cmp">
+  <a href="index.html#/val:ci_code_cmp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ci_code_cmp : int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>A compare function for <code>ustring_compare</code>: Case-insensitive comparison:
+This function compares by the lowercase code point if it exists,
+and the untransformed code point otherwise.</p>
+      
+      <p>NB. This bases on the lowercase transformation that maps one char
+to only one char, and not to many.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uarray_of_ustring">
+  <a href="index.html#/val:uarray_of_ustring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uarray_of_ustring : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int array
+    
+      <div class="doc">
+        
+      <p>Returns the characters of the string as array of Unicode code points.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">range_pos</span> The byte position of the substring to extract
+(default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> The byte length of the substring to extract
+(default: byte length of the input string minus <code>range_pos</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ustring_of_uarray">
+  <a href="index.html#/val:ustring_of_uarray" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ustring_of_uarray : ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> int array <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the array of Unicode code points as encoded string.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">pos</span> Selects a subarray: <code>pos</code> is the first array position
+to encode (default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> Selects a subarray: <code>len</code> is the length of the subarray
+to encode (default: array length minus <code>pos</code>)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">subst</span> This function is called when a code point cannot be represented
+in the chosen character encoding. It must returns the (already encoded)
+string to substitute for this code point. By default (if ~subst is
+not passed), the exception <code>Cannot_represent</code> will be raised in this
+case.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Malformed_code_at">
+  <a href="index.html#/exn:Malformed_code_at" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Malformed_code_at <span class="keyword">of</span> int
+    
+      <div class="doc">
+        
+      <p>An illegal byte sequence is found at this byte position</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:verify">
+  <a href="index.html#/val:verify" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> verify : <a href="index.html#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?range_pos:int <span class="rarr"><span>-&gt;</span></span> ?range_len:int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Checks whether the string is properly encoded. If so, () is returned.
+If not, the exception <code>Malformed_code_at</code> will be raised indicating
+the byte position where the problem occurs.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">range_pos</span> The byte position of the substring to verify
+(default: 0)
+  </div>
+  
+  <div class="tag param">
+    <span class="label">range_len</span> The byte length of the substring to verify
+(default: byte length of the input string minus <code>range_pos</code>)
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

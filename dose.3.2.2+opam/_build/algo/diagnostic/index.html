@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Diagnostic</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Diagnostic</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>One un-installability reason for a package</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:reason">
+  <a href="index.html#/type:reason" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> reason = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:reason/cons:Dependency">
+  <a href="index.html#/type:reason/cons:Dependency" class="anchor">#</a>
+  | Dependency <span class="keyword">of</span> (<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> * <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkg">vpkg</a> list * <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> list)
+  </div>
+  </td><td>(*</td><td class="doc">Not strictly a un-installability, Dependency (a,vpkglist,pkglist) is used
+to recontruct the the dependency path from the root package to the
+offending un-installable package</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:reason/cons:Missing">
+  <a href="index.html#/type:reason/cons:Missing" class="anchor">#</a>
+  | Missing <span class="keyword">of</span> (<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> * <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkg">vpkg</a> list)
+  </div>
+  </td><td>(*</td><td class="doc">Missing (a,vpkglist) means that the dependency
+<code>vpkglist</code> of package <code>a</code> cannot be satisfied</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:reason/cons:Conflict">
+  <a href="index.html#/type:reason/cons:Conflict" class="anchor">#</a>
+  | Conflict <span class="keyword">of</span> (<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> * <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> * <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkg">vpkg</a>)
+  </div>
+  </td><td>(*</td><td class="doc">Conflict (a,b,vpkg) means that the package <code>a</code> is in conflict
+with package <code>b</code> because of vpkg</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:request">
+  <a href="index.html#/type:request" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> request = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:request/cons:Package">
+  <a href="index.html#/type:request/cons:Package" class="anchor">#</a>
+  | Package <span class="keyword">of</span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a>
+  </div>
+  </td><td>(*</td><td class="doc">Check the installability of one package</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:request/cons:PackageList">
+  <a href="index.html#/type:request/cons:PackageList" class="anchor">#</a>
+  | PackageList <span class="keyword">of</span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> list
+  </div>
+  </td><td>(*</td><td class="doc">Check the installability of a list of packages</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>The request provided to the solver</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:result">
+  <a href="index.html#/type:result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> result = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:result/cons:Success">
+  <a href="index.html#/type:result/cons:Success" class="anchor">#</a>
+  | Success <span class="keyword">of</span> ?all:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> list
+  </div>
+  </td><td>(*</td><td class="doc">If successfull returns a function that will
+return the installation set for the given query. Since
+not all packages are tested for installability directly, the
+installation set might be empty. In this case, the solver can
+be called again to provide the real installation set
+using the parameter <code>~all:true</code></td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/type:result/cons:Failure">
+  <a href="index.html#/type:result/cons:Failure" class="anchor">#</a>
+  | Failure <span class="keyword">of</span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:reason">reason</a> list
+  </div>
+  </td><td>(*</td><td class="doc">If unsuccessful returns a function containing the list of reason</td><td>*)</td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p>The result of an installability query</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:diagnosis">
+  <a href="index.html#/type:diagnosis" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> diagnosis = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:diagnosis/field:result">
+  <a href="index.html#/type:diagnosis/field:result" class="anchor">#</a>
+  result
+  </div>
+  </td><td>: <a href="index.html#/type:result">result</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:diagnosis/field:request">
+  <a href="index.html#/type:diagnosis/field:request" class="anchor">#</a>
+  request
+  </div>
+  </td><td>: <a href="index.html#/type:request">request</a></td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ResultHash">
+  <a href="index.html#/module:ResultHash" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> ResultHash : <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/modtype:S/type:key">key</a> = <a href="index.html#/type:reason">reason</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:summary">
+  <a href="index.html#/type:summary" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> summary = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:summary/field:missing">
+  <a href="index.html#/type:summary/field:missing" class="anchor">#</a>
+  <span class="keyword">mutable</span> missing
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:summary/field:conflict">
+  <a href="index.html#/type:summary/field:conflict" class="anchor">#</a>
+  <span class="keyword">mutable</span> conflict
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:summary/field:unique_missing">
+  <a href="index.html#/type:summary/field:unique_missing" class="anchor">#</a>
+  <span class="keyword">mutable</span> unique_missing
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:summary/field:unique_conflict">
+  <a href="index.html#/type:summary/field:unique_conflict" class="anchor">#</a>
+  <span class="keyword">mutable</span> unique_conflict
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:summary/field:summary">
+  <a href="index.html#/type:summary/field:summary" class="anchor">#</a>
+  summary
+  </div>
+  </td><td>: <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> list <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <a href="index.html#/module:ResultHash">ResultHash</a>.<a href="index.html#/module:ResultHash/type:t">t</a></td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_result">
+  <a href="index.html#/val:default_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_result : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:summary">summary</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:collect">
+  <a href="index.html#/val:collect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> collect : <a href="index.html#/type:summary">summary</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:diagnosis">diagnosis</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:pp">
+  <a href="index.html#/type:pp" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> pp = <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <span class="rarr"><span>-&gt;</span></span> string * string * (string * string) list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_summary">
+  <a href="index.html#/val:pp_summary" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_summary : ?pp:(<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:pkgname">pkgname</a> * string * (string * string) list) <span class="rarr"><span>-&gt;</span></span> ?explain:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:summary">summary</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_package">
+  <a href="index.html#/val:pp_package" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_package : ?source:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_vpkglist">
+  <a href="index.html#/val:pp_vpkglist" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_vpkglist : <a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkglist">vpkglist</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_dependency">
+  <a href="index.html#/val:pp_dependency" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_dependency : <a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> ?label:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> * <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkglist">vpkglist</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_dependencies">
+  <a href="index.html#/val:pp_dependencies" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_dependencies : <a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> * <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:vpkglist">vpkglist</a>) list list <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_list">
+  <a href="index.html#/val:pp_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_list : (<a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_error">
+  <a href="index.html#/val:print_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_error : <a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:reason">reason</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_installationset">
+  <a href="index.html#/val:get_installationset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_installationset : ?minimal:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:diagnosis">diagnosis</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_solution">
+  <a href="index.html#/val:is_solution" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_solution : <a href="index.html#/type:diagnosis">diagnosis</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_pp">
+  <a href="index.html#/val:default_pp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_pp : <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf_types/">Cudf_types</a>.<a href="../../../../cudf.0.7/_build/cudf_types/#/type:pkgname">pkgname</a> * string * 'a list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_error_human">
+  <a href="index.html#/val:print_error_human" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_error_human : ?prefix:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../cudf.0.7/_build/cudf/">Cudf</a>.<a href="../../../../cudf.0.7/_build/cudf/#/type:package">package</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:reason">reason</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintf_human">
+  <a href="index.html#/val:fprintf_human" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintf_human : ?pp:<a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> ?prefix:string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:diagnosis">diagnosis</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fprintf">
+  <a href="index.html#/val:fprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fprintf : ?pp:<a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> ?failure:bool <span class="rarr"><span>-&gt;</span></span> ?success:bool <span class="rarr"><span>-&gt;</span></span> ?explain:bool <span class="rarr"><span>-&gt;</span></span> ?minimal:bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:diagnosis">diagnosis</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:printf">
+  <a href="index.html#/val:printf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> printf : ?pp:<a href="index.html#/type:pp">pp</a> <span class="rarr"><span>-&gt;</span></span> ?failure:bool <span class="rarr"><span>-&gt;</span></span> ?success:bool <span class="rarr"><span>-&gt;</span></span> ?explain:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:diagnosis">diagnosis</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

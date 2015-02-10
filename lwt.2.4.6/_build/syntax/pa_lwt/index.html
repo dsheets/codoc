@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Pa_lwt</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Pa_lwt</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Syntactic sugars for lwt</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This extension add the following sugars:</p>
+      <ul><li>anonymous bind:</li></ul><pre><code>         write stdio &quot;Hello, &quot; &gt;&gt; write stdio &quot;world!&quot;</code></pre><ul><li>lwt-binding:</li></ul><pre><code>         lwt ch = get_char stdin in
+         code</code></pre>
+      <p>is the same as <code>bind (get_char stdin) (fun ch -&gt; code)</code></p>
+      
+      <p>Moreover it supports parallel binding:</p>
+      <pre><code>         lwt x = do_something1 ()
+         and y = do_something2 in
+         code</code></pre>
+      <p>will let <code>do_something1 ()</code> and <code>do_something2 ()</code> runs then
+bind their result to <code>x</code> and <code>y</code>. It is the same as:</p>
+      <pre><code>         let t1 = do_something1
+         and t2 = do_something2 in
+         bind t1 (fun x -&gt; bind t2 (fun y -&gt; code))</code></pre><ul><li>exception catching:</li></ul><pre><code>         try_lwt
+           &lt;expr&gt;</code></pre>
+      <p>,</p>
+      <pre><code>         try_lwt
+           &lt;expr&gt;
+         with
+           &lt;branches&gt;</code></pre>
+      <p>,</p>
+      <pre><code>         try_lwt
+           &lt;expr&gt;
+         finally
+           &lt;expr&gt;</code></pre>
+      <p>and:</p>
+      <pre><code>         try_lwt
+           &lt;expr&gt;
+         with
+           &lt;branches&gt;
+         finally
+           &lt;expr&gt;</code></pre>
+      <p>For example:</p>
+      <pre><code>         try_lwt
+           f x
+         with
+           | Failure msg -&gt;
+               prerr_endline msg;
+               return ()</code></pre>
+      <p>is expanded to:</p>
+      <pre><code>         catch (fun _ -&gt; f x)
+           (function
+              | Failure msg -&gt;
+                  prerr_endline msg;
+                  return ()
+              | exn -&gt;
+                  Lwt.fail exn)</code></pre>
+      <p>Note that the <code>exn -&gt; Lwt.fail exn</code> branch is automatically addedd
+when needed.</p>
+      
+      <p>The construction <code>try_lwt &lt;expr&gt;</code> just catch regular exception
+into lwt exception. i.e. it is the same as <code>catch (fun _ -&gt; &lt;expr&gt;) fail</code>.</p>
+      <ul><li>exception raising:</li></ul><pre><code>        raise_lwt &lt;expr&gt;</code></pre>
+      <p>This allow exception to be traced when the -lwt-debug switch is passed
+to the syntax extension.</p>
+      <ul><li>assertion:</li></ul><pre><code>        assert_lwt &lt;expr&gt;</code></pre><ul><li>for loop:</li></ul><pre><code>        for_lwt i = &lt;expr&gt; to &lt;expr&gt; do
+          &lt;expr&gt;
+        done</code></pre>
+      <p>and:</p>
+      <pre><code>        for_lwt i = &lt;expr&gt; downto &lt;expr&gt; do
+          &lt;expr&gt;
+        done</code></pre><ul><li>iteration over streams:</li></ul><pre><code>        for_lwt &lt;patt&gt; in &lt;expr&gt; do
+          &lt;expr&gt;
+        done</code></pre><ul><li>while loop:</li></ul><pre><code>        while_lwt &lt;expr&gt; do
+          &lt;expr&gt;
+        done</code></pre><ul><li>pattern matching:</li></ul><pre><code>        match_lwt &lt;expr&gt; with
+          | &lt;patt_1&gt; -&gt; &lt;expr_1&gt;
+          ...
+          | &lt;patt_n&gt; -&gt; &lt;expr_n&gt;</code></pre>
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

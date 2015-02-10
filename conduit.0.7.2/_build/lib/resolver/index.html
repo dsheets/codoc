@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Resolver</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Resolver</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Resolve URIs to endpoints</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:service">
+  <a href="index.html#/type:service" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> service = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:service/field:name">
+  <a href="index.html#/type:service/field:name" class="anchor">#</a>
+  name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:service/field:port">
+  <a href="index.html#/type:service/field:port" class="anchor">#</a>
+  port
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:service/field:tls">
+  <a href="index.html#/type:service/field:tls" class="anchor">#</a>
+  tls
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Description of a single service.
+Can be populated from <code>/etc/services</code> with the exception of the
+<code>tls</code> field, which indicates if the connection is intended to be
+TLS/SSL-encrypted or not (e.g. for <code>https</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S">
+  <a href="index.html#/modtype:S" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> S = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Module type for a [root:resolution] that can map URIs to
+concrete [root:endp] that stream connections can be
+established with.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:S/type:io">
+  <a href="index.html#/modtype:S/type:io" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> +'a io
+    
+      <div class="doc">
+        
+      <p>Abstract type of the cooperative threading library used, normally
+defined via the [root:IO] module type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/type:t">
+  <a href="index.html#/modtype:S/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>State handle for a running resolver</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/type:svc">
+  <a href="index.html#/modtype:S/type:svc" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> svc
+    
+      <div class="doc">
+        
+      <p>Abstract type for a service entry, which maps a URI scheme into
+a protocol handler and TCP port</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/type:rewrite_fn">
+  <a href="index.html#/modtype:S/type:rewrite_fn" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> rewrite_fn = <a href="index.html#/modtype:S/type:svc">svc</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/type:endp">endp</a> <a href="index.html#/modtype:S/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p>A rewrite function resolves a <a href="index.html#/modtype:S/type:svc">service</a> and a URI into
+a concrete endpoint.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/type:service_fn">
+  <a href="index.html#/modtype:S/type:service_fn" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> service_fn = string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:svc">svc</a> option <a href="index.html#/modtype:S/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p>A service function maps the string (such as <code>http</code> or <code>ftp</code>) from
+a URI scheme into a <a href="index.html#/modtype:S/type:svc">service</a> description that includes
+enough metadata about the service to subsequently <a href="index.html#/modtype:S/type:rewrite_fn">resolve</a>
+it into an [root:endp].</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:init">
+  <a href="index.html#/modtype:S/val:init" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> init : ?service:<a href="index.html#/modtype:S/type:service_fn">service_fn</a> <span class="rarr"><span>-&gt;</span></span> ?rewrites:(string * <a href="index.html#/modtype:S/type:rewrite_fn">rewrite_fn</a>) list <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>init ?service ?rewrites</code> will initialize the resolver and return
+a state handler. The <a href="index.html#/modtype:S/type:service_fn">service</a> argument should
+contain the system-specific resolution mechanism for URI schemas.</p>
+      
+      <p>The <code>rewrites</code> argument can optionally override a subset of the
+URI domain name with the given <a href="index.html#/modtype:S/type:rewrite_fn">rewrite_fn</a> to permit custom
+resolution rules. For example, a rewrite rule for &quot;.xen&quot; would
+let the rewrite function resolve hostnames such as &quot;foo.xen&quot;
+into a shared memory channel for the &quot;foo&quot; virtual machine.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:add_rewrite">
+  <a href="index.html#/modtype:S/val:add_rewrite" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_rewrite : host:string <span class="rarr"><span>-&gt;</span></span> f:<a href="index.html#/modtype:S/type:rewrite_fn">rewrite_fn</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_rewrite ~host f t</code> will add to the <code>t</code> resolver the <code>f</code> rewrite rule
+for all the domain names that shortest-prefix match <code>host</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:set_service">
+  <a href="index.html#/modtype:S/val:set_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_service : f:<a href="index.html#/modtype:S/type:service_fn">service_fn</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:resolve_uri">
+  <a href="index.html#/modtype:S/val:resolve_uri" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resolve_uri : ?rewrites:(string * <a href="index.html#/modtype:S/type:rewrite_fn">rewrite_fn</a>) list <span class="rarr"><span>-&gt;</span></span> uri:<a href="../../../../uri.1.7.2/_build/lib/uri/">Uri</a>.<a href="../../../../uri.1.7.2/_build/lib/uri/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/type:endp">endp</a> <a href="index.html#/modtype:S/type:io">io</a>
+    
+      <div class="doc">
+        
+      <p><code>resolve_uri ?rewrites ~uri t</code> will use <code>t</code> to resolve the
+<code>uri</code> into a concrete endpoint. Any <code>rewrites</code> that are passed
+in will be overlayed on the existing rules within the <code>t</code>
+resolver, but not otherwise modify it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:t_of_sexp">
+  <a href="index.html#/modtype:S/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:sexp_of_t">
+  <a href="index.html#/modtype:S/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:svc_of_sexp">
+  <a href="index.html#/modtype:S/val:svc_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> svc_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:svc">svc</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:sexp_of_svc">
+  <a href="index.html#/modtype:S/val:sexp_of_svc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_svc : <a href="index.html#/modtype:S/type:svc">svc</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (IO : <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/modtype:IO">IO</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:S/type:svc">svc</a> = <a href="index.html#/type:service">service</a> <span class="keyword">and</span> <span class="keyword">type</span> 'a <a href="index.html#/modtype:S/type:io">io</a> = 'a <a href="index.html#/module:Make/modarg:1:IO">IO</a>.<a href="index.html#/module:Make/modarg:1:IO/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>Functor to construct a concrete resolver using a <a href="../../../../conduit.0.7.2/_build/lib/conduit/">Conduit</a>.<a href="../../../../conduit.0.7.2/_build/lib/conduit/#/modtype:IO">IO</a>
+implementation, usually via either Lwt or Async</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:service_of_sexp">
+  <a href="index.html#/val:service_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> service_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:service">service</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_service">
+  <a href="index.html#/val:sexp_of_service" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_service : <a href="index.html#/type:service">service</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

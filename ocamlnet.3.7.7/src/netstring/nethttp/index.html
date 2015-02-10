@@ -1,0 +1,3058 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Nethttp</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Nethttp</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Basic definitions for the HTTP protocol</h1>
+    </div>
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>These definitions can be used by both HTTP clients and servers, and by
+protocols in the middle, e.g. CGI.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:protocol_version">
+  <a href="index.html#/type:protocol_version" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol_version = int * int
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>A pair of a major and minor version number</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:protocol_attribute">
+  <a href="index.html#/type:protocol_attribute" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol_attribute = [ <div class="cons">| `Secure_https</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:protocol">
+  <a href="index.html#/type:protocol" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol = [ <div class="cons">| `Http <span class="keyword">of</span> <a href="index.html#/type:protocol_version">protocol_version</a> * <a href="index.html#/type:protocol_attribute">protocol_attribute</a> list</div><div class="cons">| `Other</div> ]
+    
+      <div class="doc">
+        
+      <p>The base protocol. RFC 2145 defines how to interpret major and
+minor numbers. In particular, we have:</p>
+      <ul><li><code>`Http((0,9),_)</code> is the ancient HTTP version 0.9</li><li><code>`Http((1,n),_)</code> is the HTTP protocol 1.n. It is expected that
+all these versions are compatible to each other
+except negotiable features.</li><li><code>`Http((m,_),_)</code> for m&gt;1 is regarded as unknown protocol,
+incompatible to any <code>`Http((1,n),_)</code></li><li><code>`Other</code> is anything else (unrecognizes protocol)</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_protocol">
+  <a href="index.html#/val:string_of_protocol" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_protocol : <a href="index.html#/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the string representation, e.g. &quot;HTTP/1.0&quot;. Fails for <code>`Other</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:protocol_of_string">
+  <a href="index.html#/val:protocol_of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> protocol_of_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:protocol">protocol</a>
+    
+      <div class="doc">
+        
+      <p>Parses the protocol string, e.g. &quot;HTTP/1.0&quot;. Returns <code>`Other</code>
+for unrecognized strings</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:http_status">
+  <a href="index.html#/type:http_status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> http_status = [ <div class="cons">| `Continue</div><div class="cons">| `Switching_protocols</div><div class="cons">| `Ok</div><div class="cons">| `Created</div><div class="cons">| `Accepted</div><div class="cons">| `Non_authoritative</div><div class="cons">| `No_content</div><div class="cons">| `Reset_content</div><div class="cons">| `Partial_content</div><div class="cons">| `Multiple_choices</div><div class="cons">| `Moved_permanently</div><div class="cons">| `Found</div><div class="cons">| `See_other</div><div class="cons">| `Not_modified</div><div class="cons">| `Use_proxy</div><div class="cons">| `Temporary_redirect</div><div class="cons">| `Bad_request</div><div class="cons">| `Unauthorized</div><div class="cons">| `Payment_required</div><div class="cons">| `Forbidden</div><div class="cons">| `Not_found</div><div class="cons">| `Method_not_allowed</div><div class="cons">| `Not_acceptable</div><div class="cons">| `Proxy_auth_required</div><div class="cons">| `Request_timeout</div><div class="cons">| `Conflict</div><div class="cons">| `Gone</div><div class="cons">| `Length_required</div><div class="cons">| `Precondition_failed</div><div class="cons">| `Request_entity_too_large</div><div class="cons">| `Request_uri_too_long</div><div class="cons">| `Unsupported_media_type</div><div class="cons">| `Requested_range_not_satisfiable</div><div class="cons">| `Expectation_failed</div><div class="cons">| `Internal_server_error</div><div class="cons">| `Not_implemented</div><div class="cons">| `Bad_gateway</div><div class="cons">| `Service_unavailable</div><div class="cons">| `Gateway_timeout</div><div class="cons">| `Http_version_not_supported</div> ]
+    
+      <div class="doc">
+        
+      <p>HTTP response status:</p>
+      
+      <p><b>Informational (1xx):</b></p>
+      <ul><li><code>`Continue</code></li><li><code>`Switching_protocols</code></li></ul>
+      <p><b>Successful (2xx):</b></p>
+      <ul><li><code>`Ok</code></li><li><code>`Created</code></li><li><code>`Accepted</code></li><li><code>`Non_authoritative</code></li><li><code>`No_content</code></li><li><code>`Reset_content</code></li><li><code>`Partial_content</code></li></ul>
+      <p><b>Redirection (3xx):</b></p>
+      <ul><li><code>`Multiple_choices</code></li><li><code>`Moved_permanently</code></li><li><code>`Found</code></li><li><code>`See_other</code></li><li><code>`Not_modified</code></li><li><code>`Use_proxy</code></li><li><code>`Temporary_redirect</code></li></ul>
+      <p><b>Client error (4xx):</b></p>
+      <ul><li><code>`Bad_request</code></li><li><code>`Unauthorized</code></li><li><code>`Payment_required</code></li><li><code>`Forbidden</code></li><li><code>`Not_found</code></li><li><code>`Method_not_allowed</code></li><li><code>`Not_acceptable</code></li><li><code>`Proxy_auth_required</code></li><li><code>`Request_timeout</code></li><li><code>`Conflict</code></li><li><code>`Gone</code></li><li><code>`Length_required</code></li><li><code>`Precondition_failed</code></li><li><code>`Request_entity_too_large</code></li><li><code>`Request_uri_too_long</code></li><li><code>`Unsupported_media_type</code></li><li><code>`Request_range_not_satisfiable</code></li><li><code>`Expectation_failed</code></li></ul>
+      <p><b>Server Error (5xx):</b></p>
+      <ul><li><code>`Internal_server_error</code></li><li><code>`Not_implemented</code></li><li><code>`Bad_gateway</code></li><li><code>`Service_unavailable</code></li><li><code>`Gateway_timeout</code></li><li><code>`Http_version_not_supported</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int_of_http_status">
+  <a href="index.html#/val:int_of_http_status" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_of_http_status : <a href="index.html#/type:http_status">http_status</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the integer code for a status value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:http_status_of_int">
+  <a href="index.html#/val:http_status_of_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> http_status_of_int : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:http_status">http_status</a>
+    
+      <div class="doc">
+        
+      <p>Returns the status value for an integer code, or raises <code>Not_found</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_http_status">
+  <a href="index.html#/val:string_of_http_status" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_http_status : <a href="index.html#/type:http_status">http_status</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the informational text for a status value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:base_code">
+  <a href="index.html#/val:base_code" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> base_code : int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Allows to handle unknown status codes that are untranslatable by
+<code>http_status_of_int</code>:</p>
+      <ul><li>for a code 100 to 199 the value 100 is returned</li><li>for a code 200 to 299 the value 200 is returned</li><li>for a code 300 to 399 the value 300 is returned</li><li>for a code 400 to 499 the value 400 is returned</li><li>for all other codes 500 is returned</li></ul>
+      <p>E.g.
+</p>
+      <pre><code>  let st =
+    try Nethttp.http_status_of_int code
+    with Not_found -&gt;
+      Nethttp.http_status_of_int (Nethttp.base_code code)</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:http_method">
+  <a href="index.html#/type:http_method" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> http_method = string * string
+    
+      <div class="doc">
+        
+      <p>Method name, URI</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:cache_control_token">
+  <a href="index.html#/type:cache_control_token" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cache_control_token = [ <div class="cons">| `No_store</div><div class="cons">| `Max_age <span class="keyword">of</span> int</div><div class="cons">| `Max_stale <span class="keyword">of</span> int option</div><div class="cons">| `Min_fresh <span class="keyword">of</span> int</div><div class="cons">| `No_transform</div><div class="cons">| `Only_if_cached</div><div class="cons">| `Public</div><div class="cons">| `Private <span class="keyword">of</span> string list</div><div class="cons">| `No_cache <span class="keyword">of</span> string list</div><div class="cons">| `Must_revalidate</div><div class="cons">| `Proxy_revalidate</div><div class="cons">| `S_maxage <span class="keyword">of</span> int</div><div class="cons">| `Extension <span class="keyword">of</span> string * string option</div> ]
+    
+      <div class="doc">
+        
+      <p>The cache control token for the <code>Cache-control</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:etag">
+  <a href="index.html#/type:etag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> etag = [ <div class="cons">| `Weak <span class="keyword">of</span> string</div><div class="cons">| `Strong <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>Entity tags can be weak or strong</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:weak_validator_match">
+  <a href="index.html#/val:weak_validator_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> weak_validator_match : <a href="index.html#/type:etag">etag</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the tags match weakly (see RFC 2616 for definition)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:strong_validator_match">
+  <a href="index.html#/val:strong_validator_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> strong_validator_match : <a href="index.html#/type:etag">etag</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Whether the tags match strongly (see RFC 2616 for definition)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Bad_header_field">
+  <a href="index.html#/exn:Bad_header_field" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Bad_header_field <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Raised when a header field cannot be parsed. The string argument
+is the name of the failing function</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_header">
+  <a href="index.html#/classtype:http_header" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_header = <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_header_ro">
+  <a href="index.html#/classtype:http_header_ro" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_header_ro = <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header_ro">mime_header_ro</a>
+    
+      <div class="doc">
+        
+      <p>The HTTP header is represented as MIME header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_trailer">
+  <a href="index.html#/classtype:http_trailer" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_trailer = <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:http_trailer_ro">
+  <a href="index.html#/classtype:http_trailer_ro" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> http_trailer_ro = <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header_ro">mime_header_ro</a>
+    
+      <div class="doc">
+        
+      <p>The HTTP trailer is represented as MIME header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:status_of_cgi_header">
+  <a href="index.html#/val:status_of_cgi_header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> status_of_cgi_header : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> int * string
+    
+      <div class="doc">
+        
+      <p>Returns the status code and the status text corresponding to the
+<code>Status</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:netscape_cookie">
+  <a href="index.html#/type:netscape_cookie" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> netscape_cookie = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:netscape_cookie/field:cookie_name">
+  <a href="index.html#/type:netscape_cookie/field:cookie_name" class="anchor">#</a>
+  cookie_name
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The name of the cookie</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:netscape_cookie/field:cookie_value">
+  <a href="index.html#/type:netscape_cookie/field:cookie_value" class="anchor">#</a>
+  cookie_value
+  </div>
+  </td><td>: string</td><td>;</td><td>(*</td><td class="doc">The value of the cookie. There are no restrictions on the
+value of the cookie</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:netscape_cookie/field:cookie_expires">
+  <a href="index.html#/type:netscape_cookie/field:cookie_expires" class="anchor">#</a>
+  cookie_expires
+  </div>
+  </td><td>: float option</td><td>;</td><td>(*</td><td class="doc">Expiration:<ul><li><code>None</code>: the cookie expires when the browser session ends.</li><li><code>Some t</code>: the cookie expires at the time <code>t</code> (seconds since
+the epoch)</li></ul></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:netscape_cookie/field:cookie_domain">
+  <a href="index.html#/type:netscape_cookie/field:cookie_domain" class="anchor">#</a>
+  cookie_domain
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">Cookies are bound to a certain domain, i.e. the browser sends
+them only when web pages of the domain are requested:<br/><ul><li><code>None</code>: the domain is the hostname of the server</li><li><code>Some domain</code>: the domain is <code>domain</code></li></ul></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:netscape_cookie/field:cookie_path">
+  <a href="index.html#/type:netscape_cookie/field:cookie_path" class="anchor">#</a>
+  cookie_path
+  </div>
+  </td><td>: string option</td><td>;</td><td>(*</td><td class="doc">Cookies are also bound to certain path prefixes, i.e. the browser
+sends them only when web pages at the path or below are requested.<br/><ul><li><code>None</code>: the path is script name + path_info</li><li><code>Some p</code>: the path is <code>p</code>. With <code>Some &quot;/&quot;</code> you can disable the
+path restriction completely.</li></ul></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/type:netscape_cookie/field:cookie_secure">
+  <a href="index.html#/type:netscape_cookie/field:cookie_secure" class="anchor">#</a>
+  cookie_secure
+  </div>
+  </td><td>: bool</td><td>;</td><td>(*</td><td class="doc">Cookies are also bound to the type of the web server:
+<code>false</code> means servers without SSL, <code>true</code> means servers with
+activated SSL (&quot;https&quot;).</td><td>*)</td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>These are old-style cookies, as introduced by Netscape. For
+a better representation of cookies see the <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Cookie">Cookie</a>
+module.</p>
+      
+      <p>This type is kept for now (and is also not considered as deprecated),
+as the access functions in the <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Header">Header</a> module are more
+complete than those for <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Cookie">Cookie</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:cookie">
+  <a href="index.html#/type:cookie" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cookie = <a href="index.html#/type:netscape_cookie">netscape_cookie</a>
+    
+      <div class="doc">
+        
+      <p>Compatibility name. <b>Deprecated</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:decode_query">
+  <a href="index.html#/val:decode_query" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> decode_query : string <span class="rarr"><span>-&gt;</span></span> string * string
+    
+      <div class="doc">
+        
+      <p>Splits the URI into a &quot;script name&quot; and a &quot;query string&quot;</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:split_host_port">
+  <a href="index.html#/val:split_host_port" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> split_host_port : string <span class="rarr"><span>-&gt;</span></span> string * int option
+    
+      <div class="doc">
+        
+      <p>Splits the <code>Host</code> header in hostname and optional port number.
+Fails on syntax error</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uripath_encode">
+  <a href="index.html#/val:uripath_encode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uripath_encode : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Encodes unsafe characters in URI paths. The slash character is not encoded.
+This function should only be applied to the part before '?'.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uripath_decode">
+  <a href="index.html#/val:uripath_decode" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uripath_decode : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Decodes %XX sequences in URI paths. %2F is forbidden (failure).
+This function should only be applied to the part before '?'.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Parsing and Printing of Headers</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Cookie">
+  <a href="index.html#/module:Cookie" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Cookie : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Cookie/type:t">
+  <a href="index.html#/module:Cookie/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Functions to manipulate cookies.</p>
+      
+      <p>You should know that besides the <code>name</code> and <code>value</code> attribute,
+user agents will send at most the <code>path</code>, <code>domain</code> and <code>port</code> and
+usually will not send them at all.</p>
+      
+      <p>For interoperability, cookies are set using version 0 (by
+Netscape) unless version 1 (RFC 2965 and the older RFC 2109)
+fields are set. While version 0 is well supported by browsers,
+RFC 2109 requires a recent browser and RFC 2965 is usually not
+supported. You do not have to worry however, cookies are always
+sent in such a way older browsers understand them -- albeit not
+all attributes of course -- so your application can be ready for
+the time RFC 2965 will be the norm.</p>
+      
+      <p>This cookie representation is preferred over the Netscape-only
+type <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:netscape_cookie">netscape_cookie</a>.</p>
+      
+      <p>N.B. This module appears also as <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/module:Cookie">Cookie</a>.</p>
+      
+      <p>Mutable cookie type</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:make">
+  <a href="index.html#/module:Cookie/val:make" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make : ?max_age:int <span class="rarr"><span>-&gt;</span></span> ?domain:string <span class="rarr"><span>-&gt;</span></span> ?path:string <span class="rarr"><span>-&gt;</span></span> ?secure:bool <span class="rarr"><span>-&gt;</span></span> ?comment:string <span class="rarr"><span>-&gt;</span></span> ?comment_url:string <span class="rarr"><span>-&gt;</span></span> ?ports:int list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Cookie/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>make ?expires ?domain ?path ?secure name value</code> creates a new
+cookie with name <code>name</code> holding <code>value</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">max_age</span> see [root:Netcgi].Cookie.set_max_age.
+Default: when user agent exits.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">domain</span> see [root:Netcgi].Cookie.set_domain.
+Default: hostname of the server.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">path</span> see [root:Netcgi].Cookie.set_path.
+Default: script name + path_info.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">secure</span> see [root:Netcgi].Cookie.set_secure. Default: <code>false</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">comment</span> see [root:Netcgi].Cookie.set_comment. Default: <code>&quot;&quot;</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">comment_url</span> see [root:Netcgi].Cookie.set_comment_url.
+Default: <code>&quot;&quot;</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">ports</span> see [root:Netcgi].Cookie.set_ports.
+Default: same port the cookie was sent.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:name">
+  <a href="index.html#/module:Cookie/val:name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The name of the cookie.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:value">
+  <a href="index.html#/module:Cookie/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The value of the cookie.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:domain">
+  <a href="index.html#/module:Cookie/val:domain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> domain : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>The domain of the cookie, if set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:path">
+  <a href="index.html#/module:Cookie/val:path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> path : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p>The path of the cookie, if set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:ports">
+  <a href="index.html#/module:Cookie/val:ports" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ports : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int list option
+    
+      <div class="doc">
+        
+      <p><code>port c</code> the ports to which the cookie may be returned or <code>[]</code> if
+not set.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:max_age">
+  <a href="index.html#/module:Cookie/val:max_age" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_age : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option
+    
+      <div class="doc">
+        
+      <p>The expiration time of the cookie, in seconds. <code>None</code> means
+that the cookie will be discarded when the browser exits.
+This information is not returned by the browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:secure">
+  <a href="index.html#/module:Cookie/val:secure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> secure : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Tells whether the cookie is secure.
+This information is not returned by the browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:comment">
+  <a href="index.html#/module:Cookie/val:comment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the comment associated to the cookie or <code>&quot;&quot;</code> if it
+does not exists. This information is not returned by the
+browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:comment_url">
+  <a href="index.html#/module:Cookie/val:comment_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> comment_url : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the comment URL associated to the cookie or <code>&quot;&quot;</code> if it
+does not exists. This information is not returned by the
+browser.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_value">
+  <a href="index.html#/module:Cookie/val:set_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_value : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_value c v</code> sets the value of the cookie <code>c</code> to <code>v</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_max_age">
+  <a href="index.html#/module:Cookie/val:set_max_age" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_max_age : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_max_age c (Some t)</code> sets the lifetime of the cookie <code>c</code>
+to <code>t</code> seconds. If <code>t &lt;= 0</code>, it means that the cookie should
+be discarded immediately. <code>set_expires c None</code> tells the
+cookie to be discarded when the user agent exits. (Despite
+the fact that the name is borrowed from the version 1 of the
+specification, it works transparently with version 0.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_domain">
+  <a href="index.html#/module:Cookie/val:set_domain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_domain : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cookies are bound to a certain domain, i.e. the browser sends
+them only when web pages of the domain are requested:</p>
+      <ul><li><code>None</code>: the domain is the hostname of the server.</li><li><code>Some domain</code>: the domain is <code>domain</code>.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_path">
+  <a href="index.html#/module:Cookie/val:set_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_path : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cookies are also bound to certain path prefixes, i.e. the
+browser sends them only when web pages at the path or below are
+requested.</p>
+      <ul><li><code>None</code>: the path is script name + path_info</li><li><code>Some p</code>: the path is <code>p</code>. With <code>Some &quot;/&quot;</code> you can disable the
+path restriction completely.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_secure">
+  <a href="index.html#/module:Cookie/val:set_secure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_secure : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Cookies are also bound to the type of the web server:
+<code>set_secure false</code> means servers without SSL, <code>set_secure
+        true</code> means servers with activated SSL (&quot;https&quot;).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_comment">
+  <a href="index.html#/module:Cookie/val:set_comment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_comment : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_comment c s</code> sets the comment of the cookie <code>c</code> to <code>s</code>
+which must be UTF-8 encoded (RFC 2279). Because cookies can
+store personal information, the comment should describe how
+the cookie will be used so the client can decide whether to
+allow the cookie or not. To cancel a comment, set it to <code>&quot;&quot;</code>.</p>
+      
+      <p>Cookie version 1 (RFC 2109).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_comment_url">
+  <a href="index.html#/module:Cookie/val:set_comment_url" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_comment_url : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_comment_url c url</code> same as <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/module:Cookie">Cookie</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/module:Cookie/val:set_comment">set_comment</a>
+except that the cookie comment is available on the page
+pointed by <code>url</code>. To cancel, set it to <code>&quot;&quot;</code>.</p>
+      
+      <p>Cookie version 1 (RFC 2965).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:set_ports">
+  <a href="index.html#/module:Cookie/val:set_ports" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_ports : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int list option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set ports c (Some p)</code> says that the cookie <code>c</code> must only be
+returned if the server request comes from one of the listed
+ports. If <code>p = []</code>, the cookie will only be sent to the
+request-port it was received from. <code>set_ports c None</code> says
+that the cookie may be sent to any port.</p>
+      
+      <p>Cookie version 1 (RFC 2965).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:of_netscape_cookie">
+  <a href="index.html#/module:Cookie/val:of_netscape_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_netscape_cookie : <a href="index.html#/type:netscape_cookie">netscape_cookie</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Cookie/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Convert a Netscape cookie to the new representation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Cookie/val:to_netscape_cookie">
+  <a href="index.html#/module:Cookie/val:to_netscape_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_netscape_cookie : <a href="index.html#/module:Cookie/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:netscape_cookie">netscape_cookie</a>
+    
+      <div class="doc">
+        
+      <p>Convert to Netscape cookie (with information loss)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header">
+  <a href="index.html#/module:Header" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Header : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This module is a parser/printer for the header fields used in HTTP/1.1.
+The <code>get_*</code> functions generally raise <code>Not_found</code> when the queried header
+is not present. If the syntax of the field is a comma-separated list of
+multiple values, the <code>get_*</code> functions generally merge all headers of
+the same type. The order is preserved in this case. The list <code>[]</code> means
+that the header exists, but only with empty value. For example,</p>
+      <pre><code>      Accept: text/html
+      Accept: text/plain</code></pre>
+      <p>would be returned as <code>[&quot;text/html&quot;,[],[]; &quot;text/plain&quot;, [],[]]</code>
+by <code>get_accept</code>. The header</p>
+      <pre><code>Accept:</code></pre>
+      <p>would be returned as <code>[]</code>.</p>
+      
+      <p>The <code>set_*</code> functions generally produce only a single header with comma-
+separated values. Existing header are overwritten/removed.</p>
+      
+      <p>To remove a header, simply use the <code>delete_field</code> method of <code>http_header</code>.</p>
+      
+      <p>Error behaviour: The <code>get_*</code> functions raise <code>Bad_header_field</code>
+when they cannot parse a header field. The <code>set_*</code> functions
+raise <code>Invalid_argument</code> when an invalid value is passed to them
+(only very few functions do that). The argument of both
+exceptions is the function name.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Header/val:get_accept">
+  <a href="index.html#/module:Header/val:get_accept" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_accept : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Accept</code> header as list of triples <code>(media_range,
+        media_range_params, accept_params)</code>. If there are
+<code>accept_params</code>, the first such parameter is always <code>&quot;q&quot;</code>.</p>
+      
+      <p>All present <code>Accept</code> headers are merged. The function returns
+<code>[]</code> when there is at least one <code>Accept</code> header, but none of
+the headers has a non-empty value. The function raises
+<code>Not_found</code> if there no such headers at all (which should be
+interpreted as <code>[&quot;*/*&quot;,[],[] ]</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:best_media_type">
+  <a href="index.html#/module:Header/val:best_media_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> best_media_type : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string * (string * string) list
+    
+      <div class="doc">
+        
+      <p>Returns the best media type for a header and a list of supported types.
+If any type is acceptable, &quot;*/*&quot; will be returned. If no type is
+acceptable, &quot;&quot; will be returned.
+The supported media types should be sorted such that the best type
+is mentioned first.
+Of several media types with equal quality the one mentioned first in the
+list of supported types is chosen. In case several types in the Accept:
+header match the same type in the list of supported types, the most
+specific type is chosen.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_accept">
+  <a href="index.html#/module:Header/val:set_accept" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_accept : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Accept</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_accept_charset">
+  <a href="index.html#/module:Header/val:get_accept_charset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_accept_charset : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Accept-charset</code> header as list of pairs <code>(charset,params)</code>.
+The only mentioned parameter in RFC 2616 is <code>&quot;q&quot;</code>.</p>
+      
+      <p>All present <code>Accept-charset</code> headers are merged. The function
+raises <code>Not_found</code> when there is no <code>Accept-charset</code> header
+(which should be interpreted as <code>[&quot;*&quot;,[]]</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:best_charset">
+  <a href="index.html#/module:Header/val:best_charset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> best_charset : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the best charset for a header and a list of supported charsets.
+If any charset is acceptable, &quot;*&quot; will be returned.
+The supported charsets should be sorted such that the best charset
+is mentioned first.</p>
+      
+      <p>This function already implements the special handling of ISO-8859-1
+mentioned in RFC 2616.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_accept_charset">
+  <a href="index.html#/module:Header/val:set_accept_charset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_accept_charset : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Accept-charset</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_accept_encoding">
+  <a href="index.html#/module:Header/val:get_accept_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_accept_encoding : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Accept-encoding</code> header as list of pairs <code>(coding,params)</code>.
+The only mentioned parameter in RFC 2616 is <code>&quot;q&quot;</code>. The RFC describes
+compatibility problems with the &quot;q&quot; parameter.</p>
+      
+      <p>All present <code>Accept-encoding</code> headers are merged. The function
+raises <code>Not_found</code> when there is no <code>Accept-encoding</code> header
+(which should be interpreted as <code>[&quot;identity&quot;,[]]</code>). The
+return value <code>[]</code> must be interpreted as <code>[&quot;identity&quot;,[]]</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:best_encoding">
+  <a href="index.html#/module:Header/val:best_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> best_encoding : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the best encoding for a header and a list of supported
+encodings. If anything else fails, &quot;identity&quot; will be
+returned. The supported encodings should be sorted such that
+the best encoding is mentioned first.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_accept_encoding">
+  <a href="index.html#/module:Header/val:set_accept_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_accept_encoding : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Accept-encoding</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_accept_language">
+  <a href="index.html#/module:Header/val:get_accept_language" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_accept_language : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Accept-language</code> header as list of pairs
+<code>(lang_range,params)</code>. The only mentioned parameter in RFC
+2616 is <code>&quot;q&quot;</code>.</p>
+      
+      <p>All present <code>Accept-language</code> headers are merged. The function
+raises <code>Not_found</code> when there is no <code>Accept-language</code> header
+(which should be interpreted as <code>[&quot;*&quot;,[]]</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_accept_language">
+  <a href="index.html#/module:Header/val:set_accept_language" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_accept_language : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Accept-language</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_accept_ranges">
+  <a href="index.html#/module:Header/val:get_accept_ranges" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_accept_ranges : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Accept-ranges</code> header as list of tokens.</p>
+      
+      <p>All present <code>Accept-ranges</code> headers are merged. The function
+raises <code>Not_found</code> when there is no <code>Accept-ranges</code>
+header. The RFC leaves it open how this is to be interpreted
+in general.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_accept_ranges">
+  <a href="index.html#/module:Header/val:set_accept_ranges" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_accept_ranges : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Accept-ranges</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_age">
+  <a href="index.html#/module:Header/val:get_age" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_age : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Age</code> header as number</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_age">
+  <a href="index.html#/module:Header/val:set_age" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_age : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Age</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_allow">
+  <a href="index.html#/module:Header/val:get_allow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_allow : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Allow</code> header as list of tokens.</p>
+      
+      <p>All present <code>Allow</code> headers are merged. The function raises <code>Not_found</code>
+when there is no <code>Allow</code> header. The RFC leaves it open how this is
+to be interpreted in general.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_allow">
+  <a href="index.html#/module:Header/val:set_allow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_allow : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Allow</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_authorization">
+  <a href="index.html#/module:Header/val:get_authorization" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_authorization : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string * (string * string) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Authorization</code> header as pair <code>(auth_scheme,auth_params)</code>,
+or raises <code>Not_found</code> if not present.</p>
+      
+      <p>The &quot;Basic&quot; authentication scheme is represented specially as
+<code>(&quot;basic&quot;, [ &quot;credentials&quot;, creds ])</code> where <code>creds</code> are the
+Base64-encoded credentials.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_authorization">
+  <a href="index.html#/module:Header/val:set_authorization" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_authorization : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string * (string * string) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Authorization</code> header.
+The &quot;Basic&quot; authentication scheme is represented as explained for
+<code>get_authorization</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_cache_control">
+  <a href="index.html#/module:Header/val:get_cache_control" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cache_control : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cache_control_token">cache_control_token</a> list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Cache-control</code> header as list of tokens.</p>
+      
+      <p>All present <code>Cache-control</code> headers are merged. The function
+raises <code>Not_found</code> when there is no <code>Cache-control</code> header.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_cache_control">
+  <a href="index.html#/module:Header/val:set_cache_control" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_cache_control : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:cache_control_token">cache_control_token</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Cache-control</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_connection">
+  <a href="index.html#/module:Header/val:get_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_connection : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Connection</code> header as list of tokens.</p>
+      
+      <p>All present <code>Connection</code> headers are merged. The function
+raises <code>Not_found</code> when there is no <code>Connection</code> header.</p>
+      
+      <p>The Connection header must be ignored when received from a
+HTTP/1.0 client.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_connection">
+  <a href="index.html#/module:Header/val:set_connection" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_connection : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Connection</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_content_encoding">
+  <a href="index.html#/module:Header/val:get_content_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_content_encoding : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Content-encoding</code> header as list of tokens.</p>
+      
+      <p>All present <code>Content-encoding</code> headers are merged.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when there is no <code>Content-encoding</code> header.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_content_encoding">
+  <a href="index.html#/module:Header/val:set_content_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_content_encoding : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Content-encoding</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_content_language">
+  <a href="index.html#/module:Header/val:get_content_language" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_content_language : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Content-language</code> header as list of tokens.</p>
+      
+      <p>All present <code>Content-language</code> headers are merged.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when there is no <code>Content-language</code> header.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_content_language">
+  <a href="index.html#/module:Header/val:set_content_language" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_content_language : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Content-language</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_content_length">
+  <a href="index.html#/module:Header/val:get_content_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_content_length : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> int64
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Content-length</code> header as number. If the number
+is too big for int64, the exception <code>Bad_header_field
+        &quot;Content-length&quot;</code> will be raised.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_content_length">
+  <a href="index.html#/module:Header/val:set_content_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_content_length : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> int64 <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Content-length</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_content_location">
+  <a href="index.html#/module:Header/val:get_content_location" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_content_location : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Content-location</code> header as string.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_content_location">
+  <a href="index.html#/module:Header/val:set_content_location" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_content_location : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Content-location</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_content_md5">
+  <a href="index.html#/module:Header/val:get_content_md5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_content_md5 : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Content-MD5</code> header as string. The Base64 encoding
+has not been touched.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_content_md5">
+  <a href="index.html#/module:Header/val:set_content_md5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_content_md5 : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Content-MD5</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_content_range">
+  <a href="index.html#/module:Header/val:get_content_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_content_range : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Bytes <span class="keyword">of</span> (int64 * int64) option * int64 option</div> ]
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Content-range</code> header as
+<code>`Bytes(byte_range_resp_spec, instance_length)</code>. The option value
+<code>None</code> corresponds to &quot;*&quot; in the RFC.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_content_range">
+  <a href="index.html#/module:Header/val:set_content_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_content_range : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Bytes <span class="keyword">of</span> (int64 * int64) option * int64 option</div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Content-range</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_content_type">
+  <a href="index.html#/module:Header/val:get_content_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_content_type : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string * (string * string) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Content-type</code> header as pair <code>(media_type, params)</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_content_type">
+  <a href="index.html#/module:Header/val:set_content_type" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_content_type : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string * (string * string) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Content-type</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_date">
+  <a href="index.html#/module:Header/val:get_date" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_date : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Date</code> header as number (seconds since the Epoch).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_date">
+  <a href="index.html#/module:Header/val:set_date" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_date : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Date</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_etag">
+  <a href="index.html#/module:Header/val:get_etag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_etag : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a>
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Etag</code> header.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_etag">
+  <a href="index.html#/module:Header/val:set_etag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_etag : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Etag</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_expect">
+  <a href="index.html#/module:Header/val:get_expect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_expect : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * string option * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Expect</code> header as list of triples <code>(token,value,params)</code>.</p>
+      
+      <p>All present <code>Expect</code> headers are merged.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when there is no <code>Expect</code> header.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_expect">
+  <a href="index.html#/module:Header/val:set_expect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_expect : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * string option * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Expect</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_expires">
+  <a href="index.html#/module:Header/val:get_expires" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_expires : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Expires</code> header as number (seconds since the Epoch).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_expires">
+  <a href="index.html#/module:Header/val:set_expires" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_expires : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Expires</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_from">
+  <a href="index.html#/module:Header/val:get_from" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_from : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the <code>From</code> header as string.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_from">
+  <a href="index.html#/module:Header/val:set_from" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_from : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>From</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_host">
+  <a href="index.html#/module:Header/val:get_host" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_host : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string * int option
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Host</code> header as pair <code>(host,port)</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_host">
+  <a href="index.html#/module:Header/val:set_host" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_host : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string * int option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Host</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_if_match">
+  <a href="index.html#/module:Header/val:get_if_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_if_match : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a> list option
+    
+      <div class="doc">
+        
+      <p>Returns the <code>If-match</code> header. The value <code>None</code> means &quot;*&quot;.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_if_match">
+  <a href="index.html#/module:Header/val:set_if_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_if_match : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a> list option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>If-match</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_if_modified_since">
+  <a href="index.html#/module:Header/val:get_if_modified_since" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_if_modified_since : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Returns the <code>If-modified-since</code> header as number (seconds
+since the Epoch).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_if_modified_since">
+  <a href="index.html#/module:Header/val:set_if_modified_since" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_if_modified_since : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>If-modified-since</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_if_none_match">
+  <a href="index.html#/module:Header/val:get_if_none_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_if_none_match : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a> list option
+    
+      <div class="doc">
+        
+      <p>Returns the <code>If-none-match</code> header. The value <code>None</code> means &quot;*&quot;.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_if_none_match">
+  <a href="index.html#/module:Header/val:set_if_none_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_if_none_match : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:etag">etag</a> list option <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>If-none-match</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_if_range">
+  <a href="index.html#/module:Header/val:get_if_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_if_range : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Etag <span class="keyword">of</span> <a href="index.html#/type:etag">etag</a></div><div class="cons">| `Date <span class="keyword">of</span> float</div> ]
+    
+      <div class="doc">
+        
+      <p>Returns the <code>If-range</code> header.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_if_range">
+  <a href="index.html#/module:Header/val:set_if_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_if_range : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Etag <span class="keyword">of</span> <a href="index.html#/type:etag">etag</a></div><div class="cons">| `Date <span class="keyword">of</span> float</div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>If-range</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_if_unmodified_since">
+  <a href="index.html#/module:Header/val:get_if_unmodified_since" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_if_unmodified_since : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Returns the <code>If-unmodified-since</code> header as number (seconds
+since the Epoch).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_if_unmodified_since">
+  <a href="index.html#/module:Header/val:set_if_unmodified_since" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_if_unmodified_since : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>If-unmodified-since</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_last_modified">
+  <a href="index.html#/module:Header/val:get_last_modified" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_last_modified : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Last-modified</code> header as number (seconds since the Epoch).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_last_modified">
+  <a href="index.html#/module:Header/val:set_last_modified" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_last_modified : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Last-modified</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_location">
+  <a href="index.html#/module:Header/val:get_location" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_location : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Location</code> header as string.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_location">
+  <a href="index.html#/module:Header/val:set_location" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_location : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Location</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_max_forwards">
+  <a href="index.html#/module:Header/val:get_max_forwards" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_max_forwards : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Max-forwards</code> header as number.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_max_forwards">
+  <a href="index.html#/module:Header/val:set_max_forwards" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_max_forwards : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Max-forwards</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_pragma">
+  <a href="index.html#/module:Header/val:get_pragma" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_pragma : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * string option) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Pragma</code> header as list of pairs <code>(token,value)</code>.</p>
+      
+      <p>All present <code>Pragma</code> headers are merged.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when there is no <code>Pragma</code> header.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_pragma">
+  <a href="index.html#/module:Header/val:set_pragma" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_pragma : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * string option) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Pragma</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_proxy_authenticate">
+  <a href="index.html#/module:Header/val:get_proxy_authenticate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_proxy_authenticate : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Proxy-authenticate</code> header as list of challenges
+<code>(auth_scheme,auth_params)</code>.</p>
+      
+      <p>All present <code>Proxy-authenticate</code> headers are merged.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when there is no <code>Proxy-authenticate</code> header.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_proxy_authenticate">
+  <a href="index.html#/module:Header/val:set_proxy_authenticate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_proxy_authenticate : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Proxy-authenticate</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_proxy_authorization">
+  <a href="index.html#/module:Header/val:get_proxy_authorization" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_proxy_authorization : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string * (string * string) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Proxy-authorization</code> header as pair
+<code>(auth_scheme,auth_params)</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is
+missing.<br/>The &quot;Basic&quot; authentication scheme is represented specially as
+<code>(&quot;basic&quot;, [ &quot;credentials&quot;, creds ])</code> where <code>creds</code> are the
+Base64-encoded credentials.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_proxy_authorization">
+  <a href="index.html#/module:Header/val:set_proxy_authorization" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_proxy_authorization : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string * (string * string) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Proxy-authorization</code> header
+The &quot;Basic&quot; authentication scheme is represented as explained for
+<code>get_proxy_authorization</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_range">
+  <a href="index.html#/module:Header/val:get_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_range : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Bytes <span class="keyword">of</span> (int64 option * int64 option) list</div> ]
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Range</code> header as <code>`Bytes ranges</code>, where the list <code>ranges</code>
+has elements of the form <code>(Some first_pos, Some last_pos)</code>,
+<code>(Some first_pos, None)</code> (prefix range), or <code>(None, Some
+        last_pos)</code> (suffix range).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_range">
+  <a href="index.html#/module:Header/val:set_range" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_range : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Bytes <span class="keyword">of</span> (int64 option * int64 option) list</div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Range</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_referer">
+  <a href="index.html#/module:Header/val:get_referer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_referer : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Referer</code> header as string.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_referrer">
+  <a href="index.html#/module:Header/val:get_referrer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_referrer : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Same, for addicts of correct orthography</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_referer">
+  <a href="index.html#/module:Header/val:set_referer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_referer : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Referer</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_referrer">
+  <a href="index.html#/module:Header/val:set_referrer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_referrer : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Same, for addicts of correct orthography</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_retry_after">
+  <a href="index.html#/module:Header/val:get_retry_after" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_retry_after : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Date <span class="keyword">of</span> float</div><div class="cons">| `Seconds <span class="keyword">of</span> int</div> ]
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Retry-after</code> header.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_retry_after">
+  <a href="index.html#/module:Header/val:set_retry_after" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_retry_after : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Date <span class="keyword">of</span> float</div><div class="cons">| `Seconds <span class="keyword">of</span> int</div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Retry-after</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_server">
+  <a href="index.html#/module:Header/val:get_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_server : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Server</code> header as uninterpreted string (including
+comments).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> when the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_server">
+  <a href="index.html#/module:Header/val:set_server" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_server : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Server</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_te">
+  <a href="index.html#/module:Header/val:get_te" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_te : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>TE</code> header as list of triples
+<code>(te_token, te_params, accept_params)</code>.
+If there are <code>accept_params</code>, the first such parameter is always <code>&quot;q&quot;</code>.</p>
+      
+      <p>All present <code>TE</code> headers are merged. The function returns <code>[]</code> when
+there is at least one <code>TE</code> header, but none of the headers has a
+non-empty value.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if there no such headers at all.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_te">
+  <a href="index.html#/module:Header/val:set_te" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_te : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>TE</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_trailer">
+  <a href="index.html#/module:Header/val:get_trailer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_trailer : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Trailer</code> header as list of field names.</p>
+      
+      <p>All present <code>Trailer</code> headers are merged. The function returns
+<code>[]</code> when there is at least one <code>Trailer</code> header, but none of
+the headers has a non-empty value.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if there no such headers at all.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_trailer">
+  <a href="index.html#/module:Header/val:set_trailer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_trailer : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Trailer</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_transfer_encoding">
+  <a href="index.html#/module:Header/val:get_transfer_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_transfer_encoding : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Transfer-encoding</code> header as list of pairs
+<code>(token, params)</code>.</p>
+      
+      <p>All present <code>Transfer-encoding</code> headers are merged. The
+function returns <code>[]</code> when there is at least one
+<code>Transfer-encoding</code> header, but none of the headers has a
+non-empty value.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if there no such headers at all.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_transfer_encoding">
+  <a href="index.html#/module:Header/val:set_transfer_encoding" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_transfer_encoding : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Transfer-encoding</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_upgrade">
+  <a href="index.html#/module:Header/val:get_upgrade" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_upgrade : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Upgrade</code> header as list of products.</p>
+      
+      <p>All present <code>Upgrade</code> headers are merged. The function returns
+<code>[]</code> when there is at least one <code>Upgrade</code> header, but none of
+the headers has a non-empty value.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if there no such headers at all.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_upgrade">
+  <a href="index.html#/module:Header/val:set_upgrade" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_upgrade : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Upgrade</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_user_agent">
+  <a href="index.html#/module:Header/val:get_user_agent" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_user_agent : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the <code>User-agent</code> header as uninterpreted string
+(including comments).</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_user_agent">
+  <a href="index.html#/module:Header/val:set_user_agent" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_user_agent : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>User-agent</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_vary">
+  <a href="index.html#/module:Header/val:get_vary" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_vary : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Star</div><div class="cons">| `Fields <span class="keyword">of</span> string list</div> ]
+    
+      <div class="doc">
+        
+      <p>Returns the <code>Vary</code> header.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_vary">
+  <a href="index.html#/module:Header/val:set_vary" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_vary : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Star</div><div class="cons">| `Fields <span class="keyword">of</span> string list</div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>Vary</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_www_authenticate">
+  <a href="index.html#/module:Header/val:get_www_authenticate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_www_authenticate : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list
+    
+      <div class="doc">
+        
+      <p>Returns the <code>WWW-Authenticate</code> header as list of challenges
+<code>(auth_scheme,auth_params)</code>.</p>
+      
+      <p>All present <code>WWW-Authenticate</code> headers are merged.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Not_found</code> if the header is missing.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_www_authenticate">
+  <a href="index.html#/module:Header/val:set_www_authenticate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_www_authenticate : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * (string * string) list) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Sets the <code>WWW-Authenticate</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_cookie">
+  <a href="index.html#/module:Header/val:get_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cookie : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> (string * string) list
+    
+      <div class="doc">
+        
+      <p>Get the (Netscape) cookies as (name,value) pairs (or Not_found).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_cookie_ct">
+  <a href="index.html#/module:Header/val:get_cookie_ct" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_cookie_ct : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Cookie">Cookie</a>.<a href="index.html#/module:Cookie/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p>Get the cookies in the <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Cookie">Cookie</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/module:Cookie/type:t">t</a> representation
+(the suffix &quot;_ct&quot; reminds of <code>Cookie.t</code>).
+This function also supports version 1 cookies.
+Returns the empty list if there are no cookies.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_cookie">
+  <a href="index.html#/module:Header/val:set_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_cookie : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> (string * string) list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the <code>Cookie</code> header. Note: This does not set cookies in the client,
+use <code>set_set_cookie</code> instead!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:get_set_cookie">
+  <a href="index.html#/module:Header/val:get_set_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_set_cookie : <a href="index.html#/classtype:http_header_ro">http_header_ro</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:netscape_cookie">netscape_cookie</a> list
+    
+      <div class="doc">
+        
+      <p>Get the <code>Set-Cookie</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_set_cookie">
+  <a href="index.html#/module:Header/val:set_set_cookie" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_set_cookie : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:netscape_cookie">netscape_cookie</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the <code>Set-Cookie</code> header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Header/val:set_set_cookie_ct">
+  <a href="index.html#/module:Header/val:set_set_cookie_ct" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_set_cookie_ct : <a href="index.html#/classtype:http_header">http_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Cookie">Cookie</a>.<a href="index.html#/module:Cookie/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Set the <code>Set-Cookie</code> and <code>Set-Cookie2</code> headers:</p>
+      
+      <p><code>set_set_cookie_ct header cookies</code> sets the <code>cookies</code> in <code>header</code>
+using version 0 or version 1 depending on whether version 1
+fields are used. For better browser compatibility, if
+&quot;Set-cookie2&quot; (RFC 2965) is issued, then a &quot;Set-cookie&quot;
+precedes (declaring the same cookie with a limited number of
+options).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

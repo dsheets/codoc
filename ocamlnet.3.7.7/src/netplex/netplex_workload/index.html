@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netplex_workload</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netplex_workload</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Workload management</p>
+      
+      <p>Workload managers control when additional containers are started or
+idle containers are stopped. See [root:Netplex_intro].workload for
+additional documentation how they are configured.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:create_constant_workload_manager">
+  <a href="index.html#/val:create_constant_workload_manager" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_constant_workload_manager : ?restart:bool <span class="rarr"><span>-&gt;</span></span> ?greedy_accepts:bool <span class="rarr"><span>-&gt;</span></span> ?max_jobs_per_thread:int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:workload_manager">workload_manager</a>
+    
+      <div class="doc">
+        
+      <p>A constant number of threads is created (the int argument).</p>
+      
+      <p><code>restart</code>: If threads
+crash, new threads are created until the specified number is again
+reached. This is on by default.</p>
+      
+      <p><code>greedy_accepts</code>: whether greedy accepts are allowed (default: false)</p>
+      
+      <p><code>max_jobs_per_thread</code>: if passed, limits the number of jobs (connections)
+that can be simultaneously processed by a thread/process. By default
+there is no limit.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:constant_workload_manager_factory">
+  <a href="index.html#/val:constant_workload_manager_factory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> constant_workload_manager_factory : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:workload_manager_factory">workload_manager_factory</a>
+    
+      <div class="doc">
+        
+      <p>Reads a workload_manager section like</p>
+      <pre><code>workload_manager {
+           type = &quot;constant&quot;;
+           threads = &lt;n&gt;;
+           max_jobs_per_thread = &lt;n&gt;;
+           greedy_accepts = &lt;bool&gt;;
+         }</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:dynamic_workload_config">
+  <a href="index.html#/classtype:dynamic_workload_config" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> dynamic_workload_config = 
+  <div class="region" id="/classtype:dynamic_workload_config/method:max_jobs_per_thread">
+  <a href="index.html#/classtype:dynamic_workload_config/method:max_jobs_per_thread" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> max_jobs_per_thread : int
+  
+      <div class="doc">
+        
+      <p>How many jobs every thread can execute concurrently until it is
+considered as fully loaded. For configurations where the threads
+can only handle one connection at a time this number must be 1.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:dynamic_workload_config/method:recommended_jobs_per_thread">
+  <a href="index.html#/classtype:dynamic_workload_config/method:recommended_jobs_per_thread" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> recommended_jobs_per_thread : int
+  
+      <div class="doc">
+        
+      <p>The number of jobs every thread can execute with normal
+service quality. Must be less than or equal to
+<code>max_jobs_per_thread</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:dynamic_workload_config/method:min_free_job_capacity">
+  <a href="index.html#/classtype:dynamic_workload_config/method:min_free_job_capacity" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> min_free_job_capacity : int
+  
+      <div class="doc">
+        
+      <p>The manager starts as many threads as required to ensure that this
+number of jobs can be executed. Must be at least 1.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:dynamic_workload_config/method:max_free_job_capacity">
+  <a href="index.html#/classtype:dynamic_workload_config/method:max_free_job_capacity" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> max_free_job_capacity : int
+  
+      <div class="doc">
+        
+      <p>If more job capacity is available than this number, threads are
+terminated. Must be greater than or equal to
+<code>min_free_job_capacity</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:dynamic_workload_config/method:inactivity_timeout">
+  <a href="index.html#/classtype:dynamic_workload_config/method:inactivity_timeout" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> inactivity_timeout : int
+  
+      <div class="doc">
+        
+      <p>After this number of seconds a free thread can be terminated</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:dynamic_workload_config/method:max_threads">
+  <a href="index.html#/classtype:dynamic_workload_config/method:max_threads" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> max_threads : int
+  
+      <div class="doc">
+        
+      <p>The manager does not start more threads than this number</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:dynamic_workload_config/method:greedy_accepts">
+  <a href="index.html#/classtype:dynamic_workload_config/method:greedy_accepts" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> greedy_accepts : bool
+  
+      <div class="doc">
+        
+      <p>Whether greedy accepts are permitted</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_dynamic_workload_manager">
+  <a href="index.html#/val:create_dynamic_workload_manager" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_dynamic_workload_manager : <a href="index.html#/classtype:dynamic_workload_config">dynamic_workload_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:workload_manager">workload_manager</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dynamic_workload_manager_factory">
+  <a href="index.html#/val:dynamic_workload_manager_factory" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dynamic_workload_manager_factory : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:workload_manager_factory">workload_manager_factory</a>
+    
+      <div class="doc">
+        
+      <p>Reads a workload_manager section like</p>
+      <pre><code>workload_manager {
+           type = &quot;dynamic&quot;;
+           max_jobs_per_thread = &lt;n&gt;;
+           min_free_jobs_capacity = &lt;n&gt;;
+           max_free_jobs_capacity = &lt;n&gt;;
+           max_threads = &lt;n&gt;;
+           greedy_accepts = &lt;bool&gt;;
+         }</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:workload_manager_factories">
+  <a href="index.html#/val:workload_manager_factories" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> workload_manager_factories : <a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/">Netplex_types</a>.<a href="../../../../ocamlnet.3.7.7/src/netplex/netplex_types/#/classtype:workload_manager_factory">workload_manager_factory</a> list
+    
+      <div class="doc">
+        
+      <p>All built-in workload manager factories</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

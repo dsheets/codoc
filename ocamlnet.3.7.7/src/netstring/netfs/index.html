@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netfs</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netfs</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Class type <code>stream_fs</code> for filesystems with stream access to files</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>The class type <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:stream_fs">stream_fs</a>
+is an abstraction for both kernel-level and user-level
+filesystems. It is used as parameter for algorithms (like globbing)
+that operate on filesystems but do not want to assume any particular
+filesystem. Only stream access is provided (no seek).</p>
+      
+      <p><b>File paths:</b></p>
+      
+      <p>The filesystem supports hierarchical file names. File paths use
+Unix conventions, i.e.</p>
+      <ul><li><code>/</code> is the root</li><li>Path components are separated by slashes. Several consecutive slashes
+are allowed but mean the same as a single slash.</li><li><code>.</code> is the same directory</li><li><code>..</code> is the parent directory</li></ul>
+      <p>All paths need to be absolute (i.e. start with <code>/</code>).</p>
+      
+      <p>There can be additional constraints on paths:</p>
+      <ul><li>Character encoding restriction: A certain ASCII-compatible character
+encoding is assumed (including UTF-8)</li><li>Character exclusion: Certain characters may be excluded</li></ul>
+      <p>Implementations may impose more constraints that cannot be expressed
+here (case insensitivity, path length, exclusion of special names etc.).</p>
+      
+      <p><b>Virtuality:</b></p>
+      
+      <p>There is no assumption that <code>/</code> is the real root of the local filesystem.
+It can actually be anywhere - a local subdirectory, or a remote directory,
+or a fictive root. There needs not to be any protection against &quot;running
+beyond root&quot;, e.g. with the path <code>/..</code>.</p>
+      
+      <p>This class type also supports remote filesystems, and thus there is no
+concept of file handle (because this would exclude a number of
+implementations).</p>
+      
+      <p><b>Errors:</b></p>
+      
+      <p>Errors should generally be indicated by raising <code>Unix_error</code>. For
+many error codes the interpretation is already given by POSIX. Here
+are some more special cases:</p>
+      <ul><li><code>EINVAL</code>: should also be used for invalid paths, or when a flag
+cannot be supported (and it is non-ignorable)</li><li><code>ENOSYS</code>: should also be used if an operation is generally unavailable</li></ul>
+      <p>In case of hard errors (like socket errors when communicating with the
+remote server) there is no need to stick to <code>Unix_error</code>, though.</p>
+      
+      <p><b>Subtyping:</b></p>
+      
+      <p>The class type <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/classtype:stream_fs">stream_fs</a> is subtypable, and subtypes can add
+more features by:</p>
+      <ul><li>adding more methods</li><li>adding more flags to existing methods</li></ul>
+      <p><b>Omitted:</b></p>
+      
+      <p>Real filesystems usually provide a lot more features than what is
+represented here, such as:</p>
+      <ul><li>Access control and file permissions</li><li>Metadata like timestamps</li><li>Random access to files</li></ul>
+      <p>This definition here is intentionally minimalistic. In the future
+this class type will be extended, and more more common filesystem features
+will be covered. See <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/class:empty_fs">empty_fs</a> for a way how to ensure that
+your definition of a <code>stream_fs</code> can still be built after <code>stream_fs</code>
+has been extended.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">The class type <code>stream_fs</code></h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/type:read_flag">
+  <a href="index.html#/type:read_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> read_flag = [ <div class="cons">| `Skip <span class="keyword">of</span> int64</div><div class="cons">| `Binary</div><div class="cons">| `Streaming</div><div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:read_file_flag">
+  <a href="index.html#/type:read_file_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> read_file_flag = [ <div class="cons">| `Binary</div><div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:write_flag">
+  <a href="index.html#/type:write_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> write_flag = [ <div class="cons">| `Create</div><div class="cons">| `Exclusive</div><div class="cons">| `Truncate</div><div class="cons">| `Binary</div><div class="cons">| `Streaming</div><div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:write_file_flag">
+  <a href="index.html#/type:write_file_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> write_file_flag = [ <div class="cons">| `Create</div><div class="cons">| `Exclusive</div><div class="cons">| `Truncate</div><div class="cons">| `Binary</div><div class="cons">| `Link</div><div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:write_common">
+  <a href="index.html#/type:write_common" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> write_common = [ <div class="cons">| `Create</div><div class="cons">| `Exclusive</div><div class="cons">| `Truncate</div><div class="cons">| `Binary</div><div class="cons">| `Dummy</div> ]
+    
+      <div class="doc">
+        
+      <p>The intersection of <code>write_flag</code> and <code>write_file_flag</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:size_flag">
+  <a href="index.html#/type:size_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> size_flag = [ <div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:test_flag">
+  <a href="index.html#/type:test_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> test_flag = [ <div class="cons">| `Link</div><div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:remove_flag">
+  <a href="index.html#/type:remove_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> remove_flag = [ <div class="cons">| `Recursive</div><div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:rename_flag">
+  <a href="index.html#/type:rename_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> rename_flag = [ <div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:symlink_flag">
+  <a href="index.html#/type:symlink_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> symlink_flag = [ <div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:readdir_flag">
+  <a href="index.html#/type:readdir_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> readdir_flag = [ <div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:readlink_flag">
+  <a href="index.html#/type:readlink_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> readlink_flag = [ <div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:mkdir_flag">
+  <a href="index.html#/type:mkdir_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> mkdir_flag = [ <div class="cons">| `Path</div><div class="cons">| `Nonexcl</div><div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:rmdir_flag">
+  <a href="index.html#/type:rmdir_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> rmdir_flag = [ <div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:copy_flag">
+  <a href="index.html#/type:copy_flag" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> copy_flag = [ <div class="cons">| `Dummy</div> ]
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>Note <code>`Dummy</code>: this flag is always ignored. There are two reasons
+for having it:</p>
+      <ul><li>Ocaml does not allow empty variants</li><li>it is sometimes convenient to have it
+(e.g. in: <code>if &lt;condition&gt; then `Create else `Dummy</code>)</li></ul>
+        
+      </div>
+    
+  <div class="region" id="/type:test_type">
+  <a href="index.html#/type:test_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> test_type = [ <div class="cons">| `N</div><div class="cons">| `E</div><div class="cons">| `D</div><div class="cons">| `F</div><div class="cons">| `H</div><div class="cons">| `R</div><div class="cons">| `W</div><div class="cons">| `X</div><div class="cons">| `S</div> ]
+    
+      <div class="doc">
+        
+      <p>Tests:</p>
+      <ul><li><code>`N</code>: the file name exists</li><li><code>`E</code>: the file exists</li><li><code>`D</code>: the file exists and is a directory</li><li><code>`F</code>: the file exists and is regular</li><li><code>`H</code>: the file exists and is a symlink (possibly to a non-existing
+target)</li><li><code>`R</code>: the file exists and is readable</li><li><code>`W</code>: the file exists and is writable</li><li><code>`X</code>: the file exists and is executable</li><li><code>`S</code>: the file exists and is non-empty</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:local_file">
+  <a href="index.html#/classtype:local_file" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> local_file = 
+  <div class="region" id="/classtype:local_file/method:filename">
+  <a href="index.html#/classtype:local_file/method:filename" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> filename : string
+  
+      <div class="doc">
+        
+      <p>The filename</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:local_file/method:close">
+  <a href="index.html#/classtype:local_file/method:close" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Indicate that we are done with the file</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs">
+  <a href="index.html#/classtype:stream_fs" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> stream_fs = 
+  <div class="region" id="/classtype:stream_fs/method:path_encoding">
+  <a href="index.html#/classtype:stream_fs/method:path_encoding" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> path_encoding : <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> option
+  
+      <div class="doc">
+        
+      <p>The encoding must be ASCII-compatible
+(<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/val:is_ascii_compatible">is_ascii_compatible</a>). If <code>None</code> the
+ASCII encoding is assumed for codes 0-127, and no meaning is
+defined for byte codes 128-255.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:path_exclusions">
+  <a href="index.html#/classtype:stream_fs/method:path_exclusions" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> path_exclusions : (int * int) list
+  
+      <div class="doc">
+        
+      <p>Code points that must not occur in path components between slashes.
+This is given as ranges <code>(from,to)</code>. The code points are interpreted
+as Unicode code points if an encoding is available, and as byte codes
+otherwise. For example, for Unix the code points 0 and 47 (slash)
+are normally the only excluded code points.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:nominal_dot_dot">
+  <a href="index.html#/classtype:stream_fs/method:nominal_dot_dot" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> nominal_dot_dot : bool
+  
+      <div class="doc">
+        
+      <p>Whether the effect of <code>..</code> can be obtained by stripping off the
+last path component, i.e. whether
+<code>Filename.dirname path &lt;=&gt; path ^ &quot;/..&quot;</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:read">
+  <a href="index.html#/classtype:stream_fs/method:read" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read : <a href="index.html#/type:read_flag">read_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p><code>read flags filename</code>: Opens the file <code>filename</code> for reading,
+and returns the input stream. Flags:</p>
+      <ul><li><code>`Skip n</code>: Skips the first <code>n</code> bytes of the file. On many
+filesystems this is more efficient than reading <code>n</code> bytes and
+dropping them; however, there is no guarantee that this
+optimization exists.</li><li><code>`Binary</code>: Opens the file in binary mode (if there is such
+a distinction)</li><li><code>`Streaming</code> for network filesystems: If possible, open the
+file in streaming mode, and avoid to copy the whole file to the local
+disk before returning the <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>.
+Streaming mode is faster, but has also downsides. Especially,
+the implementation of <code>read</code> can do less to recover from
+transient network problems (like retrying the whole download).
+Support for this flag is optional, and it is ignored if
+there is no extra streaming mode.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:read_file">
+  <a href="index.html#/classtype:stream_fs/method:read_file" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> read_file : <a href="index.html#/type:read_file_flag">read_file_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:local_file">local_file</a>
+  
+      <div class="doc">
+        
+      <p><code>read_file flags filename</code>: Opens the file <code>filename</code> for reading,
+and returns the contents as a <code>local_file</code>. Use the method
+<code>filename</code> to get the file name of the local file. The file
+may be temporary, but this is not required. The method <code>close</code>
+of the returned object should be called when the file is no
+longer needed. In case of a temporary file, the file can then
+be deleted. Flags:</p>
+      <ul><li><code>`Binary</code>: Opens the file in binary mode (if there is such
+a distinction)</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:write">
+  <a href="index.html#/classtype:stream_fs/method:write" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> write : <a href="index.html#/type:write_flag">write_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p><code>write flags filename</code>: Opens (and optionally creates) the <code>filename</code>
+for writing, and returns the output stream. Flags:</p>
+      <ul><li><code>`Create</code>: If the file does not exist, create it</li><li><code>`Truncate</code>: If the file exists, truncate it to zero before
+writing</li><li><code>`Exclusive</code>: The <code>`Create</code> is done exclusively</li><li><code>`Binary</code>: Opens the file in binary mode (if there is such
+a distinction)</li><li><code>`Streaming</code>: see <code>read</code> (above) for explanations</li></ul>
+      <p>Some filesystems refuse this operation if neither <code>`Create</code> nor
+<code>`Truncate</code> is specified because overwriting an existing file
+is not supported. There are also filesystems that cannot even
+modify files by truncating them first, but only allow to write
+to new files.</p>
+      
+      <p>It is unspecified whether the file appears in the directory directly
+after calling <code>write</code> or first when the stream is closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:write_file">
+  <a href="index.html#/classtype:stream_fs/method:write_file" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> write_file : <a href="index.html#/type:write_file_flag">write_file_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:local_file">local_file</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>write_file flags filename localfile</code>: Opens the file <code>filename</code>
+for writing, and copies the contents of the <code>localfile</code> to it.
+It is ensured that the method <code>close</code> of <code>localfile</code> is called
+once the operation is finished (whether successful or not).
+Flags:</p>
+      <ul><li><code>`Create</code>: If the (remote) file does not exist, create it</li><li><code>`Truncate</code>: If the file exists, truncate it to zero before
+writing</li><li><code>`Exclusive</code>: The <code>`Create</code> is done exclusively</li><li><code>`Binary</code>: Opens the file in binary mode (if there is such
+a distinction)</li><li><code>`Link</code>: Allows that the destination file is created as a hard
+link of the original file. This is tried whatever other mode
+is specified. If not successful, a copy is done instead.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:size">
+  <a href="index.html#/classtype:stream_fs/method:size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> size : <a href="index.html#/type:size_flag">size_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int64
+  
+      <div class="doc">
+        
+      <p>Returns the size of a file. Note that there is intentionally no
+distinction between text and binary mode - implementations must
+always assume binary mode.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:test">
+  <a href="index.html#/classtype:stream_fs/method:test" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> test : <a href="index.html#/type:test_flag">test_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:test_type">test_type</a> <span class="rarr"><span>-&gt;</span></span> bool
+  
+      <div class="doc">
+        
+      <p>Returns whether the test is true. For filesystems that know
+symbolic links, the test operation normally follows symlinks
+(except for the <code>`N</code> and <code>`H</code> tests). By specifying the <code>`Link</code> flag
+symlinks are not followed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:test_list">
+  <a href="index.html#/classtype:stream_fs/method:test_list" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> test_list : <a href="index.html#/type:test_flag">test_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:test_type">test_type</a> list <span class="rarr"><span>-&gt;</span></span> bool list
+  
+      <div class="doc">
+        
+      <p>Similar to <code>test</code> but this function performs all tests in the list
+at once, and returns a bool for each test.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:remove">
+  <a href="index.html#/classtype:stream_fs/method:remove" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> remove : <a href="index.html#/type:remove_flag">remove_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Removes the file or symlink. Implementation are free to also
+support the removal of empty directories.</p>
+      
+      <p>Flags:</p>
+      <ul><li><code>`Recursive</code>: Remove the contents of the non-empty directory
+recursively. This is an optional feature. There needs not to
+be any protection against operations done by other processes
+that affect the directory tree being deleted.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:rename">
+  <a href="index.html#/classtype:stream_fs/method:rename" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rename : <a href="index.html#/type:rename_flag">rename_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Renames the file. There is no guarantee that a rename is atomic</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:symlink">
+  <a href="index.html#/classtype:stream_fs/method:symlink" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> symlink : <a href="index.html#/type:symlink_flag">symlink_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p><code>symlink flags oldpath newpath</code>: Creates a symlink. This
+is an exclusive create, i.e. the operation fails if <code>newpath</code>
+already exists.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:readdir">
+  <a href="index.html#/classtype:stream_fs/method:readdir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> readdir : <a href="index.html#/type:readdir_flag">readdir_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list
+  
+      <div class="doc">
+        
+      <p>Reads the contents of a directory. Whether &quot;.&quot; and &quot;..&quot; are returned
+is platform-dependent. The entries can be returned in any order.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:readlink">
+  <a href="index.html#/classtype:stream_fs/method:readlink" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> readlink : <a href="index.html#/type:readlink_flag">readlink_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Reads the target of a symlink</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:mkdir">
+  <a href="index.html#/classtype:stream_fs/method:mkdir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> mkdir : <a href="index.html#/type:mkdir_flag">mkdir_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Creates a new directory. Flags:</p>
+      <ul><li><code>`Path</code>: Creates missing parent directories. This is an
+optional feature. (If not supported, ENOENT is reported.)</li><li><code>`Nonexcl</code>: Non-exclusive create.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:rmdir">
+  <a href="index.html#/classtype:stream_fs/method:rmdir" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rmdir : <a href="index.html#/type:rmdir_flag">rmdir_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Removes an empty directory</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:copy">
+  <a href="index.html#/classtype:stream_fs/method:copy" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> copy : <a href="index.html#/type:copy_flag">copy_flag</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Copies a file to a new name. This does not descent into directories.
+Also, symlinks are resolved, and the linked file is copied.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:stream_fs/method:cancel">
+  <a href="index.html#/classtype:stream_fs/method:cancel" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cancel : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Cancels any ongoing <code>write</code>. The user must also call
+the <code>close_out</code> method after cancelling. The effect
+is that after the close no more network activity will occur.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:empty_fs">
+  <a href="index.html#/class:empty_fs" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> empty_fs : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:stream_fs">stream_fs</a>
+    
+    
+      <div class="doc">
+        
+      <p>This is a class where all methods fail with <code>ENOSYS</code>. The string
+argument is the detail in the <code>Unix_error</code>, normally the module
+name of the user of this class.</p>
+      
+      <p><code>empty_fs</code> is intended as base class for implementations of <code>stream_fs</code>
+outside Ocamlnet. When <code>stream_fs</code> is extended by new methods, these
+methods are at least defined, and no build error occurs. So the
+definition should look like</p>
+      <pre><code>      class my_fs ... =
+        object
+          inherit Netfs.empty_fs &quot;my_fs&quot;
+
+          method read flags name = ...
+
+          (* Add here all methods you can define, and omit the rest *)
+        end</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:local_fs">
+  <a href="index.html#/val:local_fs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> local_fs : ?encoding:<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/type:encoding">encoding</a> <span class="rarr"><span>-&gt;</span></span> ?root:string <span class="rarr"><span>-&gt;</span></span> ?enable_relative_paths:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a>
+    
+      <div class="doc">
+        
+      <p><code>local_fs()</code>: Returns a filesystem object for the local filesystem.</p>
+      <ul><li><code>encoding</code>: Specifies the character encoding of paths. The default
+is system-dependent.</li><li><code>root</code>: the root of the returned object is the directory <code>root</code>
+of the local filesystem. If omitted, the root is the root of
+the local filesystem (i.e. / for Unix, and see comments for
+Windows below). Use <code>root=&quot;.&quot;</code> to make the current working
+directory the root. Note that &quot;.&quot; like other relative paths
+are interpreted at the time when the access method is executed.</li><li><code>enable_relative_paths</code>: Normally, only absolute paths can be
+passed to the access methods like <code>read</code>. By setting this option
+to <code>true</code> one can also enable relative paths. These are taken
+relative to the working directory, and not relative to <code>root</code>.
+Relative names are off by default because there is usually no
+counterpart in network filesystems.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">OS Notes</h2>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Unix</b> in general: There is no notion of character encoding of
+paths. Paths are just bytes. Because of this, the default encoding
+is <code>None</code>. If a different encoding is passed to <code>local_fs</code>, these
+bytes are just interpreted in this encoding. There is no conversion.</p>
+      
+      <p>For desktop programs, though, usually the character encoding of the
+locale is taken for filenames. You can get this by passing</p>
+      <pre><code>    let encoding = 
+      Netconversion.user_encoding()</code></pre>
+      <p>as <code>encoding</code> argument.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Windows</b>: If the <code>root</code> argument is <b>not</b> passed to <code>local_fs</code>
+it is possible to access the whole filesystem:</p>
+      <ul><li>Paths starting with drive letters like <code>c:/</code> are also considered
+as absolute</li><li>Additionally, paths starting with slashes like <code>/c:/</code> mean the same</li><li>UNC paths starting with two slashes like <code>//hostname</code> are supported</li></ul>
+      <p>However, when a <code>root</code> directory is passed, these additional
+notations are not possible anymore - paths must start with <code>/</code>,
+and there is neither support for drive letters nor for UNC paths.</p>
+      
+      <p>The <code>encoding</code> arg defaults to current ANSI codepage,
+and it is
+not supported to request a different encoding. (The difficulty is
+that the Win32 bindings of the relevant OS functions always assume
+the ANSI encoding.)</p>
+      
+      <p>There is no support for backslashes as path separators (such paths
+will be rejected), for better compatibility with other platforms.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+  <div class="region" id="/label:links">
+  <a href="index.html#/label:links" class="anchor">#</a>
+  
+    <h2 class="section level_2">Other impementations of <code>stream_fs</code></h2>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Algorithms</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:copy">
+  <a href="index.html#/val:copy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy : ?replace:bool <span class="rarr"><span>-&gt;</span></span> ?streaming:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>copy orig_fs orig_name dest_fs dest_name</code>: Copies the file <code>orig_name</code>
+from <code>orig_fs</code> to the file <code>dest_name</code> in <code>dest_fs</code>. By default,
+the destination file is truncated and overwritten if it already
+exists.</p>
+      
+      <p>If <code>orig_fs</code> and <code>dest_fs</code> are the same object, the <code>copy</code> method
+is called to perform the operation. Otherwise, the data is read
+chunk by chunk from the file in <code>orig_fs</code> and then written to
+the destination file in <code>dest_fs</code>.</p>
+      
+      <p>Symlinks are resolved, and the linked file is copied, not the
+link as such.</p>
+      
+      <p>The copy does not preserve ownerships, file permissions, or
+timestamps. (The <code>stream_fs</code> object does not represent these.)
+There is no protection against copying an object to itself.</p>
+      <ul><li><code>replace</code>: If set, the destination file is removed and created again
+if it already exists</li><li><code>streaming</code>: use streaming mode for reading and writing files</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy_into">
+  <a href="index.html#/val:copy_into" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy_into : ?replace:bool <span class="rarr"><span>-&gt;</span></span> ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> ?streaming:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>copy_into orig_fs orig_name dest_fs dest_name</code>:
+Like <code>copy</code>, but this version also supports recursive copies. The
+<code>dest_name</code> must be an existing directory, and the file or tree at
+<code>orig_name</code> is copied into it.</p>
+      
+      <p>Symlinks are copied as symlinks.</p>
+      
+      <p>If <code>replace</code> and the destination file/directory already exists,
+it is deleted before doing the copy.</p>
+      <ul><li><code>subst</code>: See <a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/">Netfs</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netfs/#/val:convert_path">convert_path</a></li><li><code>streaming</code>: use streaming mode for reading and writing files</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:file_kind">
+  <a href="index.html#/type:file_kind" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file_kind = [ <div class="cons">| `Regular</div><div class="cons">| `Directory</div><div class="cons">| `Symlink</div><div class="cons">| `Other</div><div class="cons">| `None</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : pre:(string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_kind">file_kind</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:file_kind">file_kind</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?post:(string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter pre fs start</code>: Iterates over the file hierarchy at <code>start</code>.
+The function <code>pre</code> is called for every filename. The filenames
+passed to <code>pre</code> are relative to <code>start</code>. The <code>start</code> must
+be a directory.</p>
+      
+      <p>For directories, the <code>pre</code> function is called for the directory
+before it is called for the members of the directories.
+The function <code>post</code> can additionally be passed. It is only called
+for directories, but after the members.</p>
+      
+      <p><code>pre</code> is called as <code>pre rk lk</code> where <code>rk</code> is the file kind after
+following symlinks and <code>lk</code> the file kind without following symlinks
+(the link itself).</p>
+      
+      <p>Example: <code>iter pre fs &quot;/foo&quot;</code> would call</p>
+      <ul><li><code>pre &quot;dir&quot; `Directory `Directory</code> (meaning the directory &quot;/foo/dir&quot;)</li><li><code>pre &quot;dir/file1&quot; `File `File</code></li><li><code>pre &quot;dir/file2&quot; `File `Symlink</code></li><li><code>post &quot;dir&quot;</code></li></ul>
+      <p>Note: symlinks to non-existing files are reported as
+<code>pre name `None `Symlink</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:convert_path">
+  <a href="index.html#/val:convert_path" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> convert_path : ?subst:(int <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:stream_fs">stream_fs</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>convert_path oldfs newfs oldpath</code>: The encoding of <code>oldpath</code>
+(which is assumed to reside in <code>oldfs</code>) is converted to the encoding
+of <code>newfs</code> and returned.</p>
+      
+      <p>It is possible that the conversion is not possible, and
+the function <code>subst</code> is then called with the problematic code point as
+argument (in the encoding of <code>oldfs</code>). The default <code>subst</code> function
+just raises <a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/">Netconversion</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netconversion/#/exn:Cannot_represent">Cannot_represent</a>.</p>
+      
+      <p>If one of the filesystem objects does not specify an encoding,
+the file name is not converted, but simply returned as-is. This
+may result in errors when <code>newfs</code> has an encoding while <code>oldfs</code>
+does not have one because the file name might use byte representations
+that are illegal in <code>newfs</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

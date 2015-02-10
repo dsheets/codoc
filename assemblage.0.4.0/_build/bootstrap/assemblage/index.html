@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Assemblage</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Assemblage</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The Assemblage Library.</p>
+      
+      <p><code>Assemblage</code> provides a simple embedded domain specific language
+to describe <code>OCaml</code> <a href="index.html#/label:projects">projects</a>. It also provides simple
+tools to configure, manage, install and use OCaml projects.</p>
+      
+      <p>Describing a project eventually leads to describe its build
+artifacts. The exact mapping betweem project elements and those
+build artifacts depends on the presence or absence of
+<a href="index.html#/module:Features">features</a>. Examples of such features are weather to
+compile and run the tests (user-defined feature), the presence of
+the native compiler (system-dependant feature), compiling a
+library using <code>async</code> or <code>lwt</code> as a backend (environment-dependant
+feature), ...</p>
+      
+      <p>Finally, generating build artifacts means refining the project
+description into concrete <a href="index.html#/module:Flags">command line arguments</a> to pass
+to the different compilers (<code>ocamlc</code>, <code>ocamlopt</code>) on the different
+compilation and linking phases.</p>
+      
+      <p><em>Release %%VERSION%% - %%AUTHOR%%</em></p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:featuresandflags">
+  <a href="index.html#/label:featuresandflags" class="anchor">#</a>
+  
+    <h1 class="section level_1">Features and flags</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Features">
+  <a href="index.html#/module:Features" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Features : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Features.</p>
+      
+      <p>Features declare booleans to be determined by the
+<a href="index.html#/label:buildenv">build environment</a>. They allow to condition the
+application of certain <a href="index.html#/module:Flags">flags</a> and restrict the build of
+project components or of certain of their artifacts.</p>
+      
+      <p>Examples of features are: native compilation availability,
+optional package availability, debug build support, etc.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Features</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Features/type:t">
+  <a href="index.html#/module:Features/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The type for features. Given a build environment a value of this type
+denotes a boolean value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:create">
+  <a href="index.html#/module:Features/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?default:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> doc:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create default name doc</code> is a feature named <code>name</code>. <code>default</code>
+(defaults to <code>true</code>) indicates the boolean value the feature
+takes if the build environment doesn't determine it. <code>doc</code> is
+used for documenting the feature in various contexts, keep it
+short and to the point.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:true_">
+  <a href="index.html#/module:Features/val:true_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> true_ : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>true_</code> is always true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:false_">
+  <a href="index.html#/module:Features/val:false_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> false_ : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>false_</code> is always false.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:neg">
+  <a href="index.html#/module:Features/val:neg" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> neg : ?on:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>neg f</code> is true <code>iff</code> <code>f</code> is false. If <code>on</code> is specified, negates
+if <code>on</code> is <code>true</code> and <code>true_</code> is returned if <code>on</code> is <code>false</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p><code>not_ f</code> is true iff <code>f</code> is false.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Features/val:(&amp;&amp;&amp;)">
+  <a href="index.html#/module:Features/val:(%26%26%26)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&amp;&amp;&amp;) : <a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>f &amp;&amp;&amp; f'</code> is true iff both <code>f</code> and <code>f'</code> are true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:(|||)">
+  <a href="index.html#/module:Features/val:(%7C%7C%7C)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (|||) : <a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>f ||| f'</code> is true iff either <code>f</code> or <code>f'</code> is true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Built-in features</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Features/val:byte">
+  <a href="index.html#/module:Features/val:byte" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> byte : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>byte</code> is true iff byte code compilation is available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:native">
+  <a href="index.html#/module:Features/val:native" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> native : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>native</code> is true iff native code compilation is available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:native_dynlink">
+  <a href="index.html#/module:Features/val:native_dynlink" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> native_dynlink : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>native_dynlink</code> is true iff native code dynamic linking is available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:native_toolchain">
+  <a href="index.html#/module:Features/val:native_toolchain" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> native_toolchain : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>native_toolchain</code> is true iff the native compiled OCaml toolchain
+is available (<code>.opt</code> tools).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:js">
+  <a href="index.html#/module:Features/val:js" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> js : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>js</code> is true iff JavaScript compilation is available.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:annot">
+  <a href="index.html#/module:Features/val:annot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> annot : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>annot</code> is true iff binary annotations files must be built.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:debug">
+  <a href="index.html#/module:Features/val:debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>debug</code> is true iff builds must support debugging.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:warn_error">
+  <a href="index.html#/module:Features/val:warn_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> warn_error : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>warn_error</code> is true iff builds must consider warnings as errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:test">
+  <a href="index.html#/module:Features/val:test" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> test : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>test</code> is true iff tests must be built.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Features/val:doc">
+  <a href="index.html#/module:Features/val:doc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc : <a href="index.html#/module:Features/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>public_doc</code> is true iff the documentation must be built.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags">
+  <a href="index.html#/module:Flags" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Flags : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Flags</p>
+      
+      <p>Flags values denote sets of partial command line arguments given
+to tools in a given context. A context is defined by a compilation
+[root:phase].</p>
+      
+      <p>FIXME describe valid context and to what they correspond.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/module:Flags/label:flags">
+  <a href="index.html#/module:Flags/label:flags" class="anchor">#</a>
+  
+    <h1 class="section level_1">Flags</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Flags/type:phase">
+  <a href="index.html#/module:Flags/type:phase" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> phase = [ <div class="cons">| `Prepare</div><div class="cons">| `Dep</div><div class="cons">| `Pp <span class="keyword">of</span> [ <div class="cons">| `Byte</div><div class="cons">| `Native</div> ]</div><div class="cons">| `Compile <span class="keyword">of</span> [ <div class="cons">| `Intf</div><div class="cons">| `Byte</div><div class="cons">| `Native</div><div class="cons">| `C</div><div class="cons">| `Js</div> ]</div><div class="cons">| `Archive <span class="keyword">of</span> [ <div class="cons">| `Byte</div><div class="cons">| `Native</div><div class="cons">| `Shared</div><div class="cons">| `C</div> ]</div><div class="cons">| `Link <span class="keyword">of</span> [ <div class="cons">| `Byte</div><div class="cons">| `Native</div><div class="cons">| `Js</div> ]</div><div class="cons">| `Run <span class="keyword">of</span> [ <div class="cons">| `Byte</div><div class="cons">| `Native</div> ]</div><div class="cons">| `Test</div><div class="cons">| `Doc</div><div class="cons">| `Other <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>The type for compilation phases.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/type:args">
+  <a href="index.html#/module:Flags/type:args" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> args = string list
+    
+      <div class="doc">
+        
+      <p>The type for partial command line arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/type:t">
+  <a href="index.html#/module:Flags/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The type for multi-context, partial, command line arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:v">
+  <a href="index.html#/module:Flags/val:v" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> v : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:phase">phase</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:args">args</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>v available phase mode args</code> is the partial command line
+<code>args</code> in the context defined by <code>phase</code> and <code>modes</code>. This partial
+command line is only available whenever the feature <code>available</code>
+is true (defaults to <a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/val:true_">true_</a>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:(@@@)">
+  <a href="index.html#/module:Flags/val:(@@@)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (@@@) : <a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>f @@@ f'</code> concatenates context wise <code>f'</code> to <code>f</code>. <code>f'</code> and
+<code>f'</code> remain available according to their own <code>available</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Built-in flags</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:Flags/val:empty">
+  <a href="index.html#/module:Flags/val:empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> empty : <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>empty</code> is the command line <code>[]</code> for every context.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:debug">
+  <a href="index.html#/module:Flags/val:debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug : <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>debug</code> is the debug flag as needed per context, only
+available when <a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/val:debug">debug</a> is true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:annot">
+  <a href="index.html#/module:Flags/val:annot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> annot : <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>annot</code> is the <code>-bin-annot</code> flag in appropriate contexts, only
+available when <a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/val:annot">annot</a> is true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:warn_error">
+  <a href="index.html#/module:Flags/val:warn_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> warn_error : <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>warn_error</code> is the <code>-warn-error</code> in appropriate contexts, only
+available when <a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/val:warn_error">warn_error</a> is true.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:linkall">
+  <a href="index.html#/module:Flags/val:linkall" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> linkall : <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>linkall</code> is the <code>-linkall</code> flag in appropriate contexts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:thread">
+  <a href="index.html#/module:Flags/val:thread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> thread : <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>thread</code> is the <code>-thread</code> flag in appropriate contexts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:vmthread">
+  <a href="index.html#/module:Flags/val:vmthread" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> vmthread : <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>vmthread</code> is the <code>-vmthread</code> flag in appropriate contexts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:cclib">
+  <a href="index.html#/module:Flags/val:cclib" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cclib : string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>The <code>-cclib x</code> flags.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:ccopt">
+  <a href="index.html#/module:Flags/val:ccopt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ccopt : string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>The <code>-ccopt x</code> flags.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Flags/val:stub">
+  <a href="index.html#/module:Flags/val:stub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stub : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>stub s</code> adds <i>-cclib -l<code>s</code> -dllib -l<code>s</code></i> to the bytecode
+linking options and <i>-cclib -l<code>s</code></i> to the native linking
+options.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:resolvers">
+  <a href="index.html#/label:resolvers" class="anchor">#</a>
+  
+    <h1 class="section level_1">Resolvers</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>A project defines different kinds of names: local and external
+library names. A local library name needs to be associated with
+the name of the local directory where the build artifacts for that
+library are created and an external library name needs to be
+associated with the global directory where the object files for
+that library are installed.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Resolver">
+  <a href="index.html#/module:Resolver" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Resolver : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Name resolvers.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Resolver/type:t">
+  <a href="index.html#/module:Resolver/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The type for internal and external name resolvers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Resolver/val:build_dir">
+  <a href="index.html#/module:Resolver/val:build_dir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> build_dir : <a href="index.html#/module:Resolver/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>build_dir t</code> is the directory where lives all the build
+artifacts.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Resolver/val:pkgs">
+  <a href="index.html#/module:Resolver/val:pkgs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pkgs : <a href="index.html#/module:Resolver/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Resolve global package names into command line flags.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:actions">
+  <a href="index.html#/label:actions" class="anchor">#</a>
+  
+    <h1 class="section level_1">Custom Actions</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Action">
+  <a href="index.html#/module:Action" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Action : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Actions to generate source files.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Action/type:action">
+  <a href="index.html#/module:Action/type:action" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> action
+    
+      <div class="doc">
+        
+      <p>Custom actions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Action/type:file">
+  <a href="index.html#/module:Action/type:file" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> file = [ <div class="cons">| `Dep <span class="keyword">of</span> [ <div class="cons">| `Ml</div><div class="cons">| `Mli</div> ]</div><div class="cons">| `Ml</div><div class="cons">| `Mli</div><div class="cons">| `C</div><div class="cons">| `Js</div><div class="cons">| `Cmt</div><div class="cons">| `Cmti</div><div class="cons">| `Cmi</div><div class="cons">| `Cmo</div><div class="cons">| `Cmx</div><div class="cons">| `O</div><div class="cons">| `So</div><div class="cons">| `Cma</div><div class="cons">| `Cmxa</div><div class="cons">| `Cmxs</div><div class="cons">| `A</div><div class="cons">| `Byte</div><div class="cons">| `Native</div><div class="cons">| `Dir</div><div class="cons">| `Source <span class="keyword">of</span> <a href="index.html#/module:Action/type:file">file</a></div><div class="cons">| `Ext <span class="keyword">of</span> string</div><div class="cons">| `Other <span class="keyword">of</span> string <span class="rarr"><span>-&gt;</span></span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>The different kinds of files.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Action/val:create">
+  <a href="index.html#/module:Action/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?dir:string <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, <a href="index.html#/module:Action/type:action">action</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>bash ~dir fmt</code> is a generator which produces some results by
+calling <code>fmt</code> in a bash shell, running in the directory
+<code>dir</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Action/type:t">
+  <a href="index.html#/module:Action/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Resolver">Resolver</a>.<a href="index.html#/module:Resolver/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Action/type:action">action</a>
+    
+      <div class="doc">
+        
+      <p>Type of action generators.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Action/type:node">
+  <a href="index.html#/module:Action/type:node" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a node = [ <div class="cons">| `Self <span class="keyword">of</span> <a href="index.html#/module:Action/type:file">file</a></div><div class="cons">| `Phony <span class="keyword">of</span> string</div><div class="cons">| `N <span class="keyword">of</span> 'a * <a href="index.html#/module:Action/type:file">file</a></div> ]
+    
+      <div class="doc">
+        
+      <p>The type of nodes in the action graph.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Action/type:rule">
+  <a href="index.html#/module:Action/type:rule" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a rule = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Action/type:rule/field:phase">
+  <a href="index.html#/module:Action/type:rule/field:phase" class="anchor">#</a>
+  phase
+  </div>
+  </td><td>: <a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:phase">phase</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Action/type:rule/field:targets">
+  <a href="index.html#/module:Action/type:rule/field:targets" class="anchor">#</a>
+  targets
+  </div>
+  </td><td>: 'a <a href="index.html#/module:Action/type:node">node</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Action/type:rule/field:prereqs">
+  <a href="index.html#/module:Action/type:rule/field:prereqs" class="anchor">#</a>
+  prereqs
+  </div>
+  </td><td>: 'a <a href="index.html#/module:Action/type:node">node</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Action/type:rule/field:action">
+  <a href="index.html#/module:Action/type:rule/field:action" class="anchor">#</a>
+  action
+  </div>
+  </td><td>: 'a <a href="index.html#/module:Action/type:t">t</a></td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>An action rule is a list of target nodes, prerequesite nodes and
+an action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Action/val:rule">
+  <a href="index.html#/module:Action/val:rule" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rule : phase:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:phase">phase</a> <span class="rarr"><span>-&gt;</span></span> targets:'a <a href="index.html#/module:Action/type:node">node</a> list <span class="rarr"><span>-&gt;</span></span> prereqs:'a <a href="index.html#/module:Action/type:node">node</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Action/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Action/type:rule">rule</a>
+    
+      <div class="doc">
+        
+      <p>Create a new rule.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Action/val:empty">
+  <a href="index.html#/module:Action/val:empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> empty : 'a <a href="index.html#/module:Action/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>The generator of empty actions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:comps">
+  <a href="index.html#/label:comps" class="anchor">#</a>
+  
+    <h1 class="section level_1">Components</h1>
+    
+  </div>
+  
+      <p>A project is a set of components. Each component describes a
+logical build unit like a compilation unit, a library, a binary, a
+test, the documentation of a library, etc. A component can depend
+on other components, either because it needs the dependencies to
+be part of it or because it needs them to be build.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:comp_unit">
+  <a href="index.html#/type:comp_unit" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> comp_unit
+    
+      <div class="doc">
+        
+      <p>The type for compilation unit descriptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:other">
+  <a href="index.html#/type:other" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> other
+    
+      <div class="doc">
+        
+      <p>The type for arbitrarily constructed files descriptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:pkg">
+  <a href="index.html#/type:pkg" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> pkg
+    
+      <div class="doc">
+        
+      <p>The type for package descriptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:lib">
+  <a href="index.html#/type:lib" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> lib
+    
+      <div class="doc">
+        
+      <p>The type for library descriptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:bin">
+  <a href="index.html#/type:bin" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> bin
+    
+      <div class="doc">
+        
+      <p>The type for binary executable descriptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:container">
+  <a href="index.html#/type:container" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> container
+    
+      <div class="doc">
+        
+      <p>The type for containers of components.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:test">
+  <a href="index.html#/type:test" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> test
+    
+      <div class="doc">
+        
+      <p>The type for test descriptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:doc">
+  <a href="index.html#/type:doc" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> doc
+    
+      <div class="doc">
+        
+      <p>The type for documentation descriptions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:component">
+  <a href="index.html#/type:component" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> component = [ <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div><div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div><div class="cons">| `Lib <span class="keyword">of</span> <a href="index.html#/type:lib">lib</a></div><div class="cons">| `Pkg <span class="keyword">of</span> <a href="index.html#/type:pkg">pkg</a></div><div class="cons">| `Bin <span class="keyword">of</span> <a href="index.html#/type:bin">bin</a></div><div class="cons">| `Container <span class="keyword">of</span> <a href="index.html#/type:container">container</a></div><div class="cons">| `Test <span class="keyword">of</span> <a href="index.html#/type:test">test</a></div><div class="cons">| `Doc <span class="keyword">of</span> <a href="index.html#/type:doc">doc</a></div> ]
+    
+      <div class="doc">
+        
+      <p>The type for components.
+</p>
+      <ul><li><code>`Unit u</code> u is a project compilation unit.</li><li><code>`Lib l</code> is a project library.</li><li><code>`Bin b</code> is a project binary.</li><li><code>`Test b</code> is a project test.</li><li><code>`Pkg p</code> is an external named package.</li><li>FIXME</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unit">
+  <a href="index.html#/val:unit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unit : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?interface:[ <div class="cons">| `Normal</div><div class="cons">| `Opaque</div><div class="cons">| `Hidden</div> ] <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Path <span class="keyword">of</span> string list</div><div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>unit name dir ~available ~flags ~deps</code> is a compilation unit
+named <code>name</code> (the filename without extension) present in directory
+<code>dir</code>. It is only available whenever <code>available</code> is true, it must
+be build with <code>flags</code> and depends on <code>deps</code> to be built.</p>
+      
+      <p>TODO document opaque &amp; hidden.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pack">
+  <a href="index.html#/val:pack" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pack : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ] list <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Pack compilation units together.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:c">
+  <a href="index.html#/val:c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> c : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?cclib:string list <span class="rarr"><span>-&gt;</span></span> ?ccopt:string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Path <span class="keyword">of</span> string list</div><div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Same as <a href="index.html#/val:unit">unit</a> but for C source files.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:js">
+  <a href="index.html#/val:js" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> js : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?jsflags:string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Path <span class="keyword">of</span> string list</div><div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Same as <a href="index.html#/val:unit">unit</a> but for javascript source files.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:other">
+  <a href="index.html#/val:other" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> other : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:component">component</a> <a href="index.html#/module:Action">Action</a>.<a href="index.html#/module:Action/type:rule">rule</a> list <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Generated source file(s).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lib">
+  <a href="index.html#/val:lib" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lib : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?byte:bool <span class="rarr"><span>-&gt;</span></span> ?native:bool <span class="rarr"><span>-&gt;</span></span> ?native_dynlink:bool <span class="rarr"><span>-&gt;</span></span> ?pack:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Units <span class="keyword">of</span> [ <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ] list</div><div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Lib <span class="keyword">of</span> <a href="index.html#/type:lib">lib</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>lib name units</code> is the project library <code>name</code> composed by the compilation
+units <code>cus</code>. If <code>lib</code> is set, use <code>ocamldep</code> to approximate the
+compilation units and their dependecies in the given directory.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lib_pp">
+  <a href="index.html#/val:lib_pp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lib_pp : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?byte:bool <span class="rarr"><span>-&gt;</span></span> ?native:bool <span class="rarr"><span>-&gt;</span></span> ?native_dynlink:bool <span class="rarr"><span>-&gt;</span></span> ?pack:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Units <span class="keyword">of</span> [ <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ] list</div><div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Lib <span class="keyword">of</span> <a href="index.html#/type:lib">lib</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>lib_pp</code> is like <a href="index.html#/type:lib">lib</a> but it defines a project pre-processor.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin">
+  <a href="index.html#/val:bin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?byte:bool <span class="rarr"><span>-&gt;</span></span> ?native:bool <span class="rarr"><span>-&gt;</span></span> ?js:bool <span class="rarr"><span>-&gt;</span></span> ?linkall:bool <span class="rarr"><span>-&gt;</span></span> ?install:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Units <span class="keyword">of</span> [ <div class="cons">| `Unit <span class="keyword">of</span> <a href="index.html#/type:comp_unit">comp_unit</a></div> ] list</div><div class="cons">| `Other <span class="keyword">of</span> <a href="index.html#/type:other">other</a></div> ] <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Bin <span class="keyword">of</span> <a href="index.html#/type:bin">bin</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>bin name units</code> is the binary <code>name</code> obtained by compiling
+the compilation units <code>units</code>, with the dependencies <code>deps</code>. By
+default, the source files are located into <i>bin/</i> (this is
+controled by the value of <code>dir</code>).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:container">
+  <a href="index.html#/val:container" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> container : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Container <span class="keyword">of</span> <a href="index.html#/type:container">container</a></div> ]
+    
+      <div class="doc">
+        
+      <p>FIXME: doc</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pkg">
+  <a href="index.html#/val:pkg" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pkg : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?opt:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Pkg <span class="keyword">of</span> <a href="index.html#/type:pkg">pkg</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>pkg available opt name</code> is an external OCaml package named <code>name</code>. It is
+only available whenever <code>available</code> is true. If <code>opt</code> is true (defaults
+to <code>false</code>) a feature <code>f</code> is automatically created for the package
+and anded to <code>available</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pkg_pp">
+  <a href="index.html#/val:pkg_pp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pkg_pp : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?opt:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Pkg <span class="keyword">of</span> <a href="index.html#/type:pkg">pkg</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>pkg_pp available opt name</code> is like <a href="index.html#/type:pkg">pkg</a> except it denotes
+an external OCaml pre-processor package.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pkg_c">
+  <a href="index.html#/val:pkg_c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pkg_c : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?opt:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Pkg <span class="keyword">of</span> <a href="index.html#/type:pkg">pkg</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>pkg_c available opt name</code> is like <a href="index.html#/type:pkg">pkg</a> except it denotes an
+external C package.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:test_command">
+  <a href="index.html#/type:test_command" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> test_command
+    
+      <div class="doc">
+        
+      <p>The type for test commands.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:test_args">
+  <a href="index.html#/type:test_args" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> test_args = <a href="index.html#/module:Resolver">Resolver</a>.<a href="index.html#/module:Resolver/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>The type for command line arguments when calling tests of executable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:test_bin">
+  <a href="index.html#/val:test_bin" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> test_bin : [ <div class="cons">| `Bin <span class="keyword">of</span> <a href="index.html#/type:bin">bin</a></div> ] <span class="rarr"><span>-&gt;</span></span> ?args:<a href="index.html#/type:test_args">test_args</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:test_command">test_command</a>
+    
+      <div class="doc">
+        
+      <p>A test which runs a binary built in the project.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:test_shell">
+  <a href="index.html#/val:test_shell" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> test_shell : ('a, unit, string, <a href="index.html#/type:test_command">test_command</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>A test which runs an arbitrary shell command.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:test">
+  <a href="index.html#/val:test" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> test : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?dir:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:test_command">test_command</a> list <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Test <span class="keyword">of</span> <a href="index.html#/type:test">test</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Description of a test.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:doc">
+  <a href="index.html#/val:doc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> doc : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?install:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Doc <span class="keyword">of</span> <a href="index.html#/type:doc">doc</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Description of documentation files.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:componenthelpers">
+  <a href="index.html#/label:componenthelpers" class="anchor">#</a>
+  
+    <h1 class="section level_1">Component helpers</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/val:pick">
+  <a href="index.html#/val:pick" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pick : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:component">component</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:component">component</a>
+    
+      <div class="doc">
+        
+      <p><code>unit_in c name</code> is the unit named <code>name</code> is the component
+<code>c</code>. Raise <code>Not_found</code> if not unit has this name.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:build_dir">
+  <a href="index.html#/val:build_dir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> build_dir : <a href="index.html#/type:component">component</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Resolver">Resolver</a>.<a href="index.html#/module:Resolver/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>build_dir t r</code> is the directory where the component <code>t</code> is
+built.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:root_dir">
+  <a href="index.html#/val:root_dir" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> root_dir : <a href="index.html#/module:Resolver">Resolver</a>.<a href="index.html#/module:Resolver/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>root_dir r</code> is the root directory of the project.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:cstubs">
+  <a href="index.html#/val:cstubs" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cstubs : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?deps:<a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> ?headers:string list <span class="rarr"><span>-&gt;</span></span> ?cflags:string list <span class="rarr"><span>-&gt;</span></span> ?clibs:string list <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Path <span class="keyword">of</span> string list</div> ] <span class="rarr"><span>-&gt;</span></span> [&gt; <div class="cons">| `Lib <span class="keyword">of</span> <a href="index.html#/type:lib">lib</a></div> ]
+    
+      <div class="doc">
+        
+      <p><code>stubs name dir</code> is the C stub generations, using Ctypes, of the
+compilation unit <code>name</code>. The <code>Name_bindings</code> module should be
+located in <code>dir</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:projects">
+  <a href="index.html#/label:projects" class="anchor">#</a>
+  
+    <h1 class="section level_1">Projects</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:project">
+  <a href="index.html#/type:project" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> project
+    
+      <div class="doc">
+        
+      <p>The type for OCaml projects descriptions. Simply a set of
+components.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:project">
+  <a href="index.html#/val:project" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> project : ?available:<a href="index.html#/module:Features">Features</a>.<a href="index.html#/module:Features/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?flags:<a href="index.html#/module:Flags">Flags</a>.<a href="index.html#/module:Flags/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?version:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:component">component</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:project">project</a>
+    
+      <div class="doc">
+        
+      <p><code>project name comps</code> TODO</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:buildenv">
+  <a href="index.html#/label:buildenv" class="anchor">#</a>
+  
+    <h1 class="section level_1">Build Environments</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/module:Build_env">
+  <a href="index.html#/module:Build_env" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Build_env : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Build environment.</p>
+      
+      <p>The build environment (which can be an human) discovers available
+features.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Build_env/type:t">
+  <a href="index.html#/module:Build_env/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Environment values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Build_env/val:default">
+  <a href="index.html#/module:Build_env/val:default" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default : <a href="index.html#/module:Build_env/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Default project configuration.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:commands">
+  <a href="index.html#/label:commands" class="anchor">#</a>
+  
+    <h1 class="section level_1">Commands</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/val:assemble">
+  <a href="index.html#/val:assemble" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> assemble : <a href="index.html#/type:project">project</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>assemble project</code> runs the default assemblage command line
+tool with the assemble file <code>file</code> (defaults to <code>assemble.ml</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(/)">
+  <a href="index.html#/val:(/)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (/) : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Same as <code>Filename.concat</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

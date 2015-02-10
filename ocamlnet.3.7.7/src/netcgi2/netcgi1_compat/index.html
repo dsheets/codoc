@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netcgi1_compat</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netcgi1_compat</a></h1> : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/exn:Not_implemented">
+  <a href="index.html#/exn:Not_implemented" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Not_implemented <span class="keyword">of</span> string
+    
+      <div class="doc">
+        
+      <p>Raised by some functions/exceptions when a feature of the old model
+cannot be implemented in the new model or vice versa</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env">
+  <a href="index.html#/module:Netcgi_env" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Netcgi_env : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Netcgi_env/type:input_mode">
+  <a href="index.html#/module:Netcgi_env/type:input_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> input_mode = [ <div class="cons">| `Standard</div> ]
+    
+      <div class="doc">
+        
+      <p>This is not used anywhere. Moreover this is protocol
+dependent.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:input_state">
+  <a href="index.html#/module:Netcgi_env/type:input_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> input_state = [ <div class="cons">| `Start</div><div class="cons">| `Receiving_header</div><div class="cons">| `Received_header</div><div class="cons">| `Receiving_body</div><div class="cons">| `Received_body</div> ]
+    
+      <div class="doc">
+        
+      <p>This is not the business of the user. Rather than to
+document <code>#set_input_state</code> as such, we prefer not to
+allow the user to have access to it at the first
+place...</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:output_mode">
+  <a href="index.html#/module:Netcgi_env/type:output_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> output_mode = [ <div class="cons">| `Standard</div> ]
+    
+      <div class="doc">
+        
+      <p>This is not used anywhere. Moreover &quot;non-parsed header&quot; is
+not supported by all connectors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:output_state">
+  <a href="index.html#/module:Netcgi_env/type:output_state" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> output_state = [ <div class="cons">| `Start</div><div class="cons">| `Sending_header</div><div class="cons">| `Sent_header</div><div class="cons">| `Sending_body</div><div class="cons">| `Sent_body</div><div class="cons">| `Sending_part_header</div><div class="cons">| `Sent_part_header</div><div class="cons">| `Sending_part_body</div><div class="cons">| `Sent_part_body</div><div class="cons">| `End</div> ]
+    
+      <div class="doc">
+        
+      <p>This is not the business of the user. In the new API, it
+is handled transparently.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:protocol_version">
+  <a href="index.html#/module:Netcgi_env/type:protocol_version" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol_version = <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol_version">protocol_version</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:protocol_attribute">
+  <a href="index.html#/module:Netcgi_env/type:protocol_attribute" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol_attribute = <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol_attribute">protocol_attribute</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:protocol">
+  <a href="index.html#/module:Netcgi_env/type:protocol" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> protocol = <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:protocol">protocol</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:workaround">
+  <a href="index.html#/module:Netcgi_env/type:workaround" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> workaround = [ <div class="cons">| `Work_around_MSIE_Content_type_bug</div><div class="cons">| `Work_around_backslash_bug</div> ]
+    
+      <div class="doc">
+        
+      <p>The <code>Work_around_</code> part has been dropped as it is clear at
+the spot of use.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/type:cgi_config">
+  <a href="index.html#/module:Netcgi_env/type:cgi_config" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cgi_config = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_env/type:cgi_config/field:tmp_directory">
+  <a href="index.html#/module:Netcgi_env/type:cgi_config/field:tmp_directory" class="anchor">#</a>
+  tmp_directory
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_env/type:cgi_config/field:tmp_prefix">
+  <a href="index.html#/module:Netcgi_env/type:cgi_config/field:tmp_prefix" class="anchor">#</a>
+  tmp_prefix
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_env/type:cgi_config/field:permitted_http_methods">
+  <a href="index.html#/module:Netcgi_env/type:cgi_config/field:permitted_http_methods" class="anchor">#</a>
+  permitted_http_methods
+  </div>
+  </td><td>: string list</td><td>;</td><td>(*</td><td class="doc">Now has type <code>[`GET | `HEAD | `POST | `DELETE | `PUT] list</code>
+for coherence with <a href="index.html#/module:Netcgi">Netcgi</a>.cgi<code>#request_method</code>.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_env/type:cgi_config/field:permitted_input_content_types">
+  <a href="index.html#/module:Netcgi_env/type:cgi_config/field:permitted_input_content_types" class="anchor">#</a>
+  permitted_input_content_types
+  </div>
+  </td><td>: string list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_env/type:cgi_config/field:input_content_length_limit">
+  <a href="index.html#/module:Netcgi_env/type:cgi_config/field:input_content_length_limit" class="anchor">#</a>
+  input_content_length_limit
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_env/type:cgi_config/field:workarounds">
+  <a href="index.html#/module:Netcgi_env/type:cgi_config/field:workarounds" class="anchor">#</a>
+  workarounds
+  </div>
+  </td><td>: <a href="index.html#/module:Netcgi_env/type:workaround">workaround</a> list</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p>Now simply called <a href="index.html#/module:Netcgi">Netcgi</a>.config.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/val:default_config">
+  <a href="index.html#/module:Netcgi_env/val:default_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_config : <a href="index.html#/module:Netcgi_env/type:cgi_config">cgi_config</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/val:of_compat_config">
+  <a href="index.html#/module:Netcgi_env/val:of_compat_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_compat_config : <a href="index.html#/module:Netcgi_env/type:cgi_config">cgi_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>of_compat_config c</code> transform the old configuration <code>c</code>
+into one suitable for the new interface.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/val:to_compat_config">
+  <a href="index.html#/module:Netcgi_env/val:to_compat_config" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_compat_config : <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/type:config">config</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_env/type:cgi_config">cgi_config</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>to_compat_config c</code> transform the new configuration <code>c</code>
+into one suitable for the old interface.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi_environment = 
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:config">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:config" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> config : <a href="index.html#/module:Netcgi_env/type:cgi_config">cgi_config</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_gateway_interface">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_gateway_interface" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_gateway_interface : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_software">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_software" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_software : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_name">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_name : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_protocol">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_protocol : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_port">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_server_port" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_server_port : int option
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_request_method">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_request_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_request_method : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_path_info">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_path_info" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_path_info : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_path_translated">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_path_translated" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_path_translated : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_script_name">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_script_name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_script_name : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_query_string">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_query_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_query_string : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_host">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_host" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_host : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_addr">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_addr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_addr : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_auth_type">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_auth_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_auth_type : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_user">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_user" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_user : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_ident">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_remote_ident" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_remote_ident : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_property">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_property" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_property : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_properties">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_properties" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_properties : (string * string) list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_https">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_https" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_https : bool
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cgi_request_uri">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cgi_request_uri" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cgi_request_uri : string
+  
+      <div class="doc">
+        
+      <p>I rest to be convinced we need this. Is it provided by web
+servers different from Apache? Why is the <code>#url</code> method not
+enough?</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:protocol">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:protocol" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> protocol : <a href="index.html#/module:Netcgi_env/type:protocol">protocol</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_header">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_header : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_header_field">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_header_field : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:multiple_input_header_field">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:multiple_input_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_input_header_field : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_header_fields">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_header_fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_header_fields : (string * string) list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:user_agent">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:user_agent" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> user_agent : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:cookies">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:cookies" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> cookies : (string * string) list
+  
+      <div class="doc">
+        
+      <p>Cookies are returned in decoded form. An additional
+<code>#cookie</code> method has been added for convenience and
+coherence with e.g. <a href="index.html#/module:Netcgi">Netcgi</a>.cgi.arguments
+v.s. <a href="index.html#/module:Netcgi">Netcgi</a>.cgi.argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_content_length">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_content_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_content_length : int
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_content_type_string">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_content_type_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_content_type_string : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_content_type">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_content_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_content_type : string * (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list
+  
+      <div class="doc">
+        
+      <p>Type now is <code>unit -&gt; string * (string * Mimestring.s_param)
+	  list</code> to be coherent with <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header_ro">mime_header_ro</a>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_ch">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_ch" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_ch : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>Not the user business.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:input_state">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:input_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_state : <a href="index.html#/module:Netcgi_env/type:input_state">input_state</a>
+  
+      <div class="doc">
+        
+      <p>Not the user business.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:set_input_state">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:set_input_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_input_state : <a href="index.html#/module:Netcgi_env/type:input_state">input_state</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Not the user business.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:output_header">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:output_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_header : <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:output_header_field">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_header_field : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:multiple_output_header_field">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:multiple_output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_output_header_field : string <span class="rarr"><span>-&gt;</span></span> string list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:output_header_fields">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:output_header_fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_header_fields : (string * string) list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:set_output_header_field">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:set_output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_output_header_field : string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:set_multiple_output_header_field">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:set_multiple_output_header_field" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_multiple_output_header_field : string <span class="rarr"><span>-&gt;</span></span> string list <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:set_output_header_fields">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:set_output_header_fields" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_output_header_fields : (string * string) list <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:set_status">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:set_status" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_status : <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:send_output_header">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:send_output_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> send_output_header : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:output_ch">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:output_ch" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_ch : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> in favor of <code>out_channel</code> by analogy with the
+standard library -- even though it is a &quot;channel object&quot;.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:output_state">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:output_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_state : <a href="index.html#/module:Netcgi_env/type:output_state">output_state</a>
+  
+      <div class="doc">
+        
+      <p>Not the user business.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:set_output_state">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:set_output_state" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_output_state : <a href="index.html#/module:Netcgi_env/type:output_state">output_state</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Not the user business.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/classtype:cgi_environment/method:log_error">
+  <a href="index.html#/module:Netcgi_env/classtype:cgi_environment/method:log_error" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> log_error : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/val:to_compat_environment">
+  <a href="index.html#/module:Netcgi_env/val:to_compat_environment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_compat_environment : <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_environment">cgi_environment</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_env/classtype:cgi_environment">cgi_environment</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>to_compat_environment e</code> converts the new environment
+<code>e</code> to the old interface.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_env/val:of_compat_environment">
+  <a href="index.html#/module:Netcgi_env/val:of_compat_environment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_compat_environment : <a href="index.html#/module:Netcgi_env/classtype:cgi_environment">cgi_environment</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_environment">cgi_environment</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>of_compat_environment e</code> converts the old environment
+<code>e</code> to the new interface.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types">
+  <a href="index.html#/module:Netcgi_types" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Netcgi_types : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Netcgi_types/classtype:simple_message">
+  <a href="index.html#/module:Netcgi_types/classtype:simple_message" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> simple_message = <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_body">mime_body</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:store">
+  <a href="index.html#/module:Netcgi_types/type:store" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> store = [ <div class="cons">| `Memory</div><div class="cons">| `File <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>Embedded in the single place of use.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:representation">
+  <a href="index.html#/module:Netcgi_types/type:representation" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> representation = [ <div class="cons">| `Simple <span class="keyword">of</span> <a href="index.html#/module:Netcgi_types/classtype:simple_message">simple_message</a></div><div class="cons">| `MIME <span class="keyword">of</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:mime_message">mime_message</a></div> ]
+    
+      <div class="doc">
+        
+      <p>Embedded in the single place of use.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi_argument = 
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:name">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:name" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> name : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:value">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> value : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:open_value_rd">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:open_value_rd" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> open_value_rd : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:ro">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:ro" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> ro : bool
+  
+      <div class="doc">
+        
+      <p>Irrelevant: there are no methods to mutate an argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:store">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:store" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> store : <a href="index.html#/module:Netcgi_types/type:store">store</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:content_type">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:content_type" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> content_type : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:content_type_params">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:content_type_params" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> content_type_params : (string * <a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/">Mimestring</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/mimestring/#/type:s_param">s_param</a>) list
+  
+      <div class="doc">
+        
+      <p>Method <code>content_type : unit -&gt; string * (string *
+	  Mimestring.s_param) list</code> defined instead of <code>content_type</code>
+and <code>content_type_params</code> to be coherent with
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header_ro">mime_header_ro</a> -- yet as easy to use.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:charset">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:charset" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> charset : string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:filename">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:filename" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> filename : string option
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:representation">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:representation" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> representation : <a href="index.html#/module:Netcgi_types/type:representation">representation</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:finalize">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:finalize" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> finalize : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:set_value">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:set_value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_value : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Dealing with the arguments is the task of an higher order
+library. In fact, it is generally misleading to think
+arguments as mutable because one must accomodate the back
+button -- so cache, history,... will use the &quot;initial args&quot;.
+Moreover, the only place where mutability is interesting is
+the <code>#url</code> method which -- as already remarked -- can be
+dealt with in a purely functional way.</p>
+      
+      <p>The new interface contains commodity functions to update
+lists of arguments (see <a href="index.html#/module:Netcgi">Netcgi</a>.Argument).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_argument/method:open_value_wr">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_argument/method:open_value_wr" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> open_value_wr : unit <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p>See <code>#set_value</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> In addition to defining a type, the following
+<code>cgi_argument</code> also defines a conversion function that allows to
+connect old scripts to the new infrastructure. Finalizing
+<code>cgi_argument a</code> will also finalize <code>a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/val:to_compat_argument">
+  <a href="index.html#/module:Netcgi_types/val:to_compat_argument" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_compat_argument : <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_argument">cgi_argument</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>to_compat_argument a</code> converts a new style argument
+<code>a</code> to an old style one. Finalizing <code>to_compat_argument a</code> will also
+finalize <code>a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/val:of_compat_argument">
+  <a href="index.html#/module:Netcgi_types/val:of_compat_argument" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_compat_argument : <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi_argument">cgi_argument</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>of_compat_argument a</code> converts an old style argument
+<code>a</code> to a new style one. Finalizing <code>of_compat_argument a</code> will also
+finalize <code>a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:cgi_cookie">
+  <a href="index.html#/module:Netcgi_types/type:cgi_cookie" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cgi_cookie = <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:netscape_cookie">netscape_cookie</a> = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_types/type:cgi_cookie/field:cookie_name">
+  <a href="index.html#/module:Netcgi_types/type:cgi_cookie/field:cookie_name" class="anchor">#</a>
+  cookie_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_types/type:cgi_cookie/field:cookie_value">
+  <a href="index.html#/module:Netcgi_types/type:cgi_cookie/field:cookie_value" class="anchor">#</a>
+  cookie_value
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_types/type:cgi_cookie/field:cookie_expires">
+  <a href="index.html#/module:Netcgi_types/type:cgi_cookie/field:cookie_expires" class="anchor">#</a>
+  cookie_expires
+  </div>
+  </td><td>: float option</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_types/type:cgi_cookie/field:cookie_domain">
+  <a href="index.html#/module:Netcgi_types/type:cgi_cookie/field:cookie_domain" class="anchor">#</a>
+  cookie_domain
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_types/type:cgi_cookie/field:cookie_path">
+  <a href="index.html#/module:Netcgi_types/type:cgi_cookie/field:cookie_path" class="anchor">#</a>
+  cookie_path
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Netcgi_types/type:cgi_cookie/field:cookie_secure">
+  <a href="index.html#/module:Netcgi_types/type:cgi_cookie/field:cookie_secure" class="anchor">#</a>
+  cookie_secure
+  </div>
+  </td><td>: bool</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:status">
+  <a href="index.html#/module:Netcgi_types/type:status" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> status = <a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/">Nethttp</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/nethttp/#/type:http_status">http_status</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:request_method">
+  <a href="index.html#/module:Netcgi_types/type:request_method" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> request_method = [ <div class="cons">| `GET</div><div class="cons">| `HEAD</div><div class="cons">| `POST</div><div class="cons">| `DELETE</div><div class="cons">| `PUT <span class="keyword">of</span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:cache_control">
+  <a href="index.html#/module:Netcgi_types/type:cache_control" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> cache_control = [ <div class="cons">| `No_cache</div><div class="cons">| `Max_age <span class="keyword">of</span> int</div><div class="cons">| `Unspecified</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:query_string_spec">
+  <a href="index.html#/module:Netcgi_types/type:query_string_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> query_string_spec = [ <div class="cons">| `Initial</div><div class="cons">| `Current</div><div class="cons">| `Args <span class="keyword">of</span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a> list</div><div class="cons">| `None</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/type:other_url_spec">
+  <a href="index.html#/module:Netcgi_types/type:other_url_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> other_url_spec = [ <div class="cons">| `Env</div><div class="cons">| `This <span class="keyword">of</span> string</div><div class="cons">| `None</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> cgi_activation = 
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:environment">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:environment" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> environment : <a href="index.html#/module:Netcgi_env">Netcgi_env</a>.<a href="index.html#/module:Netcgi_env/classtype:cgi_environment">cgi_environment</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:request_method">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:request_method" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> request_method : <a href="index.html#/module:Netcgi_types/type:request_method">request_method</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:initial_arguments">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:initial_arguments" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> initial_arguments : (string * <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a>) list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:initial_argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:initial_argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> initial_argument : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:initial_argument_value">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:initial_argument_value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> initial_argument_value : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:initial_multiple_argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:initial_multiple_argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> initial_multiple_argument : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a> list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:arguments">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:arguments" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> arguments : (string * <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a>) list
+  
+      <div class="doc">
+        
+      <p>Mutability of arguments has been dropped. We indeed believe
+that how to deal with arguments is the role of a higher level
+library, so it is unconvenient that they are mutable (force
+copying even if unecessary). <a href="index.html#/module:Netcgi">Netcgi</a>.Argument has a few
+helper functions to help manipulating lists of immutable
+arguments. Moreover, mutable arguments send the wrong message
+to the user (imagine one wants to keep a cache of args -&gt;
+response) and unnecessarily complicate the interface.</p>
+      
+      <p>It has type <code>argument list</code> as the name is redundant and
+this is better suited for the <a href="index.html#/module:Netcgi">Netcgi</a>.query_string_spec
+optional arguments.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> argument : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a>
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:argument_value">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:argument_value" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> argument_value : ?default:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:multiple_argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:multiple_argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> multiple_argument : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a> list
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:set_arguments">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:set_arguments" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_arguments : ?fin:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a> list <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:update_argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:update_argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> update_argument : ?fin:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:update_multiple_argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:update_multiple_argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> update_multiple_argument : ?fin:bool <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a> list <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:delete_argument">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:delete_argument" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> delete_argument : ?fin:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:url">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:url" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> url : ?protocol:<a href="index.html#/module:Netcgi_env">Netcgi_env</a>.<a href="index.html#/module:Netcgi_env/type:protocol">protocol</a> <span class="rarr"><span>-&gt;</span></span> ?with_authority:<a href="index.html#/module:Netcgi_types/type:other_url_spec">other_url_spec</a> <span class="rarr"><span>-&gt;</span></span> ?with_script_name:<a href="index.html#/module:Netcgi_types/type:other_url_spec">other_url_spec</a> <span class="rarr"><span>-&gt;</span></span> ?with_path_info:<a href="index.html#/module:Netcgi_types/type:other_url_spec">other_url_spec</a> <span class="rarr"><span>-&gt;</span></span> ?with_query_string:<a href="index.html#/module:Netcgi_types/type:query_string_spec">query_string_spec</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:output">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output : <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:trans_out_obj_channel">trans_out_obj_channel</a>
+  
+      <div class="doc">
+        
+      <p></p>
+      
+        
+  <div class="tag deprecated">
+    <span class="label">Deprecated</span> in favor of <code>out_channel</code> for coherence with the
+standard library --- this is also to avoid
+<code>cgi#output#output ...</code> which looks odd.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:set_header">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:set_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_header : ?status:<a href="index.html#/module:Netcgi_types/type:status">status</a> <span class="rarr"><span>-&gt;</span></span> ?content_type:string <span class="rarr"><span>-&gt;</span></span> ?cache:<a href="index.html#/module:Netcgi_types/type:cache_control">cache_control</a> <span class="rarr"><span>-&gt;</span></span> ?filename:string <span class="rarr"><span>-&gt;</span></span> ?language:string <span class="rarr"><span>-&gt;</span></span> ?script_type:string <span class="rarr"><span>-&gt;</span></span> ?style_type:string <span class="rarr"><span>-&gt;</span></span> ?set_cookie:<a href="index.html#/module:Netcgi_types/type:cgi_cookie">cgi_cookie</a> list <span class="rarr"><span>-&gt;</span></span> ?fields:(string * string list) list <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Added <code>?content_length</code> for user convenience and deprecated
+<code>?set_cookie</code> in favor of <code>?set_cookies</code> for coherence
+e.g. with <code>?fields</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:set_redirection_header">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:set_redirection_header" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> set_redirection_header : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/classtype:cgi_activation/method:finalize">
+  <a href="index.html#/module:Netcgi_types/classtype:cgi_activation/method:finalize" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> finalize : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> In addition to defining a type, the following
+<code>cgi_activation</code> also defines a conversion function that allows
+to connect old scripts to the new infrastructure. Renamed
+simply <code>cgi</code> as this is the main cgi-like abstraction.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/val:to_compat_activation">
+  <a href="index.html#/module:Netcgi_types/val:to_compat_activation" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_compat_activation : <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi_types/classtype:cgi_activation">cgi_activation</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>to_compat_activation</code> converts a new style
+cgi object to an old cgi_activation object.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi_types/val:of_compat_activation">
+  <a href="index.html#/module:Netcgi_types/val:of_compat_activation" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_compat_activation : <a href="index.html#/module:Netcgi_types/classtype:cgi_activation">cgi_activation</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/">Netcgi</a>.<a href="../../../../ocamlnet.3.7.7/src/netcgi2/netcgi/#/classtype:cgi">cgi</a>
+    
+      <div class="doc">
+        
+      <p><b>Portage:</b> <code>of_compat_activation</code> converts an old style
+cgi_activation to a new CGI-like object.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi">
+  <a href="index.html#/module:Netcgi" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Netcgi : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Netcgi/type:argument_processing">
+  <a href="index.html#/module:Netcgi/type:argument_processing" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> argument_processing = [ <div class="cons">| `Memory</div><div class="cons">| `File</div><div class="cons">| `Automatic</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi/type:operating_type">
+  <a href="index.html#/module:Netcgi/type:operating_type" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> operating_type = [ <div class="cons">| `Direct <span class="keyword">of</span> string</div><div class="cons">| `Transactional <span class="keyword">of</span> <a href="index.html#/module:Netcgi_env">Netcgi_env</a>.<a href="index.html#/module:Netcgi_env/type:cgi_config">cgi_config</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:out_obj_channel">out_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:trans_out_obj_channel">trans_out_obj_channel</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi/class:simple_argument">
+  <a href="index.html#/module:Netcgi/class:simple_argument" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> simple_argument : 
+    ?ro:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/module:Netcgi_types">Netcgi_types</a>.<a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a>
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi/class:mime_argument">
+  <a href="index.html#/module:Netcgi/class:mime_argument" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> mime_argument : 
+    ?work_around_backslash_bug:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/type:mime_message">mime_message</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/module:Netcgi_types">Netcgi_types</a>.<a href="index.html#/module:Netcgi_types/classtype:cgi_argument">cgi_argument</a>
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi/class:std_activation">
+  <a href="index.html#/module:Netcgi/class:std_activation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> std_activation : 
+    ?env:<a href="index.html#/module:Netcgi_env">Netcgi_env</a>.<a href="index.html#/module:Netcgi_env/classtype:cgi_environment">cgi_environment</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?processing:(string <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/">Netmime</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netmime/#/classtype:mime_header">mime_header</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Netcgi/type:argument_processing">argument_processing</a>) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?operating_type:<a href="index.html#/module:Netcgi/type:operating_type">operating_type</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/module:Netcgi_types">Netcgi_types</a>.<a href="index.html#/module:Netcgi_types/classtype:cgi_activation">cgi_activation</a>
+    
+    
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi/val:buffered_transactional_optype">
+  <a href="index.html#/module:Netcgi/val:buffered_transactional_optype" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> buffered_transactional_optype : <a href="index.html#/module:Netcgi/type:operating_type">operating_type</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Netcgi/val:tempfile_transactional_optype">
+  <a href="index.html#/module:Netcgi/val:tempfile_transactional_optype" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tempfile_transactional_optype : <a href="index.html#/module:Netcgi/type:operating_type">operating_type</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

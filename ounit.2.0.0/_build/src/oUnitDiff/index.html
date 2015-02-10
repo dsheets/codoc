@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>OUnitDiff</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">OUnitDiff</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Unit tests for collection of elements</p>
+      
+      <p>This module allows to define a more precise way to display differences
+between collection of elements. When collection differ, the tester is
+interested by what are the missing/extra elements. This module provides
+a <code>diff</code> operation to spot the difference quickly between two sets of
+elements.</p>
+      
+      <p>Example:
+</p>
+      <pre><code>open OUnit;;
+
+module EInt =
+struct
+  type t = int
+  let compare = ( - )
+  let pp_printer = Format.pp_print_int
+  let pp_print_sep = OUnitDiff.pp_comma_separator
+end
+
+module ListInt = OUnitDiff.ListSimpleMake(EInt);;
+
+let test_diff () =
+  ListInt.assert_equal
+    [1; 2; 3; 4; 5]
+    [1; 2; 5; 4]
+;;
+
+let _ =
+  run_test_tt_main (&quot;test_diff&quot; &gt;:: test_diff)
+;;</code></pre>
+      <p>when run this test outputs:
+</p>
+      <pre><code>OUnit: expected: 1, 2, 3, 4, 5 but got: 1, 2, 5, 4
+differences: element number 2 differ (3 &lt;&gt; 5)</code></pre>
+        
+  <div class="tag since">
+    <span class="label">Since</span> 1.1.0
+  </div>
+  
+  <div class="tag author">
+    <span class="label">Author</span> Sylvain Le Gall
+  </div>
+  
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Signatures</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/modtype:DIFF_ELEMENT">
+  <a href="index.html#/modtype:DIFF_ELEMENT" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> DIFF_ELEMENT = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Definition of an element</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:DIFF_ELEMENT/type:t">
+  <a href="index.html#/modtype:DIFF_ELEMENT/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Type of an element</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:DIFF_ELEMENT/val:pp_printer">
+  <a href="index.html#/modtype:DIFF_ELEMENT/val:pp_printer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_printer : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:DIFF_ELEMENT/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty printer for an element</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:DIFF_ELEMENT/val:compare">
+  <a href="index.html#/modtype:DIFF_ELEMENT/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : <a href="index.html#/modtype:DIFF_ELEMENT/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:DIFF_ELEMENT/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Element comparison</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:DIFF_ELEMENT/val:pp_print_sep">
+  <a href="index.html#/modtype:DIFF_ELEMENT/val:pp_print_sep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_print_sep : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty print element separator</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S">
+  <a href="index.html#/modtype:S" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> S = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p>Definition of standard operations</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:S/type:e">
+  <a href="index.html#/modtype:S/type:e" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> e
+    
+      <div class="doc">
+        
+      <p>Type of an element</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/type:t">
+  <a href="index.html#/modtype:S/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>Type of a collection of element</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:compare">
+  <a href="index.html#/modtype:S/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Compare a collection of element</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:pp_printer">
+  <a href="index.html#/modtype:S/val:pp_printer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_printer : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty printer a collection of element</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:pp_diff">
+  <a href="index.html#/modtype:S/val:pp_diff" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_diff : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> * <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Pretty printer for collection differences</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:assert_equal">
+  <a href="index.html#/modtype:S/val:assert_equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> assert_equal : ?msg:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><a href="index.html#/modtype:S/val:assert_equal">assert_equal</a> with <code>~diff</code>, <code>~cmp</code> and <code>~printer</code> predefined for
+this collection events</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:S/val:of_list">
+  <a href="index.html#/modtype:S/val:of_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_list : <a href="index.html#/modtype:S/type:e">e</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Create <code>t</code> using of list</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Implementations</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/module:SetMake">
+  <a href="index.html#/module:SetMake" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> SetMake : <span class="keyword">functor</span> (D : <a href="index.html#/modtype:DIFF_ELEMENT">DIFF_ELEMENT</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:S/type:e">e</a> = <a href="index.html#/module:SetMake/modarg:1:D">D</a>.<a href="index.html#/module:SetMake/modarg:1:D/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p>Collection of elements based on a Set, elements order doesn't matter</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:ListSimpleMake">
+  <a href="index.html#/module:ListSimpleMake" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> ListSimpleMake : <span class="keyword">functor</span> (D : <a href="index.html#/modtype:DIFF_ELEMENT">DIFF_ELEMENT</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> <a href="index.html#/modtype:S/type:e">e</a> = <a href="index.html#/module:ListSimpleMake/modarg:1:D">D</a>.<a href="index.html#/module:ListSimpleMake/modarg:1:D/type:t">t</a> <span class="keyword">and</span> <span class="keyword">type</span> <a href="index.html#/modtype:S/type:t">t</a> = <a href="index.html#/module:ListSimpleMake/modarg:1:D">D</a>.<a href="index.html#/module:ListSimpleMake/modarg:1:D/type:t">t</a> list</div>
+      
+      <div class="doc">
+        
+      <p>Collection of elements based on a List, order matters but difference display
+is very simple. It stops at the first element which differs.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp_comma_separator">
+  <a href="index.html#/val:pp_comma_separator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp_comma_separator : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

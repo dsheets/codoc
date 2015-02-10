@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_mempool</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_mempool</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Memory pools</p>
+      
+      <p>A memory pool is a block of shared memory that is set aside for storing
+shared data structures. The pool needs to be created before the
+worker processes are forked off that are going to use the pool.
+The worker processes do not map the pool to some random address,
+but rather the processes inherit the pool from the common master
+process which ensures that all processes will see the pool at
+the same address.</p>
+      
+      <p>In order to allow inheritance, the function <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/val:start">start</a>
+for starting workers needs to get an additional argument
+<code>~inherit_resources</code>. The resource ID of the pool must be put
+into this list - otherwise the worker does not get access to
+the pool.</p>
+      
+      <p>It is not possible to enlarge the pool later (because of the
+inheritance method for making the pool accessible). It is advised
+to make the pool large enough for all possible data cases, and
+to let the user configure this size.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:Out_of_pool_memory">
+  <a href="index.html#/exn:Out_of_pool_memory" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Out_of_pool_memory
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_mempool">
+  <a href="index.html#/val:create_mempool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_mempool : ?alloc_really:bool <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a>
+    
+      <div class="doc">
+        
+      <p>Creates the memory pool as shared memory object of the passed size
+(rounded up to the next multiple of pages) and returns the resource ID.</p>
+      
+      <p>Note that the process calling this function cannot use the pool,
+but only worker processes that are forked later. It is possible
+to call <code>create_mempool</code> before running <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/val:startup">startup</a>.</p>
+      
+      <p>Option <code>alloc_really</code>: On some operating systems (namely Linux)
+shared memory is not fully included into the memory bookkeeping
+as long as nothing is written into it (so-called
+overcommitment). This means that the memory is not reserved, and
+when something is written for the first time, it might happen
+that the system cannot grant the request. The consequence is a
+bus error. By setting <code>alloc_really</code> to true, all allocated
+memory pages are immediately written to, and thus the problem is
+avoided (or better, if memory is really tight, you get the bus
+error now immediately, at least).</p>
+      
+      <p><b>Note that memory pools have kernel persistence! They are not
+automatically deleted when the process finishes. Call <code>unlink_mempool</code>
+to delete memory pools.</b></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:alloc_mem">
+  <a href="index.html#/val:alloc_mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> alloc_mem : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a>
+    
+      <div class="doc">
+        
+      <p>Allocate memory in this pool. The passed int the size of the
+returned <code>memory</code> object. The size is rounded up to the next
+multiple of pages.</p>
+      
+      <p>Blocks are actually allocated in units of pages.</p>
+      
+      <p>Raises <code>Out_of_pool_memory</code> if there is not enough contiguous
+space in the pool.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:size_mem">
+  <a href="index.html#/val:size_mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> size_mem : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the size of this block, or raises <code>Not_found</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:size_mem_at_addr">
+  <a href="index.html#/val:size_mem_at_addr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> size_mem_at_addr : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> nativeint <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the size of the block at this address, or raises <code>Not_found</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:free_mem">
+  <a href="index.html#/val:free_mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> free_mem : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/">Netsys_mem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_mem/#/type:memory">memory</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Frees this allocated block</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stats">
+  <a href="index.html#/val:stats" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stats : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> int * int * int
+    
+      <div class="doc">
+        
+      <p>Returns <code>(total, free, contiguous)</code> where</p>
+      <ul><li><code>total</code> is the total size of the pool</li><li><code>free</code> is the number of free bytes</li><li><code>contiguous</code> is the size of the largest contiguous free block</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug_info">
+  <a href="index.html#/val:debug_info" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug_info : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a string describing the allocations etc.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_name">
+  <a href="index.html#/val:shm_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shm_name : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns the name of the shared memory object</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sem_container">
+  <a href="index.html#/val:sem_container" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sem_container : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/">Netsys_sem</a>.<a href="../../../../ocamlnet.3.7.7/src/netsys/netsys_sem/#/type:container">container</a>
+    
+      <div class="doc">
+        
+      <p>Returns the semaphore container</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unlink_mempool">
+  <a href="index.html#/val:unlink_mempool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlink_mempool : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Deletes the persistent objects of this pool</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Enable debugging</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug/val:enable_alloc">
+  <a href="index.html#/module:Debug/val:enable_alloc" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable_alloc : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>Trace allocation and deallocation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

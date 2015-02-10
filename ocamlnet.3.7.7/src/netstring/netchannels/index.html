@@ -1,0 +1,2475 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netchannels</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netchannels</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Object-oriented I/O: Basic types and classes</p>
+      
+      <p><b>Contents</b></p>
+      <ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:types">types</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:input">input</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:output">output</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:delegation">delegation</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:lifting">lifting</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:descriptors">descriptors</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:transactional">transactional</a></li><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:filters">filters</a>
+<ul><li><a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/label:filters_notes">filters_notes</a></li></ul></li></ul>
+      <p>The tutorial has been moved to [root:Netchannels_tut].</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+  <div class="region" id="/label:types">
+  <a href="index.html#/label:types" class="anchor">#</a>
+  
+    <h1 class="section level_1">Types</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>There are three levels of class types for channels:</p>
+      <ul><li><code>rec_in_channel</code> and <code>rec_out_channel</code>: Primitive, but standardized level</li><li><code>raw_in_channel</code> and <code>raw_out_channel</code>: Unix level</li><li><code>in_obj_channel</code> and <code>out_obj_channel</code>: Application level</li></ul>
+      <p>The &quot;rec&quot; level has been recently introduced to improve interoperability
+with other libraries (e.g. camomile). The idea is to standardize the
+real core methods of I/O, so they have the same meaning in all libraries.
+Read
+&quot;<a href="http://www.ocaml-programming.de/rec/IO-Classes.html">Basic I/O class types</a>&quot;
+for more.</p>
+      
+      <p>The &quot;raw&quot; level represents the level of Unix file descriptors.</p>
+      
+      <p>The application level is what should be used in programs. In addition
+to the &quot;raw&quot; level one can find a number of convenience methods,
+e.g. <code>input_line</code> to read a line from the channel. The downside is that
+these methods usually work only for blocking I/O.</p>
+      
+      <p>One can lower the level by coercion, e.g. to turn an <code>in_obj_channel</code>
+into a <code>rec_in_channel</code>, apply the function</p>
+      
+      <p><code>(fun ch -&gt; (ch : in_obj_channel :&gt; rec_in_channel))</code></p>
+      
+      <p>To higher the level, apply <code>lift_in</code> or <code>lift_out</code>, defined below.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p><b>Interface changes:</b> Since ocamlnet-0.98, the semantics of
+the methods <code>input</code> and <code>output</code> has slightly changed. When the end
+of the channel is reached, <code>input</code> raises now <code>End_of_file</code>. In previous
+releases of ocamlnet, the value 0 was returned. When the channel cannot
+process data, but is in non-blocking mode, both methods now return the
+value 0. In previous releases of ocamlnet, the behaviour was not
+defined.</p>
+      
+      <p><b>Ocamlnet-3.0</b> changed the behavior of <code>close_out</code>. Errors are no longer
+reported - instead, the exception is logged to [root:Netlog]. For a stricter
+error handling, it is suggested to call <code>flush</code> first. Also, <code>close_in</code>
+and <code>close_out</code> no longer raise <code>Closed_channel</code> when the channel is
+already closed. Read more about this in the section
+<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:rec_out_channel">rec_out_channel</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:rec_out_channel/label:close_error">close_error</a>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/exn:Closed_channel">
+  <a href="index.html#/exn:Closed_channel" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Closed_channel
+    
+      <div class="doc">
+        
+      <p>Raised when channel operations are called when the channel is closed</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Buffer_underrun">
+  <a href="index.html#/exn:Buffer_underrun" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Buffer_underrun
+    
+      <div class="doc">
+        
+      <p>Raised by input methods if the internal buffer of the channel is too
+empty to read even one byte of data.
+This exception is only used by certain implementations of channel
+classes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Command_failure">
+  <a href="index.html#/exn:Command_failure" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Command_failure <span class="keyword">of</span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:process_status">process_status</a>
+    
+      <div class="doc">
+        
+      <p>Raised by <code>close_in</code> or <code>close_out</code> if the channel is connected with
+another process, and the execution of that process fails.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rec_in_channel">
+  <a href="index.html#/classtype:rec_in_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> rec_in_channel = 
+      <div class="doc">
+        
+      <p>Description</p>
+      
+      <p>This class type is defined in
+&quot;<a href="http://www.ocaml-programming.de/rec/IO-Classes.html">Basic I/O class types</a>&quot;
+as collaborative effort of several library creators.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:rec_in_channel/method:input">
+  <a href="index.html#/classtype:rec_in_channel/method:input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>Reads octets from the channel and puts them into the string. The
+first <code>int</code> argument is the position of the substring, and the second
+<code>int</code> argument is the length of the substring where the data are
+stored. The method returns the number of octets actually read and
+stored.</p>
+      
+      <p>When the end of the channel is reached and there is no further octet
+to read, the exception <code>End_of_file</code> will be raised. <b>This has
+been changed in ocamlnet-0.97! In previous releases the number 0
+was returned at the end of the channel.</b></p>
+      
+      <p>When the channel is non-blocking, and there are currently no bytes
+to read, the number 0 will be returned. <b>This has
+been changed in ocamlnet-0.97! In previous releases this behaviour
+was undefined.</b></p>
+      
+      <p>When the channel is closed, the exception <code>Closed_channel</code> will be
+raised if an ocamlnet implementation is used. For implementations
+of other libraries there is no standard for this case.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rec_in_channel/method:close_in">
+  <a href="index.html#/classtype:rec_in_channel/method:close_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_in : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Closes the channel for input.</p>
+      
+      <p>When the channel is already closed, this is a no-op.</p>
+      
+      <p>Error policy: Exceptions are only raised in cases of serious
+corruption, e.g. if the underlying descriptor is invalid.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Recommended input class type for library interoperability.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:raw_in_channel">
+  <a href="index.html#/classtype:raw_in_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> raw_in_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:rec_in_channel">rec_in_channel</a>
+    </div>
+    
+  <div class="region" id="/classtype:raw_in_channel/method:pos_in">
+  <a href="index.html#/classtype:raw_in_channel/method:pos_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pos_in : int
+  
+      <div class="doc">
+        
+      <p>Returns the current channel position. This position can be expected
+to be consistent with the returned number of bytes of <code>input</code>, i.e.
+when <code>input</code> returns <code>n</code>, the position is advanced by <code>n</code>.</p>
+      
+      <p>As seek operations are outside the scope of <code>Netchannels</code>,
+implementations may or may not take seek operations into account.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Basic Unix-level class type for input channels as used by ocamlnet. In addition
+to the recommended standard, ocamlnet always support a position counter</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rec_out_channel">
+  <a href="index.html#/classtype:rec_out_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> rec_out_channel = 
+      <div class="doc">
+        
+      <p>Description</p>
+      
+      <p>This class type is defined in
+&quot;<a href="http://www.ocaml-programming.de/rec/IO-Classes.html">Basic I/O class types</a>&quot;
+as collaborative effort of several library creators.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/classtype:rec_out_channel/method:output">
+  <a href="index.html#/classtype:rec_out_channel/method:output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>Takes octets from the string and writes them into the channel. The
+first <code>int</code> argument is the position of the substring, and the second
+<code>int</code> argument is the length of the substring where the data can
+be found. The method returns the number of octets actually written.</p>
+      
+      <p>The implementation may choose to collect written octets in a buffer
+before they actually delivered to the underlying resource.</p>
+      
+      <p>When the channel is non-blocking, and there are currently no bytes
+to write, the number 0 will be returned. <b>This has
+been changed in ocamlnet-0.97! In previous releases this behaviour
+was undefined.</b></p>
+      
+      <p>When the channel is closed, the exception <code>Closed_channel</code> will be
+raised if an ocamlnet implementation is used. For implementations
+of other libraries there is no standard for this case.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rec_out_channel/method:flush">
+  <a href="index.html#/classtype:rec_out_channel/method:flush" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> flush : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>If there is a write buffer, it will be flushed. Otherwise, nothing
+happens.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:rec_out_channel/method:close_out">
+  <a href="index.html#/classtype:rec_out_channel/method:close_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> close_out : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Flushes the buffer, if any, and closes the channel for output.</p>
+      
+      <p>When the channel is already closed, this is a no-op.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/classtype:rec_out_channel/label:close_error">
+  <a href="index.html#/classtype:rec_out_channel/label:close_error" class="anchor">#</a>
+  
+    <h2 class="section level_2">How to close channels in case of errors</h2>
+    
+  </div>
+  
+      <p>The <code>close_out</code> method has actually two tasks: First, it writes out
+all remaining data (like <code>flush</code>), and second, it releases OS
+resources (e.g. closes file descriptors). There is the question
+what has to happen when the write part fails - is the resource released
+anyway or not?</p>
+      
+      <p>We choose here a pragmatic approach under the assumption that
+an OS error at close time is usually unrecoverable, and it is
+more important to release the OS resource. Also, we
+assume that the user is wise enough to call <code>flush</code> first if
+it is essential to know write errors at close time. Under these
+assumptions:</p>
+      <ul><li>The <code>flush</code> method fully reports any errors when writing out
+the remaining data.</li><li>When <code>flush</code> raises an error exception, it should discard
+any data in the buffer. This is not obligatory, however,
+but considered good practice, and is subject to discussion.</li><li>The <code>close_out</code> method usually does not report errors by
+raising exceptions, but only by logging them via [root:Netlog].
+The OS resource is released in any case. As before, this
+behavior is not obligatory, but considered as good practice,
+and subject to discussion.</li></ul>
+      <p>This ensures that the following code snippet reports all errors, but also
+releases OS resources:</p>
+      <pre><code>       try 
+         ch # flush();
+         ch # close_out();
+       with error -&gt; 
+          ch # close_out(); raise error</code></pre>
+      <p>There are some cases where data can be first written when it is
+known that the channel is closed. These data would not be written
+by a preceding <code>flush</code>. In such cases:</p>
+      <ul><li>The best way to deal with it is to define another method,
+e.g. called <code>write_eof</code>, that marks the data as logically
+being complete, so a following <code>flush</code> can do the complete
+shutdown cycle of the channel.</li><li>At least, however, one should allow then that a double
+<code>close_out</code> releases the descriptor: the first <code>close_out</code>
+will report the error condition as exception, but discard
+all data in the channel. The second <code>close_out</code> finally
+releases the OS resource.</li></ul>
+      <p>In any way, hard errors indicating bugs of the program logic
+(like invalid file descriptors) should always be immediately
+reported.</p>
+      
+        
+      </div>
+    
+    
+      <div class="doc">
+        
+      <p>Recommended output class type for library interoperability.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:raw_out_channel">
+  <a href="index.html#/classtype:raw_out_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> raw_out_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:rec_out_channel">rec_out_channel</a>
+    </div>
+    
+  <div class="region" id="/classtype:raw_out_channel/method:pos_out">
+  <a href="index.html#/classtype:raw_out_channel/method:pos_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> pos_out : int
+  
+      <div class="doc">
+        
+      <p>Returns the current channel position. This position can be expected
+to be consistent with the returned number of bytes of <code>output</code>, i.e.
+when <code>output</code> returns <code>n</code>, the position is advanced by <code>n</code>.</p>
+      
+      <p>As seek operations are outside the scope of <code>Netchannels</code>,
+implementations may or may not take seek operations into account.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Basic Unix-level class type for output channels as used by ocamlnet. In addition
+to the recommended standard, ocamlnet always support a position counter</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:raw_io_channel">
+  <a href="index.html#/classtype:raw_io_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> raw_io_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a>
+    </div>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    </div>
+    
+    
+      <div class="doc">
+        
+      <p>A channel supporting both input and output. The input and output
+aspects are strictly separated</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_in_channel">
+  <a href="index.html#/classtype:compl_in_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> compl_in_channel = 
+  <div class="region" id="/classtype:compl_in_channel/method:really_input">
+  <a href="index.html#/classtype:compl_in_channel/method:really_input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> really_input : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Reads exactly as many octets from the channel as the second <code>int</code>
+argument specifies. The octets are placed at the position denoted
+by the first <code>int</code> argument into the string.</p>
+      
+      <p>When the end of the channel is reached before the passed number of
+octets are read, the exception <code>End_of_file</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_in_channel/method:input_char">
+  <a href="index.html#/classtype:compl_in_channel/method:input_char" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_char : unit <span class="rarr"><span>-&gt;</span></span> char
+  
+      <div class="doc">
+        
+      <p>Reads exactly one character from the channel, or raises <code>End_of_file</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_in_channel/method:input_line">
+  <a href="index.html#/classtype:compl_in_channel/method:input_line" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_line : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>Reads the next line from the channel. When the channel is already
+at the end before <code>input_line</code> is called, the exception <code>End_of_file</code>
+is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_in_channel/method:input_byte">
+  <a href="index.html#/classtype:compl_in_channel/method:input_byte" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> input_byte : unit <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>Reads exactly one octet from the channel and returns its code,
+or raises <code>End_of_file</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Further methods usually supported by ocamlnet channel implementations.
+These methods are only reasonable when the channel is of blocking type,
+i.e. waits for input when not enough data are available to perform an
+operation. Implementations may choose to fail when they detect the
+channel is non-blocking.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_obj_channel">
+  <a href="index.html#/classtype:in_obj_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> in_obj_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a>
+    </div>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:compl_in_channel">compl_in_channel</a>
+    </div>
+    
+    
+      <div class="doc">
+        
+      <p>The application-level input channel supports raw and complemented methods</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_out_channel">
+  <a href="index.html#/classtype:compl_out_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> compl_out_channel = 
+  <div class="region" id="/classtype:compl_out_channel/method:really_output">
+  <a href="index.html#/classtype:compl_out_channel/method:really_output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> really_output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Writes exactly as many octets to the channel as the second <code>int</code>
+argument specifies. The octets are taken from the string position
+denoted by the first <code>int</code> argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_out_channel/method:output_char">
+  <a href="index.html#/classtype:compl_out_channel/method:output_char" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_char : char <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Writes exactly one character</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_out_channel/method:output_string">
+  <a href="index.html#/classtype:compl_out_channel/method:output_string" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_string : string <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Writes exactly the passed string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_out_channel/method:output_byte">
+  <a href="index.html#/classtype:compl_out_channel/method:output_byte" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_byte : int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Writes exactly one byte passed as integer code</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_out_channel/method:output_buffer">
+  <a href="index.html#/classtype:compl_out_channel/method:output_buffer" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_buffer : <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Writes exactly the contents of the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:compl_out_channel/method:output_channel">
+  <a href="index.html#/classtype:compl_out_channel/method:output_channel" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> output_channel : ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Writes the contents of an <code>in_obj_channel</code> until the end of the
+input channel is reached.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">len</span> If passed, at most this number of octets are read from
+the input channel and written to this channel.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Further methods usually supported by ocamlnet channel implementations.
+These methods are only reasonable when the channel is of blocking type,
+i.e. waits for output readiness when the underlying resource currently
+cannot process enough data. Implementations may choose to fail when they
+detect the channel is non-blocking.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:out_obj_channel">
+  <a href="index.html#/classtype:out_obj_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> out_obj_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    </div>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:compl_out_channel">compl_out_channel</a>
+    </div>
+    
+    
+      <div class="doc">
+        
+      <p>The application-level output channel supports raw and complemented methods</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:io_obj_channel">
+  <a href="index.html#/classtype:io_obj_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> io_obj_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    </div>
+    
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    </div>
+    
+    
+      <div class="doc">
+        
+      <p>A channel supporting both input and output. The input and output
+aspects are strictly separated</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:trans_out_obj_channel">
+  <a href="index.html#/classtype:trans_out_obj_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> trans_out_obj_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    </div>
+    
+  <div class="region" id="/classtype:trans_out_obj_channel/method:commit_work">
+  <a href="index.html#/classtype:trans_out_obj_channel/method:commit_work" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> commit_work : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Flushes the transaction buffer, and writes its contents to the
+underlying resource.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:trans_out_obj_channel/method:rollback_work">
+  <a href="index.html#/classtype:trans_out_obj_channel/method:rollback_work" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> rollback_work : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Empties the transaction buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>A transactional output channel has a buffer for uncommitted data.
+This means that all data written to this channel is collected in the
+buffer until either <code>commit_work</code> or <code>rollback_work</code> is called.</p>
+      
+      <p>When the channel is closed, the buffer may optionally be committed.
+This is implementation-defined.</p>
+      
+      <p>The method <code>flush</code> does not have any effect on the transaction
+buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:input">
+  <a href="index.html#/label:input" class="anchor">#</a>
+  
+    <h1 class="section level_1">Input channels</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/class:input_channel">
+  <a href="index.html#/class:input_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_channel : 
+    ?onclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates an input channel from an <code>in_channel</code>, which must be open.</p>
+      
+      <p>The method <code>pos_in</code> reflects the real position in the channel as
+returned by <code>Pervasives.pos_in</code>. This works for both seekable and
+non-seekable channels.</p>
+      
+      <p>The method <code>close_in</code> also closes the underlying <code>in_channel</code>.</p>
+      
+      <p>The function <code>onclose</code> is called after the <code>in_channel</code> has been closed.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:input_command">
+  <a href="index.html#/class:input_command" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_command : 
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    
+    
+      <div class="doc">
+        
+      <p>Runs the command with <code>/bin/sh</code>, and reads the data the command prints
+to stdout.</p>
+      
+      <p>The method <code>pos_in</code> returns the number of read octets.</p>
+      
+      <p>When <code>close_in</code> is invoked, the subprocess is <code>wait</code>ed for. If the
+process exits with code 0, the method returns normally. Otherwise,
+the exception <code>Command_failure</code> is raised.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:input_string">
+  <a href="index.html#/class:input_string" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_string : 
+    ?pos:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?len:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates an input channel from a (constant) string.</p>
+      
+      <p>The method <code>pos_in</code> reflects the real position in the string, i.e.
+a character read at position <code>k</code> can be found at <code>s.[k]</code> in the string
+<code>s</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">pos</span> The data of the channel begins at this position of the string.
+Default: 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> The data of the channel consists of this number of bytes.
+Default: until the end of the string
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_input_netbuffer">
+  <a href="index.html#/val:create_input_netbuffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_input_netbuffer : <a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/">Netbuffer</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a> * (unit <span class="rarr"><span>-&gt;</span></span> unit)
+    
+      <div class="doc">
+        
+      <p>Creates an input channel and a shutdown function for a netbuffer.
+This is a destructive
+implementation: Every time data is read, the octets are taken from the
+beginning of the netbuffer, and they are deleted from the netbuffer
+(recall that a netbuffer works like a queue of characters).</p>
+      
+      <p>Conversely, the user of this class may add new data to the netbuffer
+at any time. When the shutdown function is called, the EOF condition
+is recorded, and no further data must be added.</p>
+      
+      <p>If the netbuffer becomes empty, the input methods raise <code>Buffer_underrun</code>
+when the EOF condition has not yet been set, and they raise
+<code>End_of_file</code> when the EOF condition has been recorded.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lexbuf_of_in_obj_channel">
+  <a href="index.html#/val:lexbuf_of_in_obj_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lexbuf_of_in_obj_channel : <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/#/type:lexbuf">lexbuf</a>
+    
+      <div class="doc">
+        
+      <p>Creates a lexical buffer from an input channel. The input channel
+is not closed when the end is reached</p>
+      
+      <p>This function does not work for non-blocking channels.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_in_obj_channel">
+  <a href="index.html#/val:string_of_in_obj_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_in_obj_channel : <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Reads from the input channel until EOF and returns the characters
+as string. The input channel is not closed.</p>
+      
+      <p>This function does not work for non-blocking channels.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lines_of_in_obj_channel">
+  <a href="index.html#/val:lines_of_in_obj_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lines_of_in_obj_channel : <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Reads from the input channel until EOF and returns the lines
+as string list. The input channel is not closed.</p>
+      
+      <p>This function does not work for non-blocking channels.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_in_obj_channel">
+  <a href="index.html#/val:with_in_obj_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_in_obj_channel : (<a href="index.html#/classtype:in_obj_channel">in_obj_channel</a> <span class="keyword">as</span> 'a) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>with_in_obj_channel ch f</code>:
+Computes <code>f ch</code> and closes <code>ch</code>. If an exception happens, the channel is
+closed, too.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:output">
+  <a href="index.html#/label:output" class="anchor">#</a>
+  
+    <h1 class="section level_1">Output channels</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/class:output_channel">
+  <a href="index.html#/class:output_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_channel : 
+    ?onclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates an output channel writing into an <code>out_channel</code>.</p>
+      
+      <p>The method <code>pos_out</code> reflects the real position in the channel as
+returned by <code>Pervasives.pos_out</code>. This works for both seekable and
+non-seekable channels.</p>
+      
+      <p>The method <code>close_out</code> also closes the underlying <code>out_channel</code>.
+There is some implicit logic to either use <code>close_out</code> or <code>close_out_noerr</code>
+depending on whether the immediately preceding operation already reported
+an error.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">onclose</span> this function is called when the <code>close_out</code> method is
+invoked, just after the underlying <code>out_channel</code> has been closed.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_command">
+  <a href="index.html#/class:output_command" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_command : 
+    ?onclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    string
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>Runs the command with <code>/bin/sh</code>, and data written to the channel is
+piped to stdin of the command.</p>
+      
+      <p>The method <code>pos_out</code> returns the number of written octets.</p>
+      
+      <p>When <code>close_out</code> is invoked, the subprocess is <code>wait</code>ed for. If the
+process exits with code 0, the method returns normally. Otherwise,
+the exception <code>Command_failure</code> is raised. (The channel is closed
+even if this exception is raised.)</p>
+      
+        
+  <div class="tag param">
+    <span class="label">onclose</span> this function is called when the <code>close_out</code> method is
+invoked, just after the underlying descriptor has been closed.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_buffer">
+  <a href="index.html#/class:output_buffer" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_buffer : 
+    ?onclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/">Buffer</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/buffer/#/type:t">t</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This output channel writes the data into the passed buffer.</p>
+      
+      <p>The method <code>pos_out</code> returns the number of written octets.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">onclose</span> this function is called when the <code>close_out</code> method is
+invoked, just after the underlying descriptor has been closed.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_netbuffer">
+  <a href="index.html#/class:output_netbuffer" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_netbuffer : 
+    ?onclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/">Netbuffer</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/#/type:t">t</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This output channel writes the data into the passed netbuffer.</p>
+      
+      <p>The method <code>pos_out</code> returns the number of written octets.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">onclose</span> this function is called when the <code>close_out</code> method is
+invoked, just after the underlying descriptor has been closed.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_null">
+  <a href="index.html#/class:output_null" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_null : 
+    ?onclose:(unit <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This output channel discards all written data.</p>
+      
+      <p>The method <code>pos_out</code> returns the number of discarded bytes.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">onclose</span> this function is called when the <code>close_out</code> method is
+invoked, just after the underlying descriptor has been closed.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_out_obj_channel">
+  <a href="index.html#/val:with_out_obj_channel" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_out_obj_channel : (<a href="index.html#/classtype:out_obj_channel">out_obj_channel</a> <span class="keyword">as</span> 'a) <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>with_out_obj_channel ch f</code>:
+Computes <code>f ch</code> and closes <code>ch</code>. If an exception happens, the channel is
+closed, too.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:delegation">
+  <a href="index.html#/label:delegation" class="anchor">#</a>
+  
+    <h1 class="section level_1">Delegation classes</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Delegation classes just forward method calls to an parameter
+object, i.e. when method <code>m</code> of the delegation class is called,
+the definition of <code>m</code> is just to call the method with the same
+name <code>m</code> of the parameter object. This is very useful in order
+to redefine methods individually.</p>
+      
+      <p>For example, to redefine the method <code>pos_in</code> of an <code>in_obj_channel</code>,
+use
+</p>
+      <pre><code>   class my_channel = object(self)
+     inherit in_obj_channel_delegation ...
+     method pos_in = ...
+   end</code></pre>
+      <p>As a special feature, the following delegation classes can suppress
+the delegation of <code>close_in</code> or <code>close_out</code>, whatever applies.
+Just pass <code>close:false</code> to get this effect, e.g.
+</p>
+      <pre><code>   class input_channel_don't_close c =
+     in_obj_channel_delegation ~close:false (new input_channel c)</code></pre>
+      <p>
+This class does not close <code>c : in_channel</code> when the <code>close_in</code>
+method is called.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:rec_in_channel_delegation">
+  <a href="index.html#/class:rec_in_channel_delegation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> rec_in_channel_delegation : 
+    ?close:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:rec_in_channel">rec_in_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:rec_in_channel">rec_in_channel</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:raw_in_channel_delegation">
+  <a href="index.html#/class:raw_in_channel_delegation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> raw_in_channel_delegation : 
+    ?close:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:in_obj_channel_delegation">
+  <a href="index.html#/class:in_obj_channel_delegation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> in_obj_channel_delegation : 
+    ?close:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:rec_out_channel_delegation">
+  <a href="index.html#/class:rec_out_channel_delegation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> rec_out_channel_delegation : 
+    ?close:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:rec_out_channel">rec_out_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:rec_out_channel">rec_out_channel</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:raw_out_channel_delegation">
+  <a href="index.html#/class:raw_out_channel_delegation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> raw_out_channel_delegation : 
+    ?close:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:out_obj_channel_delegation">
+  <a href="index.html#/class:out_obj_channel_delegation" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> out_obj_channel_delegation : 
+    ?close:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:lifting">
+  <a href="index.html#/label:lifting" class="anchor">#</a>
+  
+    <h1 class="section level_1">Lifting channels</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>The following classes and functions add missing methods to reach
+a higher level in the hierarchy of channel class types. For most
+uses, the <code>lift_in</code> and <code>lift_out</code> functions work best.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:lift_in">
+  <a href="index.html#/val:lift_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lift_in : ?eol:string list <span class="rarr"><span>-&gt;</span></span> ?buffered:bool <span class="rarr"><span>-&gt;</span></span> ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?pass_through:int <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Rec <span class="keyword">of</span> <a href="index.html#/classtype:rec_in_channel">rec_in_channel</a></div><div class="cons">| `Raw <span class="keyword">of</span> <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    
+      <div class="doc">
+        
+      <p>Turns a <code>rec_in_channel</code> or <code>raw_in_channel</code>, depending on the passed
+variant, into a full <code>in_obj_channel</code> object. (This is a convenience
+function, you can also use the classes below directly.) If you
+want to define a class for the lifted object, use
+</p>
+      <pre><code>     class lifted_ch ... =
+       in_obj_channel_delegation (lift_in ...)</code></pre>
+        
+  <div class="tag param">
+    <span class="label">eol</span> The accepted end-of-line delimiters. The method
+<code>input_line</code> recognizes any of the passed strings as EOL
+delimiters. When more than one delimiter matches, the longest
+is taken. Defaults to <code>[&quot;\n&quot;]</code>. The default cannot be
+changed when <code>buffered=false</code> (would raise <code>Invalid_argument</code>).
+The delimiter strings must neither be empty, nor longer than
+<code>buffer_size</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">buffered</span> Whether a buffer is added, by default <b>true</b>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">buffer_size</span> The size of the buffer, if any, by default 4096
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pass_through</span> If the read request has at least this size,
+and the buffer is currently empty, the buffer will be bypassed.
+Defaults to <code>max_int</code>, i.e. it is off.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lift_out">
+  <a href="index.html#/val:lift_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lift_out : ?buffered:bool <span class="rarr"><span>-&gt;</span></span> ?buffer_size:int <span class="rarr"><span>-&gt;</span></span> ?pass_through:int <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Rec <span class="keyword">of</span> <a href="index.html#/classtype:rec_out_channel">rec_out_channel</a></div><div class="cons">| `Raw <span class="keyword">of</span> <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a></div> ] <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+      <div class="doc">
+        
+      <p>Turns a <code>rec_out_channel</code> or <code>raw_out_channel</code>, depending on the passed
+variant, into a full <code>out_obj_channel</code> object. (This is a convenience
+function, you can also use the classes below directly.) If you
+want to define a class for the lifted object, use
+</p>
+      <pre><code>     class lifted_ch ... =
+       out_obj_channel_delegation (lift_out ...)</code></pre>
+        
+  <div class="tag param">
+    <span class="label">buffered</span> Whether a buffer is added, by default <b>true</b>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">buffer_size</span> The size of the buffer, if any, by default 4096
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pass_through</span> If the write request has at least this size,
+and the buffer is currently empty, the buffer will be bypassed.
+Defaults to <code>max_int</code>, i.e. it is off.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:augment_raw_in_channel">
+  <a href="index.html#/class:augment_raw_in_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> augment_raw_in_channel : 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:compl_in_channel">compl_in_channel</a>
+    </div>
+    
+  <div class="region" id="/class:augment_raw_in_channel/method:input">
+  <a href="index.html#/class:augment_raw_in_channel/method:input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> input : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>As in <code>raw_in_channel</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:augment_raw_in_channel/method:close_in">
+  <a href="index.html#/class:augment_raw_in_channel/method:close_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> close_in : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>As in <code>raw_in_channel</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:augment_raw_in_channel/method:pos_in">
+  <a href="index.html#/class:augment_raw_in_channel/method:pos_in" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> pos_in : int
+  
+      <div class="doc">
+        
+      <p>As in <code>raw_in_channel</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This class implements the methods from <code>compl_in_channel</code> by calling
+the methods of <code>raw_in_channel</code>. There is no additional buffering.
+The performance of the method <code>input_line</code> is very bad (consider
+to override it, e.g. by <code>enhanced_input_line</code> as defined below).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lift_rec_in_channel">
+  <a href="index.html#/class:lift_rec_in_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> lift_rec_in_channel : 
+    ?start_pos_in:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:rec_in_channel">rec_in_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This class implements <code>pos_in</code> and the methods from <code>compl_in_channel</code>
+by calling the methods of <code>rec_in_channel</code>.
+There is no additional buffering.</p>
+      
+      <p>The performance of the method <code>input_line</code> is very bad (consider
+to override it, e.g. by <code>enhanced_input_line</code> as defined below).</p>
+      
+      <p>The method <code>pos_in</code> is implemented by counting the number of octets
+read by the <code>input</code> method.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">start_pos_in</span> The initial value of the counter for <code>pos_in</code>.
+Defaults to 0.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:augment_raw_out_channel">
+  <a href="index.html#/class:augment_raw_out_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> <span class="keyword">virtual</span> augment_raw_out_channel : 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:compl_out_channel">compl_out_channel</a>
+    </div>
+    
+  <div class="region" id="/class:augment_raw_out_channel/method:output">
+  <a href="index.html#/class:augment_raw_out_channel/method:output" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> output : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+  
+      <div class="doc">
+        
+      <p>As in <code>raw_out_channel</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:augment_raw_out_channel/method:close_out">
+  <a href="index.html#/class:augment_raw_out_channel/method:close_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> close_out : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>As in <code>raw_out_channel</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:augment_raw_out_channel/method:flush">
+  <a href="index.html#/class:augment_raw_out_channel/method:flush" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> flush : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>As in <code>raw_out_channel</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:augment_raw_out_channel/method:pos_out">
+  <a href="index.html#/class:augment_raw_out_channel/method:pos_out" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">virtual</span> pos_out : int
+  
+      <div class="doc">
+        
+      <p>As in <code>raw_out_channel</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>This class implements the methods from <code>compl_out_channel</code> by calling
+the methods of <code>raw_out_channel</code>. There is no additional buffering.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lift_raw_out_channel">
+  <a href="index.html#/class:lift_raw_out_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> lift_raw_out_channel : 
+    <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+      <div class="doc">
+        
+      <p>This class implements the methods from <code>compl_out_channel</code> by calling
+the methods of <code>raw_out_channel</code>. There is no additional buffering.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:lift_rec_out_channel">
+  <a href="index.html#/class:lift_rec_out_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> lift_rec_out_channel : 
+    ?start_pos_out:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:rec_out_channel">rec_out_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>This class implements <code>pos_out</code> and the methods from <code>compl_out_channel</code>
+by calling the methods of <code>rec_out_channel</code>.
+There is no additional buffering.</p>
+      
+      <p>The method <code>pos_out</code> is implemented by counting the number of octets
+read by the <code>output</code> method.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">start_pos_out</span> The initial value of the counter for <code>pos_out</code>.
+Defaults to 0.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:input_result">
+  <a href="index.html#/type:input_result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> input_result = [ <div class="cons">| `Data <span class="keyword">of</span> int</div><div class="cons">| `Separator <span class="keyword">of</span> string</div> ]
+    
+      <div class="doc">
+        
+      <p>This type is for the method <code>enhanced_input</code> of <code>enhanced_raw_in_channel</code>.</p>
+      <ul><li><code>`Data n</code> means that <code>n</code> bytes have been copied to the target string</li><li><code>`Separator s</code> means that no bytes have been copied, but that an
+end-of-line separator <code>s</code> has been found</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:enhanced_raw_in_channel">
+  <a href="index.html#/classtype:enhanced_raw_in_channel" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> enhanced_raw_in_channel = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a>
+    </div>
+    
+  <div class="region" id="/classtype:enhanced_raw_in_channel/method:enhanced_input_line">
+  <a href="index.html#/classtype:enhanced_raw_in_channel/method:enhanced_input_line" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> enhanced_input_line : unit <span class="rarr"><span>-&gt;</span></span> string
+  
+      <div class="doc">
+        
+      <p>An improved implementation of <code>input_line</code> that uses the buffer</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:enhanced_raw_in_channel/method:enhanced_input">
+  <a href="index.html#/classtype:enhanced_raw_in_channel/method:enhanced_input" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> <span class="keyword">private</span> enhanced_input : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:input_result">input_result</a>
+  
+      <div class="doc">
+        
+      <p>Works similar to <code>input</code>, but distinguishes between normal data
+and end-of-line separators. The latter are returned as
+<code>`Separator s</code>. When normal data is found, it is copied to the
+string, and <code>`Data n</code> is returned to indicate that <code>n</code> bytes
+were copied.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>Defines private methods reading text line by line</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:buffered_raw_in_channel">
+  <a href="index.html#/class:buffered_raw_in_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> buffered_raw_in_channel : 
+    ?eol:string list option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?buffer_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?pass_through:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:enhanced_raw_in_channel">enhanced_raw_in_channel</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This class adds a buffer to the underlying <code>raw_in_channel</code>.
+As additional feature, the method <code>enhanced_input_line</code> is a fast
+version of <code>input_line</code> that profits from the buffer.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">eol</span> The accepted end-of-line delimiters. The method
+<code>enhanced_input_line</code> recognizes any of the passed strings as EOL
+delimiters. When more than one delimiter matches, the longest
+is taken. Defaults to <code>[&quot;\n&quot;]</code>. Note that <code>input_line</code>
+always only recognizes <code>&quot;\n&quot;</code> as EOL character, this cannot
+be changed.
+The delimiter strings must neither be empty, nor longer than
+<code>buffer_size</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">buffer_size</span> The size of the buffer, by default 4096.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pass_through</span> If the read request has at least this size,
+and the buffer is currently empty, the buffer will be bypassed.
+Defaults to <code>max_int</code>, i.e. it is off.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:buffered_raw_out_channel">
+  <a href="index.html#/class:buffered_raw_out_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> buffered_raw_out_channel : 
+    ?buffer_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?pass_through:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>This class adds a buffer to the underlying <code>raw_out_channel</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">buffer_size</span> The size of the buffer, by default 4096.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pass_through</span> If the write request has at least this size,
+and the buffer is currently empty, the buffer will be bypassed.
+Defaults to <code>max_int</code>, i.e. it is off.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:descriptors">
+  <a href="index.html#/label:descriptors" class="anchor">#</a>
+  
+    <h1 class="section level_1">Channels over descriptors</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/class:input_descr">
+  <a href="index.html#/class:input_descr" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_descr : 
+    ?blocking:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?start_pos_in:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:raw_in_channel">raw_in_channel</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates a <code>raw_in_channel</code> for the passed file descriptor, which must
+be open for reading.</p>
+      
+      <p>The <code>pos_in</code> method returns logical positions, i.e. it counts the number
+of read octets. It is not tried to determine the real file position.</p>
+      
+      <p>The method <code>close_in</code> also closes the file descriptor.</p>
+      
+      <p>This class also supports Win32 proxy descriptors referring to an input
+channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">blocking</span> Whether the channel waits for data if it is not
+possible to read from the (non-blocking) descriptor. Defaults to <code>true</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">start_pos_in</span> The position to which <code>pos_in</code> is initialized when
+the channel is created, by default 0
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_descr">
+  <a href="index.html#/class:output_descr" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_descr : 
+    ?blocking:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?start_pos_out:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:raw_out_channel">raw_out_channel</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates a <code>raw_out_channel</code> for the passed file descriptor, which must
+be open for writing.</p>
+      
+      <p>The <code>pos_out</code> method returns logical positions, i.e. it counts the number
+of written octets. It is not tried to determine the real file position.</p>
+      
+      <p>The method <code>close_out</code> also closes the file descriptor.</p>
+      
+      <p>This class also supports Win32 proxy descriptors referring to an output
+channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">blocking</span> Whether the channel waits until it can output if it is not
+possible to write to the (non-blocking) descriptor. Defaults to <code>true</code>.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">start_pos_out</span> The position to which <code>pos_out</code> is initialized when
+the channel is created, by default 0
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:socket_descr">
+  <a href="index.html#/class:socket_descr" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> socket_descr : 
+    ?blocking:bool option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?start_pos_in:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?start_pos_out:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:raw_io_channel">raw_io_channel</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Creates a <code>raw_io_channel</code> for the passed socket descriptor, which must
+be open for reading and writing, and not yet shut down in either
+direction. The <code>raw_io_channel</code> is used to represent a bidirectional
+channel: <code>close_out</code> shuts the socket down for sending, <code>close_in</code>
+shuts the socket down for reading, and when both directions are down,
+the descriptor is closed.</p>
+      
+      <p>The <code>pos_in</code> and <code>pos_out</code> methods returns logical positions.</p>
+      
+      <p>This class supports sockets and Win32 named pipes. Note, however,
+that for Win32 named pipes it is not possible to shut down only one
+direction of the bidirectional data channel.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">blocking</span> See <a href="index.html#/class:input_descr">input_descr</a> and <a href="index.html#/class:output_descr">output_descr</a>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">start_pos_in</span> The position to which <code>pos_in</code> is initialized when
+the channel is created, by default 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">start_pos_out</span> The position to which <code>pos_out</code> is initialized when
+the channel is created, by default 0
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:transactional">
+  <a href="index.html#/label:transactional" class="anchor">#</a>
+  
+    <h1 class="section level_1">Transactional channels</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+  <div class="region" id="/type:close_mode">
+  <a href="index.html#/type:close_mode" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> close_mode = [ <div class="cons">| `Commit</div><div class="cons">| `Rollback</div> ]
+    
+      <div class="doc">
+        
+      <p>Whether a <code>close_out</code> implies a commit or rollback operation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:buffered_trans_channel">
+  <a href="index.html#/class:buffered_trans_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> buffered_trans_channel : 
+    ?close_mode:<a href="index.html#/type:close_mode">close_mode</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:trans_out_obj_channel">trans_out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>A transactional output channel with a transaction buffer implemented
+in memory</p>
+      
+        
+  <div class="tag param">
+    <span class="label">close_mode</span> Specifies the semantics of <code>close_out</code>, by default
+<code>`Commit</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:make_temporary_file">
+  <a href="index.html#/val:make_temporary_file" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_temporary_file : ?mode:int <span class="rarr"><span>-&gt;</span></span> ?limit:int <span class="rarr"><span>-&gt;</span></span> ?tmp_directory:string <span class="rarr"><span>-&gt;</span></span> ?tmp_prefix:string <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> string * <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> * <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a>
+    
+      <div class="doc">
+        
+      <p>Creates a temporary file in the directory <code>tmp_directory</code> with a name
+prefix <code>tmp_prefix</code> and a unique suffix. The function returns
+the triple (name, inch, outch) containing the file <code>name</code>,
+the file opened as in_channel <code>inch</code> and as out_channel <code>outch</code>.</p>
+      
+        
+  <div class="tag param">
+    <span class="label">tmp_directory</span> Defaults to [root:Netsys_tmp].tmp_directory()
+  </div>
+  
+  <div class="tag param">
+    <span class="label">tmp_prefix</span> By default <code>&quot;netstring&quot;</code>. This needs not to be
+unique, but just descriptive.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">mode</span> The creation mask of the file; defaults to 0o600, i.e. the
+file is private for the current user
+  </div>
+  
+  <div class="tag param">
+    <span class="label">limit</span> Limits the number of trials to find the unique suffix.
+Defaults to 1000.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:tempfile_trans_channel">
+  <a href="index.html#/class:tempfile_trans_channel" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> tempfile_trans_channel : 
+    ?close_mode:<a href="index.html#/type:close_mode">close_mode</a> option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?tmp_directory:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?tmp_prefix:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:trans_out_obj_channel">trans_out_obj_channel</a>
+    
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>A transactional output channel with a transaction buffer implemented
+as temporary file</p>
+      
+        
+  <div class="tag param">
+    <span class="label">close_mode</span> Specifies the semantics of <code>close_out</code>, by default
+<code>`Commit</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">tmp_directory</span> See <code>make_temporary_file</code>
+  </div>
+  
+  <div class="tag param">
+    <span class="label">tmp_prefix</span> See <code>make_temporary_file</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:filters">
+  <a href="index.html#/label:filters" class="anchor">#</a>
+  
+    <h1 class="section level_1">Pipes and Filters</h1>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>Note that this has nothing to do with &quot;pipes&quot; on the Unix level.
+It is, however, the same idea: Connecting two I/O resources with an
+intermediate buffer.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/class:pipe">
+  <a href="index.html#/class:pipe" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> pipe : 
+    ?conv:(<a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/">Netbuffer</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/">Netbuffer</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?buffer_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    unit
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:io_obj_channel">io_obj_channel</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>A <code>pipe</code> has two internal buffers (realized by Netbuffer). The
+output methods of the class write to the incoming buffer. When
+new data are appended to the incoming buffer, the conversion function
+<code>conv</code> is called; the arguments are the incoming buffer and the outgoing
+buffer. The conversion function must convert the data available in the
+incoming buffer and append the result to the outgoing buffer. Finally,
+the input methods of the class return the data found in the outgoing
+buffer.</p>
+      
+      <p>The conversion function is called as follows:
+<code>conv incoming_buffer at_eof outgoing_buffer</code></p>
+      
+      <p>The conversion function is allowed to do nothing if the incoming data
+are not complete enough to be converted. It is also allowed to convert
+only the beginning of the incoming buffer.</p>
+      
+      <p>If the outgoing buffer is empty, the input methods will raise
+<code>Buffer_underrun</code>.</p>
+      
+      <p>If <code>close_out</code> is invoked, the end of the data stream will be recorded.
+In this case, the conversion function is called with <code>at_eof = true</code>,
+and it is expected that this function converts the whole data found
+in the incoming buffer.</p>
+      
+      <p><code>close_in</code> implies <code>close_out</code>.</p>
+      
+      <p>The conversion function may raise exceptions. The exceptions will
+fall through to the caller of the input methods. (The output methods
+and <code>close_in</code>, <code>close_out</code> never fail because of such exceptions.)</p>
+      
+      <p>The default conversion function copies everything from the incoming
+buffer to the outgoing buffer without modification.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:output_filter">
+  <a href="index.html#/class:output_filter" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> output_filter : 
+    <a href="index.html#/classtype:io_obj_channel">io_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:out_obj_channel">out_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>An <code>output_filter</code> filters the data written to it through the
+<code>io_obj_channel</code> (usually a <code>pipe</code>), and writes the filtered data
+to the passed <code>out_obj_channel</code>.</p>
+      
+      <p>If the filter is closed, the <code>io_obj_channel</code> will be closed, too,
+but not the destination <code>out_obj_channel</code> (so you can still append
+further data).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:input_filter">
+  <a href="index.html#/class:input_filter" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_filter : 
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:io_obj_channel">io_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_channel">in_obj_channel</a>
+    
+    
+    
+      <div class="doc">
+        
+      <p>An <code>input_filter</code> filters the data read from it through the
+<code>io_obj_channel</code> (usually a <code>pipe</code> after the data have been
+retrieved from the passed <code>in_obj_channel</code>.</p>
+      
+      <p>An <code>input_filter</code> object never generates <code>Buffer_underrun</code> exceptions.
+However, if the passed <code>in_obj_channel</code> or <code>io_obj_channel</code> raises such
+an exception, the exception will fall through the calling chain.</p>
+      
+      <p>If the filter is closed, the <code>io_obj_channel</code> will be closed, too,
+but not the source <code>in_obj_channel</code> (so you can still read further
+data from it).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+  <div class="region" id="/label:filters_notes">
+  <a href="index.html#/label:filters_notes" class="anchor">#</a>
+  
+    <h2 class="section level_2">Notes, Examples</h2>
+    
+  </div>
+  
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>If you have the choice, prefer <code>output_filter</code> over <code>input_filter</code>.
+The latter is slower.</p>
+      
+      <p>The primary application of filters is to encode or decode a channel
+on the fly. For example, the following lines write a BASE64-encoded file:</p>
+      <pre><code>let ch = new output_channel (open_out &quot;file.b64&quot;) in
+   let encoder = new Netencoding.Base64.encoding_pipe ~linelength:76 () in
+   let ch' = new output_filter encoder ch in
+   ... (* write to ch' *)
+   ch' # close_out();
+   ch  # close_out();  (* you must close both channels! *)</code></pre>
+      <p>All bytes written to <code>ch'</code> are BASE64-encoded and the encoded bytes are
+written to <code>ch</code>.</p>
+      
+      <p>There are also pipes to decode BASE64, and to encode and decode the
+&quot;Quoted printable&quot; format. Encoding and decoding work even if the
+data is delivered in disadvantageous chunks, because the data is
+&quot;re-chunked&quot; if needed. For example, BASE64 would require that data
+arrive in multiples of three bytes, and to cope with that, the BASE64 pipe
+only processes the prefix of the input buffer that is a multiple of three,
+and defers the encoding of the extra bytes till the next opportunity.</p>
+      
+        
+      </div>
+    </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

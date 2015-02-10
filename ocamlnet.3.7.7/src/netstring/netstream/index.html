@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netstream</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netstream</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A netstream is an input channel that is read block by block. The
+fragment of the channel currently loaded into memory is called the
+current window of the netstream. The window can be thought as
+look-ahead buffer.</p>
+      
+      <p><b>Picture:</b></p>
+      <pre><code>   0                pos_in        pos_in + window_length            EOF
+   +------------------+-------------------+--------------------------+
+                      ====================
+                       The current window</code></pre>
+      <p>You can use a netstream like an <code>in_obj_channel</code>, and read characters
+and strings from the stream. The bytes come first from the look-ahead
+buffer, and if there are not enough bytes, they are loaded from the
+underlying channel. After every read operation it is tried to enlarge
+the window such that it contains at least one block.</p>
+      
+      <p>If you want that the window becomes larger, you can call <code>want</code> (to
+enlarge the window to a certain size) or <code>want_another_block</code> (to load
+just another block from the underlying channel). Note that this affects only
+the current window and not the future size of the window.</p>
+      
+      <p>Note <code>Buffer_underrun</code>: netstreams can cope with underruns of underlying
+channels. An underrun happens when it is not possible to ensure the
+minimum window size. However, it is possible that the window size
+sinks under the minimum, but the <code>Buffer_underrun</code> is deferred until the
+next call of an input method. Furthermore, there is a problem in the <code>skip</code>
+method which may only be partially executed, i.e. the method skips some
+bytes and then raises <code>Buffer_underrun</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/classtype:in_obj_stream">
+  <a href="index.html#/classtype:in_obj_stream" class="anchor">#</a>
+  
+  <div class="classtype">
+    <span class="keyword">class type</span> in_obj_stream = 
+    <div class="inherit">
+    <span class="keyword">inherit</span> <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    </div>
+    
+  <div class="region" id="/classtype:in_obj_stream/method:block_size">
+  <a href="index.html#/classtype:in_obj_stream/method:block_size" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> block_size : int
+  
+      <div class="doc">
+        
+      <p>The block size of the stream</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_obj_stream/method:window">
+  <a href="index.html#/classtype:in_obj_stream/method:window" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> window : <a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/">Netbuffer</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netbuffer/#/type:t">t</a>
+  
+      <div class="doc">
+        
+      <p>The look-ahead window. The first byte of the window is the byte that
+would be read next by <code>input_char</code>. The length of the window is returned
+by the method <code>window_length</code>. This length may be smaller than the
+current length of the netbuffer, i.e. the netbuffer may contain
+additional data that must be ignored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_obj_stream/method:want">
+  <a href="index.html#/classtype:in_obj_stream/method:want" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> want : int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Increases the length of the window such that the length is at least
+the passed number of bytes or that the window reaches EOF (whatever
+happens first).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_obj_stream/method:want_another_block">
+  <a href="index.html#/classtype:in_obj_stream/method:want_another_block" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> want_another_block : unit <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>The same as: <code>want block_size</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_obj_stream/method:window_length">
+  <a href="index.html#/classtype:in_obj_stream/method:window_length" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> window_length : int
+  
+      <div class="doc">
+        
+      <p>Returns the length of the window</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_obj_stream/method:window_at_eof">
+  <a href="index.html#/classtype:in_obj_stream/method:window_at_eof" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> window_at_eof : bool
+  
+      <div class="doc">
+        
+      <p>Whether the window is at eof</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/classtype:in_obj_stream/method:skip">
+  <a href="index.html#/classtype:in_obj_stream/method:skip" class="anchor">#</a>
+  
+  <div class="method">
+  <span class="keyword">method</span> skip : int <span class="rarr"><span>-&gt;</span></span> unit
+  
+      <div class="doc">
+        
+      <p>Skip the n bytes of the stream. It is not an error to skip more bytes
+than available in the remaining stream.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    
+      <div class="doc">
+        
+      <p>An <code>in_obj_stream</code> extends <code>in_obj_channel</code> by look-ahead methods</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:input_stream">
+  <a href="index.html#/class:input_stream" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> input_stream : 
+    ?len:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?block_size:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/">Netchannels</a>.<a href="../../../../ocamlnet.3.7.7/src/netstring/netchannels/#/classtype:in_obj_channel">in_obj_channel</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_stream">in_obj_stream</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>Make an <code>in_obj_stream</code> on top of an <code>in_obj_channel</code>. The <code>block_size</code>
+can be specified; it defaults to 4096.</p>
+      
+      <p>If <code>len</code> is passed, this parameter limits the length of the channel:
+Only the first <code>len</code> bytes are read from the input channel, then an EOF
+is simulated even if the input channel is longer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/class:sub_stream">
+  <a href="index.html#/class:sub_stream" class="anchor">#</a>
+  
+  <div class="class">
+    <span class="keyword">class</span> sub_stream : 
+    ?len:int option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    ?delimiter:string option
+    <span class="rarr"><span>-&gt;</span></span>
+    
+    <a href="index.html#/classtype:in_obj_stream">in_obj_stream</a>
+    <span class="rarr"><span>-&gt;</span></span>
+    <a href="index.html#/classtype:in_obj_stream">in_obj_stream</a>
+    
+    
+    
+    
+      <div class="doc">
+        
+      <p>A sub stream is the part of the whole stream from the current position
+to an arbitrary other position that is determined by <code>len</code> and
+<code>delimiter</code>. <code>len</code> specifies the maximum length of the sub stream.
+<code>delimiter</code> is an arbitrary string that indicates the end of the
+sub stream (the delimiter is not part of the sub stream; i.e. the
+sub stream ends immediately before the delimiter).</p>
+      
+      <p>While reading from the sub stream, not only the current position of
+the sub stream moves, but also the current position of the main
+stream. This means that it must be avoided to read data from the
+main stream while the sub stream is in use. The typical pattern
+is:</p>
+      <ul><li>Read from the main stream until the beginning of a section is
+recognized</li><li>Create a sub stream at this point</li><li>Read from the sub stream until EOF</li><li>Continue reading the main stream. The next character of the main
+stream is exactly the character following the EOF of the sub stream</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_in_obj_stream">
+  <a href="index.html#/val:print_in_obj_stream" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_in_obj_stream : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/classtype:in_obj_stream">in_obj_stream</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>A top-loop printer for streams</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

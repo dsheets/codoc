@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_hashtbl</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_hashtbl</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shared hashtables</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>This is a shared memory version of <code>Hashtbl</code>. Note that the degree
+of parallelization is quite restricted - practically all operations
+need to be serialized (with the exception of the &quot;ro&quot; variants).</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b, 'h) t
+    
+      <div class="doc">
+        
+      <p>The type of hash tables from type <code>'a</code> to type <code>'b</code> and a
+header of type <code>'h</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t_descr">
+  <a href="index.html#/type:t_descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b, 'h) t_descr
+    
+      <div class="doc">
+        
+      <p>The marshallable descriptor of a shared hash table</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> 'h <span class="rarr"><span>-&gt;</span></span> ('a, 'b, 'h) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>Hashtbl.create pool h</code> creates a new, empty hash table in <code>pool</code>
+with a header <code>h</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Empty a hash table.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add tbl x y</code> adds a binding of <code>x</code> to <code>y</code> in table <code>tbl</code>.
+Previous bindings for <code>x</code> are not removed, but simply
+hidden. That is, after performing <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_hashtbl/">Netmcore_hashtbl</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_hashtbl/#/val:remove">remove</a><code>tbl x</code>,
+the previous binding for <code>x</code>, if any, is restored.
+(Same behavior as with association lists.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_ro">
+  <a href="index.html#/val:find_ro" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_ro : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>find_ro tbl x</code> returns the current binding of <code>x</code> in <code>tbl</code>,
+or raises <code>Not_found</code> if no such binding exists. If it is possible
+that the table is being modified at the same time, this function
+can crash. (Suffix &quot;_ro&quot; = for &quot;read-only&quot; hashtables.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_p">
+  <a href="index.html#/val:find_p" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_p : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> 'r) <span class="rarr"><span>-&gt;</span></span> 'r
+    
+      <div class="doc">
+        
+      <p><code>find_p tbl x f</code> looks up the current binding of <code>x</code> in <code>tbl</code>,
+and calls <code>f</code> with this binding as argument. During the execution
+of <code>f</code> the binding is pinned and cannot be garbage-collected.
+Raises <code>Not_found</code> if there is no such binding.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_c">
+  <a href="index.html#/val:find_c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_c : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p>Like <code>find</code> but returns a copy of the binding in normal RAM</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_all_ro">
+  <a href="index.html#/val:find_all_ro" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_all_ro : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b list
+    
+      <div class="doc">
+        
+      <p><code>Hashtbl.find_all tbl x</code> returns the list of all data
+associated with <code>x</code> in <code>tbl</code>.
+The current binding is returned first, then the previous
+bindings, in reverse order of introduction in the table.
+If it is possible
+that the table is being modified at the same time, this function
+can crash. (Suffix &quot;_ro&quot; = for &quot;read-only&quot; hashtables.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_all_p">
+  <a href="index.html#/val:find_all_p" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_all_p : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('b list <span class="rarr"><span>-&gt;</span></span> 'r) <span class="rarr"><span>-&gt;</span></span> 'r
+    
+      <div class="doc">
+        
+      <p>Version of <code>find_all</code> with pinned result</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_all_c">
+  <a href="index.html#/val:find_all_c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_all_c : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b list
+    
+      <div class="doc">
+        
+      <p>Version of <code>find_all</code> with copied result</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mem_ro">
+  <a href="index.html#/val:mem_ro" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem_ro : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>Hashtbl.mem tbl x</code> checks if <code>x</code> is bound in <code>tbl</code>. If it is possible
+that the table is being modified at the same time, this function
+can crash. (Suffix &quot;_ro&quot; = for &quot;read-only&quot; hashtables.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mem">
+  <a href="index.html#/val:mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Safe version of <code>mem_ro</code> in the presence of parallel modifications.
+It is a bit slower, though.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>Hashtbl.remove tbl x</code> removes the current binding of <code>x</code> in <code>tbl</code>,
+restoring the previous binding if it exists.
+It does nothing if <code>x</code> is not bound in <code>tbl</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace">
+  <a href="index.html#/val:replace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>Hashtbl.replace tbl x y</code> replaces the current binding of <code>x</code>
+in <code>tbl</code> by a binding of <code>x</code> to <code>y</code>. If <code>x</code> is unbound in <code>tbl</code>,
+a binding of <code>x</code> to <code>y</code> is added to <code>tbl</code>.
+This is functionally equivalent to <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/val:remove">remove</a><code>tbl x</code>
+followed by <a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/">Hashtbl</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/hashtbl/#/val:add">add</a><code>tbl x y</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>Hashtbl.iter f tbl</code> applies <code>f</code> to all bindings in table <code>tbl</code>.
+<code>f</code> receives the key as first argument, and the associated value
+as second argument. Each binding is presented exactly once to <code>f</code>.
+The order in which the bindings are passed to <code>f</code> is unspecified.
+However, if the table contains several bindings for the same key,
+they are passed to <code>f</code> in reverse order of introduction, that is,
+the most recent binding is passed first.</p>
+      
+      <p>The table cannot be modified while <code>iter</code> is running. Any attempt
+will result in a deadlock.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>Hashtbl.length tbl</code> returns the number of bindings in <code>tbl</code>.
+Multiple bindings are counted multiply, so <code>Hashtbl.length</code>
+gives the number of times <code>Hashtbl.iter</code> calls its first argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:header">
+  <a href="index.html#/val:header" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> header : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'h
+    
+      <div class="doc">
+        
+      <p>Returns the header</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap">
+  <a href="index.html#/val:heap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:heap">heap</a>
+    
+      <div class="doc">
+        
+      <p>Returns the heap backing this data structure</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:descr_of_hashtbl">
+  <a href="index.html#/val:descr_of_hashtbl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> descr_of_hashtbl : ('a, 'b, 'h) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b, 'h) <a href="index.html#/type:t_descr">t_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:hashtbl_of_descr">
+  <a href="index.html#/val:hashtbl_of_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hashtbl_of_descr : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b, 'h) <a href="index.html#/type:t_descr">t_descr</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b, 'h) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Look up the hash table for this descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

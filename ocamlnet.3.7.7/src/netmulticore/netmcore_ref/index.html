@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netmcore_ref</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netmcore_ref</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Shared mutable variables</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:sref">
+  <a href="index.html#/type:sref" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 't sref
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:sref_descr">
+  <a href="index.html#/type:sref_descr" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 't sref_descr
+    
+      <div class="doc">
+        
+      <p>The marshallable descriptor of a reference</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sref">
+  <a href="index.html#/val:sref" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sref : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> 't <span class="rarr"><span>-&gt;</span></span> 't <a href="index.html#/type:sref">sref</a>
+    
+      <div class="doc">
+        
+      <p>The shared version of <code>ref</code>: Creates a mutable shared variable in
+the given memory pool</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:assign">
+  <a href="index.html#/val:assign" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> assign : 't <a href="index.html#/type:sref">sref</a> <span class="rarr"><span>-&gt;</span></span> 't <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>assign sr x</code>: Sets the contents of <code>sr</code> to a deep copy of <code>x</code>.
+While performing the assignment the heap is write-locked,
+and no other <code>assign</code> can run.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:deref_ro">
+  <a href="index.html#/val:deref_ro" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> deref_ro : 't <a href="index.html#/type:sref">sref</a> <span class="rarr"><span>-&gt;</span></span> 't
+    
+      <div class="doc">
+        
+      <p>Dereferences the variable and returns the contents, comparable to
+<code>!</code>. Note that this returns a value that lives in shared memory,
+and there is no guarantee that this value still exists if
+<code>assign</code> operations are done in parallel, and old version are
+garbage-collected. If such values are accessed the program may
+crash!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:deref_p">
+  <a href="index.html#/val:deref_p" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> deref_p : 't <a href="index.html#/type:sref">sref</a> <span class="rarr"><span>-&gt;</span></span> ('t <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>deref_p sr f</code>: Runs <code>f</code> with the contents of <code>sr</code>, and returns
+the result of <code>f</code>. While <code>f</code> is being executed, the current contents
+are specially protected so that they cannot be garbage collected,
+even if a parallel <code>assign</code> changes the current value of the
+variable. (Suffix &quot;_p&quot; = pinning version.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:deref_c">
+  <a href="index.html#/val:deref_c" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> deref_c : 't <a href="index.html#/type:sref">sref</a> <span class="rarr"><span>-&gt;</span></span> 't
+    
+      <div class="doc">
+        
+      <p><code>deref_c sr</code>: Returns a copy of the contents of <code>sr</code>. The copy is
+created in normal memory. (Suffix &quot;_c&quot; = copying version.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap">
+  <a href="index.html#/val:heap" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap : 't <a href="index.html#/type:sref">sref</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/">Netmcore_heap</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore_heap/#/type:heap">heap</a>
+    
+      <div class="doc">
+        
+      <p>Returns the backing heap structure</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:descr_of_sref">
+  <a href="index.html#/val:descr_of_sref" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> descr_of_sref : 't <a href="index.html#/type:sref">sref</a> <span class="rarr"><span>-&gt;</span></span> 't <a href="index.html#/type:sref_descr">sref_descr</a>
+    
+      <div class="doc">
+        
+      <p>Returns the descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sref_of_descr">
+  <a href="index.html#/val:sref_of_descr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sref_of_descr : <a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/">Netmcore</a>.<a href="../../../../ocamlnet.3.7.7/src/netmulticore/netmcore/#/type:res_id">res_id</a> <span class="rarr"><span>-&gt;</span></span> 't <a href="index.html#/type:sref_descr">sref_descr</a> <span class="rarr"><span>-&gt;</span></span> 't <a href="index.html#/type:sref">sref</a>
+    
+      <div class="doc">
+        
+      <p>Look up the reference for this descriptor</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

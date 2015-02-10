@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Action</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Action</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Semantic action's type.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compose">
+  <a href="index.html#/val:compose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compose : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>compose x a1 a2</code> builds the action <code>let x = a1 in a2</code>. This
+feature is used during the processing of the %inline keyword.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rename">
+  <a href="index.html#/val:rename" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rename : string * (<a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:subject">subject</a> * <a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:where">where</a>) * (<a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:subject">subject</a> * <a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:where">where</a>) <span class="rarr"><span>-&gt;</span></span> (string * string) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * (bool * bool)
+    
+      <div class="doc">
+        
+      <p><code>rename renaming_env phi a</code> builds the action
+<code>let x1 = x1' and ... xn = xn' in a</code> if <code>phi</code> is <code>(x1, x1') ... (xn, xn')</code>.
+Moreover, <code>renaming_env</code> is used to correctly replace $startpos/$endpos
+present in the semantic action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rename_inlined_psym">
+  <a href="index.html#/val:rename_inlined_psym" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rename_inlined_psym : string * (<a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:subject">subject</a> * <a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:where">where</a>) * (<a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:subject">subject</a> * <a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:where">where</a>) <span class="rarr"><span>-&gt;</span></span> (string * string) list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> * (bool * bool)
+    
+      <div class="doc">
+        
+      <p><code>rename_inlined_psym renaming_env phi a</code> updates the occurrences of the
+inlined non terminal in the action <code>a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_il_expr">
+  <a href="index.html#/val:to_il_expr" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_il_expr : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../menhir.20141215/src/_stage3/IL/">IL</a>.<a href="../../../../menhir.20141215/src/_stage3/IL/#/type:expr">expr</a>
+    
+      <div class="doc">
+        
+      <p>Semantic actions are translated into <code>IL</code> code using the
+<code>IL.ETextual</code> and <code>IL.ELet</code> constructors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filenames">
+  <a href="index.html#/val:filenames" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filenames : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>A semantic action might be the inlining of several others. The
+filenames of the different parts are given by <code>filenames a</code>. This
+can be used, for instance, to check whether all parts come from
+the standard library.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pkeywords">
+  <a href="index.html#/val:pkeywords" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pkeywords : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/type:keyword">keyword</a> <a href="../../../../menhir.20141215/src/_stage3/positions/">Positions</a>.<a href="../../../../menhir.20141215/src/_stage3/positions/#/type:located">located</a> list
+    
+      <div class="doc">
+        
+      <p><code>pkeywords a</code> returns a list of all keyword occurrences in <code>a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keywords">
+  <a href="index.html#/val:keywords" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keywords : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../menhir.20141215/src/_stage3/keyword/">Keyword</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/module:KeywordSet">KeywordSet</a>.<a href="../../../../menhir.20141215/src/_stage3/keyword/#/module:KeywordSet/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>keywords a</code> is the set of keywords used in the semantic action <code>a</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print">
+  <a href="index.html#/val:print" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>print f a</code> prints <code>a</code> to channel <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_stretch">
+  <a href="index.html#/val:from_stretch" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_stretch : <a href="../../../../menhir.20141215/src/_stage3/stretch/">Stretch</a>.<a href="../../../../menhir.20141215/src/_stage3/stretch/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>from_stretch s</code> builds an action out of a textual piece of code.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:has_syntaxerror">
+  <a href="index.html#/val:has_syntaxerror" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> has_syntaxerror : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Check whether the keyword $syntaxerror is used in the action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:has_leftstart">
+  <a href="index.html#/val:has_leftstart" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> has_leftstart : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Check whether the keyword $start is used in the action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:has_leftend">
+  <a href="index.html#/val:has_leftend" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> has_leftend : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Check whether the keyword $end is used in the action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:has_dollar">
+  <a href="index.html#/val:has_dollar" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> has_dollar : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Check whether a particular $i keyword is used in the action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:use_dollar">
+  <a href="index.html#/val:use_dollar" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> use_dollar : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>Check whether any $i keyword is used in the action.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

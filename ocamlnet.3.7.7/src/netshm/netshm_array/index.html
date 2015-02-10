@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netshm_array</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netshm_array</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Arrays in shared memory</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:manage">
+  <a href="index.html#/val:manage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> manage : ?pagesize:int <span class="rarr"><span>-&gt;</span></span> ?init:int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../ocamlnet.3.7.7/src/netshm/netshm_data/">Netshm_data</a>.<a href="../../../../ocamlnet.3.7.7/src/netshm/netshm_data/#/type:data_manager">data_manager</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netshm/netshm/">Netshm</a>.<a href="../../../../ocamlnet.3.7.7/src/netshm/netshm/#/type:locking_method">locking_method</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netshm/netshm/">Netshm</a>.<a href="../../../../ocamlnet.3.7.7/src/netshm/netshm/#/type:shm_descr">shm_descr</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Manages a shared memory object as an array,
+including the representation of arbitrary O'Caml values.
+The first argument of type <code>'a</code> is the default value of the
+array elements.</p>
+      
+      <p>This bases on <code>Netshm.manage</code>, and the arguments <code>pagesize</code>,
+<code>locking_method</code> and <code>shm_descr</code> are documented there.</p>
+      
+      <p>If an empty memory object is managed, it is initialized as
+array with zero elements. If a non-empty memory object is
+managed, it must contain a valid array structure.
+The size of the array is then the same as when the array
+was managed the last time.</p>
+      
+      <p>By passing <code>init</code> with argument <code>n</code>, the array is reinitialized as
+array with <code>n</code> elements containing the default value.</p>
+      
+      <p>It is essential that the same data managers are passed as at the time
+when the array was initialized.</p>
+      
+      <p>Arrays are implemented as <code>(int32, 'a) Netshm_hashtbl.t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the length of the array</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>get a k</code>: Returns the contents of the array element number <code>k</code> where
+<code>0 &lt;= k &lt; length a</code>.</p>
+      
+      <p>If you do <code>module Array = Netshm_array</code> in your code you can also
+use the notation <code>a.(k)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set a k x</code>: Sets the contents of the array element number <code>k</code> to <code>x</code>
+where <code>0 &lt;= k &lt; length a</code>.</p>
+      
+      <p>If you do <code>module Array = Netshm_array</code> in your code you can also
+use the notation <code>a.(k) &lt;- x</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:resize">
+  <a href="index.html#/val:resize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resize : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>resize a n</code>: Resizes the array to length <code>n</code>. If the array is enlarged
+the new elements will be initialized to the default value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:default_value">
+  <a href="index.html#/val:default_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> default_value : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Returns the default value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:shm_table">
+  <a href="index.html#/val:shm_table" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> shm_table : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocamlnet.3.7.7/src/netshm/netshm/">Netshm</a>.<a href="../../../../ocamlnet.3.7.7/src/netshm/netshm/#/type:shm_table">shm_table</a>
+    
+      <div class="doc">
+        
+      <p>Returns the underlying shared memory table used to implement hash
+tables</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

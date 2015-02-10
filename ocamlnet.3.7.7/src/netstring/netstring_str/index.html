@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Netstring_str</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Netstring_str</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Wrapper for regexps with <code>Str</code> syntax</p>
+      
+      <p>This module was written at a time when we had only the <code>Str</code> module
+for regular expressions. However, <code>Str</code> has an interface that does
+not work for multi-threaded programs, because the state of the module
+is visible to the outside. The module <code>Netstring_str</code> is similar to <code>Str</code>,
+but has a thread-compatible interface.</p>
+      
+      <p>For an explanation why we need this module, please read [root:Regexp].</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p><b>Supported regexp syntax</b></p>
+      <pre><code>   .             matches every character but newline
+   e*            matches e several times
+   e+            matches e several times but at least once
+   e?            matches e optionally
+   e{m,n}        matches e at least m times and at most n times
+   e1\|e2        matches e1 or e2
+   [set]         matches the characters from set
+   [^set]        matches the characters except from set
+   \(...\)       group paranthesis
+   \n            back reference (n is digit)
+   ^             matches at beginning of line
+   $             matches at end of line</code></pre>
+      <p>This is exactly what <code>Str</code> supports. Character classes
+are not implemented.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/type:regexp">
+  <a href="index.html#/type:regexp" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> regexp
+    
+      <div class="doc">
+        
+      <p>The type of regular expressions</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:split_result">
+  <a href="index.html#/type:split_result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> split_result = <a href="../../../../ocaml.4.02.1+doc/otherlibs/str/str/">Str</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/str/str/#/type:split_result">split_result</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:split_result/cons:Text">
+  <a href="index.html#/type:split_result/cons:Text" class="anchor">#</a>
+  | Text <span class="keyword">of</span> string
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:split_result/cons:Delim">
+  <a href="index.html#/type:split_result/cons:Delim" class="anchor">#</a>
+  | Delim <span class="keyword">of</span> string
+  </div>
+  </td><td>(*</td><td class="doc">Here we keep compatibility with <code>Str</code></td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:result">
+  <a href="index.html#/type:result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> result
+    
+      <div class="doc">
+        
+      <p>The type of matching results</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:regexp">
+  <a href="index.html#/val:regexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> regexp : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:regexp">regexp</a>
+    
+      <div class="doc">
+        
+      <p>Parses a regexp</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:regexp_case_fold">
+  <a href="index.html#/val:regexp_case_fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> regexp_case_fold : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:regexp">regexp</a>
+    
+      <div class="doc">
+        
+      <p>Parses a case-insensitive regexp</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:quote">
+  <a href="index.html#/val:quote" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> quote : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Quotes a string such that it can be included in a regexp</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:regexp_string">
+  <a href="index.html#/val:regexp_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> regexp_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:regexp">regexp</a>
+    
+      <div class="doc">
+        
+      <p>Returns a regexp that matches exactly the string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:regexp_string_case_fold">
+  <a href="index.html#/val:regexp_string_case_fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> regexp_string_case_fold : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:regexp">regexp</a>
+    
+      <div class="doc">
+        
+      <p>Returns a case-insensitive regexp that matches exactly the string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:quote_set">
+  <a href="index.html#/val:quote_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> quote_set : string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Returns a regexp (as string) that matches any of the characters in
+the argument. The argument must be non-empty</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_match">
+  <a href="index.html#/val:string_match" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_match : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:result">result</a> option
+    
+      <div class="doc">
+        
+      <p>Matches the string at the position with the regexp. Returns
+<code>None</code> if no match is found. Returns <code>Some r</code> on success,
+and <code>r</code> describes the match.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:search_forward">
+  <a href="index.html#/val:search_forward" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> search_forward : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int * <a href="index.html#/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p>Searches a match of the string with the regexp, starting at
+the position and in forward direction.
+Raises <code>Not_found</code> if no match could be found.
+Returns <code>(p,r)</code> when a match at position <code>p</code> is found,
+described by <code>r</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:search_backward">
+  <a href="index.html#/val:search_backward" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> search_backward : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int * <a href="index.html#/type:result">result</a>
+    
+      <div class="doc">
+        
+      <p>Searches a match of the string with the regexp, starting at
+the position and in backward direction.
+Raises <code>Not_found</code> if no match could be found.
+Returns <code>(p,r)</code> when a match at position <code>p</code> is found,
+described by <code>r</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:matched_string">
+  <a href="index.html#/val:matched_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> matched_string : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Extracts the matched part from the string. The string argument
+must be the same string passed to <code>string_match</code> or the search
+functions, and the result argument must be the corresponding
+result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:match_beginning">
+  <a href="index.html#/val:match_beginning" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> match_beginning : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the position where the matched part begins</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:match_end">
+  <a href="index.html#/val:match_end" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> match_end : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the position where the matched part ends</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:matched_group">
+  <a href="index.html#/val:matched_group" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> matched_group : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Extracts the substring the nth group matches from the whole
+string. The string argument
+must be the same string passed to <code>string_match</code> or the search
+functions, and the result argument must be the corresponding
+result.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:group_beginning">
+  <a href="index.html#/val:group_beginning" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> group_beginning : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the position where the substring matching the nth
+group begins</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:group_end">
+  <a href="index.html#/val:group_end" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> group_end : <a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Returns the position where the substring matching the nth
+group ends</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:global_replace">
+  <a href="index.html#/val:global_replace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> global_replace : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>global_replace re templ s</code>: Replaces all matchings of <code>re</code> in
+<code>s</code> by <code>templ</code>.</p>
+      
+      <p>In <code>templ</code> one can refer to matched groups by the backslash notation:
+<code>\1</code> refers to the first group, <code>\2</code> to the second etc.
+<code>\0</code> is the whole match. <code>\\</code> is the backslash character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:replace_first">
+  <a href="index.html#/val:replace_first" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> replace_first : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>replace_first re templ s</code>: Replaces the first match of <code>re</code> in
+<code>s</code> by <code>templ</code>.</p>
+      
+      <p>In <code>templ</code> one can refer to matched groups by the backslash notation:
+<code>\1</code> refers to the first group, <code>\2</code> to the second etc.
+<code>\0</code> is the whole match. <code>\\</code> is the backslash character.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:global_substitute">
+  <a href="index.html#/val:global_substitute" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> global_substitute : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>global_substitute re subst s</code>: Applies the substitution function
+<code>subst</code> to all matchings of <code>re</code> in <code>s</code>, and returns the
+transformed string. <code>subst</code> is called with the current <code>result</code>
+of the match and the whole string <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:substitute_first">
+  <a href="index.html#/val:substitute_first" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> substitute_first : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/type:result">result</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>substitute_first re subst s</code>: Applies the substitution function
+<code>subst</code> to the first matching of <code>re</code> in <code>s</code>, and returns the
+transformed string. <code>subst</code> is called with the current <code>result</code>
+of the match and the whole string <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:split">
+  <a href="index.html#/val:split" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> split : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Splits the string according to the regexp in substrings.
+Occurrences of the delimiter at the beginning and the end
+are ignored.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bounded_split">
+  <a href="index.html#/val:bounded_split" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bounded_split : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Splits into at most <code>n</code> substrings, based on <code>split</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:split_delim">
+  <a href="index.html#/val:split_delim" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> split_delim : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Same as <code>split</code>, but occurrences of the delimiter at the beginning
+and the end are returned as empty strings</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bounded_split_delim">
+  <a href="index.html#/val:bounded_split_delim" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bounded_split_delim : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Splits into at most <code>n</code> substrings, based on <code>split_delim</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:full_split">
+  <a href="index.html#/val:full_split" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> full_split : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:split_result">split_result</a> list
+    
+      <div class="doc">
+        
+      <p>Like <code>split_delim</code>, but returns the delimiters in the result</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bounded_full_split">
+  <a href="index.html#/val:bounded_full_split" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bounded_full_split : <a href="index.html#/type:regexp">regexp</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:split_result">split_result</a> list
+    
+      <div class="doc">
+        
+      <p>Splits into at most <code>n</code> substrings, based on <code>full_split</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_before">
+  <a href="index.html#/val:string_before" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_before : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The first <code>n</code> characters of a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_after">
+  <a href="index.html#/val:string_after" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_after : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>The last <code>n</code> characters of a string</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:first_chars">
+  <a href="index.html#/val:first_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> first_chars : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Same as <code>string_before</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:last_chars">
+  <a href="index.html#/val:last_chars" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> last_chars : string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Same as <code>string_after</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Debug">
+  <a href="index.html#/module:Debug" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Debug : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Debug/val:enable">
+  <a href="index.html#/module:Debug/val:enable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enable : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>
