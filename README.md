@@ -26,6 +26,12 @@ Once this is done, you can install your opam packages as usual.
 opam install ... # Install your package set.
 ```
 
+Finally, installing **codoc** itself will be useful.
+
+```sh
+opam install codoc
+```
+
 **codoc** supplies an **opam doc** command to generate cross-referenced
   documentation for all packages on an opam switch.  This program uses
   **codoc**'s scriptable CLI and and also offers an easy-to-use
@@ -33,7 +39,7 @@ opam install ... # Install your package set.
   installation's documentation. Using **opam doc** is as easy as:
 
 ```sh
-opam doc my-opam-docs/
+opam doc my-opam-doc/
 ```
 
 The HTML documentation for all packages on the current switch will be
