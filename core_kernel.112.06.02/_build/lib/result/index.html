@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Result</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Result</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Result</code> is often used to handle error messages.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('ok, 'err) t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Ok">
+  <a href="index.html#/type:t/cons:Ok" class="anchor">#</a>
+  | Ok <span class="keyword">of</span> 'ok
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Error">
+  <a href="index.html#/type:t/cons:Error" class="anchor">#</a>
+  | Error <span class="keyword">of</span> 'err
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+      <div class="doc">
+        
+      <p><code>'a</code> is a function's expected return type, and <code>'b</code> is often an error message string.
+</p>
+      <pre><code>let ric_of_ticker = function
+    | &quot;IBM&quot; -&gt; Ok &quot;IBM.N&quot;
+    | &quot;MSFT&quot; -&gt; Ok &quot;MSFT.OQ&quot;
+    | &quot;AA&quot; -&gt; Ok &quot;AA.N&quot;
+    | &quot;CSCO&quot; -&gt; Ok &quot;CSCO.OQ&quot;
+    | _ as ticker -&gt; Error (sprintf &quot;can't find ric of %s&quot; ticker)</code></pre>
+      <p>
+The return type of ric_of_ticker could be <code>string option</code>, but <code>(string, string)
+    Result.t</code> gives more control over the error message.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Monad.S2 <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'err) t := ('a, 'err) <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:fail">
+  <a href="index.html#/val:fail" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fail : 'err <span class="rarr"><span>-&gt;</span></span> (_, 'err) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:failf">
+  <a href="index.html#/val:failf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> failf : ('a, unit, string, (_, string) <a href="index.html#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>e.g. <code>failf &quot;Couldn't find bloogle %s&quot; (Bloogle.to_string b)</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_ok">
+  <a href="index.html#/val:is_ok" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_ok : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_error">
+  <a href="index.html#/val:is_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_error : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ok">
+  <a href="index.html#/val:ok" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ok : ('ok, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'ok option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:error">
+  <a href="index.html#/val:error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error : (_, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'err option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_option">
+  <a href="index.html#/val:of_option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_option : 'ok option <span class="rarr"><span>-&gt;</span></span> error:'err <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('ok, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('ok <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_error">
+  <a href="index.html#/val:iter_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_error : (_, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('err <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map">
+  <a href="index.html#/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : ('ok, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('ok <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> ('c, 'err) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map_error">
+  <a href="index.html#/val:map_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_error : ('ok, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('err <span class="rarr"><span>-&gt;</span></span> 'c) <span class="rarr"><span>-&gt;</span></span> ('ok, 'c) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:combine">
+  <a href="index.html#/val:combine" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> combine : ('ok1, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('ok2, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ok:('ok1 <span class="rarr"><span>-&gt;</span></span> 'ok2 <span class="rarr"><span>-&gt;</span></span> 'ok3) <span class="rarr"><span>-&gt;</span></span> err:('err <span class="rarr"><span>-&gt;</span></span> 'err <span class="rarr"><span>-&gt;</span></span> 'err) <span class="rarr"><span>-&gt;</span></span> ('ok3, 'err) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ok_fst">
+  <a href="index.html#/val:ok_fst" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ok_fst : ('ok, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Fst <span class="keyword">of</span> 'ok</div><div class="cons">| `Snd <span class="keyword">of</span> 'err</div> ]
+    
+      <div class="doc">
+        
+      <p><code>ok_fst</code> is useful with <code>List.partition_map</code>. Continuing the above example:
+</p>
+      <pre><code>    let rics, errors = List.partition_map ~f:Result.ok_fst
+      (List.map ~f:ric_of_ticker [&quot;AA&quot;; &quot;F&quot;; &quot;CSCO&quot;; &quot;AAPL&quot;])</code></pre>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ok_if_true">
+  <a href="index.html#/val:ok_if_true" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ok_if_true : bool <span class="rarr"><span>-&gt;</span></span> error:'err <span class="rarr"><span>-&gt;</span></span> (unit, 'err) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:try_with">
+  <a href="index.html#/val:try_with" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> try_with : (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> ('a, exn) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ok_exn">
+  <a href="index.html#/val:ok_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ok_exn : ('ok, exn) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'ok
+    
+      <div class="doc">
+        
+      <p><code>ok_exn t</code> returns <code>x</code> if <code>t = Ok x</code>, and raises <code>exn</code> if <code>t = Error exn</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ok_or_failwith">
+  <a href="index.html#/val:ok_or_failwith" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ok_or_failwith : ('ok, string) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'ok
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ok_unit">
+  <a href="index.html#/val:ok_unit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ok_unit : (unit, _) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>ok_unit = Ok ()</code>, used to avoid allocation as a performance hack</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Export">
+  <a href="index.html#/module:Export" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Export : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Export/type:_result">
+  <a href="index.html#/module:Export/type:_result" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('ok, 'err) _result = ('ok, 'err) <a href="index.html#/type:t">t</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Export/type:_result/cons:Ok">
+  <a href="index.html#/module:Export/type:_result/cons:Ok" class="anchor">#</a>
+  | Ok <span class="keyword">of</span> 'ok
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Export/type:_result/cons:Error">
+  <a href="index.html#/module:Export/type:_result/cons:Error" class="anchor">#</a>
+  | Error <span class="keyword">of</span> 'err
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Export/val:is_ok">
+  <a href="index.html#/module:Export/val:is_ok" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_ok : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Export/val:is_error">
+  <a href="index.html#/module:Export/val:is_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_error : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable">
+  <a href="index.html#/module:Stable" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Stable : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Stable/module:V1">
+  <a href="index.html#/module:Stable/module:V1" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V1 : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> <span class="keyword">sig</span> 
+    <div class="sig">
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('ok, 'err) __pa_nonrec_0 = ('ok, 'err) <a href="index.html#/type:t">t</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:Ok">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:Ok" class="anchor">#</a>
+  | Ok <span class="keyword">of</span> 'ok
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:Error">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:Error" class="anchor">#</a>
+  | Error <span class="keyword">of</span> 'err
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/type:t">
+  <a href="index.html#/module:Stable/module:V1/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('ok, 'err) t = ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a> = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:Ok">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:Ok" class="anchor">#</a>
+  | Ok <span class="keyword">of</span> 'ok
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:Error">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:Error" class="anchor">#</a>
+  | Error <span class="keyword">of</span> 'err
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+     <span class="keyword">with</span> <span class="keyword">type</span> ('a0, 'a1) <a href="#/type:__pa_nonrec_0">__pa_nonrec_0</a> := ('a0, 'a1) <a href="index.html#/type:t">t</a>
+    </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:compare">
+  <a href="index.html#/module:Stable/module:V1/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : ('ok <span class="rarr"><span>-&gt;</span></span> 'ok <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> ('err <span class="rarr"><span>-&gt;</span></span> 'err <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : 'ok Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_read_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : 'ok Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:__bin_read_t__">
+  <a href="index.html#/module:Stable/module:V1/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : 'ok Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_reader_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : 'ok Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_size_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : 'ok Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_write_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : 'ok Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_writer_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : 'ok Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:t_of_sexp">
+  <a href="index.html#/module:Stable/module:V1/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'ok) <span class="rarr"><span>-&gt;</span></span> (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'err) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:sexp_of_t">
+  <a href="index.html#/module:Stable/module:V1/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('ok <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('err <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/module:Stable/module:V1/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1_stable_unit_test">
+  <a href="index.html#/module:Stable/module:V1_stable_unit_test" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V1_stable_unit_test : Stable_unit_test_intf.Arg</div>
+      
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compare">
+  <a href="index.html#/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : ('ok <span class="rarr"><span>-&gt;</span></span> 'ok <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> ('err <span class="rarr"><span>-&gt;</span></span> 'err <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'ok) <span class="rarr"><span>-&gt;</span></span> (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'err) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('ok <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('err <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_t">
+  <a href="index.html#/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : 'ok Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_t">
+  <a href="index.html#/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : 'ok Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_t__">
+  <a href="index.html#/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : 'ok Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_t">
+  <a href="index.html#/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : 'ok Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_t">
+  <a href="index.html#/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : 'ok Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_t">
+  <a href="index.html#/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : 'ok Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_t">
+  <a href="index.html#/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : 'ok Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'err Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> ('ok, 'err) <a href="index.html#/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

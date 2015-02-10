@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Core_mutex</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Core_mutex</a></h1> : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <a href="../../../../ocaml.4.02.1+doc/otherlibs/systhreads/mutex/">Mutex</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/systhreads/mutex/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:equal">
+  <a href="index.html#/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lock">
+  <a href="index.html#/val:lock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lock : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>lock mtx</code> locks <code>mtx</code>, possibly waiting for it to be released
+first by another thread.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> if <code>lock</code> attempts to acquire <code>mtx</code> recursively.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:try_lock">
+  <a href="index.html#/val:try_lock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> try_lock : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Already_held_by_me_or_other</div><div class="cons">| `Acquired</div> ]
+    
+      <div class="doc">
+        
+      <p><code>try_lock</code> is like <code>lock</code>, but always returns immediately. If the calling thread or
+another one already has the mutex it returns <code>`Already_held_by_me_or_other</code>, otherwise
+it locks it and returns <code>`Acquired</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:timedlock">
+  <a href="index.html#/val:timedlock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> timedlock : (<a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../menhir.20141215/src/_stage1/time/">Time</a>.t <span class="rarr"><span>-&gt;</span></span> bool) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>timedlock mtx timeout</code> like <code>lock</code>, but takes a <code>timeout</code> parameter.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> <code>true</code> if the mutex was acquired, or <code>false</code> when <code>timeout</code>
+expires otherwise.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> if <code>timedlock</code> attempts to acquire <code>mtx</code> recursively.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unlock">
+  <a href="index.html#/val:unlock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlock : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unlock mtx</code> unlocks <code>mtx</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> if <code>unlock</code> attempts to release an unacquired
+mutex or a mutex held by another thread.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:critical_section">
+  <a href="index.html#/val:critical_section" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> critical_section : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:synchronize">
+  <a href="index.html#/val:synchronize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> synchronize : ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>synchronize f</code> creates a mutex and returns a new function that is identical to <code>f</code>
+except that the mutex is held during its execution.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:update_signal">
+  <a href="index.html#/val:update_signal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> update_signal : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/systhreads/condition/">Condition</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/systhreads/condition/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>update_signal mtx cnd ~f</code> updates some state within a critical
+section protected by mutex <code>mtx</code> using function <code>f</code> and signals
+condition variable <code>cnd</code> after finishing. If <code>f</code> raises an exception,
+the condition will NOT be signaled!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:update_broadcast">
+  <a href="index.html#/val:update_broadcast" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> update_broadcast : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/systhreads/condition/">Condition</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/systhreads/condition/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>update_broadcast mtx cnd ~f</code> updates some state within a critical
+section protected by mutex <code>mtx</code> using function <code>f</code> and broadcasts
+condition variable <code>cnd</code> after finishing. If <code>f</code> raises an exception,
+the condition will NOT be broadcast!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

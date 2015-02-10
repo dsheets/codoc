@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Debug</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Debug</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Utilities for printing debug messages.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:eprint">
+  <a href="index.html#/val:eprint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprint : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>eprint message</code> prints to stderr <code>message</code>, followed by a newline and flush. This is
+the same as <code>prerr_endline</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprints">
+  <a href="index.html#/val:eprints" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprints : string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>eprints message a sexp_of_a</code> prints to stderr <code>message</code> and <code>a</code> as a sexp, followed
+by a newline and flush.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eprintf">
+  <a href="index.html#/val:eprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eprintf : ('r, unit, string, unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'r
+    
+      <div class="doc">
+        
+      <p><code>eprintf message arg1 ... argn</code> prints to stderr <code>message</code>, with sprintf-style format
+characters instantiated, followed by a newline and flush.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make">
+  <a href="index.html#/module:Make" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Make : <span class="keyword">functor</span> (M : <span class="keyword">sig</span>
+    <div class="sig"></div>
+    <div class="outro"><span class="keyword">end</span></div>
+    ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Debug.Make</code> produces a <code>debug</code> function used to wrap a function to display arguments
+before calling and display results after returning. Intended usage is:</p>
+      <pre><code>      module Foo = struct
+        type t = ...
+        let invariant = ...
+        let bar t x y : Result.t = ...
+      end
+      module Foo_debug = struct
+        open Foo
+        include Debug.Make ()
+        let debug x = debug invariant ~module_name:&quot;Foo&quot; x
+        let bar t x y =
+          debug &quot;bar&quot; [t] (t, x, y) &lt;:sexp_of&lt; t * X.t * Y.t &gt;&gt; &lt;:sexp_of&lt; Result.t &gt;&gt;
+            (fun () -&gt; bar t x y)
+      end</code></pre>
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Make/val:check_invariant">
+  <a href="index.html#/module:Make/val:check_invariant" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> check_invariant : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:show_messages">
+  <a href="index.html#/module:Make/val:show_messages" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> show_messages : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Make/val:debug">
+  <a href="index.html#/module:Make/val:debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug : 't <a href="../../../../menhir.20141215/src/_stage1/invariant/">Invariant</a>.t <span class="rarr"><span>-&gt;</span></span> module_name:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 't list <span class="rarr"><span>-&gt;</span></span> 'args <span class="rarr"><span>-&gt;</span></span> ('args <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('result <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> 'result) <span class="rarr"><span>-&gt;</span></span> 'result
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

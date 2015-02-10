@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Lock_file</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Lock_file</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Mutual exclusion between processes using flock and lockf. A file is
+considered locked if either of these mechanisms works.</p>
+      
+      <p>These locks are OS-level but are Local (will not work across computers
+even if they mount the same directory).</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?message:string <span class="rarr"><span>-&gt;</span></span> ?close_on_exec:bool <span class="rarr"><span>-&gt;</span></span> ?unlink_on_exit:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>create ?close_on_exec ?message path</code> tries to create a file at <code>path</code> containing the
+text <code>message</code>, which defaults to the pid of the locking process. It returns true on
+success, false on failure. Note: there is no way to release the lock or the fd
+created inside! It will only be released when the process dies. If close_on_exec is
+false, then the lock will not be released until children created via fork and exec
+also terminate. If not specified, close_on_exec=true. Note that by default, the lock
+file is not cleaned up for you when the process exits. If you pass
+<code>unlink_on_exit:true</code>, an at_exit handler will be set up to remove the lock-file on
+program termination.</p>
+      
+      <p>The lock file is created with mode 664, so will not be world-writable even with
+umask 0.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_exn">
+  <a href="index.html#/val:create_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_exn : ?message:string <span class="rarr"><span>-&gt;</span></span> ?close_on_exec:bool <span class="rarr"><span>-&gt;</span></span> ?unlink_on_exit:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>create_exn ?message path</code> is like <code>create</code> except that it throws an exception on
+failure instead of returning a boolean value</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:blocking_create">
+  <a href="index.html#/val:blocking_create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blocking_create : ?timeout:<a href="../../../../menhir.20141215/src/_stage1/time/">Time</a>.Span.t <span class="rarr"><span>-&gt;</span></span> ?message:string <span class="rarr"><span>-&gt;</span></span> ?close_on_exec:bool <span class="rarr"><span>-&gt;</span></span> ?unlink_on_exit:bool <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>blocking_create t</code> tries to create the lock. If another process holds the lock this
+function will wait until it is released or until timeout expires.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_locked">
+  <a href="index.html#/val:is_locked" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_locked : string <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>is_locked path</code> returns true when the file at <code>path</code> exists and is locked, false
+otherwise. Requires write permission for the lock file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs">
+  <a href="index.html#/module:Nfs" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Nfs : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>An implementation neutral NFS lock file scheme that relies on the atomicity of link
+over NFS (see NFS Illustrated, atomicity for more information). Rather than relying
+on a working traditional advisory lock system over NFS we create a hard link between
+the file given to the create call and a new file &lt;filename&gt;.nfs_lock. This link call
+is atomic (in that it succeeds or fails) across all systems that have the same
+filesystem mounted. The link file must be cleaned up on program exit (normally
+accomplished by an at_exit handler, but see caveats below).</p>
+      
+      <p>There are a few caveats compared to local file locks:</p>
+      <ul><li>These calls require the locker to have write access to the directory containing the
+file being locked.</li></ul><ul><li>Unlike a normal flock call the lock may not be removed when the calling program
+exits (in particular if it is killed with SIGKILL).</li></ul><ul><li>NFS lock files are non-standard and difficult to reason about. This implementation
+strives to strike a balance between safety and utility in the common case:</li><li>one program per machine</li><li>one shared user running the program</li></ul>
+      <p>Use cases outside of this may push on/break assumptions used for easy lock
+cleanup/taking and may lead to double taking the lock. If you have such an odd use
+case you should test it carefully/consider a different locking mechanism.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Nfs/val:create">
+  <a href="index.html#/module:Nfs/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?message:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>create ?message path</code> tries to create and lock the file at <code>path</code> by creating a hard
+link to <code>path</code>.nfs_lock. The contents of <code>path</code> will be replaced with a sexp
+containing the caller's hostname and pid, and the optional <code>message</code>.</p>
+      
+      <p>Efforts will be made to release this lock when the calling program exits. But there
+is no guarantee that this will occur under some types of program crash. If the
+program crashes without removing the lock file an attempt will be made to clean up
+on restart by checking the hostname and pid stored in the lockfile.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs/val:create_exn">
+  <a href="index.html#/module:Nfs/val:create_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_exn : ?message:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>create_exn ?message path</code> like create, but throws an exception when it fails to
+obtain the lock</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs/val:blocking_create">
+  <a href="index.html#/module:Nfs/val:blocking_create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> blocking_create : ?timeout:<a href="../../../../menhir.20141215/src/_stage1/time/">Time</a>.Span.t <span class="rarr"><span>-&gt;</span></span> ?message:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>blocking_create ?message path</code> like create, but sleeps for 1 second between lock
+attempts and does not return until it succeeds or timeout expires. Timeout defaults
+to wait indefinitely</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs/val:critical_section">
+  <a href="index.html#/module:Nfs/val:critical_section" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> critical_section : ?message:string <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> timeout:<a href="../../../../menhir.20141215/src/_stage1/time/">Time</a>.Span.t <span class="rarr"><span>-&gt;</span></span> f:(unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>critical_section ?message ~timeout path ~f</code> wrap function <code>f</code> (including exceptions
+escaping it) by first locking (using <a href="index.html#/module:Nfs/val:blocking_create">blocking_create</a>) and then unlocking the
+given lock file.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs/val:get_hostname_and_pid">
+  <a href="index.html#/module:Nfs/val:get_hostname_and_pid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_hostname_and_pid : string <span class="rarr"><span>-&gt;</span></span> (string * Core_kernel.Std.Pid.t) option
+    
+      <div class="doc">
+        
+      <p><code>get_hostname_and_pid path</code> reads the lock file at <code>path</code> and returns the hostname
+and path in the file. Returns <code>None</code> if the file cannot be read.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs/val:get_message">
+  <a href="index.html#/module:Nfs/val:get_message" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_message : string <span class="rarr"><span>-&gt;</span></span> string option
+    
+      <div class="doc">
+        
+      <p><code>get_message path</code> reads the lock file at <code>path</code> and returns the message in the
+file. Returns <code>None</code> if the file cannot be read.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs/val:unlock_exn">
+  <a href="index.html#/module:Nfs/val:unlock_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlock_exn : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unlock_exn path</code> unlocks <code>path</code> if <code>path</code> was locked from the same host and the pid
+in the file is either the current pid or not the pid of a running process. It will
+raise if for some reason the lock at the given path cannot be unlocked, for example
+if the lock is taken by somebody else that is still alive on the same box, or taken
+by a process on a different host, or unix permissions issues, etc. This function
+should be used only by programs that need to release their lock before exiting. If
+releasing the lock can or should wait till the end of the running process, do not
+call this function -- this library already takes care of releasing at exit all the
+locks taken.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Nfs/val:unlock">
+  <a href="index.html#/module:Nfs/val:unlock" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unlock : string <span class="rarr"><span>-&gt;</span></span> unit Core_kernel.Std.Or_error.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Core_lazy</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Core_lazy</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A value of type <code>'a Lazy.t</code> is a deferred computation, called
+a suspension, that has a result of type <code>'a</code>. The special
+expression syntax <code>lazy (expr)</code> makes a suspension of the
+computation of <code>expr</code>, without computing <code>expr</code> itself yet.
+&quot;Forcing&quot; the suspension will then compute <code>expr</code> and return its
+result.</p>
+      
+      <p>Note: <code>lazy_t</code> is the built-in type constructor used by the compiler
+for the <code>lazy</code> keyword. You should not use it directly. Always use
+<code>Lazy.t</code> instead.</p>
+      
+      <p>Note: <code>Lazy.force</code> is not thread-safe. If you use this module in
+a multi-threaded program, you will need to add some locks.</p>
+      
+      <p>Note: if the program is compiled with the <code>-rectypes</code> option,
+ill-founded recursive definitions of the form <code>let rec x = lazy x</code>
+or <code>let rec x = lazy(lazy(...(lazy x)))</code> are accepted by the type-checker
+and lead, when forced, to ill-formed values that trigger infinite
+loops in the garbage collector and other parts of the run-time system.
+Without the <code>-rectypes</code> option, such ill-founded recursive definitions
+are rejected by the type-checker.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = 'a lazy_t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:typerep_of_t">
+  <a href="index.html#/val:typerep_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> typerep_of_t : 'a Typerep_lib.Std.Typerep.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Typerep_lib.Std.Typerep.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:typename_of_t">
+  <a href="index.html#/val:typename_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> typename_of_t : 'a Typerep_lib.Std.Typename.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Typerep_lib.Std.Typename.t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Monad.S <span class="keyword">with</span> <span class="keyword">type</span> 'a t := 'a <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/exn:Undefined">
+  <a href="index.html#/exn:Undefined" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Undefined
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:force">
+  <a href="index.html#/val:force" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> force : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    = &quot;%lazy_force&quot; 
+    
+      <div class="doc">
+        
+      <p><code>force x</code> forces the suspension <code>x</code> and returns its result.
+If <code>x</code> has already been forced, <code>Lazy.force x</code> returns the
+same value again without recomputing it. If it raised an exception,
+the same exception is raised again.
+Raise <code>Undefined</code> if the forcing of <code>x</code> tries to force <code>x</code> itself
+recursively.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:force_val">
+  <a href="index.html#/val:force_val" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> force_val : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Like <code>force</code> except that if the computation of <code>x</code> raises an exception, it is
+unspecified whether <code>force_val x</code> raises the same exception or <code>Undefined</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_fun">
+  <a href="index.html#/val:from_fun" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_fun : (unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>from_fun f</code> is the same as <code>lazy (f ())</code> but slightly more efficient.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:from_val">
+  <a href="index.html#/val:from_val" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> from_val : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>from_val v</code> returns an already-forced suspension of <code>v</code>
+This is for special purposes only and should not be confused with
+<code>lazy (v)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_val">
+  <a href="index.html#/val:is_val" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_val : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>is_val x</code> returns <code>true</code> if <code>x</code> has already been forced and
+did not raise an exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compare">
+  <a href="index.html#/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : ('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_t">
+  <a href="index.html#/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : 'a Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_t">
+  <a href="index.html#/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_t__">
+  <a href="index.html#/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_t">
+  <a href="index.html#/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : 'a Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_t">
+  <a href="index.html#/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : 'a Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_t">
+  <a href="index.html#/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : 'a Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_t">
+  <a href="index.html#/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : 'a Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

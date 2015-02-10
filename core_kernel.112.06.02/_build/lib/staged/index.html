@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Staged</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Staged</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A type for making staging explicit in the type of a function. For example, you might
+want to have a function that creates a function for allocating unique identifiers.
+Rather than using the type:</p>
+      <pre><code>    val make_id_allocator : unit -&gt; unit -&gt; int</code></pre>
+      <p>you would have</p>
+      <pre><code>    val make_id_allocator : unit -&gt; (unit -&gt; int) Staged.t</code></pre>
+      <p>Such a function could be defined as follows:</p>
+      <pre><code>    let make_id_allocator () =
+      let ctr = ref 0 in
+      stage (fun () -&gt; incr ctr; !ctr)</code></pre>
+      <p>and could be invoked as follows:</p>
+      <pre><code>    let (id1,id2) =
+      let alloc = unstage (make_id_allocator ()) in
+      (alloc (), alloc ())</code></pre>
+      <p>both stage and unstage functions are available in Common.</p>
+      
+      <p>(Note that in many cases, including perhaps the one above, it's preferable to create a
+custom type rather than use Staged.)</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> +'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stage">
+  <a href="index.html#/val:stage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stage : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unstage">
+  <a href="index.html#/val:unstage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unstage : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

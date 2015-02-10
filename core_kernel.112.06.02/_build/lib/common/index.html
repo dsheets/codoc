@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Common</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Common</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Basic types and definitions required throughout the system.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/exn:Bug">
+  <a href="index.html#/exn:Bug" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Bug <span class="keyword">of</span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:Finally">
+  <a href="index.html#/exn:Finally" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> Finally <span class="keyword">of</span> exn * exn
+    
+      <div class="doc">
+        
+      <p>Raised when finalization after an exception failed, too.
+The first exception argument is the one raised by the initial
+function, the second exception the one raised by the finalizer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:read_only">
+  <a href="index.html#/type:read_only" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> read_only
+    
+      <div class="doc">
+        
+      <p>Types for use as markers in phantom types. One should not expose functions for
+converting between read_only/immutable/read_write because the private types expose the
+subtyping. Users would say &quot;(db :&gt; read_only Db.t)&quot; to cast. The difference between
+read-only and immutable is that someone else can change a read-only object, while
+immutable never changes.</p>
+      
+      <p>These types are deprecated in favor of the types included from <code>Perms.Export</code> module
+below.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:immutable">
+  <a href="index.html#/type:immutable" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> immutable = <span class="keyword">private</span> <a href="index.html#/type:read_only">read_only</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:read_write">
+  <a href="index.html#/type:read_write" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> read_write = <span class="keyword">private</span> <a href="index.html#/type:read_only">read_only</a>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <span class="keyword">module type of</span> <a href="../../../../core_kernel.112.06.02/_build/lib/perms/">Perms</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/perms/#/module:Export">Export</a> 
+    </div>
+  
+  <div class="region" id="/type:never_returns">
+  <a href="index.html#/type:never_returns" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> never_returns = Never_returns.never_returns
+    
+      <div class="doc">
+        
+      <p><code>never_returns</code> should be used as the return type of functions that don't return and
+might block forever, rather than <code>'a</code> or <code>_</code>. This forces callers of such functions
+to have a call to <code>never_returns</code> at the call site, which makes it clear to readers
+what's going on. We do not intend to use this type for functions such as <code>failwithf</code>
+that always raise an exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:never_returns">
+  <a href="index.html#/val:never_returns" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> never_returns : <a href="index.html#/type:never_returns">never_returns</a> <span class="rarr"><span>-&gt;</span></span> _
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Error handling</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:protect">
+  <a href="index.html#/val:protect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> protect : f:(unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> finally:(unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>See exn.mli</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:protectx">
+  <a href="index.html#/val:protectx" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> protectx : f:('b <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> finally:('b <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Input Output</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:fst3">
+  <a href="index.html#/val:fst3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fst3 : 'a * _ * _ <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">triple handling</h6>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:snd3">
+  <a href="index.html#/val:snd3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> snd3 : _ * 'a * _ <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:trd3">
+  <a href="index.html#/val:trd3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> trd3 : _ * _ * 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:uw">
+  <a href="index.html#/val:uw" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uw : 'a option <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Option handling</h6>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_none">
+  <a href="index.html#/val:is_none" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_none : 'a option <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_some">
+  <a href="index.html#/val:is_some" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_some : 'a option <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(|!)">
+  <a href="index.html#/val:(%7C!)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (|!) : 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Functions from fn.ml</h6>
+    </div>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(|&gt;)">
+  <a href="index.html#/val:(%7C%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (|&gt;) : 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ident">
+  <a href="index.html#/val:ident" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ident : 'a <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:const">
+  <a href="index.html#/val:const" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> const : 'a <span class="rarr"><span>-&gt;</span></span> _ <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(==&gt;)">
+  <a href="index.html#/val:(==%3E)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (==&gt;) : bool <span class="rarr"><span>-&gt;</span></span> bool <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:failwiths">
+  <a href="index.html#/val:failwiths" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> failwiths : ?here:<a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/#/type:position">position</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> _
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:failwithp">
+  <a href="index.html#/val:failwithp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> failwithp : <a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/">Lexing</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lexing/#/type:position">position</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> _
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:failwithf">
+  <a href="index.html#/val:failwithf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> failwithf : ('r, unit, string, unit <span class="rarr"><span>-&gt;</span></span> _) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'r
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:invalid_argf">
+  <a href="index.html#/val:invalid_argf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> invalid_argf : ('r, unit, string, unit <span class="rarr"><span>-&gt;</span></span> _) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'r
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ok_exn">
+  <a href="index.html#/val:ok_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ok_exn : 'a <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>Or_error.ok_exn</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:error">
+  <a href="index.html#/val:error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> error : string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> _ <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>Or_error.error</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:return">
+  <a href="index.html#/type:return" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a return = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/type:return/field:return">
+  <a href="index.html#/type:return/field:return" class="anchor">#</a>
+  return
+  </div>
+  </td><td>: 'b . 'a <span class="rarr"><span>-&gt;</span></span> 'b</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+      <div class="doc">
+        
+      <p><code>with_return f</code> allows for something like the return statement in C within <code>f</code>. There
+are three ways <code>f</code> can terminate:</p>
+      
+      <p>1. If <code>f</code> calls <code>r.return x</code>, then <code>x</code> is returned by <code>with_return</code>.
+2. If <code>f</code> evaluates to a value <code>x</code>, then <code>x</code> is returned by <code>with_return</code>.
+3. If <code>f</code> raises an exception, it escapes <code>with_return</code>.</p>
+      
+      <p>Here is a typical example:</p>
+      <pre><code>   let find l ~f =
+     with_return (fun r -&gt;
+        List.iter l ~f:(fun x -&gt; if f x then r.return (Some x));
+        None
+      )</code></pre>
+      <p>It is only because of a deficiency of ML types that <code>with_return</code> doesn't have type:</p>
+      <pre><code>val with_return : 'a. (('a -&gt; ('b. 'b)) -&gt; 'a) -&gt; 'a</code></pre>
+      <p>but we can slightly increase the scope of 'b, without changing the meaning of the type
+and then we get</p>
+      <pre><code>   type 'a return = { return : 'b . 'a -&gt; 'b }
+   val with_return : ('a return -&gt; 'a) -&gt; 'a</code></pre>
+      <p>But the actual reason we chose to use a record type with polymorphic field is that
+otherwise we would have to clobber the namespace of functions with <code>return</code> and that is
+undesirable because <code>return</code> would get hidden as soon as we open any monad. We
+considered names different than <code>return</code> but everything seemed worse than just having
+<code>return</code> as a record field. We are clobbering the namespace of record fields but that
+is much more acceptable.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:with_return">
+  <a href="index.html#/val:with_return" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> with_return : ('a <a href="index.html#/type:return">return</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:phys_equal">
+  <a href="index.html#/val:phys_equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> phys_equal : 'a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>We disable <code>==</code> and <code>!=</code> and replace them with the longer and more mnemonic
+<code>phys_equal</code> because they too easily lead to mistakes (for example they don't even
+work right on Int64 or Float). One can usually use the <code>equal</code> function for a
+specific type, or use (=) or (&lt;&gt;) for built in types like char, int, float.</p>
+      
+      <p>Note that 4.02 increased cases where objects are physically equal.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(==)">
+  <a href="index.html#/val:(==)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (==) : [ <div class="cons">| `Consider_using_phys_equal</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Consider_using_phys_equal</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Consider_using_phys_equal</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(!=)">
+  <a href="index.html#/val:(!=)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (!=) : [ <div class="cons">| `Consider_using_phys_equal</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Consider_using_phys_equal</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Consider_using_phys_equal</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:phys_same">
+  <a href="index.html#/val:phys_same" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> phys_same : _ <span class="rarr"><span>-&gt;</span></span> _ <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>phys_same</code> is like <code>phys_equal</code>, but with a more general type. <code>phys_same</code> is useful
+when dealing with existential types, when one has a packed value and an unpacked value
+that one wants to check are physically equal. One can't use <code>phys_equal</code> in such a
+situation because the types are different.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:force">
+  <a href="index.html#/val:force" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> force : 'a <a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:stage">
+  <a href="index.html#/val:stage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stage : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../core_kernel.112.06.02/_build/lib/staged/">Staged</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/staged/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>See [root:module : Staged] for documentation</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unstage">
+  <a href="index.html#/val:unstage" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unstage : 'a <a href="../../../../core_kernel.112.06.02/_build/lib/staged/">Staged</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/staged/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/exn:C_malloc_exn">
+  <a href="index.html#/exn:C_malloc_exn" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> C_malloc_exn <span class="keyword">of</span> int * int
+    
+      <div class="doc">
+        
+      <p>Raised if malloc in C bindings fail (errno * size).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Deprecated operations</h6>
+    </div>
+      <p>The following section contains definitions that hide operations from the standard
+library that are considered problematic or confusing, or simply redundant.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:seek_out">
+  <a href="index.html#/val:seek_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> seek_out : [ <div class="cons">| `Deprecated_use_out_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_out_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_out_channel</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pos_out">
+  <a href="index.html#/val:pos_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos_out : [ <div class="cons">| `Deprecated_use_out_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_out_channel</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:out_channel_length">
+  <a href="index.html#/val:out_channel_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> out_channel_length : [ <div class="cons">| `Deprecated_use_out_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_out_channel</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:seek_in">
+  <a href="index.html#/val:seek_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> seek_in : [ <div class="cons">| `Deprecated_use_in_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_in_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_in_channel</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pos_in">
+  <a href="index.html#/val:pos_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pos_in : [ <div class="cons">| `Deprecated_use_in_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_in_channel</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:in_channel_length">
+  <a href="index.html#/val:in_channel_length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> in_channel_length : [ <div class="cons">| `Deprecated_use_in_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_in_channel</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:modf">
+  <a href="index.html#/val:modf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> modf : [ <div class="cons">| `Deprecated_use_float_modf</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_modf</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:truncate">
+  <a href="index.html#/val:truncate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> truncate : [ <div class="cons">| `Deprecated_use_float_iround_towards_zero</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_iround_towards_zero</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_in">
+  <a href="index.html#/val:close_in" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_in : [ <div class="cons">| `Deprecated_use_in_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_in_channel</div> ]
+    
+      <div class="doc">
+        
+      <p>we have our own version of these two, the INRIA version doesn't release the runtime
+lock.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:close_out">
+  <a href="index.html#/val:close_out" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> close_out : [ <div class="cons">| `Deprecated_use_out_channel</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_out_channel</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:(&amp;)">
+  <a href="index.html#/val:(%26)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (&amp;) : [ <div class="cons">| `Deprecated_use_two_ampersands</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_two_ampersands</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_two_ampersands</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:or">
+  <a href="index.html#/val:or" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> or : [ <div class="cons">| `Deprecated_use_pipe_pipe</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:max_int">
+  <a href="index.html#/val:max_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_int : [ <div class="cons">| `Deprecated_use_int_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:min_int">
+  <a href="index.html#/val:min_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> min_int : [ <div class="cons">| `Deprecated_use_int_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ceil">
+  <a href="index.html#/val:ceil" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ceil : [ <div class="cons">| `Deprecated_use__Float__round_up</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use__Float__round_up</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:floor">
+  <a href="index.html#/val:floor" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> floor : [ <div class="cons">| `Deprecated_use__Float__round_down</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use__Float__round_down</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:abs_float">
+  <a href="index.html#/val:abs_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> abs_float : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mod_float">
+  <a href="index.html#/val:mod_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mod_float : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:frexp">
+  <a href="index.html#/val:frexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> frexp : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:ldexp">
+  <a href="index.html#/val:ldexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ldexp : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:float_of_int">
+  <a href="index.html#/val:float_of_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float_of_int : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:max_float">
+  <a href="index.html#/val:max_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_float : [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:min_float">
+  <a href="index.html#/val:min_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> min_float : [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:epsilon_float">
+  <a href="index.html#/val:epsilon_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> epsilon_float : [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:classify_float">
+  <a href="index.html#/val:classify_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> classify_float : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:string_of_float">
+  <a href="index.html#/val:string_of_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string_of_float : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:float_of_string">
+  <a href="index.html#/val:float_of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float_of_string : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:infinity">
+  <a href="index.html#/val:infinity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> infinity : [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:neg_infinity">
+  <a href="index.html#/val:neg_infinity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> neg_infinity : [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:nan">
+  <a href="index.html#/val:nan" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nan : [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int_of_float">
+  <a href="index.html#/val:int_of_float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_of_float : [ <div class="cons">| `Deprecated_use_float_module</div> ] <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:fpclass">
+  <a href="index.html#/type:fpclass" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> fpclass = [ <div class="cons">| `Deprecated_use_float_module</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compare_read_only">
+  <a href="index.html#/val:compare_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare_read_only : <a href="index.html#/type:read_only">read_only</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:read_only">read_only</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_only">
+  <a href="index.html#/val:bin_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_only : <a href="index.html#/type:read_only">read_only</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_read_only">
+  <a href="index.html#/val:bin_read_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_read_only : <a href="index.html#/type:read_only">read_only</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_read_only__">
+  <a href="index.html#/val:__bin_read_read_only__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_read_only__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:read_only">read_only</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_read_only">
+  <a href="index.html#/val:bin_reader_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_read_only : <a href="index.html#/type:read_only">read_only</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_read_only">
+  <a href="index.html#/val:bin_size_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_read_only : <a href="index.html#/type:read_only">read_only</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_read_only">
+  <a href="index.html#/val:bin_write_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_read_only : <a href="index.html#/type:read_only">read_only</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_read_only">
+  <a href="index.html#/val:bin_writer_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_read_only : <a href="index.html#/type:read_only">read_only</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_only_of_sexp">
+  <a href="index.html#/val:read_only_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_only_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:read_only">read_only</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_read_only">
+  <a href="index.html#/val:sexp_of_read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_read_only : <a href="index.html#/type:read_only">read_only</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compare_immutable">
+  <a href="index.html#/val:compare_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare_immutable : <a href="index.html#/type:immutable">immutable</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:immutable">immutable</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_immutable">
+  <a href="index.html#/val:bin_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_immutable : <a href="index.html#/type:immutable">immutable</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_immutable">
+  <a href="index.html#/val:bin_read_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_immutable : <a href="index.html#/type:immutable">immutable</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_immutable__">
+  <a href="index.html#/val:__bin_read_immutable__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_immutable__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:immutable">immutable</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_immutable">
+  <a href="index.html#/val:bin_reader_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_immutable : <a href="index.html#/type:immutable">immutable</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_immutable">
+  <a href="index.html#/val:bin_size_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_immutable : <a href="index.html#/type:immutable">immutable</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_immutable">
+  <a href="index.html#/val:bin_write_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_immutable : <a href="index.html#/type:immutable">immutable</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_immutable">
+  <a href="index.html#/val:bin_writer_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_immutable : <a href="index.html#/type:immutable">immutable</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:immutable_of_sexp">
+  <a href="index.html#/val:immutable_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> immutable_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:immutable">immutable</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_immutable">
+  <a href="index.html#/val:sexp_of_immutable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_immutable : <a href="index.html#/type:immutable">immutable</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compare_read_write">
+  <a href="index.html#/val:compare_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare_read_write : <a href="index.html#/type:read_write">read_write</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:read_write">read_write</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_write">
+  <a href="index.html#/val:bin_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_write : <a href="index.html#/type:read_write">read_write</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_read_write">
+  <a href="index.html#/val:bin_read_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_read_write : <a href="index.html#/type:read_write">read_write</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_read_write__">
+  <a href="index.html#/val:__bin_read_read_write__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_read_write__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:read_write">read_write</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_read_write">
+  <a href="index.html#/val:bin_reader_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_read_write : <a href="index.html#/type:read_write">read_write</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_read_write">
+  <a href="index.html#/val:bin_size_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_read_write : <a href="index.html#/type:read_write">read_write</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_read_write">
+  <a href="index.html#/val:bin_write_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_read_write : <a href="index.html#/type:read_write">read_write</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_read_write">
+  <a href="index.html#/val:bin_writer_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_read_write : <a href="index.html#/type:read_write">read_write</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_write_of_sexp">
+  <a href="index.html#/val:read_write_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_write_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:read_write">read_write</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_read_write">
+  <a href="index.html#/val:sexp_of_read_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_read_write : <a href="index.html#/type:read_write">read_write</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_never_returns">
+  <a href="index.html#/val:sexp_of_never_returns" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_never_returns : <a href="index.html#/type:never_returns">never_returns</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

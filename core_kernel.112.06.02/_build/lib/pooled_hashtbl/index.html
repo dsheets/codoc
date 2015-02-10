@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Pooled_hashtbl</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Pooled_hashtbl</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A polymorphic hashtbl that uses <code>Pool</code> to avoid allocation.</p>
+      
+      <p>This uses the standard linked-chain hashtable algorithm, albeit with links performed
+through a pool and hence avoiding <code>caml_modify</code> (for table manipulation), even when
+hashing object keys/values.</p>
+      
+      <p>This implementation is worth exploring for your application if profiling demonstrates
+that garbage collection and the <code>caml_modify</code> write barrier are a significant part of
+your execution time.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> Core_hashtbl_intf.Hashtbl 
+    </div>
+  
+  <div class="region" id="/val:resize">
+  <a href="index.html#/val:resize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resize : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>resize t size</code> ensures that <code>t</code> can hold at least <code>size</code> entries without resizing
+(again), provided that <code>t</code> has growth enabled. This is useful for sizing global
+tables during application initialization, to avoid subsequent, expensive growth
+online. See [root:Jane_parachute].Immediate.String.resize, for example.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:on_grow">
+  <a href="index.html#/val:on_grow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> on_grow : before:(unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> after:('a <span class="rarr"><span>-&gt;</span></span> old_capacity:int <span class="rarr"><span>-&gt;</span></span> new_capacity:int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>on_grow ~before ~after</code> allows you to connect higher level loggers to the point where
+these hashtbls grow. <code>before</code> is called before the table grows, and <code>after</code> after it.
+This permits you to e.g. measure the time elapsed between the two.</p>
+      
+      <p>This is only meant for debugging and profiling, e.g. note that once a callback is
+installed, there is no way to remove it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

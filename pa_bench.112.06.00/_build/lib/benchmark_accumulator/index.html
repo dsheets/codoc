@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Benchmark_accumulator</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Benchmark_accumulator</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The point of <code>Benchmark_accumulator</code> is to provide a global place where inline
+benchmarking macros can register themselves. Once registered here, the benchmarks are
+retrieved and analyzed using <code>Core_bench</code>.</p>
+      
+      <p>This module holds the registered benchmarks in a global hashtable indexed by library
+name. We care about the registered benchmarks if and only if the library is being
+used in a <code>inline_benchmarks_runner.exe</code>. To avoid building this hashtable in cases
+where we will not use it, this module peeks into the commandline args of the running
+program to decide if the benchmarks should be registered or not.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Current_libname">
+  <a href="index.html#/module:Current_libname" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Current_libname : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Current_libname/val:set">
+  <a href="index.html#/module:Current_libname/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : string <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Current_libname/val:unset">
+  <a href="index.html#/module:Current_libname/val:unset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unset : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Entry">
+  <a href="index.html#/module:Entry" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Entry : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Entry/type:indexed_spec">
+  <a href="index.html#/module:Entry/type:indexed_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a indexed_spec = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:indexed_spec/field:arg_name">
+  <a href="index.html#/module:Entry/type:indexed_spec/field:arg_name" class="anchor">#</a>
+  arg_name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:indexed_spec/field:arg_values">
+  <a href="index.html#/module:Entry/type:indexed_spec/field:arg_values" class="anchor">#</a>
+  arg_values
+  </div>
+  </td><td>: int list</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:indexed_spec/field:thunk">
+  <a href="index.html#/module:Entry/type:indexed_spec/field:thunk" class="anchor">#</a>
+  thunk
+  </div>
+  </td><td>: int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 'a</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Entry/type:test_spec">
+  <a href="index.html#/module:Entry/type:test_spec" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> test_spec = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Entry/type:test_spec/cons:Regular_thunk">
+  <a href="index.html#/module:Entry/type:test_spec/cons:Regular_thunk" class="anchor">#</a>
+  | Regular_thunk : (unit <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Entry/type:test_spec">test_spec</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Entry/type:test_spec/cons:Indexed_thunk">
+  <a href="index.html#/module:Entry/type:test_spec/cons:Indexed_thunk" class="anchor">#</a>
+  | Indexed_thunk : 'a <a href="index.html#/module:Entry/type:indexed_spec">indexed_spec</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Entry/type:test_spec">test_spec</a>
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Entry/type:t">
+  <a href="index.html#/module:Entry/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <span class="keyword">private</span> {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:unique_id">
+  <a href="index.html#/module:Entry/type:t/field:unique_id" class="anchor">#</a>
+  unique_id
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:code">
+  <a href="index.html#/module:Entry/type:t/field:code" class="anchor">#</a>
+  code
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:type_conv_path">
+  <a href="index.html#/module:Entry/type:t/field:type_conv_path" class="anchor">#</a>
+  type_conv_path
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:name">
+  <a href="index.html#/module:Entry/type:t/field:name" class="anchor">#</a>
+  name
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:filename">
+  <a href="index.html#/module:Entry/type:t/field:filename" class="anchor">#</a>
+  filename
+  </div>
+  </td><td>: string</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:line">
+  <a href="index.html#/module:Entry/type:t/field:line" class="anchor">#</a>
+  line
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:startpos">
+  <a href="index.html#/module:Entry/type:t/field:startpos" class="anchor">#</a>
+  startpos
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:endpos">
+  <a href="index.html#/module:Entry/type:t/field:endpos" class="anchor">#</a>
+  endpos
+  </div>
+  </td><td>: int</td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:test_spec">
+  <a href="index.html#/module:Entry/type:t/field:test_spec" class="anchor">#</a>
+  test_spec
+  </div>
+  </td><td>: <a href="index.html#/module:Entry/type:test_spec">test_spec</a></td><td>;</td><td></td><td></td><td></td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Entry/type:t/field:bench_module_name">
+  <a href="index.html#/module:Entry/type:t/field:bench_module_name" class="anchor">#</a>
+  bench_module_name
+  </div>
+  </td><td>: string option</td><td>;</td><td></td><td></td><td></td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Entry/val:compare">
+  <a href="index.html#/module:Entry/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : <a href="index.html#/module:Entry/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Entry/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Entry/val:get_indexed_arg_name">
+  <a href="index.html#/module:Entry/val:get_indexed_arg_name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_indexed_arg_name : <a href="index.html#/module:Entry/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Entry/val:get_module_name_opt">
+  <a href="index.html#/module:Entry/val:get_module_name_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_module_name_opt : <a href="index.html#/module:Entry/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string option
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_benchmarks_flag">
+  <a href="index.html#/val:add_benchmarks_flag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_benchmarks_flag : bool
+    
+      <div class="doc">
+        
+      <p><code>add_benchmarks_flag</code> returns true if the benchmarks should be added to the
+hashtable</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:lookup_lib">
+  <a href="index.html#/val:lookup_lib" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lookup_lib : libname:string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Entry">Entry</a>.<a href="index.html#/module:Entry/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p><code>lookup_lib</code> returns all the benchmarks from the specified library</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_bench">
+  <a href="index.html#/val:add_bench" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_bench : name:string <span class="rarr"><span>-&gt;</span></span> code:string <span class="rarr"><span>-&gt;</span></span> filename:string <span class="rarr"><span>-&gt;</span></span> type_conv_path:string <span class="rarr"><span>-&gt;</span></span> line:int <span class="rarr"><span>-&gt;</span></span> startpos:int <span class="rarr"><span>-&gt;</span></span> endpos:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Entry">Entry</a>.<a href="index.html#/module:Entry/type:test_spec">test_spec</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_bench</code> registers benchmarks with the global hashtable maintained in
+<code>pa_bench_lib</code>. This is meant to be called by the code generated for the BENCH and
+BENCH_INDEXED macros</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_bench_module">
+  <a href="index.html#/val:add_bench_module" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_bench_module : name:string <span class="rarr"><span>-&gt;</span></span> code:string <span class="rarr"><span>-&gt;</span></span> type_conv_path:string <span class="rarr"><span>-&gt;</span></span> filename:string <span class="rarr"><span>-&gt;</span></span> line:int <span class="rarr"><span>-&gt;</span></span> startpos:int <span class="rarr"><span>-&gt;</span></span> endpos:int <span class="rarr"><span>-&gt;</span></span> (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_bench_module</code> adds a bench module name to the benchmarks. This is called by
+BENCH_MODULE macro</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

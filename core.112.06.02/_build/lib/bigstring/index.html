@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Bigstring</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Bigstring</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>String type based on <code>Bigarray</code>, for use in I/O and C-bindings</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> <span class="keyword">module type of</span> Core_kernel.Std.Bigstring <span class="keyword">with</span> <span class="keyword">type</span> t = Core_kernel.Std.Bigstring.t 
+    </div>
+  
+  <div class="region" id="/exn:IOError">
+  <a href="index.html#/exn:IOError" class="anchor">#</a>
+  
+  <div class="exn">
+    <span class="keyword">exception</span> IOError <span class="keyword">of</span> int * exn
+    
+      <div class="doc">
+        
+      <p>Type of I/O errors</p>
+      
+      <p>The occurred exception (e.g. Unix_error, End_of_file)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Input functions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:read">
+  <a href="index.html#/val:read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read : ?min_len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>read ?min_len fd ?pos ?len bstr</code> reads at least <code>min_len</code> (must be
+greater than or equal zero) and at most <code>len</code> (must be greater than
+or equal to <code>min_len</code>) bytes from file descriptor <code>fd</code>, and writes
+them to bigstring <code>bstr</code> starting at position <code>pos</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the
+number of bytes actually read.<br/><code>read</code> returns zero only if <code>len = 0</code>. If <code>len &gt; 0</code> and there's nothing left to read,
+<code>read</code> raises to indicate EOF even if <code>min_len = 0</code>.<br/>NOTE: even if <code>len</code> is zero, there may still be errors when reading
+from the descriptor!
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated ranges are out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of input errors, or on EOF if the
+minimum length could not be read.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">min_len</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_read">
+  <a href="index.html#/val:really_read" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_read : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>really_read fd ?pos ?len bstr</code> reads <code>len</code> bytes from file descriptor
+<code>fd</code>, and writes them to bigstring <code>bstr</code> starting at position <code>pos</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of input errors, or on EOF.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_recv">
+  <a href="index.html#/val:really_recv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_recv : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>really_recv sock ?pos ?len bstr</code> receives <code>len</code> bytes from socket
+<code>sock</code>, and writes them to bigstring <code>bstr</code> starting at position
+<code>pos</code>. If <code>len</code> is zero, the function returns immediately without
+performing the underlying system call.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of input errors, or on EOF.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recvfrom_assume_fd_is_nonblocking">
+  <a href="index.html#/val:recvfrom_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recvfrom_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int * <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a>
+    
+      <div class="doc">
+        
+      <p><code>recvfrom_assume_fd_is_nonblocking sock ?pos ?len bstr</code> reads up to
+<code>len</code> bytes into bigstring <code>bstr</code> starting at position <code>pos</code> from
+socket <code>sock</code> without yielding to other OCaml-threads.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes actually read and the socket address of
+the client.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of input errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_assume_fd_is_nonblocking">
+  <a href="index.html#/val:read_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>read_assume_fd_is_nonblocking fd ?pos ?len bstr</code> reads up to
+<code>len</code> bytes into bigstring <code>bstr</code> starting at position <code>pos</code> from
+file descriptor <code>fd</code> without yielding to other OCaml-threads.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes actually read.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of input errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pread_assume_fd_is_nonblocking">
+  <a href="index.html#/val:pread_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pread_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> offset:int <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>pread_assume_fd_is_nonblocking fd ~offset ?pos ?len bstr</code> reads up to <code>len</code> bytes
+from file descriptor <code>fd</code> at offset <code>offset</code>, and writes them to bigstring <code>bstr</code>
+starting at position <code>pos</code>. The fd must be capable of seeking, and the current file
+offset used for a regular <code>read()</code> is unchanged. Please see 'man pread' for more
+information.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes actually read.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of input errors.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:input">
+  <a href="index.html#/val:input" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> input : ?min_len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>input ?min_len ic ?pos ?len bstr</code> tries to read <code>len</code> bytes
+(guarantees to read at least <code>min_len</code> bytes (must be greater than
+or equal to zero and smaller or equal to <code>len</code>), if possible, before
+returning) from input channel <code>ic</code>, and writes them to bigstring
+<code>bstr</code> starting at position <code>pos</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes
+actually read.<br/>NOTE: even if <code>len</code> is zero, there may still be errors when reading
+from the descriptor, which will be done if the internal buffer
+is empty!<br/>NOTE: if at least <code>len</code> characters are available in the input channel
+buffer and if <code>len</code> is not zero, data will only be fetched from the
+channel buffer. Otherwise data will be read until at least <code>min_len</code>
+characters are available.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of input errors, or on premature EOF.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">min_len</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_input">
+  <a href="index.html#/val:really_input" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_input : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>really_input ic ?pos ?len bstr</code> reads exactly <code>len</code> bytes from
+input channel <code>ic</code>, and writes them to bigstring <code>bstr</code> starting at
+position <code>pos</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of input errors, or on premature EOF.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Output functions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:really_write">
+  <a href="index.html#/val:really_write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_write : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>really_write fd ?pos ?len bstr</code> writes <code>len</code> bytes in bigstring
+<code>bstr</code> starting at position <code>pos</code> to file descriptor <code>fd</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of output errors.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_send_no_sigpipe">
+  <a href="index.html#/val:really_send_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_send_no_sigpipe : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>really_send_no_sigpipe sock ?pos ?len bstr</code> sends <code>len</code> bytes in
+bigstring <code>bstr</code> starting at position <code>pos</code> to socket <code>sock</code> without
+blocking and ignoring <code>SIGPIPE</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of output errors.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code><br/><code>really_send_no_sigpipe</code> is not implemented on some platforms, in which
+case it is an <code>Error</code> value that indicates that it is unimplemented.
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:send_nonblocking_no_sigpipe">
+  <a href="index.html#/val:send_nonblocking_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send_nonblocking_no_sigpipe : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>send_nonblocking_no_sigpipe sock ?pos ?len bstr</code> tries to send
+<code>len</code> bytes in bigstring <code>bstr</code> starting at position <code>pos</code> to socket
+<code>sock</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> <code>Some bytes_written</code>, or <code>None</code> if the operation
+would have blocked.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sendto_nonblocking_no_sigpipe">
+  <a href="index.html#/val:sendto_nonblocking_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sendto_nonblocking_no_sigpipe : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> <span class="rarr"><span>-&gt;</span></span> int option) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>sendto_nonblocking_no_sigpipe sock ?pos ?len bstr sockaddr</code> tries
+to send <code>len</code> bytes in bigstring <code>bstr</code> starting at position <code>pos</code>
+to socket <code>sock</code> using address <code>addr</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> <code>Some bytes_written</code>,
+or <code>None</code> if the operation would have blocked.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write">
+  <a href="index.html#/val:write" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>write fd ?pos ?len bstr</code> writes <code>len</code>
+bytes in bigstring <code>bstr</code> starting at position <code>pos</code> to file
+descriptor <code>fd</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes actually written.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pwrite_assume_fd_is_nonblocking">
+  <a href="index.html#/val:pwrite_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pwrite_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> offset:int <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>pwrite_assume_fd_is_nonblocking fd ~offset ?pos ?len bstr</code> writes up to <code>len</code> bytes
+of bigstring <code>bstr</code> starting at position <code>pos</code> to file descriptor <code>fd</code> at position
+<code>offset</code>. The fd must be capable of seeking, and the current file offset used for
+non-positional <code>read()</code>/<code>write()</code> calls is unchanged.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes
+written.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of input errors.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_assume_fd_is_nonblocking">
+  <a href="index.html#/val:write_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>write_assume_fd_is_nonblocking fd ?pos ?len bstr</code> writes <code>len</code>
+bytes in bigstring <code>bstr</code> starting at position <code>pos</code> to file
+descriptor <code>fd</code> without yielding to other OCaml-threads.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the
+number of bytes actually written.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:writev">
+  <a href="index.html#/val:writev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> writev : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?count:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <a href="../../../../core.112.06.02/_build/lib/core_unix/">Core_unix</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec">IOVec</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>writev fd ?count iovecs</code> writes <code>count</code> <code>iovecs</code> of
+bigstrings to file descriptor <code>fd</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes
+written.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if count is out of range.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">count</span> default = <code>Array.length iovecs</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:writev_assume_fd_is_nonblocking">
+  <a href="index.html#/val:writev_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> writev_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?count:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <a href="../../../../core.112.06.02/_build/lib/core_unix/">Core_unix</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec">IOVec</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>writev_assume_fd_is_nonblocking fd ?count iovecs</code> writes <code>count</code>
+<code>iovecs</code> of bigstrings to file descriptor <code>fd</code> without yielding to
+other OCaml-threads.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes actually written.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">count</span> default = <code>Array.length iovecs</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recvmmsg_assume_fd_is_nonblocking">
+  <a href="index.html#/val:recvmmsg_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recvmmsg_assume_fd_is_nonblocking : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?count:int <span class="rarr"><span>-&gt;</span></span> ?srcs:<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:sockaddr">sockaddr</a> array <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <a href="../../../../core.112.06.02/_build/lib/core_unix/">Core_unix</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec">IOVec</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> lens:int array <span class="rarr"><span>-&gt;</span></span> int) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>recvmmsg_assume_fd_is_nonblocking fd iovecs ~count ~lens</code> receives up to <code>count</code>
+messages into <code>iovecs</code> from file descriptor <code>fd</code> without yielding to other OCaml
+threads. If <code>~count</code> is supplied, it must be that <code>0 &lt;= count &lt;= Array.length
+    iovecs</code>. If <code>~srcs</code> is supplied, save the source addresses for corresponding recieved
+messages there. If supplied, <code>Array.length srcs</code> must be <code>&gt;= count</code>. Save the
+lengths of the received messages in <code>lens</code>. It is required that <code>Array.length lens &gt;=
+    count</code>.</p>
+      
+      <p>If an IOVec isn't long enough for its corresponding message, excess bytes may be
+discarded, depending on the type of socket the message is received from. While the
+<code>recvmmsg</code> system call itself does return details of such truncation, etc., those
+details are not (yet) passed through this interface.</p>
+      
+        
+  <div class="tag see-also">
+    <span class="label">See also DOC recvmmsg(2)</span> re. the underlying system call.
+  </div>
+  
+  <div class="tag return">
+    <span class="label">Returns</span> the number of messages actually read, or a negative number to indicate
+EWOULDBLOCK or EAGAIN. This is a compromise to mitigate the exception overhead for
+what ends up being a very common result with our use of <code>recvmmsg</code>.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">count</span> default = <code>Array.length iovecs</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sendmsg_nonblocking_no_sigpipe">
+  <a href="index.html#/val:sendmsg_nonblocking_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sendmsg_nonblocking_no_sigpipe : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> ?count:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <a href="../../../../core.112.06.02/_build/lib/core_unix/">Core_unix</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec">IOVec</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> int option) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>sendmsg_nonblocking_no_sigpipe sock ?count iovecs</code> sends
+<code>count</code> <code>iovecs</code> of bigstrings to socket <code>sock</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> <code>Some
+    bytes_written</code>, or <code>None</code> if the operation would have blocked.
+This system call will not cause signal <code>SIGPIPE</code> if an attempt is
+made to write to a socket that was closed by the other side.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Unix_error</code> in the case of output errors.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if <code>count</code> is out of range.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">count</span> default = <code>Array.length iovecs</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:output">
+  <a href="index.html#/val:output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> output : ?min_len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>output ?min_len oc ?pos ?len bstr</code> tries to output
+<code>len</code> bytes (guarantees to write at least <code>min_len</code> bytes (must be
+equal to or greater than zero), if possible, before returning) from
+bigstring <code>bstr</code> starting at position <code>pos</code> to output channel <code>oc</code>.</p>
+      
+        
+  <div class="tag return">
+    <span class="label">Returns</span> the number of bytes actually written.<br/>NOTE: you may need to flush <code>oc</code> to make sure that the data is
+actually sent.<br/>NOTE: if <code>len</code> characters fit into the channel buffer completely,
+they will be buffered. Otherwise writes will be attempted until at
+least <code>min_len</code> characters have been sent.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of output errors. The <code>IOError</code>-argument
+counting the number of successful bytes includes those that have
+been transferred to the channel buffer before the error.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">min_len</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:really_output">
+  <a href="index.html#/val:really_output" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> really_output : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>really_output oc ?pos ?len bstr</code> outputs exactly <code>len</code>
+bytes from bigstring <code>bstr</code> starting at position <code>pos</code> to output
+channel <code>oc</code>.</p>
+      
+        
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>Invalid_argument</code> if the designated range is out of bounds.
+  </div>
+  
+  <div class="tag raises">
+    <span class="label">Raises</span> <code>IOError</code> in the case of output errors. The <code>IOError</code>-argument
+counting the number of successful bytes includes those that have
+been transferred to the channel buffer before the error.
+  </div>
+  
+  <div class="tag param">
+    <span class="label">pos</span> default = 0
+  </div>
+  
+  <div class="tag param">
+    <span class="label">len</span> default = <code>length bstr - pos</code>
+  </div>
+  
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h6 class="section level_6">Unsafe functions</h6>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:unsafe_read_assume_fd_is_nonblocking">
+  <a href="index.html#/val:unsafe_read_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_read_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;bigstring_read_assume_fd_is_nonblocking_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_read_assume_fd_is_nonblocking fd ~pos ~len bstr</code>
+similar to <a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:read_assume_fd_is_nonblocking">read_assume_fd_is_nonblocking</a>, but does
+not perform any bounds checks. Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_write">
+  <a href="index.html#/val:unsafe_write" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_write : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;bigstring_write_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_write fd ~pos ~len bstr</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:write">write</a>, but does not perform any bounds checks.
+Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_write_assume_fd_is_nonblocking">
+  <a href="index.html#/val:unsafe_write_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_write_assume_fd_is_nonblocking : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;bigstring_write_assume_fd_is_nonblocking_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_write_assume_fd_is_nonblocking fd ~pos ~len bstr</code>
+similar to <a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:write_assume_fd_is_nonblocking">write_assume_fd_is_nonblocking</a>, but does
+not perform any bounds checks. Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_read">
+  <a href="index.html#/val:unsafe_read" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_read : min_len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;bigstring_read_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_read ~min_len fd ~pos ~len bstr</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:read">read</a>, but does not perform any bounds checks.
+Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_really_recv">
+  <a href="index.html#/val:unsafe_really_recv" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_really_recv : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;bigstring_really_recv_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_really_recv sock ~pos ~len bstr</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:really_recv">really_recv</a>, but does not perform any
+bounds checks. Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_really_write">
+  <a href="index.html#/val:unsafe_really_write" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_really_write : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;bigstring_really_write_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_really_write fd ~pos ~len bstr</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:write">write</a>, but does not perform any bounds checks.
+Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_really_send_no_sigpipe">
+  <a href="index.html#/val:unsafe_really_send_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_really_send_no_sigpipe : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>unsafe_really_send_no_sigpipe sock ~pos ~len bstr</code>
+similar to <a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.send, but does not perform any
+bounds checks. Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_send_nonblocking_no_sigpipe">
+  <a href="index.html#/val:unsafe_send_nonblocking_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_send_nonblocking_no_sigpipe : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>unsafe_send_nonblocking_no_sigpipe sock ~pos ~len bstr</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:send_nonblocking_no_sigpipe">send_nonblocking_no_sigpipe</a>, but does not perform any
+bounds checks. Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_writev">
+  <a href="index.html#/val:unsafe_writev" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_writev : <a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <a href="../../../../core.112.06.02/_build/lib/core_unix/">Core_unix</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec">IOVec</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;bigstring_writev_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_writev fd iovecs count</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:writev">writev</a>, but does not perform any bounds checks.
+Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_sendmsg_nonblocking_no_sigpipe">
+  <a href="index.html#/val:unsafe_sendmsg_nonblocking_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_sendmsg_nonblocking_no_sigpipe : (<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/">Unix</a>.<a href="../../../../ocaml.4.02.1+doc/otherlibs/unix/unix/#/type:file_descr">file_descr</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <a href="../../../../core.112.06.02/_build/lib/core_unix/">Core_unix</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec">IOVec</a>.<a href="../../../../core.112.06.02/_build/lib/core_unix/#/module:IOVec/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int option) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>unsafe_sendmsg_nonblocking_no_sigpipe fd iovecs count</code>
+similar to <a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:sendmsg_nonblocking_no_sigpipe">sendmsg_nonblocking_no_sigpipe</a>, but
+does not perform any bounds checks. Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_input">
+  <a href="index.html#/val:unsafe_input" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_input : min_len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:in_channel">in_channel</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;bigstring_input_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_input ~min_len ic ~pos ~len bstr</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:input">input</a>, but does not perform any bounds checks.
+Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_output">
+  <a href="index.html#/val:unsafe_output" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> unsafe_output : min_len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;bigstring_output_stub&quot; 
+    
+      <div class="doc">
+        
+      <p><code>unsafe_output ~min_len oc ~pos ~len bstr</code> similar to
+<a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core.112.06.02/_build/lib/bigstring/#/val:output">output</a>, but does not perform any bounds checks.
+Will crash on bounds errors!</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

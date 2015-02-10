@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Validate</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Validate</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A module for organizing validations of data structures. Allows standardized ways of
+checking for conditions, and keeps track of the location of errors by keeping a path
+to each error found. Thus, if you were validating the following datastructure:</p>
+      <pre><code>      { foo = 3;
+        bar = { snoo = 34.5;
+                blue = Snoot -6; }
+      }</code></pre>
+      <p>One might end up with an error with the error path:</p>
+      <pre>bar.blue.Snoot : value -6 &lt;= bound 0</pre>
+      <p>By convention, the validations for a type defined in module <code>M</code> appear in module <code>M</code>,
+and have their name prefixed by <code>validate_</code>. E.g. <code>Int.validate_positive</code>.</p>
+      
+      <p>Here's an example of how you would use validate with a record.</p>
+      <pre><code>     type t =
+       { foo: int;
+         bar: float;
+       }
+     with fields
+
+     let validate t =
+       let module V = Validate in
+       let w check = V.field_folder t check in
+       V.of_list
+         (Fields.fold ~init:[]
+            ~foo:(w Int.validate_positive)
+            ~bar:(w Float.validate_non_negative)
+         )</code></pre>
+      <p>And here's an example of how you would use it with a variant type:</p>
+      <pre><code>      type t =
+        | Foo of int
+        | Bar of (float * int)
+        | Snoo of Floogle.t
+
+      let validate = function
+        | Foo i -&gt; V.name &quot;Foo&quot; (Int.validate_positive i)
+        | Bar p -&gt; V.name &quot;Bar&quot; (V.pair
+                                   ~fst:Float.validate_positive
+                                   ~snd:Int.validate_non_negative)
+        | Snoo floogle -&gt; V.name &quot;Snoo&quot; Floogle.validate</code></pre>
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The result of a validation. This effectively contains the list of errors, qualified
+by their location path</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:check">
+  <a href="index.html#/type:check" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a check = 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>to make function signatures easier to read</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pass">
+  <a href="index.html#/val:pass" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pass : <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>A result containing no errors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fail">
+  <a href="index.html#/val:fail" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fail : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>A result containing a single error</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fails">
+  <a href="index.html#/val:fails" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fails : string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:failf">
+  <a href="index.html#/val:failf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> failf : ('a, unit, string, <a href="index.html#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Like <code>sprintf</code> or <code>failwithf</code> but produces a <code>t</code> instead of a string or exception</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_list">
+  <a href="index.html#/val:of_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_list : <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>combine multiple results, merging errors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:name">
+  <a href="index.html#/val:name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>extend location path by one name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:name_list">
+  <a href="index.html#/val:name_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name_list : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fail_fn">
+  <a href="index.html#/val:fail_fn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fail_fn : string <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p><code>fail_fn err</code> returns a function that always returns fail, with <code>err</code> as the error
+message. (Note that there is no <code>pass_fn</code> so as to discourage people from ignoring
+the type of the value being passed unconditionally irrespective of type.)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pass_bool">
+  <a href="index.html#/val:pass_bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pass_bool : bool <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Check for unconditionally passing a bool</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pass_unit">
+  <a href="index.html#/val:pass_unit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pass_unit : unit <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Check for unconditionally passing a unit</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:protect">
+  <a href="index.html#/val:protect" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> protect : 'a <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p><code>protect f x</code> applies the validation <code>f</code> to <code>x</code>, catching any exceptions and returning
+them as errors.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:result">
+  <a href="index.html#/val:result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> result : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:errors">
+  <a href="index.html#/val:errors" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> errors : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string list
+    
+      <div class="doc">
+        
+      <p>Returns a list of formatted error strings, which include both the error message and
+the path to the error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:maybe_raise">
+  <a href="index.html#/val:maybe_raise" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> maybe_raise : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>If the result contains any errors, then raises an exception with a formatted error
+message containing a message for every error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:valid_or_error">
+  <a href="index.html#/val:valid_or_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> valid_or_error : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:field">
+  <a href="index.html#/val:field" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> field : 'record <span class="rarr"><span>-&gt;</span></span> ('record, 'a) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Used for validating an individual field.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:field_folder">
+  <a href="index.html#/val:field_folder" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> field_folder : 'record <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> ('record, 'a) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p>Creates a function for use in a <code>Fields.fold</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:all">
+  <a href="index.html#/val:all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> all : 'a <a href="index.html#/type:check">check</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Combine a list of validation functions into one that does all validations.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_result">
+  <a href="index.html#/val:of_result" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_result : ('a <span class="rarr"><span>-&gt;</span></span> (unit, string) <a href="../../../../core_kernel.112.06.02/_build/lib/result/">Result</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/result/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Create a validation function from a function that produces a Result.t</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_error">
+  <a href="index.html#/val:of_error" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_error : ('a <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:booltest">
+  <a href="index.html#/val:booltest" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> booltest : ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> if_false:string <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Create a validation function from a function that produces a bool</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pair">
+  <a href="index.html#/val:pair" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pair : fst:'a <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> snd:'b <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b) <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Validation functions for particular data types.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:list_indexed">
+  <a href="index.html#/val:list_indexed" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list_indexed : 'a <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Validates a list, naming each element by its position in the list (where the first
+position is 1, not 0)</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:list">
+  <a href="index.html#/val:list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list : name:('a <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> 'a list <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Validates a list, naming each element using a user-defined function for computing the
+name</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:first_failure">
+  <a href="index.html#/val:first_failure" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> first_failure : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_error_opt">
+  <a href="index.html#/val:of_error_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_error_opt : string option <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:alist">
+  <a href="index.html#/val:alist" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> alist : name:('a <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/type:check">check</a> <span class="rarr"><span>-&gt;</span></span> ('a * 'b) list <a href="index.html#/type:check">check</a>
+    
+      <div class="doc">
+        
+      <p>Validates an association list, naming each element using a user-defined function for
+computing the name.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

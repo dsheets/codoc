@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Heap</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Heap</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Heap implementation based on a pairing-heap.</p>
+      
+      <p>This heap implementations supports an arbitrary element type, via a comparison
+function. If you need a heap with elements ordered by integers, then it may be more
+efficient to use a <code>Timing_wheel.Priority_queue</code>, which is a heap implementation
+specialized to integer keys, and with some other performance differences and usage
+restrictions.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> Heap_intf.S 
+    </div>
+  
+  <div class="region" id="/module:Removable">
+  <a href="index.html#/module:Removable" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Removable : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Removable augments a heap with the ability to remove elements from the heap in lg(n)
+(amortized) time at any point after they have been added. Elements within a Removable
+heap consume 4 words more memory and all heap operations will be somewhat slower.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> Heap_intf.S 
+    </div>
+  
+  <div class="region" id="/module:Removable/module:Elt">
+  <a href="index.html#/module:Removable/module:Elt" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Elt : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Removable/module:Elt/type:t">
+  <a href="index.html#/module:Removable/module:Elt/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Removable/module:Elt/val:value_exn">
+  <a href="index.html#/module:Removable/module:Elt/val:value_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_exn : 'a <a href="index.html#/module:Removable/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>value_exn t</code> return the value in the heap controlled by this token if the value
+is still in the heap. Raise otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Removable/module:Elt/val:sexp_of_t">
+  <a href="index.html#/module:Removable/module:Elt/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Removable/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Removable/val:add_removable">
+  <a href="index.html#/module:Removable/val:add_removable" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_removable : 'a <a href="index.html#/module:Removable/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Removable/module:Elt">Elt</a>.<a href="index.html#/module:Removable/module:Elt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>add_removable t v</code> adds <code>v</code> to <code>t</code>, returning a token that can be used to delete <code>v</code>
+from <code>t</code> in lg(n) amortized time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Removable/val:remove">
+  <a href="index.html#/module:Removable/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : 'a <a href="index.html#/module:Removable/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Removable/module:Elt">Elt</a>.<a href="index.html#/module:Removable/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>If <code>t</code> and <code>token</code> are mismatched then behavior is undefined. <code>remove</code> may safely
+be called on a token more than once. This doesn't free all the memory associated
+with the Elt until some number of <code>pop</code> operations later -- see Heap_intf for
+details.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Removable/val:update">
+  <a href="index.html#/module:Removable/val:update" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> update : 'a <a href="index.html#/module:Removable/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Removable/module:Elt">Elt</a>.<a href="index.html#/module:Removable/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Removable/module:Elt">Elt</a>.<a href="index.html#/module:Removable/module:Elt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>update t token v</code> is shorthand for <code>remove t token; add_removable t v</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Removable/val:find_elt">
+  <a href="index.html#/module:Removable/val:find_elt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_elt : 'a <a href="index.html#/module:Removable/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Removable/module:Elt">Elt</a>.<a href="index.html#/module:Removable/module:Elt/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p><code>find_elt t ~f</code>. If <code>f</code> is true for some element in <code>t</code>, return a <code>Elt.t</code> for
+that element. This operation is O(n).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Type_equal</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Type_equal</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>For representing type equalities otherwise not known by the type-checker.</p>
+      
+      <p>The purpose of <code>Type_equal</code> is to represent type equalities that the type checker
+otherwise would not know, perhaps because the type equality depends on dynamic data,
+or perhaps because the type system isn't powerful enough.</p>
+      
+      <p>A value of type <code>(a, b) Type_equal.t</code> represents that types <code>a</code> and <code>b</code> are equal.
+One can think of such a value as a proof of type equality. The <code>Type_equal</code> module
+has operations for constructing and manipulating such proofs. For example, the
+functions <code>refl</code>, <code>sym</code>, and <code>trans</code> express the usual properties of reflexivity,
+symmetry, and transitivity of equality.</p>
+      
+      <p>If one has a value <code>t : (a, b) Type_equal.t</code> that proves types <code>a</code> and <code>b</code> are equal,
+there are two ways to use <code>t</code> to safely convert a value of type <code>a</code> to a value of type
+<code>b</code>: <code>Type_equal.conv</code> or pattern matching on <code>Type_equal.T</code>:</p>
+      <pre><code>      let f (type a) (type b) (t : (a, b) Type_equal.t) (a : a) : b =
+        Type_equal.conv t a
+
+      let f (type a) (type b) (t : (a, b) Type_equal.t) (a : a) : b =
+        let Type_equal.T = t in a</code></pre>
+      <p>At runtime, conversion by either means is just the identity -- nothing is changing
+about the value. Consistent with this, a value of type <code>Type_equal.t</code> is always just
+a constructor <code>Type_equal.T</code>; the value has no interesting semantic content.
+<code>Type_equal</code> gets its power from the ability to, in a type-safe way, prove to the type
+checker that two types are equal. The <code>Type_equal.t</code> value that is passed is
+necessary for the type-checker's rules to be correct, but the compiler, could, in
+principle, not pass around values of type <code>Type_equal.t</code> at run time.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b) t = ('a, 'b) Typerep_lib.Std.Type_equal.t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:t/cons:T">
+  <a href="index.html#/type:t/cons:T" class="anchor">#</a>
+  | T : ('a, 'a) <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:equal">
+  <a href="index.html#/type:equal" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b) equal = ('a, 'b) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>just an alias, needed when <code>t</code> gets shadowed below</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:refl">
+  <a href="index.html#/val:refl" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> refl : ('a, 'a) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>refl</code>, <code>sym</code>, and <code>trans</code> construct proofs that type equality is reflexive,
+symmetric, and transitive.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sym">
+  <a href="index.html#/val:sym" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sym : ('a, 'b) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('b, 'a) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:trans">
+  <a href="index.html#/val:trans" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> trans : ('a, 'b) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('b, 'c) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'c) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:conv">
+  <a href="index.html#/val:conv" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> conv : ('a, 'b) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>conv t x</code> uses the type equality <code>t : (a, b) t</code> as evidence to safely cast <code>x</code>
+from type <code>a</code> to type <code>b</code>. <code>conv</code> is semantically just the identity function.</p>
+      
+      <p>In a program that has <code>t : (a, b) t</code> where one has a value of type <code>a</code> that one wants
+to treat as a value of type <code>b</code>, it is often sufficient to pattern match on
+<code>Type_equal.T</code> rather than use <code>conv</code>. However, there are situations where OCaml's
+type checker will not use the type equality <code>a = b</code>, and one must use <code>conv</code>. For
+example:</p>
+      <pre><code>      module F (M1 : sig type t end) (M2 : sig type t end) : sig
+        val f : (M1.t, M2.t) equal -&gt; M1.t -&gt; M2.t
+      end = struct
+        let f equal (m1 : M1.t) = conv equal m1
+      end</code></pre>
+      <p>If one wrote the body of <code>F</code> using pattern matching on <code>T</code>:</p>
+      <pre><code>      let f (T : (M1.t, M2.t) equal) (m1 : M1.t) = (m1 : M2.t)</code></pre>
+      <p>this would give a type error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>It is always safe to conclude that if type <code>a</code> equals <code>b</code>, then for any type <code>'a t</code>,
+type <code>a t</code> equals <code>b t</code>. The OCaml type checker uses this fact when it can. However,
+sometimes, e.g. when using <code>conv</code>, one needs to explicitly use this fact to construct
+an appropriate <code>Type_equal.t</code>. The <code>Lift*</code> functors do this.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Lift">
+  <a href="index.html#/module:Lift" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Lift : <span class="keyword">functor</span> (X : T.T1) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Lift/val:lift">
+  <a href="index.html#/module:Lift/val:lift" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lift : ('a, 'b) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="index.html#/module:Lift/modarg:1:X">X</a>.t, 'b <a href="index.html#/module:Lift/modarg:1:X">X</a>.t) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Lift2">
+  <a href="index.html#/module:Lift2" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Lift2 : <span class="keyword">functor</span> (X : T.T2) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Lift2/val:lift">
+  <a href="index.html#/module:Lift2/val:lift" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lift : ('a1, 'b1) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a2, 'b2) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (('a1, 'a2) <a href="index.html#/module:Lift2/modarg:1:X">X</a>.t, ('b1, 'b2) <a href="index.html#/module:Lift2/modarg:1:X">X</a>.t) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Lift3">
+  <a href="index.html#/module:Lift3" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Lift3 : <span class="keyword">functor</span> (X : T.T3) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Lift3/val:lift">
+  <a href="index.html#/module:Lift3/val:lift" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> lift : ('a1, 'b1) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a2, 'b2) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a3, 'b3) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (('a1, 'a2, 'a3) <a href="index.html#/module:Lift3/modarg:1:X">X</a>.t, ('b1, 'b2, 'b3) <a href="index.html#/module:Lift3/modarg:1:X">X</a>.t) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:detuple2">
+  <a href="index.html#/val:detuple2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> detuple2 : ('a1 * 'a2, 'b1 * 'b2) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a1, 'b1) <a href="index.html#/type:t">t</a> * ('a2, 'b2) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>tuple2</code> and <code>detuple2</code> convert between equality on a 2-tuple and its components.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tuple2">
+  <a href="index.html#/val:tuple2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tuple2 : ('a1, 'b1) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a2, 'b2) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a1 * 'a2, 'b1 * 'b2) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Injective">
+  <a href="index.html#/modtype:Injective" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Injective = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p><code>Injective</code> is an interface that states that a type is injective, where the type is
+viewed as a function from types to other types. The typical usage is:</p>
+      <pre><code>      type 'a t
+      include Injective with type 'a t := 'a t</code></pre>
+      <p>For example, <code>'a list</code> is an injective type, because whenever <code>'a list = 'b list</code>, we
+know that <code>'a</code> = <code>'b</code>. On the other hand, if we define:</p>
+      <pre><code>      type 'a t = unit</code></pre>
+      <p>then clearly <code>t</code> isn't injective, because, e.g. <code>int t = bool t</code>, but <code>int &lt;&gt; bool</code>.</p>
+      
+      <p>If <code>module M : Injective</code>, then <code>M.strip</code> provides a way to get a proof that two types
+are equal from a proof that both types transformed by <code>M.t</code> are equal.</p>
+      
+      <p>OCaml has no built-in language feature to state that a type is injective, which is why
+we have <code>module type Injective</code>. However, OCaml can infer that a type is injective,
+and we can use this to match <code>Injective</code>. A typical implementation will look like
+this:</p>
+      <pre><code>      let strip (type a) (type b)
+          (Type_equal.T : (a t, b t) Type_equal.t) : (a, b) Type_equal.t =
+        Type_equal.T</code></pre>
+      <p>This will not type check for all type constructors (certainly not for non-injective
+ones!), but it's always safe to try the above implementation if you are unsure. If
+OCaml accepts this definition, then the type is injective. On the other hand, if
+OCaml doesn't, then type type may or may not be injective. For example, if the
+definition of the type depends on abstract types that match <code>Injective</code>, OCaml will
+not automatically use their injectivity, and one will have to write a more complicated
+definition of <code>strip</code> that causes OCaml to use that fact. For example:</p>
+      <pre><code>      module F (M : Type_equal.Injective) : Type_equal.Injective = struct
+        type 'a t = 'a M.t * int
+
+        let strip (type a) (type b)
+            (e : (a t, b t) Type_equal.t) : (a, b) Type_equal.t =
+          let e1, _ = Type_equal.detuple2 e in
+          M.strip e1
+        ;;
+      end</code></pre>
+      <p>If in the definition of <code>F</code> we had written the simpler implementation of <code>strip</code> that
+didn't use <code>M.strip</code>, then OCaml would have reported a type error.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Injective/type:t">
+  <a href="index.html#/modtype:Injective/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Injective/val:strip">
+  <a href="index.html#/modtype:Injective/val:strip" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> strip : ('a <a href="index.html#/modtype:Injective/type:t">t</a>, 'b <a href="index.html#/modtype:Injective/type:t">t</a>) <a href="index.html#/type:equal">equal</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:equal">equal</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Injective2">
+  <a href="index.html#/modtype:Injective2" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Injective2 = <span class="keyword">sig</span>
+    </div>
+    
+      <div class="doc">
+        
+      <p><code>Injective2</code> is for a binary type that is injective in both type arguments.</p>
+      
+        
+      </div>
+    
+    
+    <div class="sig">
+  <div class="region" id="/modtype:Injective2/type:t">
+  <a href="index.html#/modtype:Injective2/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a1, 'a2) t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/modtype:Injective2/val:strip">
+  <a href="index.html#/modtype:Injective2/val:strip" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> strip : (('a1, 'a2) <a href="index.html#/modtype:Injective2/type:t">t</a>, ('b1, 'b2) <a href="index.html#/modtype:Injective2/type:t">t</a>) <a href="index.html#/type:equal">equal</a> <span class="rarr"><span>-&gt;</span></span> ('a1, 'b1) <a href="index.html#/type:equal">equal</a> * ('a2, 'b2) <a href="index.html#/type:equal">equal</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Composition_preserves_injectivity">
+  <a href="index.html#/module:Composition_preserves_injectivity" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Composition_preserves_injectivity : <span class="keyword">functor</span> (M1 : <a href="index.html#/modtype:Injective">Injective</a>) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">functor</span> (M2 : <a href="index.html#/modtype:Injective">Injective</a>) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/modtype:Injective">Injective</a> <span class="keyword">with</span> <span class="keyword">type</span> 'a <a href="index.html#/modtype:Injective/type:t">t</a> = 'a <a href="index.html#/module:Composition_preserves_injectivity/modarg:1:M1">M1</a>.<a href="index.html#/module:Composition_preserves_injectivity/modarg:1:M1/type:t">t</a> <a href="index.html#/module:Composition_preserves_injectivity/modarg:2:M2">M2</a>.<a href="index.html#/module:Composition_preserves_injectivity/modarg:2:M2/type:t">t</a></div>
+      
+      <div class="doc">
+        
+      <p><code>Composition_preserves_injectivity</code> is a functor that proves that composition of
+injective types is injective.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id">
+  <a href="index.html#/module:Id" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Id : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Id</code> provides identifiers for types, and the ability to test (via <code>Id.same</code>) at
+run-time if two identifiers are equal, and if so to get a proof of equality of their
+types. Unlike values of type <code>Type_equal.t</code>, values of type <code>Id.t</code> do have semantic
+content and must have a nontrivial runtime representation.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Id/type:t">
+  <a href="index.html#/module:Id/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/module:Uid">
+  <a href="index.html#/module:Id/module:Uid" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Uid : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Every <code>Id.t</code> contains a unique id that is distinct from the <code>Uid.t</code> in any other
+<code>Id.t</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Id/module:Uid/type:t">
+  <a href="index.html#/module:Id/module:Uid/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/comparable/">Comparable</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/comparable/#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/module:Id/module:Uid/type:t">t</a> 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Hashable.S <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/module:Id/module:Uid/type:t">t</a> 
+    </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:uid">
+  <a href="index.html#/module:Id/val:uid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uid : _ <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Id/module:Uid">Uid</a>.<a href="index.html#/module:Id/module:Uid/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:create">
+  <a href="index.html#/module:Id/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : name:string <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Id/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ~name</code> defines a new type identity. Two calls to <code>create</code> will result in
+two distinct identifiers, even for the same arguments with the same type. If the
+type <code>'a</code> doesn't support sexp conversion, then a good practice is to have the
+converter be <code>&lt;:sexp_of&lt; _ &gt;&gt;</code>, (or <code>sexp_of_opaque</code>, if not using pa_sexp).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:hash">
+  <a href="index.html#/module:Id/val:hash" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hash : _ <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>accessors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:name">
+  <a href="index.html#/module:Id/val:name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name : _ <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:to_sexp">
+  <a href="index.html#/module:Id/val:to_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_sexp : 'a <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:same">
+  <a href="index.html#/module:Id/val:same" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> same : _ <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>same_witness t1 t2</code> and <code>same_witness_exn t1 t2</code> return a type equality proof iff
+the two identifiers are the same (i.e. physically equal, resulting from the same
+call to <code>create</code>). This is a useful way to achieve a sort of dynamic typing.
+<code>same_witness</code> does not allocate a <code>Some</code> every time it is called.</p>
+      
+      <p><code>same t1 t2 = is_some (same_witness t1 t2)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:same_witness">
+  <a href="index.html#/module:Id/val:same_witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> same_witness : 'a <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:equal">equal</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:same_witness_exn">
+  <a href="index.html#/module:Id/val:same_witness_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> same_witness_exn : 'a <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/type:equal">equal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Id/val:sexp_of_t">
+  <a href="index.html#/module:Id/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Id/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

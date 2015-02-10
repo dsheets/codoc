@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Doubly_linked</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Doubly_linked</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>doubly-linked lists</p>
+      
+      <p>Compared to other doubly-linked lists, in this one:</p>
+      
+      <p>1. Calls to modification functions (insert*, move*, ...) detect if the list is being
+iterated over (iter, fold, ...), and if so raise an exception. For example, a use
+like the following would raise.</p>
+      <pre><code>      iter t ~f:(fun _ -&gt; ... remove t e ...)</code></pre>
+      <p>2. There is a designated &quot;front&quot; and &quot;back&quot; of each list, rather than viewing each
+element as an equal in a ring.</p>
+      
+      <p>3. Elements know which list they're in. Each operation that takes an <code>Elt.t</code> also
+takes a <code>t</code>, first checks that the <code>Elt</code> belongs to the <code>t</code>, and if not, raises.</p>
+      
+      <p>4. Related to (3), lists cannot be split, though a sort of splicing is available as
+<code>transfer</code>. In other words, no operation will cause one list to become two. This
+makes this module unsuitable for maintaining the faces of a planar graph under edge
+insertion and deletion, for example.</p>
+      
+      <p>5. Another property permitted by (3) and (4) is that <code>length</code> is O(1).</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Elt">
+  <a href="index.html#/module:Elt" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Elt : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Elt/type:t">
+  <a href="index.html#/module:Elt/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Elt/val:value">
+  <a href="index.html#/module:Elt/val:value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value : 'a <a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Elt/val:equal">
+  <a href="index.html#/module:Elt/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : 'a <a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Elt/val:sexp_of_t">
+  <a href="index.html#/module:Elt/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Container.S1 <span class="keyword">with</span> <span class="keyword">type</span> 'a t := 'a <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:invariant">
+  <a href="index.html#/val:invariant" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> invariant : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>creating doubly-linked lists</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_list">
+  <a href="index.html#/val:of_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_list : 'a list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_list l</code> returns a doubly-linked list <code>t</code> with the same elements as <code>l</code> and in the
+same order (i.e. the first element of <code>l</code> is the first element of <code>t</code>). It is always
+the case that <code>l = to_list (of_list l)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:equal">
+  <a href="index.html#/val:equal" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> equal : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>predicates</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_first">
+  <a href="index.html#/val:is_first" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_first : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_last">
+  <a href="index.html#/val:is_last" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_last : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:first_elt">
+  <a href="index.html#/val:first_elt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> first_elt : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p>constant-time extraction of first and last elements.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:last_elt">
+  <a href="index.html#/val:last_elt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> last_elt : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:first">
+  <a href="index.html#/val:first" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> first : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:last">
+  <a href="index.html#/val:last" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> last : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:next">
+  <a href="index.html#/val:next" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> next : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p>constant-time retrieval of next or previous element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:prev">
+  <a href="index.html#/val:prev" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> prev : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert_before">
+  <a href="index.html#/val:insert_before" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert_before : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>constant-time insertion of a new element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert_after">
+  <a href="index.html#/val:insert_after" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert_after : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert_first">
+  <a href="index.html#/val:insert_first" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert_first : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:insert_last">
+  <a href="index.html#/val:insert_last" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> insert_last : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move_to_front">
+  <a href="index.html#/val:move_to_front" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move_to_front : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>constant-time move of an element from and to positions in the same list.
+An exception is raised if <code>elt</code> is equal to <code>anchor</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move_to_back">
+  <a href="index.html#/val:move_to_back" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move_to_back : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move_after">
+  <a href="index.html#/val:move_after" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move_after : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> anchor:'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:move_before">
+  <a href="index.html#/val:move_before" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> move_before : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> anchor:'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>constant-time removal of an element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove_first">
+  <a href="index.html#/val:remove_first" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove_first : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove_last">
+  <a href="index.html#/val:remove_last" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove_last : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold_elt">
+  <a href="index.html#/val:fold_elt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_elt : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'b <span class="rarr"><span>-&gt;</span></span> f:('b <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>fold_elt t ~init ~f</code> is the same as fold, except <code>f</code> is called with the <code>'a Elt.t</code>'s
+from the list instead of the contained <code>'a</code> values.</p>
+      
+      <p>Note that like other iteration functions, it is an error to mutate <code>t</code> inside the
+fold. If you'd like to call <code>remove</code> on any of the <code>'a Elt.t</code>'s, use
+<code>filter_inplace</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_elt">
+  <a href="index.html#/val:iter_elt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_elt : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold_right">
+  <a href="index.html#/val:fold_right" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold_right : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'b <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_elt">
+  <a href="index.html#/val:find_elt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_elt : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Elt">Elt</a>.<a href="index.html#/module:Elt/type:t">t</a> option
+    
+      <div class="doc">
+        
+      <p><code>find_elt t ~f</code> finds the first element in <code>t</code> that satisfies <code>f</code>, by testing each of
+element of <code>t</code> in turn until <code>f</code> succeeds.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>clear t</code> removes all elements from the list in constant time.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy">
+  <a href="index.html#/val:copy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:transfer">
+  <a href="index.html#/val:transfer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> transfer : src:'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> dst:'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>transfer ~src ~dst</code> has the same behavior as
+<code>iter src ~f:(insert_last dst); clear src</code>
+except that it runs in constant time.</p>
+      
+      <p>If <code>s = to_list src</code> and <code>d = to_list dst</code>, then after <code>transfer ~src ~dst</code>:
+<code>to_list src = []</code>
+<code>to_list dst = d @ s</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_inplace">
+  <a href="index.html#/val:filter_inplace" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_inplace : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>filter_inplace t ~f</code> removes all elements of <code>t</code> that don't satisfy <code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unchecked_iter">
+  <a href="index.html#/val:unchecked_iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unchecked_iter : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unchecked_iter t ~f</code> behaves like <code>iter t ~f</code> except that <code>f</code> is allowed to modify
+<code>t</code>. Adding or removing elements before the element currently being visited has no
+effect on the traversal. Elements added after the element currently being visited
+will be traversed. Elements deleted after the element currently being visited will
+not be traversed. Deleting the element currently visited is an error that is not
+detected (presumably leading to an infinite loop) .</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

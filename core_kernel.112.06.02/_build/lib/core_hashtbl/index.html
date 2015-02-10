@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Core_hashtbl</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Core_hashtbl</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>For many students of ocaml, using hashtables is complicated by the
+functors. Here are a few tips:</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>For a list of hashtable functions see <code>Hashtbl_intf.S</code>.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>To create a hashtable with string keys use String.Table.
+</p>
+      <pre><code>    let table = String.Table.create () ~size:4 in
+    List.iter ~f:(fun (key, data) -&gt; Hashtbl.set table ~key ~data)
+      [ (&quot;A&quot;, 1); (&quot;B&quot;, 2); (&quot;C&quot;, 3); ];
+    Hashtbl.find table &quot;C&quot;</code></pre>
+      <p>
+Here 4 need only be a guess at the hashtable's future size.
+There are other similar pre-made hashtables, eg
+Int63.Table or Host_and_port.Table.</p>
+      
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>To create a hashtable with a custom key type use Hashable.
+</p>
+      <pre><code>        module Key = struct
+          module T = struct
+            type t = String.t * Int63.t with sexp
+            let compare = compare
+            let hash = Hashtbl.hash
+          end
+          include T
+          include Hashable.Make (T)
+        end
+        let table = Key.Table.create () ~size:4 in
+        List.iter ~f:(fun (key, data) -&gt; Hashtbl.set table ~key ~data)
+          [ ((&quot;pi&quot;, Int63.zero), 3.14159);
+            ((&quot;e&quot;, Int63.minus_one), 2.71828);
+            ((&quot;Euler&quot;, Int63.one), 0.577215);
+          ];
+        Hashtbl.find table (&quot;pi&quot;, Int63.zero)</code></pre>
+      <p>
+Performance <i>may</i> improve if you define <code>equal</code> and <code>hash</code> explicitly, eg:
+</p>
+      <pre><code>        let equal (x, y) (x', y') = String.(=) x x' &amp;&amp; Int63.(=) y y'
+        let hash (x, y) = String.hash x + Int63.hash y * 65599</code></pre>
+        
+      </div>
+    
+    <div class="include">
+    <span class="keyword">include</span> Core_hashtbl_intf.Hashtbl 
+    </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

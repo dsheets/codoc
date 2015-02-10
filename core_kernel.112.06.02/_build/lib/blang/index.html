@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Blang</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Blang</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A simple boolean domain-specific language</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>Blang provides infrastructure for writing simple boolean DSLs.
+All expressions in a Blang language evaluate to a bool. The language
+is parameterized over another language of base propositions.</p>
+      
+      <p>The syntax is almost exactly the obvious s-expression syntax,
+except that:</p>
+      
+      <p>1. Base elements are not marked explicitly. Thus, if your base
+language has elements FOO, BAR, etc., then you could write
+the following Blang s-expressions:</p>
+      <pre>          FOO
+          (and FOO BAR)
+          (if FOO BAR BAZ)</pre>
+      <p>and so on. Note that this gets in the way of using the blang
+&quot;keywords&quot; in your value language.</p>
+      
+      <p>2. And and Or take a variable number of arguments, so that one can
+(and probably should) write</p>
+      <pre>(and FOO BAR BAZ QUX)</pre>
+      <p>instead of</p>
+      <pre>(and FOO (and BAR (and BAZ QUX)))</pre>
+        
+      </div>
+    
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = <span class="keyword">private</span> <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:t/cons:True">
+  <a href="index.html#/type:t/cons:True" class="anchor">#</a>
+  | True
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:False">
+  <a href="index.html#/type:t/cons:False" class="anchor">#</a>
+  | False
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:And">
+  <a href="index.html#/type:t/cons:And" class="anchor">#</a>
+  | And <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Or">
+  <a href="index.html#/type:t/cons:Or" class="anchor">#</a>
+  | Or <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Not">
+  <a href="index.html#/type:t/cons:Not" class="anchor">#</a>
+  | Not <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:If">
+  <a href="index.html#/type:t/cons:If" class="anchor">#</a>
+  | If <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Base">
+  <a href="index.html#/type:t/cons:Base" class="anchor">#</a>
+  | Base <span class="keyword">of</span> 'a
+  </div>
+  </td><td>(*</td><td class="doc">Note that the sexps are not directly inferred from the type above -- there are lots of
+fancy shortcuts. Also, the sexps for <code>'a</code> must not look anything like blang sexps.
+Otherwise <code>t_of_sexp</code> will fail.</td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:base">
+  <a href="index.html#/val:base" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> base : 'a <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:true_">
+  <a href="index.html#/val:true_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> true_ : _ <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:false_">
+  <a href="index.html#/val:false_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> false_ : _ <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:constant">
+  <a href="index.html#/val:constant" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> constant : bool <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:not_">
+  <a href="index.html#/val:not_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> not_ : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:and_">
+  <a href="index.html#/val:and_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> and_ : 'a <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:or_">
+  <a href="index.html#/val:or_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> or_ : 'a <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:if_">
+  <a href="index.html#/val:if_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> if_ : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:constant_value">
+  <a href="index.html#/val:constant_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> constant_value : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool option
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The following two functions are useful when one wants to pretend
+that <code>'a t</code> has constructors And and Or of type <code>'a t list -&gt; 'a t</code>.
+The pattern of use is</p>
+      <pre><code>      match t with
+      | ...
+      | And (_, _) as t -&gt; let ts = gather_conjuncts t in ...
+      | Or (_, _) as t -&gt; let ts = gather_disjuncts t in ...
+      | ...</code></pre>
+      <p>or, in case you also want to handle True (resp. False) as a special
+case of conjunction (disjunction)</p>
+      <pre><code>      match t with
+      | ...
+      | True | And (_, _) as t -&gt; let ts = gather_conjuncts t in ...
+      | False | Or (_, _) as t -&gt; let ts = gather_disjuncts t in ...
+      | ...</code></pre>
+        
+      </div>
+    
+  <div class="region" id="/val:gather_conjuncts">
+  <a href="index.html#/val:gather_conjuncts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gather_conjuncts : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p><code>gather_conjuncts t</code> gathers up all toplevel conjuncts in <code>t</code>. For example,
+</p>
+      <ul><li><code>gather_conjuncts (and_ ts) = ts</code></li><li><code>gather_conjuncts (And (t1, t2)) = gather_conjuncts t1 @ gather_conjuncts t2</code></li><li><code>gather_conjuncts True = []</code></li><li><code>gather_conjuncts t = [t]</code> when <code>t</code> matches neither <code>And (_, _)</code> nor <code>True</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:gather_disjuncts">
+  <a href="index.html#/val:gather_disjuncts" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> gather_disjuncts : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> list
+    
+      <div class="doc">
+        
+      <p><code>gather_disjuncts t</code> gathers up all toplevel disjuncts in <code>t</code>. For example,
+</p>
+      <ul><li><code>gather_disjuncts (or_ ts) = ts</code></li><li><code>gather_disjuncts (Or (t1, t2)) = gather_disjuncts t1 @ gather_disjuncts t2</code></li><li><code>gather_disjuncts False = []</code></li><li><code>gather_disjuncts t = [t]</code> when <code>t</code> matches neither <code>Or (_, _)</code> nor <code>False</code></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Container.S1 <span class="keyword">with</span> <span class="keyword">type</span> 'a t := 'a <a href="index.html#/type:t">t</a> 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Monad <span class="keyword">with</span> <span class="keyword">type</span> 'a t := 'a <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:values">
+  <a href="index.html#/val:values" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> values : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list
+    
+      <div class="doc">
+        
+      <p><code>values t</code> forms the list containing every <code>v</code>
+for which <code>Base v</code> is a subexpression of <code>t</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:eval">
+  <a href="index.html#/val:eval" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> eval : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>eval t f</code> evaluates the proposition <code>t</code> relative to an environment
+<code>f</code> that assigns truth values to base propositions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:specialize">
+  <a href="index.html#/val:specialize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> specialize : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Known <span class="keyword">of</span> bool</div><div class="cons">| `Unknown</div> ]) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>specialize t f</code> partially evaluates <code>t</code> according to a
+perhaps-incomplete assignment <code>f</code> of the values of base propositions.
+The following laws (at least partially) characterize its behavior.</p>
+      <ul><li><code>specialize t (fun _ -&gt; `Unknown) = t</code></li></ul><ul><li><code>specialize t (fun x -&gt; `Known (f x)) = constant (eval t f)</code></li></ul><ul><li><code>List.for_all (values (specialize t g)) ~f:(fun x -&gt; g x = `Unknown)</code></li></ul><ul><li><pre><code>        if
+          List.for_all (values t) ~f:(fun x -&gt;
+            match g x with
+            | `Known b -&gt; b = f x
+            | `Unknown -&gt; true)
+        then
+          eval t f = eval (specialize t g) f</code></pre></li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:invariant">
+  <a href="index.html#/val:invariant" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> invariant : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable">
+  <a href="index.html#/module:Stable" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Stable : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Stable/module:V1">
+  <a href="index.html#/module:Stable/module:V1" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> V1 : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> <span class="keyword">sig</span> 
+    <div class="sig">
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a __pa_nonrec_0 = 'a <a href="index.html#/type:t">t</a> = <span class="keyword">private</span> <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:True">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:True" class="anchor">#</a>
+  | True
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:False">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:False" class="anchor">#</a>
+  | False
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:And">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:And" class="anchor">#</a>
+  | And <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:Or">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:Or" class="anchor">#</a>
+  | Or <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:Not">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:Not" class="anchor">#</a>
+  | Not <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:If">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:If" class="anchor">#</a>
+  | If <span class="keyword">of</span> 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a> * 'a <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:__pa_nonrec_0/cons:Base">
+  <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0/cons:Base" class="anchor">#</a>
+  | Base <span class="keyword">of</span> 'a
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/type:t">
+  <a href="index.html#/module:Stable/module:V1/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a> = <span class="keyword">private</span> <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:True">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:True" class="anchor">#</a>
+  | True
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:False">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:False" class="anchor">#</a>
+  | False
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:And">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:And" class="anchor">#</a>
+  | And <span class="keyword">of</span> 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a> * 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:Or">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:Or" class="anchor">#</a>
+  | Or <span class="keyword">of</span> 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a> * 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:Not">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:Not" class="anchor">#</a>
+  | Not <span class="keyword">of</span> 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:If">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:If" class="anchor">#</a>
+  | If <span class="keyword">of</span> 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a> * 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a> * 'a <a href="index.html#/module:Stable/module:V1/type:__pa_nonrec_0">__pa_nonrec_0</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Stable/module:V1/type:t/cons:Base">
+  <a href="index.html#/module:Stable/module:V1/type:t/cons:Base" class="anchor">#</a>
+  | Base <span class="keyword">of</span> 'a
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+     <span class="keyword">with</span> <span class="keyword">type</span> 'a0 <a href="#/type:__pa_nonrec_0">__pa_nonrec_0</a> := 'a0 <a href="index.html#/type:t">t</a>
+    </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:compare">
+  <a href="index.html#/module:Stable/module:V1/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : ('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : 'a Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_read_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:__bin_read_t__">
+  <a href="index.html#/module:Stable/module:V1/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_reader_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : 'a Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_size_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : 'a Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_write_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : 'a Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:bin_writer_t">
+  <a href="index.html#/module:Stable/module:V1/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : 'a Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:t_of_sexp">
+  <a href="index.html#/module:Stable/module:V1/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stable/module:V1/val:sexp_of_t">
+  <a href="index.html#/module:Stable/module:V1/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Stable/module:V1/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compare">
+  <a href="index.html#/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : ('a <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_t">
+  <a href="index.html#/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : 'a Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_t">
+  <a href="index.html#/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_t__">
+  <a href="index.html#/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_t">
+  <a href="index.html#/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : 'a Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_t">
+  <a href="index.html#/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : 'a Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_t">
+  <a href="index.html#/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : 'a Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_t">
+  <a href="index.html#/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : 'a Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Time_stamp_counter</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Time_stamp_counter</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>High-performance timing.</p>
+      
+      <p>This module provides the fast function <code>now ()</code> which is our best effort
+high-performance cycle counter for a given platform. For x86 systems this retrieves
+the CPU's internal time stamp counter using the RDTSC instruction. For systems that
+do not have a RDTSC instruction, we fallback to using
+<code>clock_gettime(CLOCK_MONOTONIC)</code>.</p>
+      
+      <p>Here is a benchmark of execution time in nanos and allocations in words:</p>
+      <pre>      Name                            Time/Run   Minor
+      ------------------------------- ---------- -------
+      Time.now                           39.02    2.00
+      TSC.now                             7.54
+      TSC.to_time                         4.88    2.00
+      TSC.to_time (TSC.now ())            8.54    2.00
+      TSC.to_time_nanos                   4.49
+      TSC.to_time_nanos(TSC.now ())       8.95
+      Calibrator.calibrate                 279   34.00</pre>
+      <p>Type <code>t</code> is an <code>Int63.t</code> and consequently has no allocation overhead (on 64-bit
+machines), unlike <code>Time.now ()</code> which returns a boxed float.</p>
+      
+      <p>Functions are also provided to estimate the relationship of CPU time-stamp-counter
+frequency to real time, thereby allowing one to convert from <code>t</code> to <code>Time.t</code>. There
+are some caveats to this that are worth noting:</p>
+      <ul><li>The conversion to <code>Time.t</code> depends on an estimate of the time-stamp-counter
+frequency. This frequency may be volatile on some systems, thereby reducing the
+utility of this conversion. See the <code>Calibrator</code> module below for details.</li></ul><ul><li>The captured <code>t</code> can only be converted to a <code>Time.t</code> if one also has a
+recently calibrated <code>Calibrator.t</code> from the same machine.</li></ul>
+      <p>See also: http://en.wikipedia.org/wiki/Time_Stamp_Counter</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <span class="keyword">private</span> <a href="../../../../core_kernel.112.06.02/_build/lib/core_int63/">Core_int63</a>.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator">
+  <a href="index.html#/module:Calibrator" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Calibrator : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Calibrator/type:t">
+  <a href="index.html#/module:Calibrator/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:create">
+  <a href="index.html#/module:Calibrator/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Calibrator/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ()</code> creates an uninitialized calibrator instance. Creating a calibrator
+takes about 3ms. One needs a recently calibrated <code>Calibrator.t</code> and the TSC value
+from the same machine to meaningfully convert the TSC value to a <code>Time.t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:calibrate">
+  <a href="index.html#/module:Calibrator/val:calibrate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> calibrate : ?t:<a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>calibrate ~t</code> updates <code>t</code> by measuring the current value of the TSC and
+<code>Time.now</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:cpu_mhz">
+  <a href="index.html#/module:Calibrator/val:cpu_mhz" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> cpu_mhz : (?t:<a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> float) <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Returns the estimated MHz of the CPU's time-stamp-counter based on the TSC and
+<code>Time.now ()</code>. This function is undefined on 32bit machines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:t_of_sexp">
+  <a href="index.html#/module:Calibrator/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Calibrator/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:sexp_of_t">
+  <a href="index.html#/module:Calibrator/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:bin_t">
+  <a href="index.html#/module:Calibrator/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : <a href="index.html#/module:Calibrator/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:bin_read_t">
+  <a href="index.html#/module:Calibrator/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : <a href="index.html#/module:Calibrator/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:__bin_read_t__">
+  <a href="index.html#/module:Calibrator/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Calibrator/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:bin_reader_t">
+  <a href="index.html#/module:Calibrator/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : <a href="index.html#/module:Calibrator/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:bin_size_t">
+  <a href="index.html#/module:Calibrator/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : <a href="index.html#/module:Calibrator/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:bin_write_t">
+  <a href="index.html#/module:Calibrator/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : <a href="index.html#/module:Calibrator/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Calibrator/val:bin_writer_t">
+  <a href="index.html#/module:Calibrator/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : <a href="index.html#/module:Calibrator/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span">
+  <a href="index.html#/module:Span" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Span : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Span</code> indicates some integer number of cycles.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Span/type:t">
+  <a href="index.html#/module:Span/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <span class="keyword">private</span> <a href="../../../../core_kernel.112.06.02/_build/lib/core_int63/">Core_int63</a>.t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Comparable <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/module:Span/type:t">t</a> 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Intable <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/module:Span/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/module:Span/val:(+)">
+  <a href="index.html#/module:Span/val:(%2B)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (+) : <a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:(-)">
+  <a href="index.html#/module:Span/val:(-)" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> (-) : <a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:to_time_span">
+  <a href="index.html#/module:Span/val:to_time_span" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_time_span : ?calibrator:<a href="index.html#/module:Calibrator">Calibrator</a>.<a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core.112.06.02/_build/lib/time/">Time</a>.<a href="../../../../core.112.06.02/_build/lib/time/#/module:Span">Span</a>.<a href="../../../../core.112.06.02/_build/lib/time/#/module:Span/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:to_ns">
+  <a href="index.html#/module:Span/val:to_ns" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_ns : ?calibrator:<a href="index.html#/module:Calibrator">Calibrator</a>.<a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core_kernel.112.06.02/_build/lib/core_int63/">Core_int63</a>.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:of_ns">
+  <a href="index.html#/module:Span/val:of_ns" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_ns : ?calibrator:<a href="index.html#/module:Calibrator">Calibrator</a>.<a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core_kernel.112.06.02/_build/lib/core_int63/">Core_int63</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:t_of_sexp">
+  <a href="index.html#/module:Span/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:sexp_of_t">
+  <a href="index.html#/module:Span/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:bin_t">
+  <a href="index.html#/module:Span/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : <a href="index.html#/module:Span/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:bin_read_t">
+  <a href="index.html#/module:Span/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : <a href="index.html#/module:Span/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:__bin_read_t__">
+  <a href="index.html#/module:Span/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:bin_reader_t">
+  <a href="index.html#/module:Span/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : <a href="index.html#/module:Span/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:bin_size_t">
+  <a href="index.html#/module:Span/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : <a href="index.html#/module:Span/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:bin_write_t">
+  <a href="index.html#/module:Span/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : <a href="index.html#/module:Span/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Span/val:bin_writer_t">
+  <a href="index.html#/module:Span/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : <a href="index.html#/module:Span/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:now">
+  <a href="index.html#/val:now" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> now : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    = &quot;tsc_get&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:diff">
+  <a href="index.html#/val:diff" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> diff : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span">Span</a>.<a href="index.html#/module:Span/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Span">Span</a>.<a href="index.html#/module:Span/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_int63">
+  <a href="index.html#/val:to_int63" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_int63 : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core_kernel.112.06.02/_build/lib/core_int63/">Core_int63</a>.t
+    
+      <div class="doc">
+        
+      <p><code>to_int63 t</code> returns the TSC value represented by <code>t</code> as an <code>Int63.t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_time">
+  <a href="index.html#/val:to_time" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_time : ?calibrator:<a href="index.html#/module:Calibrator">Calibrator</a>.<a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core.112.06.02/_build/lib/time/">Time</a>.<a href="../../../../core.112.06.02/_build/lib/time/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>to_time t</code> converts a <code>t</code> to a <code>Time.t</code>. It is guaranteed that repeated calls
+of <code>to_time ()</code> will return nondecreasing <code>Time.t</code> values.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_time_ns">
+  <a href="index.html#/val:to_time_ns" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_time_ns : ?calibrator:<a href="index.html#/module:Calibrator">Calibrator</a>.<a href="index.html#/module:Calibrator/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core.112.06.02/_build/lib/time_ns/">Time_ns</a>.<a href="../../../../core.112.06.02/_build/lib/time_ns/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>to_time_ns t</code> converts a <code>t</code> to an integer number of nanos since the epoch.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compare">
+  <a href="index.html#/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_t">
+  <a href="index.html#/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : <a href="index.html#/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_t">
+  <a href="index.html#/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : <a href="index.html#/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_t__">
+  <a href="index.html#/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_t">
+  <a href="index.html#/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : <a href="index.html#/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_t">
+  <a href="index.html#/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : <a href="index.html#/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_t">
+  <a href="index.html#/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : <a href="index.html#/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_t">
+  <a href="index.html#/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : <a href="index.html#/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

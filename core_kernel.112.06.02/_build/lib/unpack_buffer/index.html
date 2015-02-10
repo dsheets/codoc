@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Unpack_buffer</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Unpack_buffer</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A buffer for incremental decoding of an input stream.</p>
+      
+      <p>An <code>Unpack_buffer.t</code> is a buffer to which one can <code>feed</code> strings, and then <code>unpack</code>
+from the buffer to produce a queue of values.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Unpack_one">
+  <a href="index.html#/module:Unpack_one" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Unpack_one : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+      <div class="doc">
+        
+      <p>If <code>unpack_one : ('value, 'partial_unpack) unpack_one</code>, then <code>unpack_one buf ?pos
+      ?len ?partial_unpack</code> must unpack at most one value of type <code>'value</code> from <code>buf</code>
+starting at <code>pos</code>, and not using more than <code>len</code> characters. <code>unpack_one</code> must
+returns one the following:</p>
+      <ul><li><code>`Ok (value, n)</code> -- unpacking succeeded and consumed <code>n</code> bytes, where <code>0 &lt;= n &lt;=
+      len</code>. It is possible to have <code>n = 0</code>, e.g. for sexp unpacking, which can only tell
+it has reached the end of an atom when it encounters the following punctuation
+character, which if it is left paren, is the start of the following sexp.</li></ul><ul><li><code>`Not_enough_data (p, n)</code> -- unpacking encountered a valid proper prefix of a
+packed value, and consumed <code>n</code> bytes, where <code>0 &lt;= n &lt;= len</code>. <code>p</code> is a &quot;partial
+unpack&quot; that can be supplied to a future call to <code>unpack_one</code> to continue unpacking.</li></ul><ul><li><code>`Invalid_data</code> -- unpacking encountered an invalidly packed value.</li></ul>
+      <p>A naive <code>unpack_one</code> that only succeeds on a fully packed value could lead to
+quadratic behavior if a packed value's bytes are input using a linear number of
+calls to <code>feed</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Unpack_one/type:t">
+  <a href="index.html#/module:Unpack_one/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('value, 'partial_unpack) t = ?partial_unpack:'partial_unpack <span class="rarr"><span>-&gt;</span></span> ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core_kernel.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/bigstring/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Ok <span class="keyword">of</span> 'value * int</div><div class="cons">| `Not_enough_data <span class="keyword">of</span> 'partial_unpack * int</div><div class="cons">| `Invalid_data <span class="keyword">of</span> <a href="../../../../core_kernel.112.06.02/_build/lib/error/">Error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/error/#/type:t">t</a></div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unpack_one/val:map">
+  <a href="index.html#/module:Unpack_one/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : ('a, 'partial_unpack) <a href="index.html#/module:Unpack_one/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> ('b, 'partial_unpack) <a href="index.html#/module:Unpack_one/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unpack_one/val:create_bin_prot">
+  <a href="index.html#/module:Unpack_one/val:create_bin_prot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_bin_prot : 'a Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> ('a, unit) <a href="index.html#/module:Unpack_one/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create_bin_prot reader</code> returns an unpacker that reads the &quot;size-prefixed&quot; bin_prot
+encoding, in which a value is encoded by first writing the length of the bin_prot
+data as a 64-bit int, and then writing the data itself. This encoding makes it
+trivial to know if enough data is available in the buffer, so there is no need to
+represent partially unpacked values, and hence <code>'partial_unpack = unit</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unpack_one/type:partial_sexp">
+  <a href="index.html#/module:Unpack_one/type:partial_sexp" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> partial_sexp
+    
+      <div class="doc">
+        
+      <p>Beware that when unpacking sexps, one cannot tell if one is at the end of an atom
+until one hits punctuation. So, one should always feed a space (&quot; &quot;) to a sexp
+unpack buffer after feeding a batch of complete sexps, to ensure that the final sexp
+is unpacked.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unpack_one/val:sexp">
+  <a href="index.html#/module:Unpack_one/val:sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp : (<a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Sexp.t, <a href="index.html#/module:Unpack_one/type:partial_sexp">partial_sexp</a>) <a href="index.html#/module:Unpack_one/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('value, 'partial_unpack) t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:invariant">
+  <a href="index.html#/val:invariant" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> invariant : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?partial_unpack:'partial_unpack <span class="rarr"><span>-&gt;</span></span> ('value, 'partial_unpack) <a href="index.html#/module:Unpack_one">Unpack_one</a>.<a href="index.html#/module:Unpack_one/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('value, 'partial_unpack) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_bin_prot">
+  <a href="index.html#/val:create_bin_prot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_bin_prot : 'a Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> ('a, unit) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create_bin_prot reader</code> returns an unpack buffer that unpacks the &quot;size-prefixed&quot;
+bin_prot encoding, in which a value is encoded by first writing the length of the
+bin_prot data as a 64-bit int, and then writing the bin_prot data itself. This
+encoding makes it trivial to know if enough data is available in the buffer, so there
+is no need to represent partially unpacked values, and hence <code>'partial_unpack =
+    unit</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_empty">
+  <a href="index.html#/val:is_empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_empty : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>is_empty t</code> returns <code>true</code> if <code>t</code> has no unconsumed bytes, and <code>false</code> if it does.
+<code>is_empty</code> returns an error if <code>t</code> has encountered an unpacking error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:feed">
+  <a href="index.html#/val:feed" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> feed : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core_kernel.112.06.02/_build/lib/bigstring/">Bigstring</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/bigstring/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>feed t buf ?pos ?len</code> adds the specified substring of <code>buf</code> to <code>t</code>'s buffer. It
+returns an error if <code>t</code> has encountered an unpacking error.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:feed_string">
+  <a href="index.html#/val:feed_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> feed_string : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unpack">
+  <a href="index.html#/val:unpack" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unpack : ('value, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'value <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Queue.t <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>unpack t</code> unpacks all the values that it can from <code>t</code>. The resulting queue will be
+empty if nothing could be unpacked. If there is an unpacking error, <code>unpack</code> returns
+an error, and subsequent <code>feed</code> and <code>unpack</code> operations on <code>t</code> will return that same
+error. I.e. no more data can be fed to or unpacked from <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug">
+  <a href="index.html#/val:debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p><code>debug</code> controls whether invariants are checked at each call. Setting this to <code>true</code>
+can make things very slow.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('value <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('partial_unpack <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('value, 'partial_unpack) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

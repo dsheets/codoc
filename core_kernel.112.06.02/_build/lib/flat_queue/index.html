@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Flat_queue</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Flat_queue</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A queue of flat tuples, represented in a [root:Flat_array].</p>
+      
+      <p>The elements of a queue are numbered 0, 1, ..., <code>length t - 1</code>, where element <code>0</code> is
+at the front of the queue. One can access the <code>j</code>'th component of the <code>i</code>'th element
+using <code>get t i Slot.tj</code>.</p>
+      
+      <p>A flat tuple is like an ordinary OCaml tuple, except it is second class and mutable.
+The flat tuples in a flat queue are layed out sequentially, with each flat tuple's
+components immediately following the components of the prior flat tuple. A flat tuple
+is not first class -- one can only refer to a flat tuple via its index in the queue
+holding it. Flat tuples are mutable via <code>Flat_queue.set</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Slots">
+  <a href="index.html#/module:Slots" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Slots : <a href="../../../../core_kernel.112.06.02/_build/lib/tuple_type/">Tuple_type</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/tuple_type/#/modtype:Slots">Slots</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Slot">
+  <a href="index.html#/module:Slot" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Slot : <a href="../../../../core_kernel.112.06.02/_build/lib/tuple_type/">Tuple_type</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/tuple_type/#/modtype:Slot">Slot</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'slots t
+    
+      <div class="doc">
+        
+      <p>The type of a flat queue. <code>'slots</code> will look like <code>('a1, ..., 'an) Slots.tn</code>, and the
+queue holds flat tuples of type <code>'a1 * ... * 'an</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../menhir.20141215/src/_stage1/invariant/">Invariant</a>.S1 <span class="keyword">with</span> <span class="keyword">type</span> 'a t := 'a <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?capacity:int <span class="rarr"><span>-&gt;</span></span> ((_, _) <a href="index.html#/module:Slots">Slots</a>.t <span class="keyword">as</span> 'slots) <span class="rarr"><span>-&gt;</span></span> 'slots <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ?capacity slots</code> creates an empty queue with capacity at least the supplied
+<code>capacity</code>. It is an error if <code>capacity &lt;= 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:capacity">
+  <a href="index.html#/val:capacity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> capacity : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>capacity t</code> returns the length of the array backing <code>t</code>. Enqueueing values will not
+cause the array to grow as long as <code>length t &lt;= capacity t</code>. A queue at capacity
+will automatically increase capacity when enqueueing. The capacity never decreases
+automatically; one can only decrease capacity via <code>set_capacity</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_capacity">
+  <a href="index.html#/val:set_capacity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_capacity : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_capacity t capacity</code> sets the length of the array backing <code>t</code> to as small as
+value as possible that is not less than <code>max capacity (length t)</code>. To shrink as much
+as possible, do <code>set_capacity t 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_empty">
+  <a href="index.html#/val:is_empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_empty : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : (_, 'v) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ('v, 'a) <a href="index.html#/module:Slot">Slot</a>.t <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>These functions get and set individual slots of flat tuple <code>i</code> in queue <code>t</code>.</p>
+      
+      <p>It is required that <code>0 &lt;= i &lt; length t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_get">
+  <a href="index.html#/val:unsafe_get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_get : (_, 'v) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ('v, 'a) <a href="index.html#/module:Slot">Slot</a>.t <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : (_, 'v) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ('v, 'a) <a href="index.html#/module:Slot">Slot</a>.t <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_set">
+  <a href="index.html#/val:unsafe_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_set : (_, 'v) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> ('v, 'a) <a href="index.html#/module:Slot">Slot</a>.t <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drop_front">
+  <a href="index.html#/val:drop_front" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop_front : ?n:int <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>drop_front ?n t</code> drops the the first <code>n</code> elements of <code>t</code>. It raises if <code>n &lt; 0 || n &gt;
+    length t</code>.</p>
+      
+      <p><code>Flat_queue</code> does not have <code>dequeue</code> or <code>dequeue_exn</code> because the expected usage is to
+use <code>get t 0 Slot.tj</code> to access the front of the queue, and then to use <code>drop_front</code>
+to remove it. This usage avoids ever allocating an ordinary OCaml tuple.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>clear t</code> removes all elements from <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue1">
+  <a href="index.html#/val:enqueue1" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue1 : 'a0 <a href="index.html#/module:Slots">Slots</a>.t1 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>There is an <code>enqueueN</code> function for each possible arity of a flat queue.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue2">
+  <a href="index.html#/val:enqueue2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue2 : ('a0, 'a1) <a href="index.html#/module:Slots">Slots</a>.t2 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue3">
+  <a href="index.html#/val:enqueue3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue3 : ('a0, 'a1, 'a2) <a href="index.html#/module:Slots">Slots</a>.t3 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> 'a2 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue4">
+  <a href="index.html#/val:enqueue4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue4 : ('a0, 'a1, 'a2, 'a3) <a href="index.html#/module:Slots">Slots</a>.t4 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> 'a2 <span class="rarr"><span>-&gt;</span></span> 'a3 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue5">
+  <a href="index.html#/val:enqueue5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue5 : ('a0, 'a1, 'a2, 'a3, 'a4) <a href="index.html#/module:Slots">Slots</a>.t5 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> 'a2 <span class="rarr"><span>-&gt;</span></span> 'a3 <span class="rarr"><span>-&gt;</span></span> 'a4 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue6">
+  <a href="index.html#/val:enqueue6" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue6 : ('a0, 'a1, 'a2, 'a3, 'a4, 'a5) <a href="index.html#/module:Slots">Slots</a>.t6 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> 'a2 <span class="rarr"><span>-&gt;</span></span> 'a3 <span class="rarr"><span>-&gt;</span></span> 'a4 <span class="rarr"><span>-&gt;</span></span> 'a5 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue7">
+  <a href="index.html#/val:enqueue7" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue7 : ('a0, 'a1, 'a2, 'a3, 'a4, 'a5, 'a6) <a href="index.html#/module:Slots">Slots</a>.t7 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> 'a2 <span class="rarr"><span>-&gt;</span></span> 'a3 <span class="rarr"><span>-&gt;</span></span> 'a4 <span class="rarr"><span>-&gt;</span></span> 'a5 <span class="rarr"><span>-&gt;</span></span> 'a6 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue8">
+  <a href="index.html#/val:enqueue8" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue8 : ('a0, 'a1, 'a2, 'a3, 'a4, 'a5, 'a6, 'a7) <a href="index.html#/module:Slots">Slots</a>.t8 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> 'a2 <span class="rarr"><span>-&gt;</span></span> 'a3 <span class="rarr"><span>-&gt;</span></span> 'a4 <span class="rarr"><span>-&gt;</span></span> 'a5 <span class="rarr"><span>-&gt;</span></span> 'a6 <span class="rarr"><span>-&gt;</span></span> 'a7 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue9">
+  <a href="index.html#/val:enqueue9" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue9 : ('a0, 'a1, 'a2, 'a3, 'a4, 'a5, 'a6, 'a7, 'a8) <a href="index.html#/module:Slots">Slots</a>.t9 <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a0 <span class="rarr"><span>-&gt;</span></span> 'a1 <span class="rarr"><span>-&gt;</span></span> 'a2 <span class="rarr"><span>-&gt;</span></span> 'a3 <span class="rarr"><span>-&gt;</span></span> 'a4 <span class="rarr"><span>-&gt;</span></span> 'a5 <span class="rarr"><span>-&gt;</span></span> 'a6 <span class="rarr"><span>-&gt;</span></span> 'a7 <span class="rarr"><span>-&gt;</span></span> 'a8 <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The functions below deal with Flat-array tuples as ordinary OCaml tuples. These
+are intended for convenience but not for performance-critical code, due to the
+tuple allocation.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:get_all_slots">
+  <a href="index.html#/val:get_all_slots" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_all_slots : ('tuple, _) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'tuple
+    
+      <div class="doc">
+        
+      <p><code>get_all_slots t i</code> allocates a new ordinary OCaml tuple whose components are equal to
+the slots of the flat tuple at index <code>i</code> of <code>t</code>. This is esentially an allocation
+plus a blit from <code>t</code> to the newly allocated tuple.</p>
+      
+      <p><code>set_all_slots t i tuple</code> sets all slots of the flat tuple at index <code>i</code> of <code>t</code> to
+their corresponding components of <code>tuple</code>. This is essentially a blit from <code>tuple</code> to
+<code>t</code>.</p>
+      
+      <p>It is required that <code>0 &lt;= i &lt; length t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_all_slots">
+  <a href="index.html#/val:set_all_slots" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_all_slots : ('tuple, _) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'tuple <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('tuple, _) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'a <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> 'tuple <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>In <code>iter t ~f</code> and <code>fold t ~init ~f</code>, if <code>f</code> mutates <code>t</code>, then the iteration will
+raise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('tuple, _) <a href="index.html#/module:Slots">Slots</a>.t <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('tuple <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('slots <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'slots <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Avltree</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Avltree</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A low-level, mutable AVL tree.</p>
+      
+      <p>It is not intended to be used directly by casual users. It is used for implementing
+other data structures. The interface is somewhat ugly, and it's that way for a
+reason. The goal of this module is minimum memory overhead, and maximum performance.</p>
+      
+      <p>**************** Points of Ugliness *****************</p>
+      
+      <p>compare is passed in to every function where it is used. If you pass a different
+compare to functions on the same tree, then all bets are off as far as what it does,
+and it's all your fault. Why? Because otherwise we'd need a top level record to store
+compare, and when building a hash table, or other structure, that little t is a block
+that increases memory overhead. However, if an empty tree is just a constructor
+'Empty', then it's just a number, and uses no extra memory beyond the array bucket
+that holds it. That's the first secret of how Core_hashtbl's memory overhead isn't
+higher than INRIA's, even though it uses a tree instead of a list for buckets.</p>
+      
+      <p>But you said it's mutable, why do all the 'mutators' return t. Answer, it is
+mutable, but the root node might change due to balancing. Since we have no top level
+record to hold the current root node (see point 1), you have to do it. If you fail to
+do it, and use an old root node, you're responsible for the (sure to be nasty)
+consequences.</p>
+      
+      <p>What on earth is up with the ~removed argument to some functions. See point 1, since
+there is no top level node, it isn't possible to keep track of how many nodes are in
+the tree unless each mutator tells you whether or not it added or removed a node, vs
+replacing an existing one. If you intend to keep a count (as you must in a hash
+table), then you will need to pay attention to this flag.</p>
+      
+      <p>After all this, you're probably asking yourself whether all these hacks are worth
+it. Yes! They are! With them, we built a hash table that is faster than INRIA's (no
+small feat actually), with the same memory overhead, with sane add semantics (the add
+semantics they used were a performance hack), and with worst case log(N) insertion,
+lookup, and removal. I'd say that's worth it. But for those of you who will feel
+morally compelled to put in a CR about this interface. I challenge you to write a
+better interface, implement a hash table with it, and show that your table has better
+performance than Core_hashtbl.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('k, 'v) t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Empty">
+  <a href="index.html#/type:t/cons:Empty" class="anchor">#</a>
+  | Empty
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Node">
+  <a href="index.html#/type:t/cons:Node" class="anchor">#</a>
+  | Node <span class="keyword">of</span> ('k, 'v) <a href="index.html#/type:t">t</a> * 'k * 'v * int * ('k, 'v) <a href="index.html#/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:t/cons:Leaf">
+  <a href="index.html#/type:t/cons:Leaf" class="anchor">#</a>
+  | Leaf <span class="keyword">of</span> 'k * 'v
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:empty">
+  <a href="index.html#/val:empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> empty : ('k, 'v) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:invariant">
+  <a href="index.html#/val:invariant" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> invariant : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> compare:('k <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>check invariants, raise an exception if any invariants fail</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : ?replace:bool <span class="rarr"><span>-&gt;</span></span> ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> compare:('k <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> added:bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> key:'k <span class="rarr"><span>-&gt;</span></span> data:'v <span class="rarr"><span>-&gt;</span></span> ('k, 'v) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>adds the specified key and data to the tree destructively (previous t's are no longer
+valid) using the specified comparison function. O(log(N)) time, O(1) space. The
+returned t is the new root node of the tree, and should be used on all further calls
+to any other function in this module. The bool ref, added, will be set to true if a
+new node is added to the tree, or false if an existing node is replaced (in the case
+that the key already exists). If <code>replace</code> (default true) is true then add will
+overwrite any existing mapping for <code>key</code>. If <code>replace</code> is false, and there is an
+existing mapping for key then add has no effect.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:first">
+  <a href="index.html#/val:first" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> first : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('k * 'v) option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:last">
+  <a href="index.html#/val:last" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> last : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('k * 'v) option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find">
+  <a href="index.html#/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> compare:('k <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> 'v option
+    
+      <div class="doc">
+        
+      <p>if the specified key exists in the tree, return the corresponding value.
+O(log(N)) time and O(1) space.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mem">
+  <a href="index.html#/val:mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> compare:('k <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p>return true if key is present in the tree, otherwise return false.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> removed:bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <span class="rarr"><span>-&gt;</span></span> compare:('k <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> 'k <span class="rarr"><span>-&gt;</span></span> ('k, 'v) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>remove key destructively from the tree if it exists, return the new root node.
+Previous root nodes are not usable anymore, do so at your peril. the removed ref will
+be set to true if a node was actually removed, or false otherwise.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'a <span class="rarr"><span>-&gt;</span></span> f:(key:'k <span class="rarr"><span>-&gt;</span></span> data:'v <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>fold over the tree</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('k, 'v) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(key:'k <span class="rarr"><span>-&gt;</span></span> data:'v <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>iterate over the tree</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

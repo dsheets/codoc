@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Core_gc</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Core_gc</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Memory management control and statistics; finalised values.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Stat">
+  <a href="index.html#/module:Stat" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Stat : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Stat/type:t">
+  <a href="index.html#/module:Stat/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:minor_words">
+  <a href="index.html#/module:Stat/type:t/field:minor_words" class="anchor">#</a>
+  minor_words
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">Number of words allocated in the minor heap since
+the program was started. This number is accurate in
+byte-code programs, but only an approximation in programs
+compiled to native code.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:promoted_words">
+  <a href="index.html#/module:Stat/type:t/field:promoted_words" class="anchor">#</a>
+  promoted_words
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">Number of words allocated in the minor heap that
+survived a minor collection and were moved to the major heap
+since the program was started.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:major_words">
+  <a href="index.html#/module:Stat/type:t/field:major_words" class="anchor">#</a>
+  major_words
+  </div>
+  </td><td>: float</td><td>;</td><td>(*</td><td class="doc">Number of words allocated in the major heap, including
+the promoted words, since the program was started.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:minor_collections">
+  <a href="index.html#/module:Stat/type:t/field:minor_collections" class="anchor">#</a>
+  minor_collections
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of minor collections since the program was started.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:major_collections">
+  <a href="index.html#/module:Stat/type:t/field:major_collections" class="anchor">#</a>
+  major_collections
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of major collection cycles completed since the program
+was started.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:heap_words">
+  <a href="index.html#/module:Stat/type:t/field:heap_words" class="anchor">#</a>
+  heap_words
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Total size of the major heap, in words.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:heap_chunks">
+  <a href="index.html#/module:Stat/type:t/field:heap_chunks" class="anchor">#</a>
+  heap_chunks
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of contiguous pieces of memory that make up the major heap.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:live_words">
+  <a href="index.html#/module:Stat/type:t/field:live_words" class="anchor">#</a>
+  live_words
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of words of live data in the major heap, including the header
+words.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:live_blocks">
+  <a href="index.html#/module:Stat/type:t/field:live_blocks" class="anchor">#</a>
+  live_blocks
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of live blocks in the major heap.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:free_words">
+  <a href="index.html#/module:Stat/type:t/field:free_words" class="anchor">#</a>
+  free_words
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of words in the free list.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:free_blocks">
+  <a href="index.html#/module:Stat/type:t/field:free_blocks" class="anchor">#</a>
+  free_blocks
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of blocks in the free list.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:largest_free">
+  <a href="index.html#/module:Stat/type:t/field:largest_free" class="anchor">#</a>
+  largest_free
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Size (in words) of the largest block in the free list.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:fragments">
+  <a href="index.html#/module:Stat/type:t/field:fragments" class="anchor">#</a>
+  fragments
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of wasted words due to fragmentation. These are
+1-words free blocks placed between two live blocks. They
+are not available for allocation.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:compactions">
+  <a href="index.html#/module:Stat/type:t/field:compactions" class="anchor">#</a>
+  compactions
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Number of heap compactions since the program was started.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:top_heap_words">
+  <a href="index.html#/module:Stat/type:t/field:top_heap_words" class="anchor">#</a>
+  top_heap_words
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Maximum size reached by the major heap, in words.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Stat/type:t/field:stack_size">
+  <a href="index.html#/module:Stat/type:t/field:stack_size" class="anchor">#</a>
+  stack_size
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Current size of the stack, in words.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:stack_size">
+  <a href="index.html#/module:Stat/val:stack_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stack_size : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:top_heap_words">
+  <a href="index.html#/module:Stat/val:top_heap_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> top_heap_words : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:compactions">
+  <a href="index.html#/module:Stat/val:compactions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compactions : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:fragments">
+  <a href="index.html#/module:Stat/val:fragments" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fragments : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:largest_free">
+  <a href="index.html#/module:Stat/val:largest_free" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> largest_free : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:free_blocks">
+  <a href="index.html#/module:Stat/val:free_blocks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> free_blocks : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:free_words">
+  <a href="index.html#/module:Stat/val:free_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> free_words : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:live_blocks">
+  <a href="index.html#/module:Stat/val:live_blocks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> live_blocks : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:live_words">
+  <a href="index.html#/module:Stat/val:live_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> live_words : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:heap_chunks">
+  <a href="index.html#/module:Stat/val:heap_chunks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap_chunks : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:heap_words">
+  <a href="index.html#/module:Stat/val:heap_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap_words : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:major_collections">
+  <a href="index.html#/module:Stat/val:major_collections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> major_collections : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:minor_collections">
+  <a href="index.html#/module:Stat/val:minor_collections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minor_collections : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:major_words">
+  <a href="index.html#/module:Stat/val:major_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> major_words : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:promoted_words">
+  <a href="index.html#/module:Stat/val:promoted_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> promoted_words : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:minor_words">
+  <a href="index.html#/module:Stat/val:minor_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minor_words : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields">
+  <a href="index.html#/module:Stat/module:Fields" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Fields : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Stat/module:Fields/val:names">
+  <a href="index.html#/module:Stat/module:Fields/val:names" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> names : string list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:stack_size">
+  <a href="index.html#/module:Stat/module:Fields/val:stack_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stack_size : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:top_heap_words">
+  <a href="index.html#/module:Stat/module:Fields/val:top_heap_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> top_heap_words : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:compactions">
+  <a href="index.html#/module:Stat/module:Fields/val:compactions" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compactions : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:fragments">
+  <a href="index.html#/module:Stat/module:Fields/val:fragments" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fragments : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:largest_free">
+  <a href="index.html#/module:Stat/module:Fields/val:largest_free" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> largest_free : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:free_blocks">
+  <a href="index.html#/module:Stat/module:Fields/val:free_blocks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> free_blocks : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:free_words">
+  <a href="index.html#/module:Stat/module:Fields/val:free_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> free_words : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:live_blocks">
+  <a href="index.html#/module:Stat/module:Fields/val:live_blocks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> live_blocks : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:live_words">
+  <a href="index.html#/module:Stat/module:Fields/val:live_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> live_words : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:heap_chunks">
+  <a href="index.html#/module:Stat/module:Fields/val:heap_chunks" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap_chunks : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:heap_words">
+  <a href="index.html#/module:Stat/module:Fields/val:heap_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> heap_words : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:major_collections">
+  <a href="index.html#/module:Stat/module:Fields/val:major_collections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> major_collections : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:minor_collections">
+  <a href="index.html#/module:Stat/module:Fields/val:minor_collections" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minor_collections : (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:major_words">
+  <a href="index.html#/module:Stat/module:Fields/val:major_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> major_words : (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:promoted_words">
+  <a href="index.html#/module:Stat/module:Fields/val:promoted_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> promoted_words : (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:minor_words">
+  <a href="index.html#/module:Stat/module:Fields/val:minor_words" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minor_words : (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:fold">
+  <a href="index.html#/module:Stat/module:Fields/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : init:'acc__ <span class="rarr"><span>-&gt;</span></span> minor_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> promoted_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> major_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> minor_collections:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> major_collections:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> heap_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> heap_chunks:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> live_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> live_blocks:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> free_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> free_blocks:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> largest_free:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> fragments:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> compactions:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> top_heap_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> stack_size:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> 'acc__
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:make_creator">
+  <a href="index.html#/module:Stat/module:Fields/val:make_creator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_creator : minor_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> float) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> promoted_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> float) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> major_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> float) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> minor_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> major_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> heap_chunks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> live_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> live_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> free_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> free_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> largest_free:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> fragments:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> compactions:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> top_heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> stack_size:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a>) * 'compile_acc__
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:create">
+  <a href="index.html#/module:Stat/module:Fields/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : minor_words:float <span class="rarr"><span>-&gt;</span></span> promoted_words:float <span class="rarr"><span>-&gt;</span></span> major_words:float <span class="rarr"><span>-&gt;</span></span> minor_collections:int <span class="rarr"><span>-&gt;</span></span> major_collections:int <span class="rarr"><span>-&gt;</span></span> heap_words:int <span class="rarr"><span>-&gt;</span></span> heap_chunks:int <span class="rarr"><span>-&gt;</span></span> live_words:int <span class="rarr"><span>-&gt;</span></span> live_blocks:int <span class="rarr"><span>-&gt;</span></span> free_words:int <span class="rarr"><span>-&gt;</span></span> free_blocks:int <span class="rarr"><span>-&gt;</span></span> largest_free:int <span class="rarr"><span>-&gt;</span></span> fragments:int <span class="rarr"><span>-&gt;</span></span> compactions:int <span class="rarr"><span>-&gt;</span></span> top_heap_words:int <span class="rarr"><span>-&gt;</span></span> stack_size:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:map">
+  <a href="index.html#/module:Stat/module:Fields/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : minor_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> float) <span class="rarr"><span>-&gt;</span></span> promoted_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> float) <span class="rarr"><span>-&gt;</span></span> major_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> float) <span class="rarr"><span>-&gt;</span></span> minor_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> major_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> heap_chunks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> live_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> live_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> free_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> free_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> largest_free:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> fragments:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> compactions:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> top_heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> stack_size:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:iter">
+  <a href="index.html#/module:Stat/module:Fields/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : minor_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> promoted_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> major_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> minor_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> major_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> heap_chunks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> live_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> live_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> free_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> free_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> largest_free:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> fragments:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> compactions:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> top_heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> stack_size:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:for_all">
+  <a href="index.html#/module:Stat/module:Fields/val:for_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> for_all : minor_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> promoted_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> major_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> minor_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> major_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> heap_chunks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> live_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> live_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> free_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> free_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> largest_free:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> fragments:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> compactions:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> top_heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> stack_size:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:exists">
+  <a href="index.html#/module:Stat/module:Fields/val:exists" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> exists : minor_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> promoted_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> major_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> minor_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> major_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> heap_chunks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> live_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> live_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> free_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> free_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> largest_free:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> fragments:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> compactions:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> top_heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> stack_size:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:to_list">
+  <a href="index.html#/module:Stat/module:Fields/val:to_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_list : minor_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> promoted_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> major_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> minor_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> major_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> heap_chunks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> live_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> live_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> free_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> free_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> largest_free:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> fragments:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> compactions:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> top_heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> stack_size:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> 'elem__ list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/val:map_poly">
+  <a href="index.html#/module:Stat/module:Fields/val:map_poly" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_poly : ([&lt; <div class="cons">| `Read</div><div class="cons">| `Set_and_create</div> ], <a href="index.html#/module:Stat/type:t">t</a>, 'x0) Fieldslib.Field.user <span class="rarr"><span>-&gt;</span></span> 'x0 list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/module:Direct">
+  <a href="index.html#/module:Stat/module:Fields/module:Direct" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Direct : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Stat/module:Fields/module:Direct/val:iter">
+  <a href="index.html#/module:Stat/module:Fields/module:Direct/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> minor_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> promoted_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> major_words:((<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> minor_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> major_collections:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> heap_chunks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> live_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> live_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> free_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> free_blocks:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> largest_free:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> fragments:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> compactions:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> top_heap_words:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> stack_size:((<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/module:Fields/module:Direct/val:fold">
+  <a href="index.html#/module:Stat/module:Fields/module:Direct/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'acc__ <span class="rarr"><span>-&gt;</span></span> minor_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> promoted_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> major_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, float) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> float <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> minor_collections:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> major_collections:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> heap_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> heap_chunks:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> live_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> live_blocks:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> free_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> free_blocks:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> largest_free:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> fragments:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> compactions:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> top_heap_words:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> stack_size:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Stat/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> 'acc__
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/comparable/">Comparable</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/comparable/#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/module:Stat/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/module:Stat/val:t_of_sexp">
+  <a href="index.html#/module:Stat/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:sexp_of_t">
+  <a href="index.html#/module:Stat/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:Stat/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:bin_t">
+  <a href="index.html#/module:Stat/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : <a href="index.html#/module:Stat/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:bin_read_t">
+  <a href="index.html#/module:Stat/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : <a href="index.html#/module:Stat/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:__bin_read_t__">
+  <a href="index.html#/module:Stat/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Stat/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:bin_reader_t">
+  <a href="index.html#/module:Stat/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : <a href="index.html#/module:Stat/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:bin_size_t">
+  <a href="index.html#/module:Stat/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : <a href="index.html#/module:Stat/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:bin_write_t">
+  <a href="index.html#/module:Stat/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : <a href="index.html#/module:Stat/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Stat/val:bin_writer_t">
+  <a href="index.html#/module:Stat/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : <a href="index.html#/module:Stat/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:stat">
+  <a href="index.html#/type:stat" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> stat = <a href="index.html#/module:Stat">Stat</a>.<a href="index.html#/module:Stat/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The memory management counters are returned in a <code>stat</code> record.</p>
+      
+      <p>The total amount of memory allocated by the program since it was started
+is (in words) <code>minor_words + major_words - promoted_words</code>. Multiply by
+the word size (4 on a 32-bit machine, 8 on a 64-bit machine) to get
+the number of bytes.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Control">
+  <a href="index.html#/module:Control" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Control : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Control/type:t">
+  <a href="index.html#/module:Control/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = {<table>
+    <tr class="field">
+  <td>
+  <div class="region" id="/module:Control/type:t/field:minor_heap_size">
+  <a href="index.html#/module:Control/type:t/field:minor_heap_size" class="anchor">#</a>
+  <span class="keyword">mutable</span> minor_heap_size
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The size (in words) of the minor heap. Changing this parameter will
+trigger a minor collection.
+Default: 262144 words / 1MB (32bit) / 2MB (64bit).</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Control/type:t/field:major_heap_increment">
+  <a href="index.html#/module:Control/type:t/field:major_heap_increment" class="anchor">#</a>
+  <span class="keyword">mutable</span> major_heap_increment
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The minimum number of words to add to the major heap when increasing it.
+Default: 126976 words / 0.5MB (32bit) / 1MB (64bit).</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Control/type:t/field:space_overhead">
+  <a href="index.html#/module:Control/type:t/field:space_overhead" class="anchor">#</a>
+  <span class="keyword">mutable</span> space_overhead
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The major GC speed is computed from this parameter.
+This is the memory that will be &quot;wasted&quot; because the GC does not
+immediatly collect unreachable blocks. It is expressed as a
+percentage of the memory used for live data.
+The GC will work more (use more CPU time and collect
+blocks more eagerly) if <code>space_overhead</code> is smaller.
+Default: 80.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Control/type:t/field:verbose">
+  <a href="index.html#/module:Control/type:t/field:verbose" class="anchor">#</a>
+  <span class="keyword">mutable</span> verbose
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">This value controls the GC messages on standard error output.
+It is a sum of some of the following flags, to print messages
+on the corresponding events:<ul><li><code>0x001</code> Start of major GC cycle.</li><li><code>0x002</code> Minor collection and major GC slice.</li><li><code>0x004</code> Growing and shrinking of the heap.</li><li><code>0x008</code> Resizing of stacks and memory manager tables.</li><li><code>0x010</code> Heap compaction.</li><li><code>0x020</code> Change of GC parameters.</li><li><code>0x040</code> Computation of major GC slice size.</li><li><code>0x080</code> Calling of finalisation functions.</li><li><code>0x100</code> Bytecode executable search at start-up.</li><li><code>0x200</code> Computation of compaction triggering condition.
+Default: 0.</li></ul></td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Control/type:t/field:max_overhead">
+  <a href="index.html#/module:Control/type:t/field:max_overhead" class="anchor">#</a>
+  <span class="keyword">mutable</span> max_overhead
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">Heap compaction is triggered when the estimated amount
+of &quot;wasted&quot; memory is more than <code>max_overhead</code> percent of the
+amount of live data. If <code>max_overhead</code> is set to 0, heap
+compaction is triggered at the end of each major GC cycle
+(this setting is intended for testing purposes only).
+If <code>max_overhead &gt;= 1000000</code>, compaction is never triggered.
+Default: 500.</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Control/type:t/field:stack_limit">
+  <a href="index.html#/module:Control/type:t/field:stack_limit" class="anchor">#</a>
+  <span class="keyword">mutable</span> stack_limit
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The maximum size of the stack (in words). This is only
+relevant to the byte-code runtime, as the native code runtime
+uses the operating system's stack.
+Default: 1048576 words / 4MB (32bit) / 8MB (64bit).</td><td>*)</td>
+  </tr><tr class="field">
+  <td>
+  <div class="region" id="/module:Control/type:t/field:allocation_policy">
+  <a href="index.html#/module:Control/type:t/field:allocation_policy" class="anchor">#</a>
+  <span class="keyword">mutable</span> allocation_policy
+  </div>
+  </td><td>: int</td><td>;</td><td>(*</td><td class="doc">The policy used for allocating in the heap. Possible
+values are 0 and 1. 0 is the next-fit policy, which is
+quite fast but can result in fragmentation. 1 is the
+first-fit policy, which can be slower in some cases but
+can be better for programs with fragmentation problems.
+Default: 0.</td><td>*)</td>
+  </tr>
+    </table>}
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:allocation_policy">
+  <a href="index.html#/module:Control/val:allocation_policy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> allocation_policy : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:set_allocation_policy">
+  <a href="index.html#/module:Control/val:set_allocation_policy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_allocation_policy : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:stack_limit">
+  <a href="index.html#/module:Control/val:stack_limit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stack_limit : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:set_stack_limit">
+  <a href="index.html#/module:Control/val:set_stack_limit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_stack_limit : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:max_overhead">
+  <a href="index.html#/module:Control/val:max_overhead" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_overhead : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:set_max_overhead">
+  <a href="index.html#/module:Control/val:set_max_overhead" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_max_overhead : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:verbose">
+  <a href="index.html#/module:Control/val:verbose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> verbose : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:set_verbose">
+  <a href="index.html#/module:Control/val:set_verbose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_verbose : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:space_overhead">
+  <a href="index.html#/module:Control/val:space_overhead" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> space_overhead : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:set_space_overhead">
+  <a href="index.html#/module:Control/val:set_space_overhead" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_space_overhead : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:major_heap_increment">
+  <a href="index.html#/module:Control/val:major_heap_increment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> major_heap_increment : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:set_major_heap_increment">
+  <a href="index.html#/module:Control/val:set_major_heap_increment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_major_heap_increment : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:minor_heap_size">
+  <a href="index.html#/module:Control/val:minor_heap_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minor_heap_size : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:set_minor_heap_size">
+  <a href="index.html#/module:Control/val:set_minor_heap_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_minor_heap_size : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields">
+  <a href="index.html#/module:Control/module:Fields" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Fields : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Control/module:Fields/val:names">
+  <a href="index.html#/module:Control/module:Fields/val:names" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> names : string list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:allocation_policy">
+  <a href="index.html#/module:Control/module:Fields/val:allocation_policy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> allocation_policy : (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:stack_limit">
+  <a href="index.html#/module:Control/module:Fields/val:stack_limit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> stack_limit : (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:max_overhead">
+  <a href="index.html#/module:Control/module:Fields/val:max_overhead" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> max_overhead : (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:verbose">
+  <a href="index.html#/module:Control/module:Fields/val:verbose" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> verbose : (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:space_overhead">
+  <a href="index.html#/module:Control/module:Fields/val:space_overhead" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> space_overhead : (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:major_heap_increment">
+  <a href="index.html#/module:Control/module:Fields/val:major_heap_increment" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> major_heap_increment : (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:minor_heap_size">
+  <a href="index.html#/module:Control/module:Fields/val:minor_heap_size" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> minor_heap_size : (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:fold">
+  <a href="index.html#/module:Control/module:Fields/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : init:'acc__ <span class="rarr"><span>-&gt;</span></span> minor_heap_size:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> space_overhead:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> verbose:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> max_overhead:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> stack_limit:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> allocation_policy:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> 'acc__
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:make_creator">
+  <a href="index.html#/module:Control/module:Fields/val:make_creator" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> make_creator : minor_heap_size:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> space_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> verbose:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> max_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> stack_limit:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> allocation_policy:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> int) * 'compile_acc__) <span class="rarr"><span>-&gt;</span></span> 'compile_acc__ <span class="rarr"><span>-&gt;</span></span> ('input__ <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a>) * 'compile_acc__
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:create">
+  <a href="index.html#/module:Control/module:Fields/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : minor_heap_size:int <span class="rarr"><span>-&gt;</span></span> major_heap_increment:int <span class="rarr"><span>-&gt;</span></span> space_overhead:int <span class="rarr"><span>-&gt;</span></span> verbose:int <span class="rarr"><span>-&gt;</span></span> max_overhead:int <span class="rarr"><span>-&gt;</span></span> stack_limit:int <span class="rarr"><span>-&gt;</span></span> allocation_policy:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:map">
+  <a href="index.html#/module:Control/module:Fields/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : minor_heap_size:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> space_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> verbose:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> max_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> stack_limit:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> allocation_policy:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:iter">
+  <a href="index.html#/module:Control/module:Fields/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : minor_heap_size:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> space_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> verbose:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> max_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> stack_limit:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> allocation_policy:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:for_all">
+  <a href="index.html#/module:Control/module:Fields/val:for_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> for_all : minor_heap_size:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> space_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> verbose:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> max_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> stack_limit:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> allocation_policy:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:exists">
+  <a href="index.html#/module:Control/module:Fields/val:exists" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> exists : minor_heap_size:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> space_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> verbose:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> max_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> stack_limit:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> allocation_policy:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:to_list">
+  <a href="index.html#/module:Control/module:Fields/val:to_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_list : minor_heap_size:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> space_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> verbose:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> max_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> stack_limit:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> allocation_policy:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> 'elem__) <span class="rarr"><span>-&gt;</span></span> 'elem__ list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/val:map_poly">
+  <a href="index.html#/module:Control/module:Fields/val:map_poly" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map_poly : ([&lt; <div class="cons">| `Read</div><div class="cons">| `Set_and_create</div> ], <a href="index.html#/module:Control/type:t">t</a>, 'x0) Fieldslib.Field.user <span class="rarr"><span>-&gt;</span></span> 'x0 list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/module:Direct">
+  <a href="index.html#/module:Control/module:Fields/module:Direct" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Direct : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Control/module:Fields/module:Direct/val:iter">
+  <a href="index.html#/module:Control/module:Fields/module:Direct/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> minor_heap_size:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> space_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> verbose:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> max_overhead:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> stack_limit:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> allocation_policy:((<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/module:Fields/module:Direct/val:fold">
+  <a href="index.html#/module:Control/module:Fields/module:Direct/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'acc__ <span class="rarr"><span>-&gt;</span></span> minor_heap_size:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> major_heap_increment:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> space_overhead:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> verbose:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> max_overhead:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> stack_limit:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> allocation_policy:('acc__ <span class="rarr"><span>-&gt;</span></span> (<a href="index.html#/module:Control/type:t">t</a>, int) Fieldslib.Field.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'acc__) <span class="rarr"><span>-&gt;</span></span> 'acc__
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/comparable/">Comparable</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/comparable/#/modtype:S">S</a> <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/module:Control/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/module:Control/val:t_of_sexp">
+  <a href="index.html#/module:Control/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:sexp_of_t">
+  <a href="index.html#/module:Control/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:Control/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:bin_t">
+  <a href="index.html#/module:Control/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : <a href="index.html#/module:Control/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:bin_read_t">
+  <a href="index.html#/module:Control/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : <a href="index.html#/module:Control/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:__bin_read_t__">
+  <a href="index.html#/module:Control/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Control/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:bin_reader_t">
+  <a href="index.html#/module:Control/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : <a href="index.html#/module:Control/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:bin_size_t">
+  <a href="index.html#/module:Control/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : <a href="index.html#/module:Control/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:bin_write_t">
+  <a href="index.html#/module:Control/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : <a href="index.html#/module:Control/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Control/val:bin_writer_t">
+  <a href="index.html#/module:Control/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : <a href="index.html#/module:Control/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:control">
+  <a href="index.html#/type:control" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> control = <a href="index.html#/module:Control">Control</a>.<a href="index.html#/module:Control/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>The GC parameters are given as a <code>control</code> record.
+Note that these parameters can also be initialised
+by setting the OCAMLRUNPARAM environment variable.
+See the documentation of ocamlrun.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:stat">
+  <a href="index.html#/val:stat" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> stat : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:stat">stat</a>
+    = &quot;caml_gc_stat&quot; 
+    
+      <div class="doc">
+        
+      <p>Return the current values of the memory management counters in a
+<code>stat</code> record. This function examines every heap block to get the
+statistics.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:quick_stat">
+  <a href="index.html#/val:quick_stat" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> quick_stat : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:stat">stat</a>
+    = &quot;caml_gc_quick_stat&quot; 
+    
+      <div class="doc">
+        
+      <p>Same as <code>stat</code> except that <code>live_words</code>, <code>live_blocks</code>, <code>free_words</code>,
+<code>free_blocks</code>, <code>largest_free</code>, and <code>fragments</code> are set to 0. This
+function is much faster than <code>stat</code> because it does not need to go
+through the heap.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:counters">
+  <a href="index.html#/val:counters" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> counters : unit <span class="rarr"><span>-&gt;</span></span> float * float * float
+    = &quot;caml_gc_counters&quot; 
+    
+      <div class="doc">
+        
+      <p>Return <code>(minor_words, promoted_words, major_words)</code>. This function
+is as fast at <code>quick_stat</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:minor_words">
+  <a href="index.html#/val:minor_words" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> minor_words : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_minor_words&quot; 
+    
+      <div class="doc">
+        
+      <p>The following functions return the same as <code>(Gc.quick_stat ()).Stat.f</code>, avoiding any
+allocation (of the <code>stat</code> record or a float). On 32-bit machines the <code>int</code> may
+overflow.</p>
+      
+      <p>Note that <code>minor_words</code> does not allocate, but we do not annotate it as <code>noalloc</code>
+because we want the compiler to save the value of the allocation pointer register
+(%r15 on x86-64) to the global variable <code>caml_young_ptr</code> before the C stub tries to
+read its value.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:major_words">
+  <a href="index.html#/val:major_words" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> major_words : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_major_words&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:promoted_words">
+  <a href="index.html#/val:promoted_words" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> promoted_words : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_promoted_words&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:minor_collections">
+  <a href="index.html#/val:minor_collections" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> minor_collections : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_minor_collections&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:major_collections">
+  <a href="index.html#/val:major_collections" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> major_collections : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_major_collections&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap_words">
+  <a href="index.html#/val:heap_words" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> heap_words : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_heap_words&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:heap_chunks">
+  <a href="index.html#/val:heap_chunks" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> heap_chunks : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_heap_chunks&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compactions">
+  <a href="index.html#/val:compactions" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> compactions : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_compactions&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:top_heap_words">
+  <a href="index.html#/val:top_heap_words" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> top_heap_words : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_top_heap_words&quot; &quot;noalloc&quot; 
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:major_plus_minor_words">
+  <a href="index.html#/val:major_plus_minor_words" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> major_plus_minor_words : unit <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;core_kernel_gc_major_plus_minor_words&quot; 
+    
+      <div class="doc">
+        
+      <p>This function returns <code>major_words () + minor_words ()</code>. It exists purely for speed
+(one call into C rather than two). Like <code>major_words</code> and <code>minor_words</code>,
+<code>major_plus_minor_words</code> avoids allocating a <code>stat</code> record or a float, and may
+overflow on 32-bit machines.</p>
+      
+      <p>This function is not marked <code>&quot;noalloc&quot;</code> to ensure that the allocation pointer is
+up-to-date when the minor-heap measurement is made.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> get : unit <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:control">control</a>
+    = &quot;caml_gc_get&quot; 
+    
+      <div class="doc">
+        
+      <p>Return the current values of the GC parameters in a <code>control</code> record.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> set : <a href="index.html#/type:control">control</a> <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;caml_gc_set&quot; 
+    
+      <div class="doc">
+        
+      <p><code>set r</code> changes the GC parameters according to the <code>control</code> record <code>r</code>.
+The normal usage is:
+<code>Gc.set { (Gc.get()) with Gc.Control.verbose = 0x00d }</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:minor">
+  <a href="index.html#/val:minor" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> minor : unit <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;caml_gc_minor&quot; 
+    
+      <div class="doc">
+        
+      <p>Trigger a minor collection.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:major_slice">
+  <a href="index.html#/val:major_slice" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> major_slice : int <span class="rarr"><span>-&gt;</span></span> int
+    = &quot;caml_gc_major_slice&quot; 
+    
+      <div class="doc">
+        
+      <p>Do a minor collection and a slice of major collection. The argument
+is the size of the slice, 0 to use the automatically-computed
+slice size. In all cases, the result is the computed slice size.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:major">
+  <a href="index.html#/val:major" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> major : unit <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;caml_gc_major&quot; 
+    
+      <div class="doc">
+        
+      <p>Do a minor collection and finish the current major collection cycle.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:full_major">
+  <a href="index.html#/val:full_major" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> full_major : unit <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;caml_gc_full_major&quot; 
+    
+      <div class="doc">
+        
+      <p>Do a minor collection, finish the current major collection cycle,
+and perform a complete new cycle. This will collect all currently
+unreachable blocks.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compact">
+  <a href="index.html#/val:compact" class="anchor">#</a>
+  
+  <div class="external val">
+    <span class="keyword">external</span> compact : unit <span class="rarr"><span>-&gt;</span></span> unit
+    = &quot;caml_gc_compaction&quot; 
+    
+      <div class="doc">
+        
+      <p>Perform a full major collection and compact the heap. Note that heap
+compaction is a lengthy operation.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:print_stat">
+  <a href="index.html#/val:print_stat" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> print_stat : <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:out_channel">out_channel</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Print the current values of the memory management counters (in
+human-readable form) into the channel argument.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:allocated_bytes">
+  <a href="index.html#/val:allocated_bytes" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> allocated_bytes : unit <span class="rarr"><span>-&gt;</span></span> float
+    
+      <div class="doc">
+        
+      <p>Return the total number of bytes allocated since the program was
+started. It is returned as a <code>float</code> to avoid overflow problems
+with <code>int</code> on 32-bit machines.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keep_alive">
+  <a href="index.html#/val:keep_alive" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keep_alive : _ <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:alarm">
+  <a href="index.html#/type:alarm" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> alarm
+    
+      <div class="doc">
+        
+      <p>An alarm is a piece of data that calls a user function at the end of
+each major GC cycle. The following functions are provided to create
+and delete alarms.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create_alarm">
+  <a href="index.html#/val:create_alarm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create_alarm : (unit <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:alarm">alarm</a>
+    
+      <div class="doc">
+        
+      <p><code>create_alarm f</code> will arrange for <code>f</code> to be called at the end of each
+major GC cycle, starting with the current cycle or the next one.
+A value of type <code>alarm</code> is returned that you can
+use to call <code>delete_alarm</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:delete_alarm">
+  <a href="index.html#/val:delete_alarm" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> delete_alarm : <a href="index.html#/type:alarm">alarm</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>delete_alarm a</code> will stop the calls to the function associated
+to <code>a</code>. Calling <code>delete_alarm a</code> again has no effect.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tune">
+  <a href="index.html#/val:tune" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tune : ?logger:(string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> ?minor_heap_size:int <span class="rarr"><span>-&gt;</span></span> ?major_heap_increment:int <span class="rarr"><span>-&gt;</span></span> ?space_overhead:int <span class="rarr"><span>-&gt;</span></span> ?verbose:int <span class="rarr"><span>-&gt;</span></span> ?max_overhead:int <span class="rarr"><span>-&gt;</span></span> ?stack_limit:int <span class="rarr"><span>-&gt;</span></span> ?allocation_policy:int <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Adjust the specified GC parameters.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Allocation_policy">
+  <a href="index.html#/module:Allocation_policy" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Allocation_policy : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The policy used for allocating in the heap.</p>
+      
+      <p>The Next_fit policy is quite fast but can result in fragmentation.</p>
+      
+      <p>The First_fit policy can be slower in some cases but can be better for programs with
+fragmentation problems.</p>
+      
+      <p>The default is Next_fit.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Allocation_policy/type:t">
+  <a href="index.html#/module:Allocation_policy/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Allocation_policy/type:t/cons:Next_fit">
+  <a href="index.html#/module:Allocation_policy/type:t/cons:Next_fit" class="anchor">#</a>
+  | Next_fit
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Allocation_policy/type:t/cons:First_fit">
+  <a href="index.html#/module:Allocation_policy/type:t/cons:First_fit" class="anchor">#</a>
+  | First_fit
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:disable_compaction">
+  <a href="index.html#/val:disable_compaction" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> disable_compaction : ?logger:(string <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> allocation_policy:[ <div class="cons">| `Don't_change</div><div class="cons">| `Set_to <span class="keyword">of</span> <a href="index.html#/module:Allocation_policy">Allocation_policy</a>.<a href="index.html#/module:Allocation_policy/type:t">t</a></div> ] <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Expert">
+  <a href="index.html#/module:Expert" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Expert : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>The <code>Expert</code> module contains functions that novice users should not use, due to their
+complexity.</p>
+      
+      <p>In particular, finalizers are difficult to use correctly, because they can run at any
+time, even in the middle of other code, and because unhandled exceptions in a
+finalizer can be raised at any point in other code. This introduces all the semantic
+complexities of multithreading, which is usually a bad idea. It is much easier to use
+async finalizers, see [root:Async_core].Async_gc.add_finalizer, which do not involve
+multithreading, and runs user code as ordinary async jobs.</p>
+      
+      <p>If you do use <code>Core</code> finalizers, you should strive to make the finalization function
+perform a simple idempotent action, like setting a ref. The same rules as for
+signal handlers apply to finalizers.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Expert/val:add_finalizer">
+  <a href="index.html#/module:Expert/val:add_finalizer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_finalizer : 'a <a href="../../../../core_kernel.112.06.02/_build/lib/heap_block/">Heap_block</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/heap_block/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <a href="../../../../core_kernel.112.06.02/_build/lib/heap_block/">Heap_block</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/heap_block/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_finalizer b f</code> ensures that <code>f</code> runs after <code>b</code> becomes unreachable. The OCaml
+runtime only supports finalizers on heap blocks, hence <code>add_finalizer</code> requires <code>b :
+      _ Heap_block.t</code>. The runtime essentially maintains a set of finalizer pairs:</p>
+      <pre>        'a Heap_block.t * ('a Heap_block.t -&gt; unit)</pre>
+      <p>Each call to <code>add_finalizer</code> adds a new pair to the set. It is allowed for many
+pairs to have the same heap block, the same function, or both. Each pair is a
+distinct element of the set.</p>
+      
+      <p>After a garbage collection determines that a heap block <code>b</code> is unreachable, it
+removes from the set of finalizers all finalizer pairs <code>(b, f)</code> whose block is <code>b</code>,
+and then and runs <code>f b</code> for all such pairs. Thus, a finalizer registered with
+<code>add_finalizer</code> will run at most once.</p>
+      
+      <p>The GC will call the finalisation functions in the order of deallocation. When
+several values become unreachable at the same time (i.e. during the same GC cycle),
+the finalisation functions will be called in the reverse order of the corresponding
+calls to <code>add_finalizer</code>. If <code>add_finalizer</code> is called in the same order as the
+values are allocated, that means each value is finalised before the values it
+depends upon. Of course, this becomes false if additional dependencies are
+introduced by assignments.</p>
+      
+      <p>In a finalizer pair <code>(b, f)</code>, it is a mistake for the closure of <code>f</code> to reference
+(directly or indirectly) <code>b</code> -- <code>f</code> should only access <code>b</code> via its argument.
+Referring to <code>b</code> in any other way will cause <code>b</code> to be kept alive forever, since <code>f</code>
+itself is a root of garbage collection, and can itself only be collected after the
+pair <code>(b, f)</code> is removed from the set of finalizers.</p>
+      
+      <p>The <code>f</code> function can use all features of OCaml, including assignments that make the
+value reachable again. It can also loop forever (in this case, the other
+finalisation functions will be called during the execution of f). It can call
+<code>add_finalizer</code> on <code>v</code> or other values to register other functions or even itself.
+It can raise an exception; in this case the exception will interrupt whatever the
+program was doing when the function was called. This is very hard to think about,
+so one should take care to make <code>f</code> not raise.</p>
+      
+      <p><code>add_finalizer_exn b f</code> is like <code>add_finalizer</code>, but will raise if <code>b</code> is not a heap
+block.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Expert/val:add_finalizer_exn">
+  <a href="index.html#/module:Expert/val:add_finalizer_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_finalizer_exn : 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Expert/val:finalize_release">
+  <a href="index.html#/module:Expert/val:finalize_release" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> finalize_release : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>The runtime essentially maintains a bool ref:</p>
+      <pre><code>        val finalizer_is_running : bool ref</code></pre>
+      <p>The runtime uses this bool ref to ensure that only one finalizer is running at a
+time, by setting it to <code>true</code> when a finalizer starts and setting it to <code>false</code> when
+a finalizer finishes. The runtime will not start running a finalizer if
+<code>!finalizer_is_running = true</code>. Calling <code>finalize_release</code> essentially does
+<code>finalizer_is_running := false</code>, which allows another finalizer to start whether
+or not the current finalizer finishes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

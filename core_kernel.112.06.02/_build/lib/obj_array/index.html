@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Obj_array</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Obj_array</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>An array of <code>Obj.t</code>s.</p>
+      
+      <p>This is useful to have as its own type because we can implement faster <code>get</code> and <code>set</code>
+functions that know that they aren't dealing with float arrays and save a test for it.
+We also have <code>set</code> avoid the write barrier (caml_modify) in certain situations.</p>
+      
+      <p>Just like with a regular <code>Array</code>, the elements are boxed so they don't get copied by
+<code>sub</code>, <code>get</code>, <code>set</code>, <code>blit</code>, etc.</p>
+      
+      <p>The dynamic check this array module implements is something we hope to have
+implemented at a lower level (as part of the native compiler's code generation).
+Given that, the interface is somewhat spartan and intended for use within internal
+data structures.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/blit/">Blit</a>.S <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/type:t">t</a> 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/invariant/">Invariant</a>.S <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : len:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ~len</code> returns an obj-array of length <code>len</code>, all of whose indices have value
+<code>Obj.repr 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:copy">
+  <a href="index.html#/val:copy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> copy : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>copy t</code> returns a new array with the same elements as <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:singleton">
+  <a href="index.html#/val:singleton" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> singleton : <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:empty">
+  <a href="index.html#/val:empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> empty : <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>get t i</code> and <code>unsafe_get t i</code> return the object at index <code>i</code>. <code>set t i o</code> and
+<code>unsafe_set t i o</code> set index <code>i</code> to <code>o</code>. In no case is the object copied. The
+<code>unsafe_*</code> variants omit the bounds check of <code>i</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_get">
+  <a href="index.html#/val:unsafe_get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_get : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_set">
+  <a href="index.html#/val:unsafe_set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_set : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_set_assuming_currently_int">
+  <a href="index.html#/val:unsafe_set_assuming_currently_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_set_assuming_currently_int : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/obj/">Obj</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/obj/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unsafe_set_assuming_currently_int t i obj</code> sets index <code>i</code> of <code>t</code> to <code>obj</code>, but only
+works correctly if <code>Obj.is_int (get t i)</code>. This precondition saves a dynamic
+check.</p>
+      
+      <p><code>unsafe_set_int_assuming_currently_int</code> is similar, except the value being set is an
+int.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_set_int_assuming_currently_int">
+  <a href="index.html#/val:unsafe_set_int_assuming_currently_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_set_int_assuming_currently_int : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_clear_if_pointer">
+  <a href="index.html#/val:unsafe_clear_if_pointer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_clear_if_pointer : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unsafe_clear_if_pointer t i</code> prevents <code>t.(i)</code> from pointing to anything to prevent
+space leaks. It does this by setting <code>t.(i)</code> to <code>Obj.repr 0</code>. As a performance hack,
+it only does this when <code>not (Obj.is_int t.(i))</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:truncate">
+  <a href="index.html#/val:truncate" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> truncate : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>truncate t ~len</code> shortens <code>t</code>'s length to <code>len</code>. It is an error if <code>len &lt;= 0</code> or
+<code>len &gt; length t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

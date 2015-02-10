@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Info</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Info</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Info</code> is a library for lazily constructing human-readable information as a string or
+sexp, with a primary use being error messages. Using <code>Info</code> is often preferable to
+<code>sprintf</code> or manually constructing strings because you don't have to eagerly construct
+the string --- you only need to pay when you actually want to display the info. which
+for many applications is rare. Using <code>Info</code> is also better than creating custom
+exceptions because you have more control over the format.</p>
+      
+      <p>Info is intended to be constructed in the following style; for simple info, you write:</p>
+      <pre><code>Info.of_string &quot;Unable to find file&quot;</code></pre>
+      <p>Or for a more descriptive <code>Info</code> without attaching any content (but evaluating the
+result eagerly):</p>
+      <pre><code>Info.createf &quot;Process %s exited with code %d&quot; process exit_code</code></pre>
+      <p>For info where you want to attach some content, you would write:</p>
+      <pre><code>Info.create &quot;Unable to find file&quot; filename &lt;:sexp_of&lt; string &gt;&gt;</code></pre>
+      <p>Or even,</p>
+      <pre><code>    Info.create &quot;price too big&quot; (price, [`Max max_price])
+      (&lt;:sexp_of&lt; float * [`Max of float] &gt;&gt;)</code></pre>
+      <p>Note that an <code>Info.t</code> can be created from any arbritrary sexp with <code>Info.t_of_sexp</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string_hum">
+  <a href="index.html#/val:to_string_hum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string_hum : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>to_string_hum</code> forces the lazy message, which might be an expensive operation.</p>
+      
+      <p><code>to_string_hum</code> usually produces a sexp; however, it is guaranteed that <code>to_string_hum
+    (of_string s) = s</code>.</p>
+      
+      <p>If this string is going to go into a log file, you may find it useful to ensure that
+the string is only one line long. To do this, use <code>to_string_mach t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string_mach">
+  <a href="index.html#/val:to_string_mach" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string_mach : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>to_string_mach t</code> outputs <code>t</code> as a sexp on a single-line.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string_hum_deprecated">
+  <a href="index.html#/val:to_string_hum_deprecated" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string_hum_deprecated : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>old version (pre 109.61) of <code>to_string_hum</code> that some applications rely on.</p>
+      
+      <p>Calls should be replaced with <code>to_string_mach t</code>, which outputs more parenthesis and
+backslashes.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_string">
+  <a href="index.html#/val:of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_string : string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_lazy">
+  <a href="index.html#/val:of_lazy" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_lazy : string <a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/">Lazy</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/lazy/#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Be careful that the body of the lazy or thunk does not access mutable data, since it
+will only be called at an undetermined later point.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_thunk">
+  <a href="index.html#/val:of_thunk" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_thunk : (unit <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?here:Source_code_position0.t <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>For <code>create msg z sexp_of_z</code>, be careful to use only immutable values for <code>z</code>, or be
+aware that <code>z</code> will be lazily converted to a sexp at a later point in time, which will
+pick up the then-current state of <code>z</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:createf">
+  <a href="index.html#/val:createf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> createf : ('a, unit, string, <a href="index.html#/type:t">t</a>) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p>Construct an error containing only a string from a format. This eagerly constructs
+the string.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tag">
+  <a href="index.html#/val:tag" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tag : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:tag_arg">
+  <a href="index.html#/val:tag_arg" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tag_arg : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_list">
+  <a href="index.html#/val:of_list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_list : ?trunc_after:int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_exn">
+  <a href="index.html#/val:of_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_exn : ?backtrace:[ <div class="cons">| `Get</div><div class="cons">| `This <span class="keyword">of</span> string</div> ] <span class="rarr"><span>-&gt;</span></span> exn <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_exn">
+  <a href="index.html#/val:to_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_exn : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> exn
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pp">
+  <a href="index.html#/val:pp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pp : <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_t">
+  <a href="index.html#/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : <a href="index.html#/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_t">
+  <a href="index.html#/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : <a href="index.html#/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_t__">
+  <a href="index.html#/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_t">
+  <a href="index.html#/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : <a href="index.html#/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_t">
+  <a href="index.html#/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : <a href="index.html#/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_t">
+  <a href="index.html#/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : <a href="index.html#/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_t">
+  <a href="index.html#/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : <a href="index.html#/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Univ_map</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Univ_map</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Universal/heterogeneous maps.</p>
+      
+      <p>These maps are useful for storing values of arbitrary type in a single map. In order
+to recover a value, it must be looked up with exactly the <code>Key.t</code> it was stored in.
+In other words, given different <code>Key.t</code>'s from the same <code>string</code>, one will not be able
+to recover the key stored in the other one.</p>
+      
+      <p>This is similar to <code>Univ</code> in spirit, and is indeed built on top of <code>Univ</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/invariant/">Invariant</a>.S <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:empty">
+  <a href="index.html#/val:empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> empty : <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_empty">
+  <a href="index.html#/val:is_empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_empty : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key">
+  <a href="index.html#/module:Key" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Key : <span class="keyword">module type of</span> <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A key in a <code>Univ_map</code> is just a <code>Type_equal.Id</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Key/type:t">
+  <a href="index.html#/module:Key/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t = 'a <a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/">Type_equal</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/#/module:Id">Id</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/#/module:Id/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/module:Uid">
+  <a href="index.html#/module:Key/module:Uid" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Uid = <a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/">Type_equal</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/#/module:Id">Id</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/#/module:Id/module:Uid">Uid</a></div>
+      
+      <div class="doc">
+        
+      <p>Every <code>Id.t</code> contains a unique id that is distinct from the <code>Uid.t</code> in any other
+<code>Id.t</code>.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:uid">
+  <a href="index.html#/module:Key/val:uid" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> uid : 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Key/module:Uid">Uid</a>.<a href="index.html#/module:Key/module:Uid/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:create">
+  <a href="index.html#/module:Key/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : name:string <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ~name</code> defines a new type identity. Two calls to <code>create</code> will result in
+two distinct identifiers, even for the same arguments with the same type. If the
+type <code>'a</code> doesn't support sexp conversion, then a good practice is to have the
+converter be <code>&lt;:sexp_of&lt; _ &gt;&gt;</code>, (or <code>sexp_of_opaque</code>, if not using pa_sexp).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:hash">
+  <a href="index.html#/module:Key/val:hash" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> hash : 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>accessors</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:name">
+  <a href="index.html#/module:Key/val:name" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> name : 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:to_sexp">
+  <a href="index.html#/module:Key/val:to_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_sexp : 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:same">
+  <a href="index.html#/module:Key/val:same" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> same : 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>same_witness t1 t2</code> and <code>same_witness_exn t1 t2</code> return a type equality proof iff
+the two identifiers are the same (i.e. physically equal, resulting from the same
+call to <code>create</code>). This is a useful way to achieve a sort of dynamic typing.
+<code>same_witness</code> does not allocate a <code>Some</code> every time it is called.</p>
+      
+      <p><code>same t1 t2 = is_some (same_witness t1 t2)</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:same_witness">
+  <a href="index.html#/module:Key/val:same_witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> same_witness : 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/">Type_equal</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/#/type:equal">equal</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:same_witness_exn">
+  <a href="index.html#/module:Key/val:same_witness_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> same_witness_exn : 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/">Type_equal</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/type_equal/#/type:equal">equal</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Key/val:sexp_of_t">
+  <a href="index.html#/module:Key/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mem">
+  <a href="index.html#/val:mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find">
+  <a href="index.html#/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_exn">
+  <a href="index.html#/val:find_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_exn : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Ok <span class="keyword">of</span> <a href="index.html#/type:t">t</a></div><div class="cons">| `Duplicate</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_exn">
+  <a href="index.html#/val:add_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_exn : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:change">
+  <a href="index.html#/val:change" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> change : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a option <span class="rarr"><span>-&gt;</span></span> 'a option) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:change_exn">
+  <a href="index.html#/val:change_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> change_exn : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Key">Key</a>.<a href="index.html#/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_default">
+  <a href="index.html#/module:With_default" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> With_default : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>keys with associated default values, so that <code>find</code> is no longer partial</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:With_default/module:Key">
+  <a href="index.html#/module:With_default/module:Key" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Key : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:With_default/module:Key/type:t">
+  <a href="index.html#/module:With_default/module:Key/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_default/module:Key/val:create">
+  <a href="index.html#/module:With_default/module:Key/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : default:'a <span class="rarr"><span>-&gt;</span></span> name:string <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:With_default/module:Key/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_default/val:set">
+  <a href="index.html#/module:With_default/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:With_default/module:Key">Key</a>.<a href="index.html#/module:With_default/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_default/val:find">
+  <a href="index.html#/module:With_default/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:With_default/module:Key">Key</a>.<a href="index.html#/module:With_default/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_default/val:change">
+  <a href="index.html#/module:With_default/val:change" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> change : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:With_default/module:Key">Key</a>.<a href="index.html#/module:With_default/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_fold">
+  <a href="index.html#/module:With_fold" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> With_fold : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>keys that map to an accumulator value with an associated fold operation</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:With_fold/module:Key">
+  <a href="index.html#/module:With_fold/module:Key" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Key : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:With_fold/module:Key/type:t">
+  <a href="index.html#/module:With_fold/module:Key/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b) t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_fold/module:Key/val:create">
+  <a href="index.html#/module:With_fold/module:Key/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : init:'b <span class="rarr"><span>-&gt;</span></span> f:('b <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> name:string <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/module:With_fold/module:Key/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_fold/val:set">
+  <a href="index.html#/module:With_fold/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/module:With_fold/module:Key">Key</a>.<a href="index.html#/module:With_fold/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_fold/val:find">
+  <a href="index.html#/module:With_fold/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/module:With_fold/module:Key">Key</a>.<a href="index.html#/module:With_fold/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'b
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_fold/val:add">
+  <a href="index.html#/module:With_fold/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/module:With_fold/module:Key">Key</a>.<a href="index.html#/module:With_fold/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_fold/val:change">
+  <a href="index.html#/module:With_fold/val:change" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> change : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, 'b) <a href="index.html#/module:With_fold/module:Key">Key</a>.<a href="index.html#/module:With_fold/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('b <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Multi">
+  <a href="index.html#/module:Multi" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Multi : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>list-accumulating keys with a default value of the empty list</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Multi/module:Key">
+  <a href="index.html#/module:Multi/module:Key" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Key : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Multi/module:Key/type:t">
+  <a href="index.html#/module:Multi/module:Key/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Multi/module:Key/val:create">
+  <a href="index.html#/module:Multi/module:Key/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : name:string <span class="rarr"><span>-&gt;</span></span> ('a <span class="rarr"><span>-&gt;</span></span> <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Multi/module:Key/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Multi/val:set">
+  <a href="index.html#/module:Multi/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Multi/module:Key">Key</a>.<a href="index.html#/module:Multi/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Multi/val:find">
+  <a href="index.html#/module:Multi/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Multi/module:Key">Key</a>.<a href="index.html#/module:Multi/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Multi/val:add">
+  <a href="index.html#/module:Multi/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Multi/module:Key">Key</a>.<a href="index.html#/module:Multi/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Multi/val:change">
+  <a href="index.html#/module:Multi/val:change" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> change : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Multi/module:Key">Key</a>.<a href="index.html#/module:Multi/module:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a list <span class="rarr"><span>-&gt;</span></span> 'a list) <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

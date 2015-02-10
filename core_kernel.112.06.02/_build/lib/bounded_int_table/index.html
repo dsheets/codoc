@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Bounded_int_table</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Bounded_int_table</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A <code>Bounded_int_table</code> is a table whose keys can be mapped to integers in a fixed
+range, 0 ... num_keys-1, where <code>num_keys</code> is specified at table-creation time. The
+purpose of <code>Bounded_int_table</code> is to be faster than <code>Hashtbl</code> in situations where one
+is willing to pay a space cost for the speed.</p>
+      
+      <p><code>Bounded_int_table</code> presents a subset of the <code>Hashtbl</code> interface. The key type can be
+any type, but table creation requires a <code>key_to_int</code> function, which will be used
+to extract the integer of all keys. If multiple keys map to the same integer, then
+only one of them can be in the table at a time. Any operation that supplies a key
+whose corresponding integer is outside the allowed range for the table will cause an
+exception.</p>
+      
+      <p>A <code>Bounded_int_table</code> is implemented using two fixed size arrays of size <code>num_keys</code>,
+which are supplied at table-creation time. The space used does not depend on the
+<code>length</code> of the table but rather only on <code>num_keys</code>. Operations that deal with a
+single element (find, mem, add, remove, set) take constant time, and perform one or
+two array operations. Operations that deal with all of the keys defined in the table
+(data, fold, iter, iter_vals, keys, to_alist) take time proportional to the <code>length</code>
+of the table, not <code>num_keys</code>.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('key, 'data) t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:table">
+  <a href="index.html#/type:table" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> ('a, 'b) table = ('a, 'b) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../menhir.20141215/src/_stage1/invariant/">Invariant</a>.S2 <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'b) t := ('a, 'b) <a href="index.html#/type:t">t</a> 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Equal.S2 <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'b) t := ('a, 'b) <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?sexp_of_key:('key <span class="rarr"><span>-&gt;</span></span> <a href="../../../../typerep.112.06.00/_build/lib/std_internal/">Std_internal</a>.Sexp.t) <span class="rarr"><span>-&gt;</span></span> num_keys:int <span class="rarr"><span>-&gt;</span></span> key_to_int:('key <span class="rarr"><span>-&gt;</span></span> int) <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> ('key, 'data) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ~num_keys ~key_to_int</code> returns a table where the keys can map to 0
+.. num_keys-1, according to <code>key_to_int</code>. It is an error if <code>num_keys &lt; 0</code>.</p>
+      
+      <p><code>sexp_of_key</code>, if supplied, will be used to display keys in error messages.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:keys">
+  <a href="index.html#/val:keys" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> keys : ('key, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'key list
+    
+      <div class="doc">
+        
+      <p>Standard hashtbl functions.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:data">
+  <a href="index.html#/val:data" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> data : (_, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'data list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find">
+  <a href="index.html#/val:find" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'key <span class="rarr"><span>-&gt;</span></span> 'data option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_exn">
+  <a href="index.html#/val:find_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_exn : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'key <span class="rarr"><span>-&gt;</span></span> 'data
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:find_or_add">
+  <a href="index.html#/val:find_or_add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> find_or_add : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'key <span class="rarr"><span>-&gt;</span></span> default:(unit <span class="rarr"><span>-&gt;</span></span> 'data) <span class="rarr"><span>-&gt;</span></span> 'data
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold">
+  <a href="index.html#/val:fold" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'accum <span class="rarr"><span>-&gt;</span></span> f:(key:'key <span class="rarr"><span>-&gt;</span></span> data:'data <span class="rarr"><span>-&gt;</span></span> 'accum <span class="rarr"><span>-&gt;</span></span> 'accum) <span class="rarr"><span>-&gt;</span></span> 'accum
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter">
+  <a href="index.html#/val:iter" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(key:'key <span class="rarr"><span>-&gt;</span></span> data:'data <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter_vals">
+  <a href="index.html#/val:iter_vals" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter_vals : (_, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('data <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_mapi">
+  <a href="index.html#/val:filter_mapi" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_mapi : ('key, 'data1) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(key:'key <span class="rarr"><span>-&gt;</span></span> data:'data1 <span class="rarr"><span>-&gt;</span></span> 'data2 option) <span class="rarr"><span>-&gt;</span></span> ('key, 'data2) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:filter_map">
+  <a href="index.html#/val:filter_map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> filter_map : ('key, 'data1) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('data1 <span class="rarr"><span>-&gt;</span></span> 'data2 option) <span class="rarr"><span>-&gt;</span></span> ('key, 'data2) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mapi">
+  <a href="index.html#/val:mapi" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mapi : ('key, 'data1) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(key:'key <span class="rarr"><span>-&gt;</span></span> data:'data1 <span class="rarr"><span>-&gt;</span></span> 'data2) <span class="rarr"><span>-&gt;</span></span> ('key, 'data2) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:map">
+  <a href="index.html#/val:map" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> map : ('key, 'data1) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('data1 <span class="rarr"><span>-&gt;</span></span> 'data2) <span class="rarr"><span>-&gt;</span></span> ('key, 'data2) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:for_alli">
+  <a href="index.html#/val:for_alli" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> for_alli : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(key:'key <span class="rarr"><span>-&gt;</span></span> data:'data <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:existsi">
+  <a href="index.html#/val:existsi" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> existsi : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(key:'key <span class="rarr"><span>-&gt;</span></span> data:'data <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:for_all">
+  <a href="index.html#/val:for_all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> for_all : (_, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('data <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:exists">
+  <a href="index.html#/val:exists" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> exists : (_, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:('data <span class="rarr"><span>-&gt;</span></span> bool) <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:mem">
+  <a href="index.html#/val:mem" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> mem : ('key, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'key <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:remove">
+  <a href="index.html#/val:remove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> remove : ('key, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'key <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set">
+  <a href="index.html#/val:set" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set : ('a, 'b) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> key:'a <span class="rarr"><span>-&gt;</span></span> data:'b <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add">
+  <a href="index.html#/val:add" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add : ('a, 'b) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> key:'a <span class="rarr"><span>-&gt;</span></span> data:'b <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `Ok</div><div class="cons">| `Duplicate <span class="keyword">of</span> 'b</div> ]
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_exn">
+  <a href="index.html#/val:add_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_exn : ('a, 'b) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> key:'a <span class="rarr"><span>-&gt;</span></span> data:'b <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_alist">
+  <a href="index.html#/val:to_alist" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_alist : ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('key * 'data) list
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key">
+  <a href="index.html#/module:With_key" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> With_key : <span class="keyword">functor</span> (Key : <span class="keyword">sig</span>
+    <div class="sig">
+  <div class="region" id="/module:With_key/modarg:1:Key/type:t">
+  <a href="index.html#/module:With_key/modarg:1:Key/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:to_int">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:to_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_int : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:t_of_sexp">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:sexp_of_t">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:bin_t">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:bin_read_t">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:__bin_read_t__">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : (int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:bin_reader_t">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:bin_size_t">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:bin_write_t">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/modarg:1:Key/val:bin_writer_t">
+  <a href="index.html#/module:With_key/modarg:1:Key/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : <a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    ) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:With_key/type:t">
+  <a href="index.html#/module:With_key/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'data t = (<a href="index.html#/module:With_key/modarg:1:Key">Key</a>.<a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a>, 'data) <a href="index.html#/type:table">table</a>
+    
+      <div class="doc">
+        
+      <p>Serialization of a bounded int table using <code>bin_io</code> or <code>sexp</code> preserves <code>num_keys</code>,
+but only takes space proportional to the <code>length</code> of the table.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:create">
+  <a href="index.html#/module:With_key/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : num_keys:int <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:of_alist">
+  <a href="index.html#/module:With_key/val:of_alist" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_alist : (<a href="index.html#/module:With_key/modarg:1:Key">Key</a>.<a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> * 'data) list <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> <a href="../../../../core_kernel.112.06.02/_build/lib/or_error/">Or_error</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/or_error/#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:of_alist_exn">
+  <a href="index.html#/module:With_key/val:of_alist_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_alist_exn : (<a href="index.html#/module:With_key/modarg:1:Key">Key</a>.<a href="index.html#/module:With_key/modarg:1:Key/type:t">t</a> * 'data) list <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:t_of_sexp">
+  <a href="index.html#/module:With_key/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'data) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:sexp_of_t">
+  <a href="index.html#/module:With_key/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('data <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:bin_t">
+  <a href="index.html#/module:With_key/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : 'data Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:bin_read_t">
+  <a href="index.html#/module:With_key/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : 'data Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:__bin_read_t__">
+  <a href="index.html#/module:With_key/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : 'data Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:bin_reader_t">
+  <a href="index.html#/module:With_key/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : 'data Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:bin_size_t">
+  <a href="index.html#/module:With_key/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : 'data Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:bin_write_t">
+  <a href="index.html#/module:With_key/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : 'data Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:With_key/val:bin_writer_t">
+  <a href="index.html#/module:With_key/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : 'data Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'data <a href="index.html#/module:With_key/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:debug">
+  <a href="index.html#/val:debug" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> debug : bool <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a>
+    
+      <div class="doc">
+        
+      <p>set <code>debug := true</code> to turn on debugging, including potentially slow invariant
+checking.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('key <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('data <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('key, 'data) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

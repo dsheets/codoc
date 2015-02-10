@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Dequeue</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Dequeue</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A double ended queue that can shrink and expand on both ends.</p>
+      
+      <p>An index is assigned to an element when it enters the queue, and the index of an
+element is static (i.e. an index refers to a distinct element until that element is
+removed from the queue, no matter how many intervening push/pop operations occur).</p>
+      
+      <p>One consequence of this is that the minimum index may be &lt; 0.</p>
+      
+      <p>The &quot;front&quot; is the smallest valid index, while the &quot;back&quot; is the largest.</p>
+      
+      <p>All operations are amortized O(1) with a small constant.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/binary_searchable/">Binary_searchable</a>.S1 <span class="keyword">with</span> <span class="keyword">type</span> 'a t := 'a <a href="index.html#/type:t">t</a> 
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Container.S1 <span class="keyword">with</span> <span class="keyword">type</span> 'a t := 'a <a href="index.html#/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : ?initial_length:int <span class="rarr"><span>-&gt;</span></span> ?never_shrink:bool <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ?initial_length ?never_shrink ()</code> create a new <code>t</code>. <code>initial_length</code> is the
+initial length of the dequeue; it will be able to hold <code>initial_length</code> elements
+without resizing. It must be positive. If <code>never_shrink</code> is true, the physical array
+will never shrink; only expand. If <code>initial_length</code> is given without <code>never_shrink</code>
+then <code>never_shrink</code> is presumed to be <code>true</code>, otherwise <code>never_shrink</code> defaults to
+<code>false</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:front_index">
+  <a href="index.html#/val:front_index" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> front_index : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option
+    
+      <div class="doc">
+        
+      <p><code>front_index t</code> return the index of the front item in <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:front_index_exn">
+  <a href="index.html#/val:front_index_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> front_index_exn : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>front_index_exn t</code> throws an exception if <code>t</code> is empty, otherwise returns the index
+of the front item in <code>t</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:back_index">
+  <a href="index.html#/val:back_index" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> back_index : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int option
+    
+      <div class="doc">
+        
+      <p><code>back_index t</code> return the index of the back item in <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:back_index_exn">
+  <a href="index.html#/val:back_index_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> back_index_exn : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>back_index_exn t</code> throws an exception if <code>t</code> is empty, otherwise returns the index
+of the back item in <code>t</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get_opt">
+  <a href="index.html#/val:get_opt" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get_opt : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p><code>get_opt t i</code> return the element at index <code>i</code>. Return <code>None</code> if <code>i</code> is invalid.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:get">
+  <a href="index.html#/val:get" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> get : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>get t i</code> return the element at index <code>i</code>. Raise an exception if <code>i</code> is
+invalid.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:peek">
+  <a href="index.html#/val:peek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> peek : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `back</div><div class="cons">| `front</div> ] <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p><code>peek t back_or_front</code> return the value at the back or front of the dequeue without
+removing it.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:peek_front">
+  <a href="index.html#/val:peek_front" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> peek_front : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:peek_front_exn">
+  <a href="index.html#/val:peek_front_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> peek_front_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:peek_back">
+  <a href="index.html#/val:peek_back" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> peek_back : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:peek_back_exn">
+  <a href="index.html#/val:peek_back_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> peek_back_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_exn">
+  <a href="index.html#/val:set_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_exn t i v</code> mutate the element at <code>i</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iter'">
+  <a href="index.html#/val:iter'" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iter' : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `front_to_back</div><div class="cons">| `back_to_front</div> ] <span class="rarr"><span>-&gt;</span></span> f:('a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iter' t ~f</code> iter over the elements of <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iteri">
+  <a href="index.html#/val:iteri" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iteri : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iteri t ~f</code> iter over the elements of t <code>`front_to_back</code> passing in the index.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:iteri'">
+  <a href="index.html#/val:iteri'" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> iteri' : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `front_to_back</div><div class="cons">| `back_to_front</div> ] <span class="rarr"><span>-&gt;</span></span> f:(int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit) <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>iteri' t ~f</code> as <code>iter</code>, but also passes in the index of the current element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fold'">
+  <a href="index.html#/val:fold'" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fold' : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `front_to_back</div><div class="cons">| `back_to_front</div> ] <span class="rarr"><span>-&gt;</span></span> init:'b <span class="rarr"><span>-&gt;</span></span> f:('b <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>fold' t ~init ~f</code> fold over the elements of <code>t</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:foldi">
+  <a href="index.html#/val:foldi" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> foldi : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> init:'b <span class="rarr"><span>-&gt;</span></span> f:(int <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>foldi t ~init ~f</code> as <code>fold</code>, but also passes in the index of the current element.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:foldi'">
+  <a href="index.html#/val:foldi'" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> foldi' : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `front_to_back</div><div class="cons">| `back_to_front</div> ] <span class="rarr"><span>-&gt;</span></span> init:'b <span class="rarr"><span>-&gt;</span></span> f:(int <span class="rarr"><span>-&gt;</span></span> 'b <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> 'b) <span class="rarr"><span>-&gt;</span></span> 'b
+    
+      <div class="doc">
+        
+      <p><code>foldi' t ~init ~f</code> as <code>fold'</code>, but also passes in the index of the current element to
+<code>f</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue">
+  <a href="index.html#/val:enqueue" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `back</div><div class="cons">| `front</div> ] <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>enqueue t back_or_front v</code> push <code>v</code> onto the <code>back_or_front</code> of <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue_front">
+  <a href="index.html#/val:enqueue_front" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue_front : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:enqueue_back">
+  <a href="index.html#/val:enqueue_back" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> enqueue_back : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>clear t</code> removes all elements from <code>t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drop">
+  <a href="index.html#/val:drop" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop : ?n:int <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `back</div><div class="cons">| `front</div> ] <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>drop ?n t back_or_front</code> drop <code>n</code> elements (default 1) from the <code>back_or_front</code> of
+<code>t</code>. If <code>t</code> has fewer than <code>n</code> elements then it is cleared.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drop_front">
+  <a href="index.html#/val:drop_front" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop_front : ?n:int <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:drop_back">
+  <a href="index.html#/val:drop_back" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> drop_back : ?n:int <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dequeue">
+  <a href="index.html#/val:dequeue" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dequeue : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `back</div><div class="cons">| `front</div> ] <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+      <div class="doc">
+        
+      <p><code>dequeue t back_or_front</code> remove and return the <code>back_or_front</code> of <code>t</code></p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dequeue_exn">
+  <a href="index.html#/val:dequeue_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dequeue_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> [ <div class="cons">| `back</div><div class="cons">| `front</div> ] <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dequeue_front">
+  <a href="index.html#/val:dequeue_front" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dequeue_front : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dequeue_front_exn">
+  <a href="index.html#/val:dequeue_front_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dequeue_front_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dequeue_back">
+  <a href="index.html#/val:dequeue_back" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dequeue_back : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dequeue_back_exn">
+  <a href="index.html#/val:dequeue_back_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dequeue_back_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:t_of_sexp">
+  <a href="index.html#/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : (Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('a <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_t">
+  <a href="index.html#/val:bin_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_t : 'a Bin_prot.Type_class.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_read_t">
+  <a href="index.html#/val:bin_read_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_read_t : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:__bin_read_t__">
+  <a href="index.html#/val:__bin_read_t__" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> __bin_read_t__ : 'a Bin_prot.Read.reader <span class="rarr"><span>-&gt;</span></span> (int <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>) Bin_prot.Read.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_reader_t">
+  <a href="index.html#/val:bin_reader_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_reader_t : 'a Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.reader
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_size_t">
+  <a href="index.html#/val:bin_size_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_size_t : 'a Bin_prot.Size.sizer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Size.sizer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_write_t">
+  <a href="index.html#/val:bin_write_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_write_t : 'a Bin_prot.Write.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Write.writer
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bin_writer_t">
+  <a href="index.html#/val:bin_writer_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bin_writer_t : 'a Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a> Bin_prot.Type_class.writer
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

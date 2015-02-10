@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Bigbuffer</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Bigbuffer</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Extensible string buffers based on Bigstrings.</p>
+      
+      <p>This module implements string buffers that automatically expand as necessary. It
+provides accumulative concatenation of strings in quasi-linear time (instead of
+quadratic time when strings are concatenated pairwise).</p>
+      
+      <p>This implementation uses Bigstrings instead of strings. This removes the 16MB limit on
+buffer size, and improves I/O-performance when reading/writing from/to channels.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t
+    
+      <div class="doc">
+        
+      <p>The abstract type of buffers.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : int <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create n</code> returns a fresh buffer, initially empty.
+The <code>n</code> parameter is the initial size of the internal string
+that holds the buffer contents. That string is automatically
+reallocated when more than <code>n</code> characters are stored in the buffer,
+but shrinks back to <code>n</code> characters when <code>reset</code> is called.
+For best performance, <code>n</code> should be of the same order of magnitude
+as the number of characters that are expected to be stored in
+the buffer (for instance, 80 for a buffer that holds one output
+line). Nothing bad will happen if the buffer grows beyond that
+limit, however. In doubt, take <code>n = 16</code> for instance.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:contents">
+  <a href="index.html#/val:contents" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> contents : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p>Return a copy of the current contents of the buffer.
+The buffer itself is unchanged.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:big_contents">
+  <a href="index.html#/val:big_contents" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> big_contents : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.t
+    
+      <div class="doc">
+        
+      <p>Return a copy of the current contents of the buffer as a bigstring.
+The buffer itself is unchanged.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:volatile_contents">
+  <a href="index.html#/val:volatile_contents" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> volatile_contents : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../core.112.06.02/_build/lib/bigstring/">Bigstring</a>.t
+    
+      <div class="doc">
+        
+      <p>Return the actual underlying bigstring used by this bigbuffer.
+No copying is involved. To be safe, use and finish with the returned value
+before calling any other function in this module on the same <code>Bigbuffer.t</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <a href="../../../../core_kernel.112.06.02/_build/lib/blit/">Blit</a>.S_distinct <span class="keyword">with</span> <span class="keyword">type</span> src := <a href="index.html#/type:t">t</a> <span class="keyword">and</span> <span class="keyword">type</span> dst := string 
+    </div>
+  
+      <div class="doc">
+        
+      <p><code>blit ~src ~src_pos ~dst ~dst_pos ~len</code> copies <code>len</code> characters from
+the current contents of the buffer <code>src</code>, starting at offset <code>src_pos</code>
+to string <code>dst</code>, starting at character <code>dst_pos</code>.</p>
+      
+      <p>Raise <code>Invalid_argument</code> if <code>src_pos</code> and <code>len</code> do not designate a valid
+substring of <code>src</code>, or if <code>dst_pos</code> and <code>len</code> do not designate a valid
+substring of <code>dst</code>.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:nth">
+  <a href="index.html#/val:nth" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nth : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> char
+    
+      <div class="doc">
+        
+      <p>get the (zero-based) n-th character of the buffer. Raise
+<code>Invalid_argument</code> if index out of bounds</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p>Return the number of characters currently contained in the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:clear">
+  <a href="index.html#/val:clear" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> clear : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Empty the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reset">
+  <a href="index.html#/val:reset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reset : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>Empty the buffer and deallocate the internal string holding the
+buffer contents, replacing it with the initial internal string
+of length <code>n</code> that was allocated by <a href="../../../../core_kernel.112.06.02/_build/lib/bigbuffer/">Bigbuffer</a>.<a href="../../../../core_kernel.112.06.02/_build/lib/bigbuffer/#/val:create">create</a> <code>n</code>.
+For long-lived buffers that may have grown a lot, <code>reset</code> allows
+faster reclamation of the space used by the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_char">
+  <a href="index.html#/val:add_char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_char : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> char <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_char b c</code> appends the character <code>c</code> at the end of the buffer <code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_string">
+  <a href="index.html#/val:add_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_string : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_string b s</code> appends the string <code>s</code> at the end of the buffer <code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_substring">
+  <a href="index.html#/val:add_substring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_substring : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_substring b s ofs len</code> takes <code>len</code> characters from offset
+<code>ofs</code> in string <code>s</code> and appends them at the end of the buffer <code>b</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_substitute">
+  <a href="index.html#/val:add_substitute" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_substitute : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (string <span class="rarr"><span>-&gt;</span></span> string) <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_substitute b f s</code> appends the string pattern <code>s</code> at the end
+of the buffer <code>b</code> with substitution.
+The substitution process looks for variables into
+the pattern and substitutes each variable name by its value, as
+obtained by applying the mapping <code>f</code> to the variable name. Inside the
+string pattern, a variable name immediately follows a non-escaped
+<code>$</code> character and is one of the following:</p>
+      <ul><li>a non empty sequence of alphanumeric or <code>_</code> characters,</li><li>an arbitrary sequence of characters enclosed by a pair of
+matching parentheses or curly brackets.
+An escaped <code>$</code> character is a <code>$</code> that immediately follows a backslash
+character; it then stands for a plain <code>$</code>.
+Raise <code>Not_found</code> if the closing character of a parenthesized variable
+cannot be found.</li></ul>
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:add_buffer">
+  <a href="index.html#/val:add_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> add_buffer : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>add_buffer b1 b2</code> appends the current contents of buffer <code>b2</code>
+at the end of buffer <code>b1</code>. <code>b2</code> is not modified.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        
+      <p>NOTE: additions</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/module:Format">
+  <a href="index.html#/module:Format" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Format : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Format/val:formatter_of_buffer">
+  <a href="index.html#/module:Format/val:formatter_of_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> formatter_of_buffer : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Format/val:bprintf">
+  <a href="index.html#/module:Format/val:bprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bprintf : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, <a href="../../../../ocaml.4.02.1+doc/stdlib/format/">Format</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/format/#/type:formatter">formatter</a>, unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format">format</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Printf">
+  <a href="index.html#/module:Printf" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Printf : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Printf/val:bprintf">
+  <a href="index.html#/module:Printf/val:bprintf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bprintf : <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

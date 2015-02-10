@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Syslog</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Syslog</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Send log messages via the Unix Syslog interface.</p>
+      
+      <p>Syslog is great for system daemons that log free-form human readable status messages
+or other debugging output, but not so great for archiving structured data. Access to
+read Syslog's messages may also be restricted. <code>syslogd</code>'s logs are also not
+necessarily kept forever. For application level logging consider
+[root:Core_extended].Std.Logger instead.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Open_option">
+  <a href="index.html#/module:Open_option" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Open_option : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Open_option/type:t">
+  <a href="index.html#/module:Open_option/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Open_option/type:t/cons:PID">
+  <a href="index.html#/module:Open_option/type:t/cons:PID" class="anchor">#</a>
+  | PID
+  </div>
+  </td><td>(*</td><td class="doc">Include PID with each message</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Open_option/type:t/cons:CONS">
+  <a href="index.html#/module:Open_option/type:t/cons:CONS" class="anchor">#</a>
+  | CONS
+  </div>
+  </td><td>(*</td><td class="doc">Write directly to system console if there is an error
+while sending to system logger</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Open_option/type:t/cons:ODELAY">
+  <a href="index.html#/module:Open_option/type:t/cons:ODELAY" class="anchor">#</a>
+  | ODELAY
+  </div>
+  </td><td>(*</td><td class="doc">Delay opening of the connection until syslog is called</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Open_option/type:t/cons:NDELAY">
+  <a href="index.html#/module:Open_option/type:t/cons:NDELAY" class="anchor">#</a>
+  | NDELAY
+  </div>
+  </td><td>(*</td><td class="doc">No delay opening connection to syslog daemon</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Open_option/type:t/cons:NOWAIT">
+  <a href="index.html#/module:Open_option/type:t/cons:NOWAIT" class="anchor">#</a>
+  | NOWAIT
+  </div>
+  </td><td>(*</td><td class="doc">Do not wait for child processes while logging message</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Open_option/type:t/cons:PERROR">
+  <a href="index.html#/module:Open_option/type:t/cons:PERROR" class="anchor">#</a>
+  | PERROR
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Open_option/val:t_of_sexp">
+  <a href="index.html#/module:Open_option/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Open_option/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Open_option/val:sexp_of_t">
+  <a href="index.html#/module:Open_option/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:Open_option/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Facility">
+  <a href="index.html#/module:Facility" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Facility : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Types of messages</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Facility/type:t">
+  <a href="index.html#/module:Facility/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:KERN">
+  <a href="index.html#/module:Facility/type:t/cons:KERN" class="anchor">#</a>
+  | KERN
+  </div>
+  </td><td>(*</td><td class="doc">Kernel messages</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:USER">
+  <a href="index.html#/module:Facility/type:t/cons:USER" class="anchor">#</a>
+  | USER
+  </div>
+  </td><td>(*</td><td class="doc">Generic user-level message (default)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:MAIL">
+  <a href="index.html#/module:Facility/type:t/cons:MAIL" class="anchor">#</a>
+  | MAIL
+  </div>
+  </td><td>(*</td><td class="doc">Mail subsystem</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:DAEMON">
+  <a href="index.html#/module:Facility/type:t/cons:DAEMON" class="anchor">#</a>
+  | DAEMON
+  </div>
+  </td><td>(*</td><td class="doc">System daemons without separate facility value</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:AUTH">
+  <a href="index.html#/module:Facility/type:t/cons:AUTH" class="anchor">#</a>
+  | AUTH
+  </div>
+  </td><td>(*</td><td class="doc">Security/authorization messages (DEPRECATED, use AUTHPRIV)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:SYSLOG">
+  <a href="index.html#/module:Facility/type:t/cons:SYSLOG" class="anchor">#</a>
+  | SYSLOG
+  </div>
+  </td><td>(*</td><td class="doc">Messages generated internally by syslogd</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LPR">
+  <a href="index.html#/module:Facility/type:t/cons:LPR" class="anchor">#</a>
+  | LPR
+  </div>
+  </td><td>(*</td><td class="doc">Line printer subsystem</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:NEWS">
+  <a href="index.html#/module:Facility/type:t/cons:NEWS" class="anchor">#</a>
+  | NEWS
+  </div>
+  </td><td>(*</td><td class="doc">USENET news subsystem</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:UUCP">
+  <a href="index.html#/module:Facility/type:t/cons:UUCP" class="anchor">#</a>
+  | UUCP
+  </div>
+  </td><td>(*</td><td class="doc">UUCP subsystem</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:CRON">
+  <a href="index.html#/module:Facility/type:t/cons:CRON" class="anchor">#</a>
+  | CRON
+  </div>
+  </td><td>(*</td><td class="doc">Clock daemon (cron and at)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:AUTHPRIV">
+  <a href="index.html#/module:Facility/type:t/cons:AUTHPRIV" class="anchor">#</a>
+  | AUTHPRIV
+  </div>
+  </td><td>(*</td><td class="doc">Security/authorization messages (private)</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:FTP">
+  <a href="index.html#/module:Facility/type:t/cons:FTP" class="anchor">#</a>
+  | FTP
+  </div>
+  </td><td>(*</td><td class="doc">FTP daemon</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL0">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL0" class="anchor">#</a>
+  | LOCAL0
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL1">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL1" class="anchor">#</a>
+  | LOCAL1
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL2">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL2" class="anchor">#</a>
+  | LOCAL2
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL3">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL3" class="anchor">#</a>
+  | LOCAL3
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL4">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL4" class="anchor">#</a>
+  | LOCAL4
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL5">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL5" class="anchor">#</a>
+  | LOCAL5
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL6">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL6" class="anchor">#</a>
+  | LOCAL6
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Facility/type:t/cons:LOCAL7">
+  <a href="index.html#/module:Facility/type:t/cons:LOCAL7" class="anchor">#</a>
+  | LOCAL7
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Facility/val:t_of_sexp">
+  <a href="index.html#/module:Facility/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Facility/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Facility/val:sexp_of_t">
+  <a href="index.html#/module:Facility/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:Facility/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Level">
+  <a href="index.html#/module:Level" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Level : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Level/type:t">
+  <a href="index.html#/module:Level/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> t = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:EMERG">
+  <a href="index.html#/module:Level/type:t/cons:EMERG" class="anchor">#</a>
+  | EMERG
+  </div>
+  </td><td>(*</td><td class="doc">System is unusable</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:ALERT">
+  <a href="index.html#/module:Level/type:t/cons:ALERT" class="anchor">#</a>
+  | ALERT
+  </div>
+  </td><td>(*</td><td class="doc">Action must be taken immediately</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:CRIT">
+  <a href="index.html#/module:Level/type:t/cons:CRIT" class="anchor">#</a>
+  | CRIT
+  </div>
+  </td><td>(*</td><td class="doc">Critical condition</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:ERR">
+  <a href="index.html#/module:Level/type:t/cons:ERR" class="anchor">#</a>
+  | ERR
+  </div>
+  </td><td>(*</td><td class="doc">Error conditions</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:WARNING">
+  <a href="index.html#/module:Level/type:t/cons:WARNING" class="anchor">#</a>
+  | WARNING
+  </div>
+  </td><td>(*</td><td class="doc">Warning conditions</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:NOTICE">
+  <a href="index.html#/module:Level/type:t/cons:NOTICE" class="anchor">#</a>
+  | NOTICE
+  </div>
+  </td><td>(*</td><td class="doc">Normal, but significant, condition</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:INFO">
+  <a href="index.html#/module:Level/type:t/cons:INFO" class="anchor">#</a>
+  | INFO
+  </div>
+  </td><td>(*</td><td class="doc">Informational message</td><td>*)</td></tr><tr class="cons"><td>
+  <div class="region" id="/module:Level/type:t/cons:DEBUG">
+  <a href="index.html#/module:Level/type:t/cons:DEBUG" class="anchor">#</a>
+  | DEBUG
+  </div>
+  </td><td>(*</td><td class="doc"><code>DEBUG</code> &lt; <code>EMERG</code></td><td>*)</td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Level/val:all">
+  <a href="index.html#/module:Level/val:all" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> all : <a href="index.html#/module:Level/type:t">t</a> list
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Stringable.S <span class="keyword">with</span> <span class="keyword">type</span> t := <a href="index.html#/module:Level/type:t">t</a> 
+    </div>
+  
+  <div class="region" id="/module:Level/val:t_of_sexp">
+  <a href="index.html#/module:Level/val:t_of_sexp" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> t_of_sexp : Sexplib.Sexp.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Level/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Level/val:sexp_of_t">
+  <a href="index.html#/module:Level/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : <a href="index.html#/module:Level/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Level/val:compare">
+  <a href="index.html#/module:Level/val:compare" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compare : <a href="index.html#/module:Level/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Level/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:setlogmask">
+  <a href="index.html#/val:setlogmask" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> setlogmask : ?allowed_levels:<a href="index.html#/module:Level">Level</a>.<a href="index.html#/module:Level/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> ?from_level:<a href="index.html#/module:Level">Level</a>.<a href="index.html#/module:Level/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?to_level:<a href="index.html#/module:Level">Level</a>.<a href="index.html#/module:Level/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p>All levels in <code>allowed_levels</code> will be allowed, and additionally all ranging from
+<code>from_level</code> to <code>to_level</code> (inclusive).</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h2 class="section level_2">Logging functions</h2>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:openlog">
+  <a href="index.html#/val:openlog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> openlog : ?id:string <span class="rarr"><span>-&gt;</span></span> ?options:<a href="index.html#/module:Open_option">Open_option</a>.<a href="index.html#/module:Open_option/type:t">t</a> list <span class="rarr"><span>-&gt;</span></span> ?facility:<a href="index.html#/module:Facility">Facility</a>.<a href="index.html#/module:Facility/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>openlog ~id ~options ~facility ()</code> opens a connection to the system logger (possibly
+delayed) using prefixed identifier <code>id</code>, <code>options</code>, and <code>facility</code>.</p>
+      
+      <p>WARNING: this function leaks the <code>id</code> argument, if provided. There is no way around
+that if syslog is called in a multi-threaded environment! Therefore it shouldn't be
+called too often. What for, anyway?</p>
+      
+      <p>Calling <code>openlog</code> before <code>syslog</code> is optional. If you forget, syslog will do it for
+you with the defaults.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:syslog">
+  <a href="index.html#/val:syslog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> syslog : ?facility:<a href="index.html#/module:Facility">Facility</a>.<a href="index.html#/module:Facility/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?level:<a href="index.html#/module:Level">Level</a>.<a href="index.html#/module:Level/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>syslog ~facility ~level message</code> logs <code>message</code> using syslog with <code>facility</code> at
+<code>level</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:syslogf">
+  <a href="index.html#/val:syslogf" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> syslogf : ?facility:<a href="index.html#/module:Facility">Facility</a>.<a href="index.html#/module:Facility/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ?level:<a href="index.html#/module:Level">Level</a>.<a href="index.html#/module:Level/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('a, unit, string, unit) <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:format4">format4</a> <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>syslog_printf</code> acts like <code>syslog</code>, but allows <code>printf</code>-style specification of the
+message.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:closelog">
+  <a href="index.html#/val:closelog" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> closelog : unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>closelog ()</code> closes the connection to the <code>syslog</code> daemon.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

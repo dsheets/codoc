@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Iobuf</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Iobuf</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>A non-moving (in the gc sense) contiguous range of bytes, useful for I/O operations.</p>
+      
+      <p>An iobuf consists of:</p>
+      <ul><li>bigstring</li><li>limits -- a subrange of the bigstring</li><li>window -- a subrange of the limits</li></ul>
+      <p>All iobuf operations are restricted to operate within the limits. Initially, the
+window of an iobuf is identical to the limits. A phantom type, &quot;seek&quot; permission,
+controls whether or not code is allowed to change the limits and window. With seek
+permission, the limits can be <code>narrow</code>ed, but can never be widened, and the window can
+be set to an arbitrary subrange of the limits.</p>
+      
+      <p>A phantom type controls whether code can read and write bytes in the bigstring (within
+the limits) or can only read them.</p>
+      
+      <p>To present a restricted view of an iobuf to a client, one can create a sub-iobuf or
+add a type constraint.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+    <div class="include">
+    <span class="keyword">include</span> <span class="keyword">sig</span> 
+    <div class="sig">
+  <div class="region" id="/type:__pa_nonrec_0">
+  <a href="index.html#/type:__pa_nonrec_0" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> __pa_nonrec_0 = Iobuf_intf.seek
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:seek">
+  <a href="index.html#/type:seek" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> seek = <a href="index.html#/type:__pa_nonrec_0">__pa_nonrec_0</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+     <span class="keyword">with</span> <span class="keyword">type</span> <a href="#/type:__pa_nonrec_0">__pa_nonrec_0</a> := Iobuf_intf.seek
+    </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> <span class="keyword">sig</span> 
+    <div class="sig">
+  <div class="region" id="/type:__pa_nonrec_1">
+  <a href="index.html#/type:__pa_nonrec_1" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> __pa_nonrec_1 = Iobuf_intf.no_seek
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:no_seek">
+  <a href="index.html#/type:no_seek" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> no_seek = <a href="index.html#/type:__pa_nonrec_1">__pa_nonrec_1</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+     <span class="keyword">with</span> <span class="keyword">type</span> <a href="#/type:__pa_nonrec_1">__pa_nonrec_1</a> := Iobuf_intf.no_seek
+    </div>
+  
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> (+'data_perm_read_write, +'seek_permission) t
+    
+      <div class="doc">
+        
+      <p>The first type parameter controls whether the iobuf can be written to. The second
+type parameter controls whether the window and limits can be changed.</p>
+      
+      <p>To allow <code>read_write</code> or <code>read_only</code> access, a function's type uses <code>_</code> rather than
+<code>read_only</code> as the type argument to <code>t</code>. Analogously, to allow <code>no_seek</code> or <code>seek</code>
+access, a function's type uses <code>_</code> rather than <code>no_seek</code> as the type argument to <code>t</code>.
+Using <code>_</code> allows the function to be directly applied to either permission. Using a
+specific permission would require code to use coercion <code>:&gt;</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Core_kernel.Std.Invariant.S2 <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'b) t := ('a, 'b) <a href="index.html#/type:t">t</a> 
+    </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Creation</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:create">
+  <a href="index.html#/val:create" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> create : len:int <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>create ~len</code> creates a new iobuf, backed by a bigstring of length <code>len</code>,
+with the limits and window set to the entire bigstring.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_bigstring">
+  <a href="index.html#/val:of_bigstring" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_bigstring : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> Core_kernel.Std.Bigstring.t <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_bigstring bigstring ~pos ~len</code> returns an iobuf backed by <code>bigstring</code>, with the
+window and limits specified starting at <code>pos</code> and of length <code>len</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_string">
+  <a href="index.html#/val:of_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_string : string <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>of_string s</code> returns a new iobuf whose contents are <code>s</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sub">
+  <a href="index.html#/val:sub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sub : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> ('d, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('d, _) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>sub t ~pos ~len</code> returns a new iobuf with limits and window set to the subrange of
+<code>t</code> specified by <code>pos</code> and <code>len</code>. <code>sub</code> preserves data permissions, but allows
+arbitrary seek permissions on the resulting iobuf.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_bounds_and_buffer">
+  <a href="index.html#/val:set_bounds_and_buffer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_bounds_and_buffer : src:(<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> dst:(_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_bounds_and_buffer ~src ~dst</code> copies bounds (ie limits + window) and shallowly
+copies the buffer from <code>src</code> to <code>dst</code>. <code>read_write</code> access is required on <code>src</code>
+because the caller might have <code>read_write</code> access to <code>dst</code>, and would after the call
+then effectively have <code>read_write</code> access to <code>src</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:set_bounds_and_buffer_sub">
+  <a href="index.html#/val:set_bounds_and_buffer_sub" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> set_bounds_and_buffer_sub : ?pos:int <span class="rarr"><span>-&gt;</span></span> ?len:int <span class="rarr"><span>-&gt;</span></span> src:(<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> dst:(_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>set_bounds_and_buffer_sub ?pos ?len ~src ~dst ()</code> is a more efficient version of:
+<code>set_bounds_and_buffer ~src:(Iobuf.sub ?pos ?len src) ~dst</code>.</p>
+      
+      <p><code>set_bounds_and_buffer ~src ~dst</code> is not the same as
+<code>set_bounds_and_buffer_sub ~dst ~src ()</code>, because the limits are narrowed in the
+latter case.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:read_only">
+  <a href="index.html#/val:read_only" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_only : (_, 's) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_only, 's) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Generalization</h1>
+    </div>
+      <p>One may wonder why you'd want to call <code>read_only</code> or <code>no_seek</code>, given that the casts
+are already possible, e.g. <code>t : (read_write, _) t :&gt; (read_only, _) t</code>. It turns out
+that if you want to define some <code>f : (_, seek) t -&gt; unit</code> of your own, which can be
+conveniently applied to <code>read_only</code> and <code>read_write</code> iobufs without the user having to
+cast <code>read_write</code> up, you need this <code>read_only</code> function.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:no_seek">
+  <a href="index.html#/val:no_seek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> no_seek : ('r, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> ('r, <a href="index.html#/type:no_seek">no_seek</a>) <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Accessors</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:capacity">
+  <a href="index.html#/val:capacity" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> capacity : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>capacity t</code> returns the size of <code>t</code>'s limits subrange. The capacity of an iobuf can
+be reduced via <code>narrow</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:length">
+  <a href="index.html#/val:length" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> length : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int
+    
+      <div class="doc">
+        
+      <p><code>length t</code> returns the size of <code>t</code>'s window.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:is_empty">
+  <a href="index.html#/val:is_empty" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> is_empty : (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> bool
+    
+      <div class="doc">
+        
+      <p><code>is_empty t</code> is <code>length t = 0</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Changing the limits</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:narrow">
+  <a href="index.html#/val:narrow" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> narrow : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>narrow t</code> sets <code>t</code>'s limits to the current window.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Changing the window</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>One can call <code>Lo_bound.window t</code> to get a snapshot of the lower bound of the
+window, and then later restore that snapshot with <code>Lo_bound.restore</code>. This is
+useful for speculatively parsing, and then rewinding when there isn't enough data to
+finish.</p>
+      
+      <p>Similarly for <code>Hi_bound.window</code> and <code>Lo_bound.restore</code>.</p>
+      
+      <p>Using a snapshot with a different iobuf, even a sub iobuf of the snapshotted one, has
+unspecified results. An exception may be raised, or a silent error may occur.
+However, the safety guarantees of the iobuf will not be violated, i.e., the attempt
+will not enlarge the limits of the subject iobuf.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/modtype:Bound">
+  <a href="index.html#/modtype:Bound" class="anchor">#</a>
+  
+  <div class="modtype">
+    <div class="intro">
+      <span class="keyword">module type</span> Bound = Iobuf_intf.Bound <span class="keyword">with</span> <span class="keyword">type</span> ('d, 'w) iobuf := ('d, 'w) <a href="index.html#/type:t">t</a>
+    </div>
+    
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Lo_bound">
+  <a href="index.html#/module:Lo_bound" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Lo_bound : <a href="index.html#/modtype:Bound">Bound</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Hi_bound">
+  <a href="index.html#/module:Hi_bound" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Hi_bound : <a href="index.html#/modtype:Bound">Bound</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:advance">
+  <a href="index.html#/val:advance" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> advance : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>advance t amount</code> advances the lower bound of the window by <code>amount</code>. It is an error
+to advance past the upper bound of the window or the lower limit.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_advance">
+  <a href="index.html#/val:unsafe_advance" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_advance : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unsafe_advance</code> is like <code>advance</code> but with no bounds checking, so incorrect usage can
+easily cause segfaults.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:resize">
+  <a href="index.html#/val:resize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> resize : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>resize t</code> sets the length of <code>t</code>'s window, provided it does not exceed limits.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:unsafe_resize">
+  <a href="index.html#/val:unsafe_resize" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unsafe_resize : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>unsafe_resize</code> is like <code>resize</code> but with no bounds checking, so incorrect usage can
+easily cause segfaults.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:rewind">
+  <a href="index.html#/val:rewind" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> rewind : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>rewind t</code> sets the lower bound of the window to the lower limit.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:reset">
+  <a href="index.html#/val:reset" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> reset : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>reset t</code> sets the window to the limits.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flip_lo">
+  <a href="index.html#/val:flip_lo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flip_lo : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>flip_lo t</code> sets the window to range from the lower limit to the lower bound of the
+old window. This is typically called after a series of <code>Fill</code>s, to reposition the
+window in preparation to <code>Consume</code> the newly written data.</p>
+      
+      <p>The bounded version narrows the effective limit. This can preserve some data near the
+limit, such as an hypothetical packet header, in the case of <code>bounded_flip_lo</code> or
+unfilled suffix of a buffer, in <code>bounded_flip_hi</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bounded_flip_lo">
+  <a href="index.html#/val:bounded_flip_lo" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bounded_flip_lo : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Lo_bound">Lo_bound</a>.t <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:compact">
+  <a href="index.html#/val:compact" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> compact : (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>compact t</code> copies data from the window to the lower limit of the iobuf and sets the
+window to range from the end of the copied data to the upper limit. This is typically
+called after a series of <code>Consume</code>s to save unread data and prepare for the next
+series of <code>Fill</code>s and <code>flip_lo</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bounded_compact">
+  <a href="index.html#/val:bounded_compact" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bounded_compact : (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Lo_bound">Lo_bound</a>.t <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Hi_bound">Hi_bound</a>.t <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:flip_hi">
+  <a href="index.html#/val:flip_hi" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> flip_hi : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>flip_hi t</code> sets the window to range from the the upper bound of the current window to
+the upper limit. This operation is dual to <code>flip_lo</code> and is typically called when the
+data in the current (narrowed) window has been processed and the window needs to be
+positioned over the remaining data in the buffer. For example:</p>
+      <pre><code>      (* ... determine initial_data_len ... *)
+      Iobuf.resize buf ~len:initial_data_len;
+      (* ... and process initial data ... *)
+      Iobuf.flip_hi buf;</code></pre>
+      <p>Now the window of <code>buf</code> ranges over the remainder of the data.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:bounded_flip_hi">
+  <a href="index.html#/val:bounded_flip_hi" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bounded_flip_hi : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> <a href="index.html#/module:Hi_bound">Hi_bound</a>.t <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:protect_window_and_bounds">
+  <a href="index.html#/val:protect_window_and_bounds" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> protect_window_and_bounds : ('rw, <a href="index.html#/type:no_seek">no_seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> f:(('rw, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a) <span class="rarr"><span>-&gt;</span></span> 'a
+    
+      <div class="doc">
+        
+      <p><code>protect_window_and_bounds t ~f</code> applies <code>f</code> to <code>t</code> and restores <code>t</code>'s bounds
+afterwards.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">Getting and setting data</h1>
+    </div>
+        
+      </div>
+    
+      <div class="doc">
+        
+      <p>&quot;consume&quot; and &quot;fill&quot; functions access data at the lower bound of the window and
+advance lower bound of the window. &quot;peek&quot; and &quot;poke&quot; functions access data but do not
+advance the window.</p>
+      
+        
+      </div>
+    
+  <div class="region" id="/val:to_string">
+  <a href="index.html#/val:to_string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string : ?len:int <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>to_string t</code> returns the bytes in <code>t</code> as a string. It does not alter the window.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:to_string_hum">
+  <a href="index.html#/val:to_string_hum" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> to_string_hum : ?bounds:[ <div class="cons">| `Window</div><div class="cons">| `Limits</div><div class="cons">| `Whole</div> ] <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> string
+    
+      <div class="doc">
+        
+      <p><code>to_string_hum t</code> produces a readable, multi-line representation of an iobuf.
+<code>bounds</code> defaults to <code>`Limits</code> and determines how much of the contents are shown.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Consume">
+  <a href="index.html#/module:Consume" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Consume : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Consume.string t ~len</code> reads <code>len</code> characters (all, by default) from <code>t</code> into a new
+string and advances the lower bound of the window accordingly.</p>
+      
+      <p><code>Consume.bin_prot X.bin_read_t t</code> returns the initial <code>X.t</code> in <code>t</code>, advancing past the
+bytes read.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Consume/type:src">
+  <a href="index.html#/module:Consume/type:src" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> src = (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_only, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p><code>To_string.blito ~src ~dst ~dst_pos ~src_len ()</code> reads <code>src_len</code> bytes from <code>src</code>,
+advancing <code>src</code>'s window accordingly, and writes them into <code>dst</code> starting at
+<code>dst_pos</code>. By default <code>dst_pos = 0</code> and <code>src_len = length src</code>. It is an error if
+<code>dst_pos</code> and <code>src_len</code> don't specify a valid region of <code>dst</code> or <code>src_len &gt; length
+      src</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Consume/module:To_string">
+  <a href="index.html#/module:Consume/module:To_string" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> To_string : Iobuf_intf.Consuming_blit <span class="keyword">with</span> <span class="keyword">type</span> src := <a href="index.html#/module:Consume/type:src">src</a> <span class="keyword">and</span> <span class="keyword">type</span> dst := string</div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Consume/module:To_bigstring">
+  <a href="index.html#/module:Consume/module:To_bigstring" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> To_bigstring : Iobuf_intf.Consuming_blit <span class="keyword">with</span> <span class="keyword">type</span> src := <a href="index.html#/module:Consume/type:src">src</a> <span class="keyword">and</span> <span class="keyword">type</span> dst := Core_kernel.Std.Bigstring.t</div>
+      
+      
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Iobuf_intf.Accessors <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'r, 's) t = ('r, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="keyword">and</span> <span class="keyword">type</span> 'a bin_prot := 'a Core_kernel.Std.Bin_prot.Type_class.reader 
+    </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Fill">
+  <a href="index.html#/module:Fill" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Fill : Iobuf_intf.Accessors <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'd, 'w) t = (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit <span class="keyword">and</span> <span class="keyword">type</span> 'a bin_prot := 'a Core_kernel.Std.Bin_prot.Type_class.writer</div>
+      
+      <div class="doc">
+        
+      <p><code>Fill.bin_prot X.bin_write_t t x</code> writes <code>x</code> to <code>t</code> in bin-prot form, advancing past
+the bytes written.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Peek">
+  <a href="index.html#/module:Peek" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Peek : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Peek</code> and <code>Poke</code> functions access a value at <code>pos</code> from the lower bound of the window
+and do not advance.</p>
+      
+      <p><code>Peek.bin_prot X.bin_read_t t</code> returns the initial <code>X.t</code> in <code>t</code> without advancing.</p>
+      
+      <p>Following the <code>bin_prot</code> protocol, the representation of <code>x</code> is <code>X.bin_size_t x</code> bytes
+long. <code>Peek.</code>, <code>Poke.</code>, <code>Consume.</code>, and <code>Fill.bin_prot</code> do not add any size prefix or
+other framing to the <code>bin_prot</code> representation.</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Peek/type:src">
+  <a href="index.html#/module:Peek/type:src" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> src = (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_only, <a href="index.html#/type:no_seek">no_seek</a>) <a href="index.html#/type:t">t</a>
+    
+      <div class="doc">
+        
+      <p>Similar to <code>Consume.To_*</code>, but do not advance the buffer.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Peek/module:To_string">
+  <a href="index.html#/module:Peek/module:To_string" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> To_string : Core_kernel.Std.Blit.S_distinct <span class="keyword">with</span> <span class="keyword">type</span> src := <a href="index.html#/module:Peek/type:src">src</a> <span class="keyword">and</span> <span class="keyword">type</span> dst := string</div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Peek/module:To_bigstring">
+  <a href="index.html#/module:Peek/module:To_bigstring" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> To_bigstring : Core_kernel.Std.Blit.S_distinct <span class="keyword">with</span> <span class="keyword">type</span> src := <a href="index.html#/module:Peek/type:src">src</a> <span class="keyword">and</span> <span class="keyword">type</span> dst := Core_kernel.Std.Bigstring.t</div>
+      
+      
+  </div>
+  
+  </div>
+  
+    <div class="include">
+    <span class="keyword">include</span> Iobuf_intf.Accessors <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'd, 'w) t = ('d, 'w) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> 'a <span class="keyword">and</span> <span class="keyword">type</span> 'a bin_prot := 'a Core_kernel.Std.Bin_prot.Type_class.reader 
+    </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Poke">
+  <a href="index.html#/module:Poke" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Poke : Iobuf_intf.Accessors <span class="keyword">with</span> <span class="keyword">type</span> ('a, 'd, 'w) t = (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, 'w) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> pos:int <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit <span class="keyword">and</span> <span class="keyword">type</span> 'a bin_prot := 'a Core_kernel.Std.Bin_prot.Type_class.writer</div>
+      
+      <div class="doc">
+        
+      <p><code>Poke.bin_prot X.bin_write_t t x</code> writes <code>x</code> to the beginning of <code>t</code> in binary form
+without advancing. You can use <code>X.bin_size_t</code> to tell how long it was.
+<code>X.bin_write_t</code> is only allowed to write that portion of the buffer to which you have
+access.</p>
+      
+        
+      </div>
+    
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unsafe">
+  <a href="index.html#/module:Unsafe" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Unsafe : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p><code>Unsafe</code> has submodules that are like their corresponding module, except with no range
+checks. Hence, mistaken uses can cause segfaults. Be careful!</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/module:Unsafe/module:Consume">
+  <a href="index.html#/module:Unsafe/module:Consume" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Consume : <span class="keyword">module type of</span> <a href="index.html#/module:Consume">Consume</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unsafe/module:Fill">
+  <a href="index.html#/module:Unsafe/module:Fill" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Fill : <span class="keyword">module type of</span> <a href="index.html#/module:Fill">Fill</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unsafe/module:Peek">
+  <a href="index.html#/module:Unsafe/module:Peek" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Peek : <span class="keyword">module type of</span> <a href="index.html#/module:Peek">Peek</a></div>
+      
+      
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Unsafe/module:Poke">
+  <a href="index.html#/module:Unsafe/module:Poke" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Poke : <span class="keyword">module type of</span> <a href="index.html#/module:Poke">Poke</a></div>
+      
+      
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:fill_bin_prot">
+  <a href="index.html#/val:fill_bin_prot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> fill_bin_prot : (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a Core_kernel.Std.Bin_prot.Type_class.writer <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> unit Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p><code>fill_bin_prot</code> writes a bin-prot value to the lower bound of the window, prefixed by
+its length, and advances by the amount written. <code>fill_bin_prot</code> returns an error if
+the window is too small to write the value.</p>
+      
+      <p><code>consume_bin_prot t reader</code> reads a bin-prot value from the lower bound of the window,
+which should have been written using <code>fill_bin_prot</code>, and advances the window by the
+amount read. <code>consume_bin_prot</code> returns an error if there is not a complete message
+in the window and in that case the window is left unchanged.</p>
+      
+      <p>Don't use these without a good reason, as they are incompatible with similar functions
+in <code>Reader</code> and <code>Writer</code>. They use a 4-byte length rather than an 8-byte length.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:consume_bin_prot">
+  <a href="index.html#/val:consume_bin_prot" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> consume_bin_prot : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a Core_kernel.Std.Bin_prot.Type_class.reader <span class="rarr"><span>-&gt;</span></span> 'a Core_kernel.Std.Or_error.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:transfer">
+  <a href="index.html#/val:transfer" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> transfer : ?len:int <span class="rarr"><span>-&gt;</span></span> src:(_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> dst:(<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>transfer</code> blits <code>len</code> bytes from <code>src</code> to <code>dst</code>, advancing the lower bounds of both
+windows. It is an error if <code>len &gt; length src || len &gt; length dst || phys_equal src
+    dst</code>.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:memmove">
+  <a href="index.html#/val:memmove" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> memmove : (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, _) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> src_pos:int <span class="rarr"><span>-&gt;</span></span> dst_pos:int <span class="rarr"><span>-&gt;</span></span> len:int <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>memmove</code> blits <code>len</code> bytes from <code>src_pos</code> to <code>dst_pos</code> in an iobuf, both relative to
+the lower bound of the window. The window is not advanced.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+      <div class="doc">
+        <div class="region">
+    <h1 class="section level_1">I/O</h1>
+    </div>
+        
+      </div>
+    
+  <div class="region" id="/val:read_assume_fd_is_nonblocking">
+  <a href="index.html#/val:read_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> read_assume_fd_is_nonblocking : (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> unit
+    
+      <div class="doc">
+        
+      <p><code>Iobuf</code> has analogs of various <code>Bigstring</code> functions. These analogs advance by the
+amount written/read.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pread_assume_fd_is_nonblocking">
+  <a href="index.html#/val:pread_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pread_assume_fd_is_nonblocking : (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> offset:int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recvfrom_assume_fd_is_nonblocking">
+  <a href="index.html#/val:recvfrom_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recvfrom_assume_fd_is_nonblocking : (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.sockaddr
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recvmmsg_assume_fd_is_nonblocking">
+  <a href="index.html#/val:recvmmsg_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recvmmsg_assume_fd_is_nonblocking : (Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> ?count:int <span class="rarr"><span>-&gt;</span></span> ?srcs:Iobuf_intf.Unix.sockaddr array <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> int) Core_kernel.Std.Or_error.t
+    
+      <div class="doc">
+        
+      <p>When there are no packets awaiting reception, <code>recvmmsg_assume_fd_is_nonblocking</code>
+returns &lt;0 (actually, -<code>EWOULDBLOCK</code>/-<code>EAGAIN</code>), rather than raising <code>Unix_error</code> with
+<code>EAGAIN</code>/<code>EWOULDBLOCK</code>. This saves the allocation of an exception (and backtrace) in
+common cases, at the cost of callers having to handle but the return code and possible
+exception.</p>
+      
+        
+      </div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:recvmmsg_assume_fd_is_nonblocking_no_options">
+  <a href="index.html#/val:recvmmsg_assume_fd_is_nonblocking_no_options" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> recvmmsg_assume_fd_is_nonblocking_no_options : (Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> count:int <span class="rarr"><span>-&gt;</span></span> (<a href="../../../../bin_prot.112.06.00/_build/lib/common/">Common</a>.read_write, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> array <span class="rarr"><span>-&gt;</span></span> int) Core_kernel.Std.Or_error.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:send_nonblocking_no_sigpipe">
+  <a href="index.html#/val:send_nonblocking_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> send_nonblocking_no_sigpipe : unit <span class="rarr"><span>-&gt;</span></span> ((_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> unit) Core_kernel.Std.Or_error.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sendto_nonblocking_no_sigpipe">
+  <a href="index.html#/val:sendto_nonblocking_no_sigpipe" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sendto_nonblocking_no_sigpipe : unit <span class="rarr"><span>-&gt;</span></span> ((_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.sockaddr <span class="rarr"><span>-&gt;</span></span> unit) Core_kernel.Std.Or_error.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:write_assume_fd_is_nonblocking">
+  <a href="index.html#/val:write_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> write_assume_fd_is_nonblocking : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:pwrite_assume_fd_is_nonblocking">
+  <a href="index.html#/val:pwrite_assume_fd_is_nonblocking" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> pwrite_assume_fd_is_nonblocking : (_, <a href="index.html#/type:seek">seek</a>) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Iobuf_intf.Unix.File_descr.t <span class="rarr"><span>-&gt;</span></span> offset:int <span class="rarr"><span>-&gt;</span></span> unit
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_seek">
+  <a href="index.html#/val:sexp_of_seek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_seek : <a href="index.html#/type:seek">seek</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_no_seek">
+  <a href="index.html#/val:sexp_of_no_seek" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_no_seek : <a href="index.html#/type:no_seek">no_seek</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:sexp_of_t">
+  <a href="index.html#/val:sexp_of_t" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> sexp_of_t : ('data_perm_read_write <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('seek_permission <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t) <span class="rarr"><span>-&gt;</span></span> ('data_perm_read_write, 'seek_permission) <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> Sexplib.Sexp.t
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>

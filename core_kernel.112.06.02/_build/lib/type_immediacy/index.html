@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="../../../../codoc.css"/>
+    <title>Type_immediacy</title>
+  </head>
+  <body>
+
+  <div class="module codoc-doc">
+      <a href="../../../">Up</a>
+      <div class="intro"><h1 class="title"><span class="keyword">module</span> <a href="">Type_immediacy</a></h1> : <span class="keyword">sig</span></div>
+      
+      <div class="doc">
+        
+      <p>Witnesses that express whether a type's values are always, sometimes, or never
+immediate.</p>
+      
+      <p>A value is immediate when it is internally represented unboxed, using up one word of
+memory, rather than a pointer to a heap-allocated block.</p>
+      
+      <p>Some examples:</p>
+      <ul><li>All <code>int</code> values are by definition immediate, i.e. unboxed, and so <code>int</code>
+is always immediate.</li></ul><ul><li>A <code>'a list</code> is either <code>[]</code>, which is internally represented as 0 (immediate), or a
+non-empty list, which is represented as a pointer to a heap block (boxed), which
+contains the first element and the pointer to the rest of the list. Therefore <code>'a
+    list</code> is sometimes immediate.</li></ul><ul><li>All values of type <code>'a ref</code> are represented as a pointer to a heap block, containing
+the actual values <code>'a</code>. Therefore <code>'a ref</code> is never immediate.</li></ul>
+      <p>The witness values can be used to perform safe optimizations such as allowing a more
+efficient <code>'a array</code> blit operations if <code>'a</code> is always immediate. These witnesses can
+also be used to perform safe conversions between immediate values of type <code>'a</code> and
+<code>int</code> instead of using <code>Obj.magic</code>.</p>
+      <div class="region">
+    <h1 class="section level_1">Converting between values and ints</h1>
+    </div>
+      <p>Consider an arbitrary type <code>'a</code> for which you have built a type-immediacy witness
+using this interface. Let's call it <code>w : 'a t</code>.</p>
+      
+      <p>You can use the two following functions and <code>w</code> to cast back and forth values from
+the type <code>'a</code> to the type <code>int</code>:</p>
+      <pre><code>      val int_as_value : 'a t -&gt; int -&gt; 'a option
+      val value_as_int : 'a t -&gt; 'a  -&gt; int option</code></pre>
+      <p>For the rest of this section, we will assume <code>int_as_value</code> and <code>value_as_int</code>
+partially applied to <code>w</code>.</p>
+      
+      <p>Consider the following cases:</p>
+      <ul><li>let <code>v</code> be an immediate value.</li></ul>
+      <p>Let <code>i</code> be the <code>int</code> that internally represents <code>v</code>. Then, <code>value_as_int v</code> returns
+<code>Some i</code>.</p>
+      
+      <p>We can also recover <code>v</code> by using the conversions that go the other way. In
+particular, <code>int_as_value i</code> returns <code>Some v</code>.</p>
+      <ul><li>let <code>v</code> be a boxed value that cannot be converted to an <code>int</code>.</li></ul>
+      <p><code>value_as_int v</code> returns <code>None</code> because there does not exist an int s.t. <code>int_as_value
+    i</code> evaluates to <code>Some v</code>.</p>
+      <ul><li>let <code>i</code> be an int that does not represent any value of type <code>'a</code></li></ul>
+      <p><code>int_as_value i</code> returns <code>None</code>.</p>
+      <div class="region">
+    <h1 class="section level_1">Faster *_exn functions and functions with boolean results</h1>
+    </div>
+      <p><code>value_is_int v</code> is a faster equivalent to <code>Option.is_some   (value_as_int v)</code>.
+<code>value_as_int_exn v</code> is a faster equivalent to <code>Option.value_exn (value_as_int v)</code>.</p>
+      
+      <p><code>int_is_value i</code> is a faster equivalent to <code>Option.is_some   (int_as_value i)</code>.
+<code>int_as_value_exn i</code> is a faster equivalent to <code>Option.value_exn (int_as_value i)</code>.</p>
+      
+      <p>These are lightweight functions that avoid allocating the option. <code>value_is_int</code>
+(resp <code>int_is_value</code>) can be used with <code>value_as_int_exn</code> (resp <code>int_as_value_exn</code>) to
+avoid both allocation or using a <code>try with</code> statement, paying only some small amount
+of CPU time for calling <code>value_is_int</code> (resp <code>int_is_value</code>):</p>
+      <pre><code>      match value_as_int v with
+      | Some v -&gt; some v
+      | None -&gt; none</code></pre>
+      <p>VS</p>
+      <pre><code>      if value_is_int v
+      then some (value_as_int_exn v)
+      else none</code></pre><div class="region">
+    <h1 class="section level_1">Example</h1>
+    </div>
+      <p>Consider the following type:</p>
+      <pre><code>      type test =
+        | A
+        | B
+        | C of int
+      with typerep</code></pre>
+      <p>Type <code>test</code> is sometimes immediate, as <code>A</code> is represented as <code>0</code>, <code>B</code> as <code>1</code>, and <code>C</code>
+is a boxed value. We can construct a witness of type <code>test Sometimes.t</code> by using
+<code>Sometimes.of_typerep</code> or <code>of_typerep</code> and extracting the witness. Let's call the
+witness <code>w</code> here. We can now use it to safely convert between values of <code>test</code> and
+<code>int</code>:</p>
+      
+      <p><code>Sometimes.value_as_int w A</code> evaluates to <code>Some 0</code>
+<code>Sometimes.value_as_int w B</code> evaluates to <code>Some 1</code>
+<code>Sometimes.value_as_int w (C 1)</code> evaluates to <code>None</code></p>
+      
+      <p><code>Sometimes.int_as_value w 0</code> evaluates to <code>Some A</code>
+<code>Sometimes.int_as_value w 1</code> evaluates to <code>Some B</code>
+<code>Sometimes.int_as_value w n</code> evaluates to <code>None</code> for all other values n</p>
+      
+      <p>Consider this other example:</p>
+      <pre><code>      type test = bool with typerep</code></pre>
+      <p>Type <code>test</code> is always immediate, since <code>true</code> is represented as <code>1</code> and <code>false</code> as
+<code>0</code>. We can construct a witness of type <code>test Always.t</code> by using <code>Always.of_typerep</code>
+or <code>of_typerep</code> and extracting the witness. Let's call the witness <code>w</code>:</p>
+      
+      <p><code>Always.value_as_int w false</code> evaluates to <code>Some 0</code>
+<code>Always.value_as_int w true</code> evaluates to <code>Some 1</code></p>
+      
+      <p><code>Always.value_as_int_exn w false</code> evaluates to <code>0</code>
+<code>Always.value_as_int_exn w true</code> evaluates to <code>1</code></p>
+      
+      <p><code>Always.int_as_value w 0</code> evaluates to <code>Some false</code>
+<code>Always.int_as_value w 1</code> evaluates to <code>Some true</code>
+<code>Always.int_as_value w (-1)</code> evaluates to <code>None</code></p>
+      
+      <p><code>Always.int_as_value_exn w 0</code> evaluates to <code>false</code>
+<code>Always.int_as_value_exn w 1</code> evaluates to <code>true</code>
+<code>Always.int_as_value_exn w (-1)</code> raises</p>
+      <div class="region">
+    <h1 class="section level_1">N-ary types that are immediate independently of their type arguments</h1>
+    </div>
+      <p>We also provide <code>For_all_parameters_S*</code> functors. Those are useful when one has a
+type with type parameters, but knows that values of that type will always be immediate
+(for example) no matter what the actual parameter is. They can use
+<code>Always.For_all_parameters_S*</code> to obtain access to a polymorphic witness.</p>
+      
+      <p>An exception is raised on functor application if such witness cannot be obtained.
+That happens either because the witness depends on the actual type parameter, or
+because the type has a different witness (e.g. <code>Sometimes</code> instead of <code>Always</code>).</p>
+      
+        
+      </div>
+    
+      
+    <div class="sig">
+  <div class="region" id="/type:t">
+  <a href="index.html#/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always">
+  <a href="index.html#/module:Always" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Always : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Always/type:t">
+  <a href="index.html#/module:Always/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:of_typerep">
+  <a href="index.html#/module:Always/val:of_typerep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_typerep : 'a Typerep_lib.Std.Typerep.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Always/type:t">t</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:int_as_value">
+  <a href="index.html#/module:Always/val:int_as_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_as_value : 'a <a href="index.html#/module:Always/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:int_as_value_exn">
+  <a href="index.html#/module:Always/val:int_as_value_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_as_value_exn : 'a <a href="index.html#/module:Always/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:int_is_value">
+  <a href="index.html#/module:Always/val:int_is_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_is_value : 'a <a href="index.html#/module:Always/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:value_as_int">
+  <a href="index.html#/module:Always/val:value_as_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_as_int : 'a <a href="index.html#/module:Always/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/module:For_all_parameters_S1">
+  <a href="index.html#/module:Always/module:For_all_parameters_S1" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S1 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S1) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Always/module:For_all_parameters_S1/val:witness">
+  <a href="index.html#/module:Always/module:For_all_parameters_S1/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/module:Always/module:For_all_parameters_S1/modarg:1:X">X</a>.t <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/module:For_all_parameters_S2">
+  <a href="index.html#/module:Always/module:For_all_parameters_S2" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S2 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S2) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Always/module:For_all_parameters_S2/val:witness">
+  <a href="index.html#/module:Always/module:For_all_parameters_S2/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/module:Always/module:For_all_parameters_S2/modarg:1:X">X</a>.t <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/module:For_all_parameters_S3">
+  <a href="index.html#/module:Always/module:For_all_parameters_S3" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S3 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S3) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Always/module:For_all_parameters_S3/val:witness">
+  <a href="index.html#/module:Always/module:For_all_parameters_S3/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _) <a href="index.html#/module:Always/module:For_all_parameters_S3/modarg:1:X">X</a>.t <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/module:For_all_parameters_S4">
+  <a href="index.html#/module:Always/module:For_all_parameters_S4" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S4 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S4) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Always/module:For_all_parameters_S4/val:witness">
+  <a href="index.html#/module:Always/module:For_all_parameters_S4/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _, _) <a href="index.html#/module:Always/module:For_all_parameters_S4/modarg:1:X">X</a>.t <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/module:For_all_parameters_S5">
+  <a href="index.html#/module:Always/module:For_all_parameters_S5" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S5 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S5) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Always/module:For_all_parameters_S5/val:witness">
+  <a href="index.html#/module:Always/module:For_all_parameters_S5/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _, _, _) <a href="index.html#/module:Always/module:For_all_parameters_S5/modarg:1:X">X</a>.t <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:int">
+  <a href="index.html#/module:Always/val:int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int : int <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:char">
+  <a href="index.html#/module:Always/val:char" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> char : char <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:bool">
+  <a href="index.html#/module:Always/val:bool" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> bool : bool <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Always/val:unit">
+  <a href="index.html#/module:Always/val:unit" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> unit : unit <a href="index.html#/module:Always/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes">
+  <a href="index.html#/module:Sometimes" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Sometimes : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Sometimes/type:t">
+  <a href="index.html#/module:Sometimes/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:of_typerep">
+  <a href="index.html#/module:Sometimes/val:of_typerep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_typerep : 'a Typerep_lib.Std.Typerep.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Sometimes/type:t">t</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:int_as_value">
+  <a href="index.html#/module:Sometimes/val:int_as_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_as_value : 'a <a href="index.html#/module:Sometimes/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:int_as_value_exn">
+  <a href="index.html#/module:Sometimes/val:int_as_value_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_as_value_exn : 'a <a href="index.html#/module:Sometimes/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:int_is_value">
+  <a href="index.html#/module:Sometimes/val:int_is_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_is_value : 'a <a href="index.html#/module:Sometimes/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:value_as_int">
+  <a href="index.html#/module:Sometimes/val:value_as_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_as_int : 'a <a href="index.html#/module:Sometimes/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:value_as_int_exn">
+  <a href="index.html#/module:Sometimes/val:value_as_int_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_as_int_exn : 'a <a href="index.html#/module:Sometimes/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:value_is_int">
+  <a href="index.html#/module:Sometimes/val:value_is_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_is_int : 'a <a href="index.html#/module:Sometimes/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S1">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S1" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S1 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S1) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S1/val:witness">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S1/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/module:Sometimes/module:For_all_parameters_S1/modarg:1:X">X</a>.t <a href="index.html#/module:Sometimes/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S2">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S2" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S2 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S2) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S2/val:witness">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S2/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/module:Sometimes/module:For_all_parameters_S2/modarg:1:X">X</a>.t <a href="index.html#/module:Sometimes/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S3">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S3" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S3 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S3) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S3/val:witness">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S3/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _) <a href="index.html#/module:Sometimes/module:For_all_parameters_S3/modarg:1:X">X</a>.t <a href="index.html#/module:Sometimes/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S4">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S4" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S4 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S4) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S4/val:witness">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S4/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _, _) <a href="index.html#/module:Sometimes/module:For_all_parameters_S4/modarg:1:X">X</a>.t <a href="index.html#/module:Sometimes/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S5">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S5" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S5 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S5) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Sometimes/module:For_all_parameters_S5/val:witness">
+  <a href="index.html#/module:Sometimes/module:For_all_parameters_S5/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _, _, _) <a href="index.html#/module:Sometimes/module:For_all_parameters_S5/modarg:1:X">X</a>.t <a href="index.html#/module:Sometimes/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:option">
+  <a href="index.html#/module:Sometimes/val:option" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> option : _ option <a href="index.html#/module:Sometimes/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Sometimes/val:list">
+  <a href="index.html#/module:Sometimes/val:list" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> list : _ list <a href="index.html#/module:Sometimes/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never">
+  <a href="index.html#/module:Never" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> Never : <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Never/type:t">
+  <a href="index.html#/module:Never/type:t" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a t
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:of_typerep">
+  <a href="index.html#/module:Never/val:of_typerep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_typerep : 'a Typerep_lib.Std.Typerep.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/module:Never/type:t">t</a> option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/module:For_all_parameters_S1">
+  <a href="index.html#/module:Never/module:For_all_parameters_S1" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S1 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S1) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Never/module:For_all_parameters_S1/val:witness">
+  <a href="index.html#/module:Never/module:For_all_parameters_S1/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> _ <a href="index.html#/module:Never/module:For_all_parameters_S1/modarg:1:X">X</a>.t <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/module:For_all_parameters_S2">
+  <a href="index.html#/module:Never/module:For_all_parameters_S2" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S2 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S2) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Never/module:For_all_parameters_S2/val:witness">
+  <a href="index.html#/module:Never/module:For_all_parameters_S2/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _) <a href="index.html#/module:Never/module:For_all_parameters_S2/modarg:1:X">X</a>.t <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/module:For_all_parameters_S3">
+  <a href="index.html#/module:Never/module:For_all_parameters_S3" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S3 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S3) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Never/module:For_all_parameters_S3/val:witness">
+  <a href="index.html#/module:Never/module:For_all_parameters_S3/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _) <a href="index.html#/module:Never/module:For_all_parameters_S3/modarg:1:X">X</a>.t <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/module:For_all_parameters_S4">
+  <a href="index.html#/module:Never/module:For_all_parameters_S4" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S4 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S4) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Never/module:For_all_parameters_S4/val:witness">
+  <a href="index.html#/module:Never/module:For_all_parameters_S4/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _, _) <a href="index.html#/module:Never/module:For_all_parameters_S4/modarg:1:X">X</a>.t <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/module:For_all_parameters_S5">
+  <a href="index.html#/module:Never/module:For_all_parameters_S5" class="anchor">#</a>
+  
+  <div class="module">
+      
+      <div class="intro"><span class="keyword">module</span> For_all_parameters_S5 : <span class="keyword">functor</span> (X : Typerep_lib.Std.Typerepable.S5) <span class="rarr"><span>-&gt;</span></span> <span class="keyword">sig</span></div>
+      
+      
+    <div class="sig">
+  <div class="region" id="/module:Never/module:For_all_parameters_S5/val:witness">
+  <a href="index.html#/module:Never/module:For_all_parameters_S5/val:witness" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> witness : unit <span class="rarr"><span>-&gt;</span></span> (_, _, _, _, _) <a href="index.html#/module:Never/module:For_all_parameters_S5/modarg:1:X">X</a>.t <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:int32">
+  <a href="index.html#/module:Never/val:int32" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int32 : int32 <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:int64">
+  <a href="index.html#/module:Never/val:int64" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int64 : int64 <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:nativeint">
+  <a href="index.html#/module:Never/val:nativeint" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> nativeint : nativeint <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:float">
+  <a href="index.html#/module:Never/val:float" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> float : float <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:string">
+  <a href="index.html#/module:Never/val:string" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> string : string <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:array">
+  <a href="index.html#/module:Never/val:array" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> array : _ array <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:ref_">
+  <a href="index.html#/module:Never/val:ref_" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> ref_ : _ <a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/">Pervasives</a>.<a href="../../../../ocaml.4.02.1+doc/stdlib/pervasives/#/type:ref">ref</a> <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:tuple2">
+  <a href="index.html#/module:Never/val:tuple2" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tuple2 : (_ * _) <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:tuple3">
+  <a href="index.html#/module:Never/val:tuple3" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tuple3 : (_ * _ * _) <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:tuple4">
+  <a href="index.html#/module:Never/val:tuple4" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tuple4 : (_ * _ * _ * _) <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/module:Never/val:tuple5">
+  <a href="index.html#/module:Never/val:tuple5" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> tuple5 : (_ * _ * _ * _ * _) <a href="index.html#/module:Never/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:of_typerep">
+  <a href="index.html#/val:of_typerep" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> of_typerep : 'a Typerep_lib.Std.Typerep.t <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:t">t</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/type:dest">
+  <a href="index.html#/type:dest" class="anchor">#</a>
+  
+  <div class="type">
+    <span class="keyword">type</span> 'a dest = <table>
+    <tr class="cons"><td>
+  <div class="region" id="/type:dest/cons:Always">
+  <a href="index.html#/type:dest/cons:Always" class="anchor">#</a>
+  | Always <span class="keyword">of</span> 'a <a href="index.html#/module:Always">Always</a>.<a href="index.html#/module:Always/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:dest/cons:Sometimes">
+  <a href="index.html#/type:dest/cons:Sometimes" class="anchor">#</a>
+  | Sometimes <span class="keyword">of</span> 'a <a href="index.html#/module:Sometimes">Sometimes</a>.<a href="index.html#/module:Sometimes/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr><tr class="cons"><td>
+  <div class="region" id="/type:dest/cons:Never">
+  <a href="index.html#/type:dest/cons:Never" class="anchor">#</a>
+  | Never <span class="keyword">of</span> 'a <a href="index.html#/module:Never">Never</a>.<a href="index.html#/module:Never/type:t">t</a>
+  </div>
+  </td><td></td><td></td><td></td></tr>
+    </table>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:dest">
+  <a href="index.html#/val:dest" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> dest : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <a href="index.html#/type:dest">dest</a>
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int_as_value">
+  <a href="index.html#/val:int_as_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_as_value : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int_as_value_exn">
+  <a href="index.html#/val:int_as_value_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_as_value_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> 'a
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:int_is_value">
+  <a href="index.html#/val:int_is_value" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> int_is_value : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> int <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:value_as_int">
+  <a href="index.html#/val:value_as_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_as_int : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int option
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:value_as_int_exn">
+  <a href="index.html#/val:value_as_int_exn" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_as_int_exn : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> int
+    
+  </div>
+  
+  </div>
+  
+  <div class="region" id="/val:value_is_int">
+  <a href="index.html#/val:value_is_int" class="anchor">#</a>
+  
+  <div class="val">
+    <span class="keyword">val</span> value_is_int : 'a <a href="index.html#/type:t">t</a> <span class="rarr"><span>-&gt;</span></span> 'a <span class="rarr"><span>-&gt;</span></span> bool
+    
+  </div>
+  
+  </div>
+  </div>
+    <div class="outro"><span class="keyword">end</span></div>
+    
+  </div>
+  
+  </body>
+</html>
