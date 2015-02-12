@@ -120,7 +120,8 @@ let run_index ~force ~index in_index out_dir package =
       | (path, Some unit, _src_index, _gunit, _issues) ->
         let oc = open_out path in
         let output = Xmlm.make_output (`Channel oc) in
-        DocOckXmlPrint.file CodocXml.doc_printer output unit;
+        DocOckXmlFold.file CodocXml.doc_printer
+          (fun () signal -> Xmlm.output output signal) () unit;
         close_out oc
       | (_, None, _, _, _) -> ()
       ) units;

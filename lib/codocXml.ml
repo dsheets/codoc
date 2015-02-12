@@ -26,7 +26,5 @@ let doc_parser = DocOckXmlParse.build (fun input ->
   | Some root -> root
 )
 
-let doc_printer = DocOckXmlPrint.build (fun output root ->
-  let xml_tree = List.hd (CodocDoc.xml_of_root root) in
-  Xmlm.output_tree (fun x -> x) output xml_tree
-)
+let doc_printer =
+  DocOckXmlFold.build (fun root -> List.hd (CodocDoc.xml_of_root root))

@@ -18,8 +18,6 @@
 module Error = CodocCli.Error
 module Dir = CodocSysUtil.Dir
 
-let id x = x
-
 let (/) = Filename.concat
 
 let cmti_path path output = CodocUtil.(rel_of_path (depth output) path)
@@ -72,10 +70,8 @@ let extract ~force ~index cmti out_dir rel_xml =
         let _root, mod_name = CodocUtil.root_of_unit unit in
         let oc = open_out xml in
         let output = Xmlm.make_output (`Channel oc) in
-        let printer = DocOckXmlPrint.build (fun output root ->
-          Xmlm.output_tree id output (List.hd (CodocDoc.xml_of_root root))
-        ) in
-        DocOckXmlPrint.file printer output unit;
+        DocOckXmlFold.file CodocXml.doc_printer
+          (fun () signal -> Xmlm.output output signal) () unit;
         close_out oc;
         let open CodocIndex in
         let unit = {
