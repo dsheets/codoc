@@ -26,5 +26,12 @@ let doc_parser = DocOckXmlParse.build (fun input ->
   | Some root -> root
 )
 
-let doc_printer =
-  DocOckXmlFold.build (fun root -> List.hd (CodocDoc.xml_of_root root))
+let doc_printer output acc root =
+  let rec fold acc = function
+    | `Data s -> output acc (`Data s)
+    | `El (tag, children) ->
+      let acc = output acc (`El_start tag) in
+      let acc = List.fold_left fold acc children in
+      output acc `El_end
+  in
+  fold acc (List.hd (CodocDoc.xml_of_root root))
