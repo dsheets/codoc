@@ -104,7 +104,7 @@ let deduce_file_type path =
   let xml = Xmlm.make_input (`Channel ic) in
   let rec get_type () = match Xmlm.input xml with
     | `El_start (("","unit"),_) -> Interface
-    | `El_start (("","doc-index"),_) -> Index
+    | `El_start ((ns,"doc-index"),_) when ns = CodocIndex.xmlns -> Index
     | `El_start _ | `El_end | `Data _ -> Unknown
     | `Dtd _ -> get_type ()
   in

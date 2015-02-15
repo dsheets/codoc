@@ -95,6 +95,7 @@ let codoc_config = unit "codocConfig" ~deps:[] cli
 
 let codoc_sys_util = unit "codocSysUtil" ~deps:[
   xmlm;
+  codoc;
 ] cli
 
 let codoc_cli = unit "codocCli" ~deps:[

@@ -51,6 +51,8 @@ let error_of_issue path = function
   | Xml_error (path, (l,c), s) ->
     `Error (false, Printf.sprintf "%s:%d:%d: XML error %s" path l c s)
 
+let xmlns = "https://opam.ocaml.org/packages/codoc/xmlns/doc-index"
+
 let index_filename = "index.xml"
 
 let index_file ?(rel_index=index_filename) dir = Filename.concat dir rel_index
@@ -85,7 +87,7 @@ let xml_of_pkg ({ pkg_name; index }) =
   <package name=$str:pkg_name$ href=$str:index$/>&>>
 
 let to_xml ({ units; pkgs }) =
-  <:xml<<doc-index>
+  <:xml<<doc-index xmlns=$str:xmlns$>
   $list:list_of_map (StringMap.map xml_of_pkg pkgs)$
   $list:list_of_map (StringMap.map xml_of_generated_unit units)$
 </doc-index>&>>
@@ -106,12 +108,13 @@ let just_data xml = match Xmlm.peek xml with
   | _ -> (* TODO: fixme *) failwith "expected data"
 
 let rec generation_issue_of_xml xml = match Xmlm.peek xml with
-  | `El_start (("","resolution-failed"),[("","module"),name]) ->
+  | `El_start ((ns,"resolution-failed"),[("","module"),name]) when ns = xmlns ->
     eat xml;
     must_end xml;
     Module_resolution_failed name
-  | `El_start (("","xml-error"),
-               [("","href"),href; ("","line"),line; ("","col"), col]) ->
+  | `El_start ((ns,"xml-error"),
+               [("","href"),href; ("","line"),line; ("","col"), col])
+      when ns = xmlns ->
     (* TODO: permutation of attrs, bad ints *)
     eat xml;
     let message = just_data xml in
@@ -137,8 +140,8 @@ let rec inside xml tag fn = match Xmlm.peek xml with
   | `Data _ | `Dtd _ -> eat xml; inside xml tag fn
 
 let rec files_of_xml xml files = match Xmlm.peek xml with
-  | `El_start (("","file"),[("","type"),typ;("","href"),href])
-  | `El_start (("","file"),[("","href"),href;("","type"),typ]) ->
+  | `El_start ((ns,"file"),[("","type"),typ;("","href"),href])
+  | `El_start ((ns,"file"),[("","href"),href;("","type"),typ]) when ns = xmlns ->
     eat xml;
     must_end xml;
     files_of_xml xml ((typ,href)::files)
@@ -151,7 +154,7 @@ let generated_unit_of_xml xml mod_name =
   let html_file =
     try Some (List.assoc "text/html" files) with Not_found -> None
   in
-  let issues = inside xml ("","issues") (fun _ -> issues_of_xml xml []) in
+  let issues = inside xml (xmlns,"issues") (fun _ -> issues_of_xml xml []) in
   must_end xml;
   { mod_name; xml_file; html_file; issues }
 
@@ -169,13 +172,14 @@ let empty root path = {
 
 let rec of_xml root path xml =
   let rec doc_index index = match Xmlm.input xml with
-      | `El_start (("","unit"),[("","name"), name]) ->
+      | `El_start ((ns,"unit"),[("","name"), name]) when ns = xmlns ->
         doc_index { index with
           units = StringMap.add name (generated_unit_of_xml xml name)
             index.units
         }
-      | `El_start (("","package"),[("","name"), name; ("","href"), href])
-      | `El_start (("","package"),[("","href"), href; ("","name"), name]) ->
+      | `El_start ((ns,"package"),[("","name"), name; ("","href"), href])
+      | `El_start ((ns,"package"),[("","href"), href; ("","name"), name])
+          when ns = xmlns ->
         doc_index { index with
           pkgs = StringMap.add name (pkg_of_xml xml name href) index.pkgs
         }
@@ -184,7 +188,7 @@ let rec of_xml root path xml =
       | `Data _ | `Dtd _ -> doc_index index
   in
   let start = function
-    | (("","doc-index"),_) -> doc_index (empty root path)
+    | ((ns,"doc-index"),_) when ns = xmlns -> doc_index (empty root path)
     | _ -> (* TODO: fixme *) failwith "unknown root node"
   in
   match Xmlm.input xml with
