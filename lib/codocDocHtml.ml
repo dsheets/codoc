@@ -309,7 +309,7 @@ let rec string_of_reference : ('a,'b) Reference.t -> string =
 
 let anchor ~pathloc id html =
   let a = match href_of_ident ~pathloc id with
-    | Some href -> <:html<<a href=$uri:href$ class="anchor">#</a>&>>
+    | Some href -> <:html<<a href=$uri:href$ class="anchor"></a>&>>
     | None -> <:html<&>>
   in
   <:html<
