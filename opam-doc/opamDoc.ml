@@ -32,6 +32,19 @@ let get_line cmd =
     | _ -> `Error (false, "error with '"^cmd^"'") (* TODO: fixme *)
   with End_of_file -> `Error (false, "error with '"^cmd^"'") (* TODO: fixme *)
 
+let get_all cmd =
+  let ic = Unix.open_process_in cmd in
+  let lines = ref [] in
+  try while true do
+      let line = input_line ic in
+      lines := line::!lines
+    done;
+    `Ok !lines (* never *)
+  with End_of_file ->
+    match Unix.close_process_in ic with
+    | Unix.WEXITED 0 -> `Ok (List.rev !lines)
+    | _ -> `Error (false, "error with '"^cmd^"'") (* TODO: fixme *)
+
 let or_die = function
   | `Ok line -> line
   | `Error (_, msg) -> prerr_endline msg; exit 1
@@ -51,20 +64,40 @@ let check_system cmd = Unix.(match system cmd with
     `Error (false, Printf.sprintf "'%s' exited with code %d\n%!" cmd k)
 )
 
-let extract_pkg_doc doc_build output pkg =
+let begins_with prefix_len prefix s = String.sub s 0 prefix_len = s
+
+let extract output pkg pkg_dir list =
+  let prefix = "_build/" in
+  let prefix_len = String.length prefix in
+  let pkg_dir =
+    if List.length list > 0 && List.for_all (begins_with prefix_len prefix) list
+    then
+      String.sub pkg_dir prefix_len (String.length pkg_dir - prefix_len)
+    else pkg_dir
+  in
   match get_package_version pkg with
-  | `Ok pkg_version -> begin
-    try
-      let pkgv = pkg^"."^pkg_version in
-      let pkg_dir = doc_build / pkgv in
-      (* TODO: If cmti only in _build, remove _build. *)
-      check_system
-        ("codoc extract -f --index --package "^pkgv^" "^pkg_dir^" -o "^output)
-    with Not_found ->
-      Printf.printf "%s: warning no build directory\n%!" pkg;
-      `Ok ()
-  end
-  | `Error (help, msg) -> `Error (help, msg)
+  | `Error err -> `Error err
+  | `Ok v ->
+    let pkgv = pkg^"."^v in
+    check_system
+      ("codoc extract -f --index --package "^pkgv^" "^pkg_dir^" -o "^output)
+
+let extract_pkg_doc output pkg =
+  match get_line ("opam config var "^pkg^":lib") with
+  | `Error err -> `Error err
+  | `Ok pkg_lib ->
+    match get_all ("codoc list-extractions "^pkg_lib) with
+    | `Error err -> `Error err
+    | `Ok ((_::_) as list) ->
+      extract output pkg pkg_lib list
+    | `Ok [] ->
+      match get_line ("opam config var "^pkg^":build") with
+      | `Error err -> `Error err
+      | `Ok pkg_build ->
+        match get_all ("codoc list-extractions "^pkg_build) with
+        | `Error err -> `Error err
+        | `Ok list ->
+          extract output pkg pkg_build list
 
 let link_doc output = check_system ("codoc link --index -f "^output)
 
@@ -95,8 +128,8 @@ let link serve output options =
   | `Ok () -> render serve output options
   | ret -> ret
 
-let extract_k doc_build output pkg k =
-  match extract_pkg_doc doc_build output pkg with
+let extract_k output pkg k =
+  match extract_pkg_doc output pkg with
   | `Ok () -> k ()
   | ret -> raise (Command_error ret)
 
@@ -123,9 +156,9 @@ let build_doc serve output =
             | exception Not_found ->
               if line = ""
               then next_line ()
-              else extract_k doc_build output line next_line
+              else extract_k output line next_line
             | k ->
-              extract_k doc_build output (String.sub line 0 k) (fun () ->
+              extract_k output (String.sub line 0 k) (fun () ->
                 next_pkg (String.sub line (k+1) (String.length line - k - 1))
               )
           in
