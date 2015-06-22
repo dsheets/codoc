@@ -39,6 +39,7 @@ let codoc_doc = unit "codocDoc" ~deps:[
   cow_pp;
   cow;
   doc_ock;
+  doc_ock_xml;
   codoc_doc_maps;
 ] library
 

@@ -75,6 +75,8 @@ type t =
 | Para of text
 | Block of text
 
+let xmlns = DocOckXml.ns
+
 let rec xml_of_root = Root.(function
   | Cmti { cmti_path; unit_name = name; unit_digest = digest } ->
     let digest = Digest.to_hex digest in
@@ -99,13 +101,13 @@ let filter_children = List.fold_left (fun l -> function
 (* TODO: handle exceptions (e.g. Not_found) *)
 let root_of_xml tag root_opt_list =
   match tag with
-  | (("","cmti"),attrs) -> (* TODO: cmti can't have children *)
+  | ((ns,"cmti"),attrs) when ns = xmlns -> (* TODO: cmti can't have children *)
     let cmti_path = List.assoc ("","src") attrs in
     let unit_name = List.assoc ("","name") attrs in
     let unit_digest = List.assoc ("","digest") attrs in
     let unit_digest = Digest.from_hex unit_digest in
     Some (Cmti { cmti_path; unit_name; unit_digest })
-  | (("","resolved"),attrs) ->
+  | ((ns,"resolved"),attrs) when ns = xmlns ->
     let root = match filter_children root_opt_list with
       | [] -> failwith "resolved root must have a source" (* TODO: fixme *)
       | [root] -> root
@@ -113,7 +115,7 @@ let root_of_xml tag root_opt_list =
     in
     let resolution_root = List.assoc ("","root") attrs in
     Some (Resolved ({ resolution_root }, root))
-  | (("","proj"),attrs) ->
+  | ((ns,"proj"),attrs) when ns = xmlns ->
     let root = match filter_children root_opt_list with
       | [] -> failwith "proj root must have a source" (* TODO: fixme *)
       | [root] -> root
@@ -121,14 +123,14 @@ let root_of_xml tag root_opt_list =
     in
     (* TODO: deserialize with doc-ock-xml vocab *)
     Some (Proj (List.assoc ("","path") attrs, root))
-  | (("","xml"),attrs) ->
+  | ((ns,"xml"),attrs) when ns = xmlns ->
     let root = match filter_children root_opt_list with
       | [] -> failwith "xml root must have a source" (* TODO: fixme *)
       | [root] -> root
       | _::_::_ -> failwith "xml root has too many children" (* TODO: fixme *)
     in
     Some (Xml (List.assoc ("","src") attrs, root))
-  | (("","html"),attrs) ->
+  | ((ns,"html"),attrs) when ns = xmlns ->
     let root = match filter_children root_opt_list with
       | [] -> failwith "html root must have a source" (* TODO: fixme *)
       | [root] -> root
