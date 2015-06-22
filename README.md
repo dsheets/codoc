@@ -2,8 +2,7 @@
 
 **codoc** is a new OCaml documentation tool. It does not impose any
   specific package manager on you or assume a specific
-  workflow. **codoc** requires **OCaml** `4.02.1+doc` switch from the
-  [OCaml Platform development repository](https://github.com/ocaml/platform-dev).
+  workflow. **codoc** requires at least **OCaml** `4.02.2`.
 
 ## Quick Start
 
@@ -12,11 +11,10 @@ are working on making our tools and patches properly integrated
 upstream, so in the future these steps won't be necessary.
 
 ```sh
-opam repo add platform-dev https://github.com/ocaml/platform-dev -k git
 export OPAMKEEPBUILDDIR=1
 unset OCAMLPARAM
-opam switch doc -A 4.02.1+doc # Switch into an empty `4.02.1+doc` switch
-export OCAMLPARAM=_,doc=1,w=-50,bin-annot=1
+opam switch doc -A 4.02.2 # Switch into an empty `4.02.2` switch
+export OCAMLPARAM=_,bin-annot=1
 eval `opam config env`
 ```
 
@@ -51,7 +49,7 @@ directory.
 ## The `codoc` Tool
 
 To generate HTML documentation from a build directory containing files
-compiled with **OCaml** `4.02.1+doc`, simply run:
+compiled with **OCaml** `4.02.2`, simply run:
 
 ```sh
 codoc doc [CMTI_DIR] -o [OUTPUT_DIR]
@@ -92,12 +90,16 @@ The toolchain that **codoc** realizes was designed to have many
 interfaces to subcomponents should you wish to customize your
 documentation generation more radically than the tool provides.
 
-[doc-ock-lib](https://github.com/lpw25/doc-ock-lib) parses OCaml
-interfaces, exposes types for signatures and identifiers, and defines
-resolution procedures.
+[octavius](https://github.com/lpw25/octavius) parses documentation
+comments written in `ocamldoc` format.
+
+[doc-ock](https://github.com/lpw25/doc-ock) parses OCaml interfaces,
+exposes types for signatures and identifiers, and defines resolution
+procedures. **doc-ock** uses **octavius** for documentation comment
+parsing.
 
 [doc-ock-xml](https://github.com/lpw25/doc-ock-xml/) defines XML
-serialization and parsing for the types in **doc-ock-lib**. This XML
+serialization and parsing for the types in **doc-ock**. This XML
 format will eventually provide mechanism for extensible documentation
 content.
 
