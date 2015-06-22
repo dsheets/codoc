@@ -22,20 +22,10 @@ let (/) = Filename.concat
 
 let cmti_path path output = CodocUtil.(rel_of_path (depth output) path)
 
-let only_cmti file path =
-  if Filename.check_suffix file ".cmti"
-  then begin
-    true
-  end
-  else false
-
 let xml_filename_of_cmti cmti =
   Filename.(chop_suffix (basename cmti) ".cmti")^".xml"
 let dir_of_cmti cmti = Filename.(chop_suffix (basename cmti) ".cmti")
 let xml_index_of_cmti cmti = (dir_of_cmti cmti) / "index.xml"
-
-let all_cmtis dir =
-  CodocSysUtil.foldp_paths (fun lst rel_cmti -> rel_cmti::lst) only_cmti [] dir
 
 let exists_package dir package rel_file =
   let path = dir / package / rel_file in
@@ -99,7 +89,7 @@ let extract_package ~force ~index in_dir rel_cmti out_dir package =
   extract ~force ~index cmti (out_dir / package) (rel_dir / xml_file)
 
 let run_dir ~force ~index in_dir out_dir package =
-  let cmtis = all_cmtis in_dir in
+  let cmtis = CodocCliListExtractions.list in_dir in
   let cmti_count = List.length cmtis in
   Printf.printf
     "%4d cmti under %s\n" cmti_count in_dir;

@@ -109,6 +109,11 @@ let cli_lib = lib ~flags "codoc.cli" (`Units [
   codoc_cli;
 ])
 
+let codoc_cli_list_extractions = unit "codocCliListExtractions" ~deps:[
+  cli_lib;
+  codoc_sys_util;
+] cli
+
 let codoc_cli_extract = unit "codocCliExtract" ~deps:[
   codoc;
   cli_lib;
@@ -149,6 +154,7 @@ let codoc_cli_doc = unit "codocCliDoc" ~deps:[
 let codoc_cmd = unit "codocMain" ~deps:[
   cmdliner;
   cli_lib;
+  codoc_cli_list_extractions;
   codoc_cli_extract;
   codoc_cli_link;
   codoc_cli_html;
@@ -156,6 +162,7 @@ let codoc_cmd = unit "codocMain" ~deps:[
 ] cli
 
 let codoc_bin = bin ~flags "codoc" (`Units [
+  codoc_cli_list_extractions;
   codoc_cli_extract;
   codoc_cli_link;
   codoc_cli_html;
