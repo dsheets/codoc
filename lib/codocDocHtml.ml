@@ -539,21 +539,25 @@ let map_tag ~pathloc tag_fun tag =
     tag_fun ("custom "^s) (String.capitalize s) (of_text_elements t)
   )
 
-let maybe_div_doc ~pathloc ({ Documentation.text; tags }) =
-  match text, tags with
-  | [], [] -> <:html<&>>
-  | text, tags ->
-    <:html<
+let maybe_div_doc ~pathloc = Documentation.(function
+  | Error _ -> <:html<&>>
+  (* TODO: Should this have a side effect? Emit something?*)
+  | Ok { text; tags } -> match text, tags with
+    | [], [] -> <:html<&>>
+    | text, tags ->
+      <:html<
       <div class="doc">
         $paragraphs_of_text ~pathloc text$
         $list:List.map (map_tag ~pathloc div_tag) tags$
       </div>
-    >>
+      >>
+)
 
-let maybe_td_doc ~pathloc doc = Documentation.(match doc.text with
-  | [] -> <:html<<td/><td/><td/>&>>
-  | text ->
-    let tags = List.map (map_tag ~pathloc span_tag) doc.tags in
+let maybe_td_doc ~pathloc = Documentation.(function
+  | Error _ -> <:html<&>>
+  | Ok { text = [] } -> <:html<<td/><td/><td/>&>>
+  | Ok { text; tags } ->
+    let tags = List.map (map_tag ~pathloc span_tag) tags in
     let comment = of_text_elements ~pathloc text in
     <:html<<td>(*</td><td class="doc">$comment$$list:tags$</td><td>*)</td>&>>
 )
@@ -1177,8 +1181,13 @@ let of_top_module ~pathloc { Module.id; doc; type_ } =
   module_declaration ~extra_classes ~title_fn ?header ~id ~pathloc
     name rhs doc rest
 
-let of_unit ~pathloc { Unit.id; doc; digest; imports; items } =
-  (* TODO: more? *)
-  of_top_module ~pathloc Module.({
-    id; doc; type_ = ModuleType (ModuleType.Signature items);
-  })
+let of_unit ~pathloc = Unit.(function
+  | { id; doc; digest; imports; content = Module items } ->
+    (* TODO: more? *)
+    of_top_module ~pathloc Module.({
+      id; doc; type_ = ModuleType (ModuleType.Signature items);
+    })
+  | { id; doc; digest; imports; content = Pack _ } ->
+    (* TODO: support packs *)
+    <:html<&>>
+)

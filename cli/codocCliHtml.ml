@@ -93,7 +93,7 @@ let render_interface ?pkg_root in_file out_file scheme css =
 
     let oc = open_out in_file in
     let output = Xmlm.make_output (`Channel oc) in
-    DocOckXmlFold.file CodocXml.doc_printer
+    DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
       (fun () signal -> Xmlm.output output signal) () unit;
     close_out oc;
     [] (* TODO: issues *)

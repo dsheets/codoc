@@ -63,15 +63,18 @@ let extract ~force ~index cmti out_dir rel_xml =
       let open DocOck in
       match read_cmti root_fn cmti with
       | Not_an_interface -> Error.not_an_interface cmti
-      | Wrong_version_interface -> Error.wrong_version_interface cmti
-      | Corrupted_interface -> Error.corrupted_interface cmti
+      | Wrong_version -> Error.wrong_version_interface cmti
+      | Corrupted -> Error.corrupted_interface cmti
       | Not_a_typedtree -> Error.not_a_typedtree cmti
+      | Not_an_implementation ->
+        (* TODO: fixme *)
+        failwith "unimplemented: Not_an_implementation"
       | Ok unit ->
         let _root, mod_name = CodocUtil.root_of_unit unit in
         let oc = open_out xml in
-        let output = Xmlm.make_output (`Channel oc) in
-        DocOckXmlFold.file CodocXml.doc_printer
-          (fun () signal -> Xmlm.output output signal) () unit;
+        let xml_out = Xmlm.make_output (`Channel oc) in
+        DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
+          (fun () signal -> Xmlm.output xml_out signal) () unit;
         close_out oc;
         let open CodocIndex in
         let unit = {

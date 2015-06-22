@@ -12,7 +12,7 @@ let stringext = pkg "stringext"
 
 let uri = pkg "uri"
 
-let doc_ock_lib = pkg "doc-ock-lib"
+let doc_ock = pkg "doc-ock"
 let doc_ock_xml = pkg "doc-ock-xml"
 
 let xmlm = pkg "xmlm"
@@ -32,24 +32,24 @@ let codoc_html = unit "codocHtml" ~deps:[
 ] library
 
 let codoc_doc_maps = unit "codocDocMaps" ~deps:[
-  doc_ock_lib;
+  doc_ock;
 ] library
 
 let codoc_doc = unit "codocDoc" ~deps:[
   cow_pp;
   cow;
-  doc_ock_lib;
+  doc_ock;
   codoc_doc_maps;
 ] library
 
 let codoc_util = unit "codocUtil" ~deps:[
   stringext;
-  doc_ock_lib;
+  doc_ock;
   codoc_doc;
 ] library
 
 let codoc_doc_html = unit "codocDocHtml" ~deps:[
-  doc_ock_lib;
+  doc_ock;
   cow_pp;
   cow;
   codoc_doc;
@@ -112,7 +112,7 @@ let codoc_cli_extract = unit "codocCliExtract" ~deps:[
   codoc;
   cli_lib;
   codoc_sys_util;
-  doc_ock_lib;
+  doc_ock;
   doc_ock_xml;
 ] cli
 
@@ -121,7 +121,7 @@ let codoc_cli_link = unit "codocCliLink" ~deps:[
   codoc;
   cli_lib;
   codoc_sys_util;
-  doc_ock_lib;
+  doc_ock;
   doc_ock_xml;
 ] cli
 
@@ -137,7 +137,7 @@ let codoc_cli_html = unit "codocCliHtml" ~deps:[
 let codoc_cli_doc = unit "codocCliDoc" ~deps:[
   cow_pp;
   cow;
-  doc_ock_lib;
+  doc_ock;
   doc_ock_xml;
   codoc;
   codoc_cli_extract;
