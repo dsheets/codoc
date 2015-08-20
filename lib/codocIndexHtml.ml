@@ -16,12 +16,17 @@
  *)
 
 module StringMap = Map.Make(String)
+module BlueTree = Blueprint.Tree
 
-let link_pkg_piece href piece = <:html<<a href=$uri:href$>$str:piece$</a>&>>
+let link_pkg_piece href piece =
+  BlueTree.of_kv_string [
+    "href", Uri.to_string href;
+    "anchor", piece;
+  ]
 
 let rec link_pkg_pieces ~normal_uri href = function
   | [] -> []
-  | [last] -> [ <:html<$str:last$>> ]
+  | [last] -> [BlueTree.of_kv_string [ "anchor", last ]]
   | h::t ->
     let next_href = normal_uri Uri.(resolve "" href (of_string (h^"/"))) in
     (link_pkg_piece next_href h)::(link_pkg_pieces ~normal_uri next_href t)
@@ -30,16 +35,26 @@ let root_name = "~"
 
 let of_xml_location file l c =
   (* TODO: link *)
-  <:html<
-  <strong>$str:file$</strong>:<strong>$int:l$</strong>:<strong>$int:c$</strong>
-  >>
+  BlueTree.of_kv_string [
+    "file", file;
+    "line", string_of_int l;
+    "col", string_of_int c;
+  ]
 
 let of_issue = CodocIndex.(function
-  | Module_resolution_failed mod_name ->
-    <:html<<li>Module <strong>$str:mod_name$</strong> not found</li>&>>
+  | Module_resolution_failed mod_name -> BlueTree.(of_kv [
+    "module_resolution_failed", of_kv_string [
+      "name", mod_name;
+    ];
+  ])
   | Xml_error (xml_file,(l,c),msg) ->
     let xml_loc = of_xml_location xml_file l c in
-    <:html<<li>XML error parsing $xml_loc$: $str:msg$</li>&>>
+    BlueTree.(of_kv [
+      "xml_error", of_kv [
+        "loc", xml_loc;
+        "message", of_string msg;
+      ];
+    ])
 )
 
 let sort_issues = List.sort CodocIndex.(fun a b -> match a,b with
@@ -53,81 +68,59 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
   let up =
     if name = ""
     then None
-    else let href = normal_uri (Uri.of_string "../") in
-         Some <:html<<a href=$uri:href$>Up</a>&>>
+    else let href = Uri.to_string (normal_uri (Uri.of_string "../")) in
+         Some (BlueTree.of_kv_string [ "href", href ])
   in
   let pkg_path = match Stringext.split ~on:'/' name with
-    | [] -> <:html<$str:root_name$>>
+    | [] -> link_pkg_pieces ~normal_uri Uri.empty [root_name]
     | [last] ->
       let href = normal_uri (Uri.of_string "../") in
-      <:html<<a href=$uri:href$>$str:root_name$</a> / $str:last$>>
+      (link_pkg_piece href root_name)::(link_pkg_pieces ~normal_uri href [last])
     | first::rest ->
       let ascent = CodocUtil.ascent_of_depth "" (List.length rest + 1) in
       let root = normal_uri (Uri.of_string ascent) in
       let first_href =
         normal_uri Uri.(resolve "" root (of_string (first ^ "/")))
       in
-      let pieces = CodocHtml.fold_html_str " / "
-        (link_pkg_piece first_href first)
-        (link_pkg_pieces ~normal_uri first_href rest)
-      in
-      <:html<<a href=$uri:root$>$str:root_name$</a> / $pieces$>>
+      (link_pkg_piece root root_name)::
+      (link_pkg_piece first_href first)::
+      (link_pkg_pieces ~normal_uri first_href rest)
   in
   let pkgs = StringMap.fold (fun name pkg lst -> (name,pkg)::lst)
     index.CodocIndex.pkgs []
   in
   let pkgs = List.map (fun (name, _pkg) ->
     let href = normal_uri Uri.(of_string (name ^ "/")) in
-    <:html<<li><a href=$uri:href$>$str:name$</a></li>&>>
+    BlueTree.of_kv_string ["href", Uri.to_string href; "name", name]
   ) (List.sort compare pkgs) in
   let units = StringMap.fold (fun name unit lst -> (name,unit)::lst)
     index.CodocIndex.units []
   in
+  (* TODO: remove repetition *)
   let units = List.map (function
     | (name, { CodocIndex.html_file = None; issues = [] }) ->
-      <:html<<li>$str:name$</li>&>>
+      BlueTree.of_kv_string ["name", name]
     | (name, { CodocIndex.html_file = None; issues }) ->
-      <:html<<li>
-        <details>
-          <summary>$str:name$</summary>
-          <ul>$list:List.map of_issue (sort_issues issues)$</ul>
-        </details>
-      </li>&>>
+      BlueTree.(of_kv [
+        "name", of_string name;
+        "issues", of_list (List.map of_issue (sort_issues issues));
+      ])
     | (name, { CodocIndex.html_file = Some html_file; issues = [] }) ->
-      <:html<<li><a href=$uri:uri_of_path html_file$>$str:name$</a></li>&>>
+      BlueTree.of_kv_string [
+        "name", name;
+        "href", Uri.to_string (uri_of_path html_file);
+      ]
     | (name, { CodocIndex.html_file = Some html_file; issues }) ->
-      <:html<<li>
-        <details>
-          <summary><a href=$uri:uri_of_path html_file$>$str:name$</a></summary>
-          <ul>$list:List.map of_issue (sort_issues issues)$</ul>
-        </details>
-      </li>&>>
+      BlueTree.(of_kv [
+        "name", of_string name;
+        "href", of_string (Uri.to_string (uri_of_path html_file));
+        "issues", of_list (List.map of_issue (sort_issues issues));
+      ])
   ) (List.sort compare units) in
-  let pkgs = match pkgs with [] -> <:html<&>>
-    | pkgs -> <:html<
-      <section>
-        <h2>Subpackages</h2>
-        <ul>
-          $list:pkgs$
-        </ul>
-      </section>
-    >> in
-  let units = match units with [] -> <:html<&>>
-    | units -> <:html<
-      <section>
-        <h2>Modules</h2>
-        <ul>
-          $list:units$
-        </ul>
-      </section>
-    >> in
-  <:html<
-  <div class="codoc-doc">
-    $opt:up$
-    <div class="package-index">
-      <h1>Package $pkg_path$</h1>
-      $pkgs$
-      $units$
-    </div>
-  </div>
-  >>
+  (* TODO: these appends are silly *)
+  BlueTree.(of_kv ([
+    "pkg-path", of_list pkg_path;
+  ]@(match pkgs with [] -> [] | pkgs -> ["pkgs", of_list pkgs]
+  )@(match units with [] -> [] | units -> ["modules", of_list units]
+  )@(match up with None -> [] | Some up -> ["up", up]))
+  )

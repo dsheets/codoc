@@ -19,6 +19,7 @@ let xmlm = pkg "xmlm"
 
 let cow_pp = pkg_pp "cow.syntax"
 let cow = pkg "cow"
+let blueprint = pkg "blueprint"
 
 let cmdliner = pkg "cmdliner"
 
@@ -69,8 +70,7 @@ let codoc_index = unit "codocIndex" ~deps:[
 ] library
 
 let codoc_index_html = unit "codocIndexHtml" ~deps:[
-  cow_pp;
-  cow;
+  blueprint;
   codoc_util;
   codoc_html;
 ] library
@@ -135,14 +135,13 @@ let codoc_cli_html = unit "codocCliHtml" ~deps:[
   xmlm;
   cow_pp;
   cow;
+  blueprint;
   codoc;
   cli_lib;
   codoc_sys_util;
 ] cli
 
 let codoc_cli_doc = unit "codocCliDoc" ~deps:[
-  cow_pp;
-  cow;
   doc_ock;
   doc_ock_xml;
   codoc;

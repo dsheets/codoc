@@ -20,6 +20,8 @@ module Dir = CodocSysUtil.Dir
 
 type file_type = CodocSysUtil.file_type = Interface | Index | Unknown
 
+type html = Cow of Cow.Html.t | Blueprint of Blueprint.t * string
+
 let (/) = Filename.concat
 
 let html_name_of path =
@@ -52,20 +54,41 @@ let pathloc ?pkg_root scheme unit = CodocDocHtml.pathloc
   ?pkg_root
   ~normal_uri:(normal_uri ~scheme)
 
-let write_html ~css ~title html_file html =
-  let html = <:html<<html>
+let write_html ~css ~title html_file = function
+  | Cow html ->
+    let html = <:html<
+<html>
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href=$str:css$ />
     <title>$str:title$</title>
   </head>
   <body>
-$html$
+    $html$
   </body>
 </html>&>> in
-  let out_file = open_out html_file in
-  Cow.Html.output_doc (`Channel out_file) html;
-  close_out out_file
+    let out_file = open_out html_file in
+    Cow.Html.output_doc (`Channel out_file) html;
+    close_out out_file
+  | Blueprint (templ, path) ->
+    (* TODO: polyglot! *)
+    let vars = Blueprint.Tree.of_kv_string [
+      "css", css;
+      "title", title;
+    ] in
+    let vars = Blueprint.Scope.overlay vars templ in
+    let templ = Blueprint.Scope.(match find templ path with
+      | None | Some (Link _) | Some (Stack _) ->
+        Printf.eprintf "template path '%s' missing" path; exit 1
+      | Some (Scope t) -> t
+    ) in
+    let template = Blueprint.(default_rope (Scope.template templ)) in
+    (* TODO: proper error handling *)
+    try
+      Blueprint_unix.bind_to_file html_file vars template
+    with Blueprint.Error err ->
+      Printf.eprintf "Template error:\n%s\n%!" (Blueprint.error_message err);
+      exit 1
 
 let render_interface ?pkg_root in_file out_file scheme css =
   let ic = open_in in_file in
@@ -89,7 +112,7 @@ let render_interface ?pkg_root in_file out_file scheme css =
     let pathloc = pathloc ?pkg_root scheme unit in
     let html = CodocDocHtml.of_unit ~pathloc unit in
     let _, title = CodocUtil.root_of_unit unit in
-    write_html ~css ~title out_file html;
+    write_html ~css ~title out_file (Cow html);
 
     let oc = open_out in_file in
     let output = Xmlm.make_output (`Channel oc) in
@@ -120,9 +143,25 @@ let render_index name index out_file scheme css =
   let normal_uri = normal_uri ~scheme in
   let uri_of_path = uri_of_path ~scheme in
   let html = CodocIndexHtml.of_package ~name ~index ~normal_uri ~uri_of_path in
+  (* TODO: proper error handling *)
+  (* TODO: proper path *)
+  let ns = function "t" -> Some Blueprint.xmlns | _ -> None in
+  let templ =
+    try Unix.handle_unix_error (Blueprint_unix.of_file ~ns) "share/codoc.blue"
+    with
+    | Blueprint.Error err ->
+      Printf.eprintf "Template error:\n%s\n%!" (Blueprint.error_message err);
+      exit 1
+    | Xmlm.Error ((line,col),err) ->
+      Printf.eprintf "XML error at line %d column %d:\n%s\n%!"
+        line col (Xmlm.error_message err);
+      exit 1
+  in
+  let html = Blueprint.Tree.of_kv ["body", html] in
+  let html = Blueprint.Scope.overlay html templ in
   (* TODO: fixme title *)
   let title = if name = "" then "Documentation Index" else name in
-  write_html ~css ~title out_file html;
+  write_html ~css ~title out_file (Blueprint (html, "index"));
   `Ok ()
 
 let check_create_safe ~force index out_dir = CodocIndex.(
