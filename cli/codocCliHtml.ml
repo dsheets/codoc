@@ -20,8 +20,6 @@ module Dir = CodocSysUtil.Dir
 
 type file_type = CodocSysUtil.file_type = Interface | Index | Unknown
 
-type html = Cow of Cow.Html.t | Blueprint of Blueprint.t * string
-
 let (/) = Filename.concat
 
 let index_template = Lazy.from_fun CodocTemplate.(fun () -> load index)

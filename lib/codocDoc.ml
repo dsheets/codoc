@@ -80,17 +80,34 @@ let xmlns = DocOckXml.ns
 let rec xml_of_root = Root.(function
   | Cmti { cmti_path; unit_name = name; unit_digest = digest } ->
     let digest = Digest.to_hex digest in
-    <:xml<<cmti name=$str:name$ src=$str:cmti_path$ digest=$str:digest$ />&>>
+    let attrs = [
+      ("","name"),name;
+      ("","src"),cmti_path;
+      ("","digest"),digest;
+    ] in
+    [`El ((("","cmti"),attrs), [])]
   | Resolved ({ resolution_root = root }, source) ->
-    <:xml<<resolved root=$str:root$>$xml_of_root source$</resolved>&>>
+    let attrs = [
+      ("","root"),root;
+    ] in
+    [`El ((("","resolved"),attrs), xml_of_root source)]
   | Proj (sig_,source) ->
     (* TODO: serialize with doc-ock-xml vocab *)
     (*let sig_ = Identifier.any sig_ in*)
-    <:xml<<proj path=$str:sig_$>$xml_of_root source$</proj>&>>
+    let attrs = [
+      ("","path"),sig_;
+    ] in
+    [`El ((("","proj"),attrs), xml_of_root source)]
   | Xml (xml_path,source) ->
-    <:xml<<xml src=$str:xml_path$>$xml_of_root source$</xml>&>>
+    let attrs = [
+      ("","src"),xml_path;
+    ] in
+    [`El ((("","xml"),attrs), xml_of_root source)]
   | Html (html_path,source) ->
-    <:xml<<html src=$str:html_path$>$xml_of_root source$</html>&>>
+    let attrs = [
+      ("","src"),html_path;
+    ] in
+    [`El ((("","html"),attrs), xml_of_root source)]
 )
 
 let filter_children = List.fold_left (fun l -> function

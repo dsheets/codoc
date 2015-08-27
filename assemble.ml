@@ -17,8 +17,6 @@ let doc_ock_xml = pkg "doc-ock-xml"
 
 let xmlm = pkg "xmlm"
 
-let cow_pp = pkg_pp "cow.syntax"
-let cow = pkg "cow"
 let blueprint = pkg "blueprint"
 
 let cmdliner = pkg "cmdliner"
@@ -27,18 +25,11 @@ let library = `Path ["lib"]
 let cli = `Path ["cli"]
 let opam = `Path ["opam-doc"]
 
-let codoc_html = unit "codocHtml" ~deps:[
-  cow_pp;
-  cow;
-] library
-
 let codoc_doc_maps = unit "codocDocMaps" ~deps:[
   doc_ock;
 ] library
 
 let codoc_doc = unit "codocDoc" ~deps:[
-  cow_pp;
-  cow;
   doc_ock;
   doc_ock_xml;
   codoc_doc_maps;
@@ -51,10 +42,10 @@ let codoc_util = unit "codocUtil" ~deps:[
 ] library
 
 let codoc_doc_html = unit "codocDocHtml" ~deps:[
+  uri;
   doc_ock;
   blueprint;
   codoc_doc;
-  codoc_html;
 ] library
 
 let codoc_xml = unit "codocXml" ~deps:[
@@ -64,14 +55,14 @@ let codoc_xml = unit "codocXml" ~deps:[
 ] library
 
 let codoc_index = unit "codocIndex" ~deps:[
-  cow_pp;
-  cow;
+  xmlm;
+  stringext;
 ] library
 
 let codoc_index_html = unit "codocIndexHtml" ~deps:[
+  uri;
   blueprint;
   codoc_util;
-  codoc_html;
 ] library
 
 let codoc_env = unit "codocEnvironment" ~deps:[
@@ -86,7 +77,6 @@ let codoc_template = unit "codocTemplate" ~deps:[
 ] library
 
 let codoc = lib ~flags "codoc" (`Units [
-  codoc_html;
   codoc_doc_maps;
   codoc_doc;
   codoc_util;
@@ -139,8 +129,6 @@ let codoc_cli_link = unit "codocCliLink" ~deps:[
 
 let codoc_cli_html = unit "codocCliHtml" ~deps:[
   xmlm;
-  cow_pp;
-  cow;
   blueprint;
   codoc;
   cli_lib;

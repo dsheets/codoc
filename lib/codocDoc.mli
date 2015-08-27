@@ -53,7 +53,7 @@ type t =
 | Para of text
 | Block of text
 
-val xml_of_root : root -> Cow.Xml.t
+val xml_of_root : root -> ('a Xmlm.frag as 'a) Xmlm.frag list
 
 val root_of_xml : Xmlm.tag -> root option list -> root option
 val data_of_xml : string -> root option

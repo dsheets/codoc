@@ -59,38 +59,50 @@ let index_file ?(rel_index=index_filename) dir = Filename.concat dir rel_index
 
 let xml_of_generation_issue = function
   | Module_resolution_failed mod_name ->
-    <:xml<<resolution-failed module=$str:mod_name$/>&>>
+    let attrs = [
+      ("","module"),mod_name;
+    ] in
+    [`El ((("","resolution-failed"),attrs),[])]
   | Xml_error (xml_file, (l,c), msg) ->
-    <:xml<<xml-error href=$str:xml_file$ line=$int:l$ col=$int:c$
-          >$str:msg$</xml-error>&>>
+    let attrs = [
+      ("","href"),xml_file;
+      ("","line"),string_of_int l;
+      ("","col"),string_of_int c;
+    ] in
+    [`El ((("","xml-error"),attrs),[`Data msg])]
 
 let xml_of_generated_unit ({ mod_name; xml_file; html_file; issues }) =
   let issues = match issues with
-    | [] -> <:xml<&>>
-    | issues -> <:xml<<issues>
-      $list:List.map xml_of_generation_issue issues$
-    </issues>&>>
+    | [] -> []
+    | issues ->
+      [`El ((("","issues"),[]),
+            List.(flatten (map xml_of_generation_issue issues)))]
   in
   let html_file = match html_file with
-    | Some html_file -> <:xml<<file type="text/html" href=$str:html_file$/>&>>
-    | None -> <:xml<&>>
+    | Some html_file ->
+      [`El ((("","file"),[("","type"),"text/html";("","href"),html_file]),[])]
+    | None -> []
   in
-  <:xml<
-  <unit name=$str:mod_name$>
-    <file type="application/xml" href=$str:xml_file$/>
-    $html_file$
-    $issues$
-  </unit>&>>
+  [`El ((("","unit"),[("","name"),mod_name]),[
+     `El ((("","file"),[("","type"),"application/xml";("","href"),xml_file]),
+          html_file@issues
+         );
+   ])]
 
 let xml_of_pkg ({ pkg_name; index }) =
-  <:xml<
-  <package name=$str:pkg_name$ href=$str:index$/>&>>
+  let attrs = [
+    ("","name"),pkg_name;
+    ("","href"),index;
+  ] in
+  [`El ((("","package"),attrs),[])]
 
 let to_xml ({ units; pkgs }) =
-  <:xml<<doc-index xmlns=$str:xmlns$>
-  $list:list_of_map (StringMap.map xml_of_pkg pkgs)$
-  $list:list_of_map (StringMap.map xml_of_generated_unit units)$
-</doc-index>&>>
+  [`El ((("","doc-index"),[("","xmlns"),xmlns]),
+        List.flatten (
+          (list_of_map (StringMap.map xml_of_pkg pkgs))@
+          (list_of_map (StringMap.map xml_of_generated_unit units)))
+       )
+  ]
 
 let string_of_pos (line,col) =
   Printf.sprintf "line %d, col %d" line col
@@ -228,7 +240,7 @@ let read_cache ({ cache; root }) path =
   let root_path = root / path in
   try List.hd (Hashtbl.find cache root_path)
   with Not_found ->
-    let idx = { read root path with cache } in
+    let idx = { (read root path) with cache } in
     Hashtbl.replace cache root_path [idx];
     idx
 
