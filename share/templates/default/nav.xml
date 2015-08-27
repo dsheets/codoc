@@ -1,0 +1,89 @@
+<!-- Fragments used for navigation -->
+<t:let name="nav">
+
+  <!-- TODO: Default href values are needed due to the combination of a
+       bug in blueprint and the generation of unresolved references. The
+       default values will never be used in output. :-( -->
+  <t:let name=".link"
+         ><t:if exists=".href"
+                ><t:if exists=".title"
+                ><a><t:attr name="title"><t:insert name=".title"/></t:attr
+                ><t:attr name="href"><t:insert name=".href">fixme</t:insert
+                ></t:attr
+                ><t:insert name=".anchor"/></a></t:if>
+  <t:else
+      ><a><t:attr name="href"><t:insert name=".href">fixme</t:insert></t:attr
+      ><t:insert name=".anchor"/></a></t:else
+      ></t:if>
+  <t:else
+      ><font color="red">ERROR: unlinked ident <t:insert name=".anchor"
+      /></font></t:else
+      ></t:let>
+  <!-- TODO: The error case should really be abstracted so it can be
+       overridden globally but, once again, a bug in the template engine
+       prevents this via the inaccessibility of .anchor. -->
+  
+  <t:let name=".up"
+         ><t:let name="nav.link.title">Up</t:let
+         ><t:let name="nav.link.anchor">Up</t:let
+         ><t:insert name="nav.link" with="nav.up"
+         /></t:let>
+
+  <t:let name=".pkg-path">
+    <t:if exists=".head.href"><t:insert name="nav.link" with=".head"/> / </t:if>
+    <t:else><t:insert name=".head.anchor"/></t:else>
+    <t:insert name="nav.pkg-path" with=".tail"><t:seq/></t:insert>
+  </t:let>
+
+  <t:let name=".ref"
+         ><t:insert name=".segment" with=".head"
+         /><t:if exists=".tail">.<t:insert name="nav.ref" with=".tail"
+         ><t:seq/></t:insert></t:if>
+  </t:let>
+
+  <t:let name=".ref.segment"
+         ><t:if exists=".anchor"
+                ><t:let name=".anchor"
+                        ><t:link from=".text"
+                        /><t:insert name="doc.mktext" with="nav.ref.segment.text"
+                        /></t:let
+                        ><t:insert name="nav.link" with="nav.ref.segment"/></t:if>
+  <t:else
+      ><t:insert name="doc.mktext" with="nav.ref.segment"/></t:else
+      ></t:let>
+
+  <t:let name=".path"
+         ><t:if exists=".tail"><t:insert name="nav.path" with=".tail"
+         />.</t:if><t:if exists=".head.apply"
+         ><t:insert name="nav.path" with=".head.apply.fun"
+         />(<t:insert name="nav.path" with=".head.apply.arg"
+         />)</t:if>
+  <t:else><t:if exists=".head.href"
+                ><t:insert name=".segment" with=".head"/></t:if>
+  <t:else><t:insert name="doc.mktext" with=".head.anchor"/></t:else
+  ></t:else></t:let>
+
+  <t:let name=".path.segment"
+         ><t:let name=".anchor"
+                 ><t:link from=".text"
+                 /><t:insert name="doc.mktext" with="nav.path.segment.text"
+                 /></t:let
+                 ><t:insert name="nav.link" with="nav.path.segment"
+                 /></t:let>
+
+  <!-- nav.region is the template for page fragments.
+       It takes a .render child containing the template to use for content. -->
+  <t:let name=".region">
+    <t:if exists=".id">
+      <div class="region">
+        <t:attr name="id"><t:insert name=".id"/></t:attr>
+        <t:insert name=".render" with=".body"/>
+      </div>
+    </t:if>
+    <t:else>
+      <div class="region">
+        <t:insert name=".render" with=".body"/>
+      </div>
+    </t:else>
+  </t:let>
+</t:let>

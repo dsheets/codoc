@@ -52,8 +52,7 @@ let codoc_util = unit "codocUtil" ~deps:[
 
 let codoc_doc_html = unit "codocDocHtml" ~deps:[
   doc_ock;
-  cow_pp;
-  cow;
+  blueprint;
   codoc_doc;
   codoc_html;
 ] library
@@ -80,6 +79,12 @@ let codoc_env = unit "codocEnvironment" ~deps:[
   codoc_doc;
 ] library
 
+let codoc_template = unit "codocTemplate" ~deps:[
+  blueprint;
+  xmlm;
+  unix; (* TODO: would be nice out of the library and into the tool *)
+] library
+
 let codoc = lib ~flags "codoc" (`Units [
   codoc_html;
   codoc_doc_maps;
@@ -90,6 +95,7 @@ let codoc = lib ~flags "codoc" (`Units [
   codoc_index;
   codoc_index_html;
   codoc_env;
+  codoc_template;
 ])
 
 let codoc_config = unit "codocConfig" ~deps:[] cli

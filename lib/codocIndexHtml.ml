@@ -41,21 +41,16 @@ let of_xml_location file l c =
     "col", string_of_int c;
   ]
 
-let of_issue = CodocIndex.(function
-  | Module_resolution_failed mod_name -> BlueTree.(of_kv [
-    "module_resolution_failed", of_kv_string [
-      "name", mod_name;
-    ];
-  ])
+let of_issue = CodocIndex.(BlueTree.(function
+  | Module_resolution_failed mod_name ->
+    of_cons "module_resolution_failed" (of_cons "name" (of_string mod_name))
   | Xml_error (xml_file,(l,c),msg) ->
     let xml_loc = of_xml_location xml_file l c in
-    BlueTree.(of_kv [
-      "xml_error", of_kv [
-        "loc", xml_loc;
-        "message", of_string msg;
-      ];
+    of_cons "xml_error" (of_kv [
+      "loc", xml_loc;
+      "message", of_string msg;
     ])
-)
+))
 
 let sort_issues = List.sort CodocIndex.(fun a b -> match a,b with
   | Module_resolution_failed x, Module_resolution_failed y -> compare x y
@@ -117,10 +112,9 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
         "issues", of_list (List.map of_issue (sort_issues issues));
       ])
   ) (List.sort compare units) in
-  (* TODO: these appends are silly *)
-  BlueTree.(of_kv ([
-    "pkg-path", of_list pkg_path;
-  ]@(match pkgs with [] -> [] | pkgs -> ["pkgs", of_list pkgs]
-  )@(match units with [] -> [] | units -> ["modules", of_list units]
-  )@(match up with None -> [] | Some up -> ["up", up]))
-  )
+  BlueTree.(of_kv_maybe ([
+    "pkg-path", Some (of_list pkg_path);
+    "pkgs", (match pkgs with [] -> None | pkgs -> Some (of_list pkgs));
+    "modules", (match units with [] -> None | units -> Some (of_list units));
+    "up", up;
+  ]))

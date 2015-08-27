@@ -1,0 +1,260 @@
+<!-- Documentation mark-up rendering -->
+<t:let name="doc">
+
+  <t:let name=".div">
+    <t:if exists=".text">
+      <div class="doc">
+        <t:link from="doc.blocks" to="doc.paras" />
+        <t:insert name="doc.paras" with=".text"/>
+        <t:insert name="doc.mktags" with=".tags"/>
+      </div>
+    </t:if>
+  </t:let>
+
+  <t:let name=".tds">
+    <t:if exists=".text">
+      <td>(*</td>
+      <td class="doc">
+        <t:link from="doc.blocks" to="doc.no-paras" />
+        <t:insert name="doc.no-paras" with=".text"><t:seq/></t:insert>
+        <t:insert name="doc.mktags" with=".tags"><t:seq/></t:insert>
+      </td>
+      <td>*)</td>
+    </t:if>
+    <t:else><td/><td/><td/></t:else>
+  </t:let>
+
+  <t:let name=".paras">
+    <t:if exists=".head.para.head">
+      <p><t:insert name="doc.mktext" with=".head.para"/></p>
+    </t:if>
+    <t:if exists=".head.block">
+      <t:insert name="doc.mktext" with=".head.block"/>
+    </t:if>
+    <t:insert name="doc.paras" with=".tail"><t:seq/></t:insert>
+  </t:let>
+
+  <t:let name=".no-paras">
+    <t:link from="doc.blocks"/>
+    <t:insert name="doc.mktext" with=".head.para"><t:seq/></t:insert>
+    <t:insert name="doc.mktext" with=".head.block"><t:seq/></t:insert>
+    <t:insert name="doc.no-paras" with=".tail"><t:seq/></t:insert>
+  </t:let>
+
+  <t:let name=".mktext"
+         ><t:insert name="doc.el" with=".head"
+         /><t:insert name="doc.mktext" with=".tail"><t:seq/></t:insert></t:let>
+
+  <t:let name=".el"
+         ><t:if exists=".raw"><t:insert name=".raw"/></t:if>
+    <t:if exists=".code"><code><t:insert name=".code"/></code></t:if>
+    <t:if exists=".precode"
+          ><pre><code><t:insert name=".precode"/></code></pre></t:if>
+    <t:if exists=".verbatim"
+          ><pre><t:insert name=".verbatim"/></pre></t:if>
+    <t:if exists=".target"
+          ><t:let name="doc.todo.message">TARGET</t:let
+          ><t:insert name="doc.todo"/></t:if>
+    <t:if exists=".ref-link"
+          ><t:insert name="doc.link" with=".ref-link"/></t:if>
+    <t:if exists=".bold"
+          ><b><t:insert name="doc.mktext" with=".bold"/></b></t:if>
+    <t:if exists=".italic"
+          ><i><t:insert name="doc.mktext" with=".italic"/></i></t:if>
+    <t:if exists=".emph"
+          ><em><t:insert name="doc.mktext" with=".emph"/></em></t:if>
+    <t:if exists=".center">
+      <div class="doc-center"
+           ><t:insert name="doc.blocks" with=".center"/></div>
+    </t:if>
+    <t:if exists=".left">
+      <div class="doc-left"
+           ><t:insert name="doc.blocks" with=".left"/></div>
+    </t:if>
+    <t:if exists=".right">
+      <div class="doc-right"
+           ><t:insert name="doc.blocks" with=".right"/></div>
+    </t:if>    
+    <t:if exists=".super"
+          ><sup><t:insert name="doc.mktext" with=".super"/></sup></t:if>
+    <t:if exists=".sub"
+          ><sub><t:insert name="doc.mktext" with=".sub"/></sub></t:if>
+    <t:if exists=".custom"
+          ><t:let name="doc.todo.message">CUSTOM</t:let
+          ><t:insert name="doc.todo"/></t:if>
+    <t:if exists=".list">
+      <ul><t:insert name="doc.lis" with=".list"/></ul>
+    </t:if>
+    <t:if exists=".enum">
+      <ol><t:insert name="doc.lis" with=".enum"/></ol>
+    </t:if>
+    <t:if exists=".nl"><br/></t:if>
+    <t:if exists=".title">
+      <t:link from="nav.region.render" to="doc.mktitle"/>
+      <t:insert name="nav.region" with=".title"/>
+    </t:if>
+    <t:if exists=".ref"><t:insert name="nav.ref" with=".ref"/></t:if>
+    <t:if exists=".modules"
+          ><t:insert name="doc.module-index" with=".modules"/></t:if>
+    <t:if exists=".index"
+          ><t:let name="doc.todo.message">SPECIAL INDEX</t:let
+          ><t:insert name="doc.todo"/></t:if>
+  </t:let>
+
+  <t:let name=".mktitle">
+    <t:if exists=".1">
+      <h1>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h1>
+    </t:if>
+    <t:if exists=".2">
+      <h2>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h2>
+    </t:if>
+    <t:if exists=".3">
+      <h3>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h3>
+    </t:if>
+    <t:if exists=".4">
+      <h4>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h4>
+    </t:if>
+    <t:if exists=".5">
+      <h5>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h5>
+    </t:if>
+    <t:if exists=".6">
+      <h6>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h6>
+    </t:if>
+    <t:if exists=".lt_1">
+      <h1>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h1>
+    </t:if>
+    <t:if exists=".gt_6">
+      <h6>
+        <t:attr name="class">section level_<t:insert name=".level"/></t:attr>
+        <t:insert name="doc.mktext" with=".text"/>
+      </h6>
+    </t:if>
+  </t:let>
+  
+  <t:let name=".lis">
+    <li><t:insert name="doc.mktext" with=".head"/></li>
+    <t:insert name="doc.lis" with=".tail"><t:seq/></t:insert>
+  </t:let>
+  
+  <t:let name=".link"
+         ><t:if exists=".anchor"
+                ><a><t:attr name="href"><t:insert name=".href"/></t:attr
+                ><t:insert name="doc.mktext" with=".anchor"/></a></t:if>
+  <t:else>
+    <t:let name="doc.todo.message">LINK NO ANCHOR</t:let>
+    <t:insert name="doc.todo"/>
+  </t:else
+  ></t:let>
+
+  <t:let name=".module-index">
+    <t:let name=".rows">
+      <tr><td><t:insert name="nav.ref" with=".head"/></td></tr>
+      <t:insert name="doc.module-index.rows" with=".tail"><t:seq/></t:insert>
+    </t:let>
+    <table class="module_index">
+      <t:insert name=".rows" with="doc.module-index"/>
+    </table>
+  </t:let>
+
+  <t:let name=".mktags">
+    <t:if exists=".head">
+      <t:insert name="doc.mktag" with=".head"/>
+      <t:insert name="doc.mktags" with=".tail"><t:seq/></t:insert>
+    </t:if>
+  </t:let>
+
+  <!-- TODO: each tag should be split out into its own template -->
+  <t:let name=".mktag">
+    <t:let name="label">
+      <t:if exists="doc.mktag.author">Author</t:if>
+      <t:if exists="doc.mktag.version">Version</t:if>
+      <t:if exists="doc.mktag.see-url">See</t:if>
+      <t:if exists="doc.mktag.see-file">See</t:if>
+      <t:if exists="doc.mktag.see-doc">See</t:if>
+      <t:if exists="doc.mktag.since">Since</t:if>
+      <t:if exists="doc.mktag.before">Before</t:if>
+      <t:if exists="doc.mktag.deprecated">Deprecated</t:if>
+      <t:if exists="doc.mktag.param">Param</t:if>
+      <t:if exists="doc.mktag.raises">Raises</t:if>
+      <t:if exists="doc.mktag.return">Returns</t:if>
+      <t:if exists="doc.mktag.custom">
+        <t:let name="doc.todo.message">
+          CUSTOM TAG <t:insert name="doc.mktag.tag.type"/>
+        </t:let>
+        <t:insert name="doc.todo"/>
+      </t:if>
+    </t:let>
+    <t:let name="content">
+      <t:insert name="doc.mktext" with="doc.mktag.author"><t:seq/></t:insert>
+      <t:insert name="doc.mktext" with="doc.mktag.version"><t:seq/></t:insert>
+      <t:if exists="doc.mktag.see-url">
+        <t:let name="link.anchor"
+               ><t:insert name="doc.mktext" with="doc.mktag.see-url"/></t:let>
+        <t:let name="link.href"><t:insert name="doc.mktag.href"/></t:let>
+        <t:insert name="nav.link" with="link"/>
+      </t:if>
+      <t:if exists="doc.mktag.see-file">
+        FILE [<t:insert name="doc.mktag.file"/>] <t:insert
+        name="doc.mktext" with="doc.mktag.see-file"/>
+      </t:if>
+      <t:if exists="doc.mktag.see-doc">
+        DOC [<t:insert name="doc.mktag.doc"/>] <t:insert
+        name="doc.mktext" with="doc.mktag.see-doc"/>
+      </t:if>
+      <t:insert name="doc.mktext"
+                with="doc.mktag.since"><t:seq/></t:insert>
+      <t:if exists="doc.mktag.before">
+        [<t:insert name="doc.mktag.when"/>]
+        <t:insert name="doc.mktext" with="doc.mktag.before"/>
+      </t:if>
+      <t:insert name="doc.mktext"
+                with="doc.mktag.deprecated"><t:seq/></t:insert>
+      <t:if exists="doc.mktag.param">
+        [<t:insert name="doc.mktag.name"/>]
+        <t:insert name="doc.mktext" with="doc.mktag.param"/>
+      </t:if>
+      <t:if exists="doc.mktag.raises">
+        [<t:insert name="doc.mktag.name"/>]
+        <t:insert name="doc.mktext" with="doc.mktag.raises"/>
+      </t:if>
+      <t:insert name="doc.mktext"
+                with="doc.mktag.return"><t:seq/></t:insert>
+      <t:if exists="doc.mktag.custom">
+        [<t:insert name="doc.mktext"
+        with="doc.mktag.custom"><t:seq/></t:insert>]
+      </t:if>
+    </t:let>
+    <div>
+      <t:attr name="class">tag <t:insert name=".type"/></t:attr>
+      <span class="label"><t:insert name="label"/></span>
+      <t:insert name="content"/>
+    </div>
+  </t:let>
+
+  <t:let name=".todo"
+         ><font color="#ff0000">TODO: <t:insert name=".message"/></font></t:let>
+
+  <t:let name=".error"
+         ><font color="#ff0000">ERROR: <t:insert name=".message"/></font></t:let>
+</t:let>

@@ -1,0 +1,404 @@
+<!-- Module language rendering -->
+<t:seq>
+  <t:let name="module">
+    <div class="module codoc-doc">
+      <t:insert name="nav.up" with=".up"><t:seq/></t:insert>
+
+      <div class="intro">
+        <h1>
+          <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
+          <t:insert name="nav.ref" with=".name"/>
+        </h1>
+
+        <t:insert name=".rhs" with=".decl"/>
+      </div>
+
+      <t:insert name="doc.div" with=".doc"/>
+
+      <t:insert name=".decl-body" with=".decl"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.rhs">
+    <t:if exists=".sig">: <t:insert name="module.rhs-sig" with=".sig"/></t:if>
+    <t:if exists=".alias">= <t:insert name="nav.path" with=".alias.path"/></t:if>
+  </t:let>
+
+  <t:let name="module.rhs-sig">
+    <t:if exists=".path"
+          ><t:insert name="nav.path" with=".path"/></t:if>
+    <t:if exists=".sig"
+          ><t:let name="keyword.text">sig</t:let
+          ><t:insert name="keyword"/></t:if>
+    <t:if exists=".functor"
+          ><t:insert name="module.functor-rhs" with=".functor"/></t:if>
+    <t:if exists=".with"
+          ><t:insert name="module.with-rhs" with=".with"/></t:if>
+    <t:if exists=".typeof"
+          ><t:insert name="module.typeof-rhs" with=".typeof"/></t:if>
+  </t:let>
+
+  <t:let name="module.functor-rhs">
+    <t:let name="keyword.text">functor</t:let><t:insert name="keyword"/>
+    <t:if exists=".arg">
+      (<t:insert name=".arg"/>
+      : <t:insert name="module.rhs-sig" with=".arg-type"
+      /><t:insert name="module.sig-body" with=".arg-type"/>)
+    </t:if>
+    <t:else>()</t:else>
+    -> <t:insert name="module.rhs-sig" with=".range"/>
+  </t:let>
+
+  <t:let name="module.with-rhs">
+    <t:insert name="module.rhs-sig" with=".lhs"/>
+    <t:if exists=".short">
+      <t:let name="keyword.text">with</t:let><t:insert name="keyword"/>
+      <t:insert name="module.subs" with=".subs"/>
+    </t:if>
+  </t:let>
+
+  <t:let name="module.typeof-rhs">
+    <t:let name="keyword.text">module type of</t:let><t:insert name="keyword"/>
+    <t:insert name="nav.path" with=".alias"><t:seq/></t:insert
+    ><t:insert name="module.rhs-sig" with=".type"><t:seq/></t:insert
+    ></t:let>
+
+  <t:let name="module.decl-body">
+    <t:if exists=".sig"><t:insert name="module.sig-body" with=".sig"/></t:if>
+    <!-- alias has no body -->
+  </t:let>
+
+  <t:let name="module.sig-body"
+         ><t:if exists=".functor"
+          ><t:insert name="module.sig-body" with=".functor.range"/></t:if>
+    <t:if exists=".with"
+          ><t:insert name="module.with-body" with=".with"/></t:if>
+    <t:if exists=".typeof"
+          ><t:insert name="module.typeof-body" with=".typeof"/></t:if>
+    <t:if exists=".sig">
+      <t:if exists=".sig.head">
+        <div class="sig"><t:insert name="module.signature" with=".sig"/></div>
+      </t:if>
+      <div class="outro"
+           ><t:let name="keyword.text">end</t:let
+           ><t:insert name="keyword"/></div>
+    </t:if>
+    <!-- path has no body -->
+  </t:let>
+
+  <t:let name="module.with-body"
+         ><t:insert name="module.sig-body" with=".lhs"/>
+  <t:if exists=".short"/>
+  <t:else>
+    <t:let name="keyword.text">with</t:let><t:insert name="keyword"/>
+    <t:insert name="module.subs" with=".subs"/>
+  </t:else>
+  </t:let>
+
+  <t:let name="module.typeof-body"
+         ><t:insert name="module.sig-body" with=".type"><t:seq/></t:insert
+         ></t:let>
+
+  <t:let name="module.subs">
+    <t:insert name="module.sub" with=".head"/>
+    <t:if exists=".tail">
+      <t:let name="keyword.text">and</t:let><t:insert name="keyword"/>
+      <t:insert name="module.subs" with=".tail"/>
+    </t:if>
+  </t:let>
+
+  <t:let name="module.sub">
+    <t:if exists=".module">
+      <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
+      <t:insert name="nav.path" with=".module.name"/>
+      <t:insert name="module.rhs" with=".module.decl"/>
+      <t:insert name="module.decl-body" with=".module.decl"/>
+    </t:if>
+    <t:if exists=".type">
+      <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
+      <t:insert name="module.mkparams" with=".type.params"/>
+      <t:insert name="nav.path" with=".type.name"/>
+      <t:if exists=".type.manifest">
+        =
+        <t:insert name="module.private" with=".type.private"><t:seq/></t:insert>
+        <t:insert name="type" with=".type.manifest"/>
+      </t:if>
+    </t:if>
+    <t:if exists=".module-subst">
+      <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
+      <t:insert name="nav.path" with=".module-subst.name"/>
+      :=
+      <t:insert name="nav.path" with=".module-subst.subst"/>
+    </t:if>
+    <t:if exists=".type-subst">
+      <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
+      <t:insert name="module.mkparams" with=".type-subst.params"/>
+      <t:insert name="nav.path" with=".type-subst.name"/>
+      :=
+      <t:insert name="module.mkparams" with=".type-subst.params"/>
+      <t:insert name="nav.path" with=".type-subst.subst"/>
+    </t:if>
+  </t:let>
+
+  <t:let name="module.signature">
+    <t:insert name="module.sig-item" with=".head"/>
+    <t:insert name="module.signature" with=".tail"><t:seq/></t:insert>
+  </t:let>
+
+  <t:let name="module.sig-item">
+    <t:insert name="doc.div" with=".doc"><t:seq/></t:insert>
+    <t:if exists=".val"
+          ><t:link from="nav.region.render" to="module.val"
+          /><t:insert name="nav.region" with=".val"/></t:if>
+    <t:if exists=".external"
+          ><t:link from="nav.region.render" to="module.external"
+          /><t:insert name="nav.region" with=".external"/></t:if>
+    <t:if exists=".type"
+          ><t:link from="nav.region.render" to="module.type"
+          /><t:insert name="nav.region" with=".type"/></t:if>
+    <!-- Type extensions don't have a region because a type
+         extension construction does not have a specific name. -->
+    <t:insert name="module.type-ext" with=".type-ext"><t:seq/></t:insert>
+    <t:if exists=".exn"
+          ><t:link from="nav.region.render" to="module.exn"
+          /><t:insert name="nav.region" with=".exn"/></t:if>
+    <t:if exists=".class"
+          ><t:link from="nav.region.render" to="module.class"
+          /><t:insert name="nav.region" with=".class"/></t:if>
+    <t:if exists=".class-type"
+          ><t:link from="nav.region.render" to="module.class-type"
+          /><t:insert name="nav.region" with=".class-type"/></t:if>
+    <t:if exists=".module"
+          ><t:link from="nav.region.render" to="module.module"
+          /><t:insert name="nav.region" with=".module"/></t:if>
+    <t:if exists=".module-type"
+          ><t:link from="nav.region.render" to="module.module-type"
+          /><t:insert name="nav.region" with=".module-type"/></t:if>
+    <!-- Includes are not referenceable. -->
+    <t:if exists=".include">
+      <t:link from="module.include.sig" to=".include"/>
+      <t:insert name="module.include"/>
+    </t:if>
+  </t:let>
+
+  <t:let name="module.val">
+    <div class="val">
+      <t:let name="keyword.text">val</t:let><t:insert name="keyword"/>
+      <t:insert name=".name"/> : <t:insert name="type" with=".type"/>
+      <t:insert name="doc.div" with=".doc"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.external">
+    <div class="external val">
+      <t:let name="keyword.text">external</t:let><t:insert name="keyword"/>
+      <t:insert name=".name"/> : <t:insert name="type" with=".type"/>
+      = <t:insert name="module.prims" with=".primitives"/>
+      <t:insert name="doc.div" with=".doc"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.prims">
+    "<t:insert name=".head"/>"
+    <t:insert name="module.prims" with=".tail"><t:seq/></t:insert>
+  </t:let>
+
+  <t:let name="module.private">
+    <t:let name="keyword.text">private</t:let><t:insert name="keyword"/>
+  </t:let>
+
+  <t:let name="module.type">
+    <div class="type">
+      <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
+      <t:insert name="module.mkparams" with=".params"/>
+      <t:insert name=".name"/>
+      <t:if exists=".rep">
+        <t:if exists=".manifest">
+          = <t:insert name="type" with=".manifest"/>
+        </t:if>
+        = <t:insert name="module.private" with=".private"><t:seq/></t:insert>
+        <t:insert name="module.type-rep" with=".rep"/>
+      </t:if>
+      <t:else>
+        <t:if exists=".manifest">
+          = <t:insert name="module.private" with=".private"><t:seq/></t:insert>
+          <t:insert name="type" with=".manifest"/>
+        </t:if>
+      </t:else>
+      <t:insert name="module.type.mkconstraints" with=".constraints"/>
+      <t:insert name="doc.div" with=".doc"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.mkparams">
+    <t:if exists=".tail">
+      (<t:insert name="module.mkparam" with=".head"
+      /><t:insert name="module.params" with=".tail"/>)
+    </t:if>
+    <t:else>
+      <t:if exists=".head">
+        <t:insert name="module.mkparam" with=".head"/>
+      </t:if>
+    </t:else>
+  </t:let>
+
+  <t:let name="module.params"
+         >, <t:insert name="module.mkparam" with=".head"
+         /><t:insert name="module.params" with=".tail"
+         ><t:seq/></t:insert></t:let>
+
+  <t:let name="module.mkparam"
+         ><t:if exists=".pos">+</t:if
+         ><t:if exists=".neg">-</t:if
+         ><t:if exists=".var"
+         >'<t:insert name=".var"/></t:if
+         ><t:else>_</t:else
+         ></t:let>
+
+  <t:let name="module.type.mkconstraints">
+    <t:if exists=".head">
+      <t:let name="keyword.text">constraint</t:let><t:insert name="keyword"/>
+      <t:insert name="type" with=".head.lhs"/>
+      = <t:insert name="type" with=".head.rhs"/>
+      <t:insert name="module.type.mkconstraints"
+                with=".tail"><t:seq/></t:insert>
+    </t:if>
+  </t:let>
+
+  <t:let name="module.type-rep">
+    <t:if exists=".extensible">..</t:if>
+    <t:if exists=".variant">
+      <table>
+        <t:insert name="module.variant" with=".variant"/>
+      </table>
+    </t:if>
+    <t:if exists=".record">
+      {<table>
+        <t:insert name="module.record" with=".record"/>
+      </table>}
+    </t:if>
+  </t:let>
+
+  <t:let name="module.variant">
+    <t:link from="module.constr.region" to=".head"/>
+    <t:insert name="module.constr"/>
+    <t:insert name="module.variant" with=".tail"><t:seq/></t:insert>
+  </t:let>
+
+  <t:let name="module.constr">
+    <t:let name=".mk">
+      | <t:insert name=".name"/>
+      <t:insert name="module.constr.args" with=".sig"/>
+    </t:let>
+    <t:link from="nav.region.render" to="module.constr.mk"/>
+    <tr class="cons">
+      <td><t:insert name="nav.region" with=".region"/></td>
+      <t:insert name="doc.tds" with=".region.body.doc"/>
+    </tr>
+  </t:let>
+
+  <t:let name="module.constr.args">
+    <t:if exists=".type">
+      :
+      <t:if exists=".args">
+        <t:insert name="type.mktuple" with=".args"/>
+        ->
+      </t:if>
+      <t:insert name="type" with=".type"/>
+    </t:if>
+    <t:else>
+      <t:if exists=".args">
+        <t:let name="keyword.text">of</t:let><t:insert name="keyword"/>
+        <t:insert name="type.mktuple" with=".args"/>
+      </t:if>
+    </t:else>    
+  </t:let>
+
+  <t:let name="module.record">
+    <t:link from="module.field.region" to=".head"/>
+    <t:insert name="module.field"/>
+    <t:insert name="module.record" with=".tail"><t:seq/></t:insert>
+  </t:let>
+
+  <t:let name="module.field">
+    <t:let name=".mk">
+      <t:if exists=".mutable">
+        <t:let name="keyword.text">mutable</t:let><t:insert name="keyword"/>
+      </t:if>
+      <t:insert name=".name"/>
+    </t:let>
+    <t:link from="nav.region.render" to="module.field.mk"/>
+    <tr class="field">
+      <td><t:insert name="nav.region" with=".region"/></td>
+      <td>: <t:insert name="type" with=".region.body.type"/></td>
+      <td>;</td>
+      <t:insert name="doc.tds" with=".region.body.doc"/>
+    </tr>
+  </t:let>
+
+  <t:let name="module.type-ext">
+    <div class="ext">
+      <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
+      <t:insert name="module.mkparams" with=".params"/>
+      <t:insert name="nav.path" with=".name"/> +=
+      <t:insert name="module.private" with=".private"><t:seq/></t:insert>
+      <table>
+        <t:insert name="module.variant" with=".constrs"/>
+      </table>
+      <t:insert name="doc.div" with=".doc"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.exn">
+    <div class="exn">
+      <t:let name="keyword.text">exception</t:let><t:insert name="keyword"/>
+      <t:insert name=".name"/>
+      <t:insert name="module.constr.args" with=".args"/>
+      <t:insert name="doc.div" with=".doc"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.class">
+    <t:let name="doc.todo.message">CLASS</t:let><t:insert name="doc.todo"/>
+  </t:let>
+
+  <t:let name="module.class-type">
+    <t:let name="doc.todo.message">CLASSTYPE</t:let><t:insert name="doc.todo"/>
+  </t:let>
+
+  <t:let name="module.module">
+    <div class="module">
+      <div class="intro">
+        <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
+        <t:insert name=".name"/>
+
+        <t:insert name="module.rhs" with=".decl"/>
+      </div>
+
+      <t:insert name="doc.div" with=".doc"/>
+
+      <t:insert name="module.decl-body" with=".decl"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.module-type">
+    <div class="modtype">
+      <div class="intro">
+        <t:let name="keyword.text">module type</t:let><t:insert name="keyword"/>
+        <t:insert name=".name"/> =
+        <t:insert name="module.rhs-sig" with=".decl"/>
+      </div>
+      <t:insert name="doc.div" with=".doc"/>
+      <t:insert name="module.sig-body" with=".decl"/>
+    </div>
+  </t:let>
+
+  <t:let name="module.include">
+    <div class="include">
+      <t:let name="keyword.text">include</t:let><t:insert name="keyword"/>
+      <t:insert name="module.rhs-sig" with=".sig"/>
+      <t:insert name="module.sig-body" with=".sig"/>
+    </div>
+  </t:let>
+  
+</t:seq>

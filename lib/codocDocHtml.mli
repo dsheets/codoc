@@ -24,9 +24,9 @@ val pathloc :
 (** Create a path location value for relative linking. *)
 
 val of_top_module :
-  pathloc:pathloc -> CodocDoc.root DocOckTypes.Module.t -> Cow.Html.t
+  pathloc:pathloc -> CodocDoc.root DocOckTypes.Module.t -> Blueprint.t
 (** Generate a documentation page from a module. *)
 
 val of_unit :
-  pathloc:pathloc -> CodocDoc.root DocOckTypes.Unit.t -> Cow.Html.t
+  pathloc:pathloc -> CodocDoc.root DocOckTypes.Unit.t -> Blueprint.t
 (** Generate a documentation page from a compilation unit. *)
