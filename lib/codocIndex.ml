@@ -83,11 +83,12 @@ let xml_of_generated_unit ({ mod_name; xml_file; html_file; issues }) =
       [`El ((("","file"),[("","type"),"text/html";("","href"),html_file]),[])]
     | None -> []
   in
-  [`El ((("","unit"),[("","name"),mod_name]),[
-     `El ((("","file"),[("","type"),"application/xml";("","href"),xml_file]),
-          html_file@issues
-         );
-   ])]
+  [`El ((("","unit"),[("","name"),mod_name]),
+        (`El ((("","file"),
+               [("","type"),"application/xml";("","href"),xml_file]),[]);
+        )::(html_file@issues)
+       )
+  ]
 
 let xml_of_pkg ({ pkg_name; index }) =
   let attrs = [
