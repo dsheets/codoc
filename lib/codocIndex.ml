@@ -20,6 +20,7 @@ module StringMap = Map.Make(String)
 type generation_issue =
 | Module_resolution_failed of string
 | Xml_error of string * Xmlm.pos * string
+| Template_error of string
 
 type generated_unit = {
   mod_name  : string;
@@ -50,6 +51,8 @@ let error_of_issue path = function
     `Error (false, "writing "^path^" resolution of "^mod_name^" failed")
   | Xml_error (path, (l,c), s) ->
     `Error (false, Printf.sprintf "%s:%d:%d: XML error %s" path l c s)
+  | Template_error message ->
+    `Error (false, Printf.sprintf "%s: Template error:\n%s" path message)
 
 let xmlns = "https://opam.ocaml.org/packages/codoc/xmlns/doc-index"
 
@@ -70,6 +73,8 @@ let xml_of_generation_issue = function
       ("","col"),string_of_int c;
     ] in
     [`El ((("","xml-error"),attrs),[`Data msg])]
+  | Template_error message ->
+    [`El ((("","template-error"),[]),[`Data message])]
 
 let xml_of_generated_unit ({ mod_name; xml_file; html_file; issues }) =
   let issues = match issues with
@@ -133,6 +138,11 @@ let rec generation_issue_of_xml xml = match Xmlm.peek xml with
     let message = just_data xml in
     must_end xml;
     Xml_error (href, (int_of_string line,int_of_string col), message)
+  | `El_start ((ns,"template-error"),[]) ->
+    eat xml;
+    let message = just_data xml in
+    must_end xml;
+    Template_error message
   | `El_start _ -> (* TODO: fixme *) failwith "unknown element"
   | `El_end -> (* TODO: fixme *) failwith "unexpected end"
   | `Data _ | `Dtd _ -> eat xml; generation_issue_of_xml xml

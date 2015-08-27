@@ -67,12 +67,11 @@ let write_html ~css ~title html_file templ path =
     | Some t -> t
   ) in
   let template = Blueprint.(default_rope (Scope.template templ)) in
-  (* TODO: proper error handling *)
   try
-    Blueprint_unix.bind_to_file html_file vars template
+    Blueprint_unix.bind_to_file html_file vars template;
+    []
   with Blueprint.Error err ->
-    Printf.eprintf "Template error:\n%s\n%!" (Blueprint.error_message err);
-    exit 1
+    [ CodocIndex.Template_error (Blueprint.error_message err) ]
 
 let render_interface ?pkg_root in_file out_file scheme css =
   let ic = open_in in_file in
@@ -98,14 +97,15 @@ let render_interface ?pkg_root in_file out_file scheme css =
     let _, title = CodocUtil.root_of_unit unit in
     let html = Blueprint.Tree.of_cons "data" html in
     let html = Blueprint.Scope.overlay html (Lazy.force interface_template) in
-    write_html ~css ~title out_file html "interface";
+    let template_issues = write_html ~css ~title out_file html "interface" in
 
+    (* TODO: why??? *)
     let oc = open_out in_file in
     let output = Xmlm.make_output (`Channel oc) in
     DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
       (fun () signal -> Xmlm.output output signal) () unit;
     close_out oc;
-    [] (* TODO: issues *)
+    template_issues
 
 let print_issues in_file = List.iter (fun issue ->
   let `Error (_,msg) = CodocIndex.error_of_issue in_file issue in
@@ -133,7 +133,8 @@ let render_index name index out_file scheme css =
   let html = Blueprint.Scope.overlay html (Lazy.force index_template) in
   (* TODO: fixme title *)
   let title = if name = "" then "Documentation Index" else name in
-  write_html ~css ~title out_file html "index";
+  let issues = write_html ~css ~title out_file html "index" in
+  print_issues out_file issues;
   `Ok ()
 
 let check_create_safe ~force index out_dir = CodocIndex.(

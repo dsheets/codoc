@@ -50,13 +50,18 @@ let of_issue = CodocIndex.(BlueTree.(function
       "loc", xml_loc;
       "message", of_string msg;
     ])
+  | Template_error message -> of_cons_string "template_error" message
 ))
 
 let sort_issues = List.sort CodocIndex.(fun a b -> match a,b with
   | Module_resolution_failed x, Module_resolution_failed y -> compare x y
   | Xml_error (xml_file,pos,msg), Xml_error (xml_file',pos',msg') ->
     compare (xml_file,pos,msg) (xml_file',pos',msg')
-  | Xml_error (_,_,_), _ | _, Xml_error (_,_,_) -> -1
+  | Template_error m, Template_error m' -> compare m m'
+  | Template_error _, _  ->  1
+  | _, Template_error _  -> -1
+  | Xml_error (_,_,_), _ ->  1
+  | _, Xml_error (_,_,_) -> -1
 )
 
 let of_package ~name ~index ~normal_uri ~uri_of_path =
