@@ -219,12 +219,7 @@ let rec of_xml root path xml =
   | `El_end -> empty root path
   | `Data _ | `Dtd _ -> of_xml root path xml
 
-let set_issues index gunit issues =
-  let gunit = { gunit with issues } in
-  { index with units = StringMap.add gunit.mod_name gunit index.units }
-
-let set_html_file index gunit html_file =
-  let gunit = { gunit with html_file } in
+let set_gunit index gunit =
   { index with units = StringMap.add gunit.mod_name gunit index.units }
 
 let add_packages from into =

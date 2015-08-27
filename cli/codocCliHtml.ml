@@ -187,8 +187,9 @@ let render_dir ~force ~index in_index out_dir scheme css =
       if index
       then
         let out_index = read_cache { idx with root = out_dir } idx.path in
-        let index = set_issues out_index gunit issues in
-        let index = set_html_file index gunit (Some html_file) in
+        let issues = issues@gunit.issues in
+        let html_file = Some html_file in
+        let index = set_gunit out_index { gunit with issues; html_file; } in
         write_cache index;
         idxs
       else (print_issues xml_file issues; idxs)
