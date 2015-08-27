@@ -183,17 +183,21 @@
 
   <t:let name="module.val">
     <div class="val">
-      <t:let name="keyword.text">val</t:let><t:insert name="keyword"/>
-      <t:insert name=".name"/> : <t:insert name="type" with=".type"/>
+      <div class="def">
+        <t:let name="keyword.text">val</t:let><t:insert name="keyword"/>
+        <t:insert name=".name"/> : <t:insert name="type" with=".type"/>
+      </div>
       <t:insert name="doc.div" with=".doc"/>
     </div>
   </t:let>
 
   <t:let name="module.external">
     <div class="external val">
-      <t:let name="keyword.text">external</t:let><t:insert name="keyword"/>
-      <t:insert name=".name"/> : <t:insert name="type" with=".type"/>
-      = <t:insert name="module.prims" with=".primitives"/>
+      <div class="def">
+        <t:let name="keyword.text">external</t:let><t:insert name="keyword"/>
+        <t:insert name=".name"/> : <t:insert name="type" with=".type"/>
+        = <t:insert name="module.prims" with=".primitives"/>
+      </div>
       <t:insert name="doc.div" with=".doc"/>
     </div>
   </t:let>
@@ -209,23 +213,25 @@
 
   <t:let name="module.type">
     <div class="type">
-      <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
-      <t:insert name="module.mkparams" with=".params"/>
-      <t:insert name=".name"/>
-      <t:if exists=".rep">
-        <t:if exists=".manifest">
-          = <t:insert name="type" with=".manifest"/>
-        </t:if>
-        = <t:insert name="module.private" with=".private"><t:seq/></t:insert>
-        <t:insert name="module.type-rep" with=".rep"/>
-      </t:if>
-      <t:else>
-        <t:if exists=".manifest">
+      <div class="def">
+        <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
+        <t:insert name="module.mkparams" with=".params"/>
+        <t:insert name=".name"/>
+        <t:if exists=".rep">
+          <t:if exists=".manifest">
+            = <t:insert name="type" with=".manifest"/>
+          </t:if>
           = <t:insert name="module.private" with=".private"><t:seq/></t:insert>
-          <t:insert name="type" with=".manifest"/>
+          <t:insert name="module.type-rep" with=".rep"/>
         </t:if>
-      </t:else>
-      <t:insert name="module.type.mkconstraints" with=".constraints"/>
+        <t:else>
+          <t:if exists=".manifest">
+            = <t:insert name="module.private" with=".private"><t:seq/></t:insert>
+            <t:insert name="type" with=".manifest"/>
+          </t:if>
+        </t:else>
+        <t:insert name="module.type.mkconstraints" with=".constraints"/>
+      </div>
       <t:insert name="doc.div" with=".doc"/>
     </div>
   </t:let>
@@ -311,7 +317,7 @@
         <t:let name="keyword.text">of</t:let><t:insert name="keyword"/>
         <t:insert name="type.mktuple" with=".args"/>
       </t:if>
-    </t:else>    
+    </t:else>
   </t:let>
 
   <t:let name="module.record">
@@ -338,22 +344,26 @@
 
   <t:let name="module.type-ext">
     <div class="ext">
-      <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
-      <t:insert name="module.mkparams" with=".params"/>
-      <t:insert name="nav.path" with=".name"/> +=
-      <t:insert name="module.private" with=".private"><t:seq/></t:insert>
-      <table>
-        <t:insert name="module.variant" with=".constrs"/>
-      </table>
+      <div class="def">
+        <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
+        <t:insert name="module.mkparams" with=".params"/>
+        <t:insert name="nav.path" with=".name"/> +=
+        <t:insert name="module.private" with=".private"><t:seq/></t:insert>
+        <table>
+          <t:insert name="module.variant" with=".constrs"/>
+        </table>
+      </div>
       <t:insert name="doc.div" with=".doc"/>
     </div>
   </t:let>
 
   <t:let name="module.exn">
     <div class="exn">
-      <t:let name="keyword.text">exception</t:let><t:insert name="keyword"/>
-      <t:insert name=".name"/>
-      <t:insert name="module.constr.args" with=".args"/>
+      <div class="def">
+        <t:let name="keyword.text">exception</t:let><t:insert name="keyword"/>
+        <t:insert name=".name"/>
+        <t:insert name="module.constr.args" with=".args"/>
+      </div>
       <t:insert name="doc.div" with=".doc"/>
     </div>
   </t:let>
@@ -368,25 +378,27 @@
 
   <t:let name="module.module">
     <div class="module">
-      <div class="intro">
-        <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
-        <t:insert name=".name"/>
-
-        <t:insert name="module.rhs" with=".decl"/>
+      <div class="def">
+        <div class="intro">
+          <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
+          <t:insert name=".name"/>
+          <t:insert name="module.rhs" with=".decl"/>
+        </div>
       </div>
-
       <t:insert name="doc.div" with=".doc"/>
-
       <t:insert name="module.decl-body" with=".decl"/>
     </div>
   </t:let>
 
   <t:let name="module.module-type">
     <div class="modtype">
-      <div class="intro">
-        <t:let name="keyword.text">module type</t:let><t:insert name="keyword"/>
-        <t:insert name=".name"/> =
-        <t:insert name="module.rhs-sig" with=".decl"/>
+      <div class="def">
+        <div class="intro">
+          <t:let name="keyword.text">module type</t:let>
+          <t:insert name="keyword"/>
+          <t:insert name=".name"/> =
+          <t:insert name="module.rhs-sig" with=".decl"/>
+        </div>
       </div>
       <t:insert name="doc.div" with=".doc"/>
       <t:insert name="module.sig-body" with=".decl"/>
@@ -395,10 +407,12 @@
 
   <t:let name="module.include">
     <div class="include">
-      <t:let name="keyword.text">include</t:let><t:insert name="keyword"/>
-      <t:insert name="module.rhs-sig" with=".sig"/>
-      <t:insert name="module.sig-body" with=".sig"/>
+      <div class="def">
+        <t:let name="keyword.text">include</t:let><t:insert name="keyword"/>
+        <t:insert name="module.rhs-sig" with=".sig"/>
+        <t:insert name="module.sig-body" with=".sig"/>
+      </div>
     </div>
   </t:let>
-  
+
 </t:seq>
