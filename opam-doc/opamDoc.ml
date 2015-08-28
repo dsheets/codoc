@@ -94,10 +94,12 @@ let extract_pkg_doc output pkg =
       match get_line ("opam config var "^pkg^":build") with
       | `Error err -> `Error err
       | `Ok pkg_build ->
-        match get_all ("codoc list-extractions "^pkg_build) with
-        | `Error err -> `Error err
-        | `Ok list ->
-          extract output pkg pkg_build list
+        if Sys.file_exists pkg_build
+        then match get_all ("codoc list-extractions "^pkg_build) with
+          | `Error err -> `Error err
+          | `Ok list ->
+            extract output pkg pkg_build list
+        else `Ok () (* TODO: log? warn? *)
 
 let link_doc output = check_system ("codoc link --index -f "^output)
 
