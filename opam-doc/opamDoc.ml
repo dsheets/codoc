@@ -136,7 +136,7 @@ let extract_k output pkg k =
   | ret -> raise (Command_error ret)
 
 let build_doc serve output =
-  let doc_build = opam_root / switch / "build" in
+  let doc_build = opam_root / switch / "lib" in
   let options = if serve
     then "--index -f --scheme http"
     else "--index -f --scheme file"
