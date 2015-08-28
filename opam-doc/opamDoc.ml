@@ -64,7 +64,7 @@ let check_system cmd = Unix.(match system cmd with
     `Error (false, Printf.sprintf "'%s' exited with code %d\n%!" cmd k)
 )
 
-let begins_with prefix_len prefix s = String.sub s 0 prefix_len = s
+let begins_with prefix_len prefix s = String.sub s 0 prefix_len = prefix
 
 let extract output pkg pkg_dir list =
   let prefix = "_build/" in
