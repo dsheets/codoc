@@ -36,33 +36,27 @@
   </t:let>
 
   <t:let name=".ref"
-         ><t:if exists=".head.anchor"><t:if exists=".head.href"
-                ><t:let name="nav.ref-head.anchor"
-                ><t:if exists="nav.ref.tail"
-                ><t:insert name="nav.ref-path"
-                with="nav.ref.tail"
-                />.</t:if
-                ><t:insert name="doc.mktext"
-                with="nav.ref.head.anchor"
-                /></t:let
-                ><t:let name="nav.ref-head.href"
-                ><t:insert name="nav.ref.head.href"/></t:let
-                ><t:insert name="nav.link" with="nav.ref-head"
-                /></t:if>
+         ><t:if exists=".head.anchor">
+    <t:let name="nav.ref-head.anchor"
+           ><t:if exists="nav.ref.tail"
+                  ><t:insert name="nav.ref-path"
+                  with="nav.ref.tail"
+                  />.</t:if><t:insert name="doc.mktext"
+                  with="nav.ref.head.anchor"
+                  /></t:let
+                  ><t:if exists=".head.href">
+      <t:let name="nav.ref-head.href"
+             ><t:insert name="nav.ref.head.href"/></t:let
+             ><t:insert name="nav.link" with="nav.ref-head"/></t:if>
+    <t:else><t:insert name="nav.ref-head.anchor"/></t:else
+    ></t:if>
     <t:else><t:if exists="nav.ref.tail"
-                    ><t:insert name="nav.ref-path"
-                                   with="nav.ref.tail"
-                                   />.</t:if
-                                   ><t:insert name="doc.mktext"
-                                   with="nav.ref.head.anchor"
-                                   /></t:else></t:if>
-    <t:else><t:if exists="nav.ref.tail"
-                    ><t:insert name="nav.ref-path"
-                                   with="nav.ref.tail"
-                                   />.</t:if
-                                   ><t:insert name="doc.mktext"
-                                   with="nav.ref.head"
-                                   /></t:else></t:let>
+                  ><t:insert name="nav.ref-path"
+                  with="nav.ref.tail"
+                  />.</t:if
+                  ><t:insert name="doc.mktext"
+                  with="nav.ref.head"
+                  /></t:else></t:let>
 
   <t:let name=".ref-path"
          ><t:if exists=".tail"><t:insert name="nav.ref-path" with=".tail"
@@ -72,23 +66,38 @@
          ></t:let>
 
   <t:let name=".path"
-         ><t:if exists=".tail"><t:insert name="nav.path" with=".tail"
-         />.</t:if><t:if exists=".head.apply"
-         ><t:insert name="nav.path" with=".head.apply.fun"
-         />(<t:insert name="nav.path" with=".head.apply.arg"
-         />)</t:if>
-  <t:else><t:if exists=".head.href"
-                ><t:insert name=".segment" with=".head"/></t:if>
-  <t:else><t:insert name="doc.mktext" with=".head.anchor"/></t:else
-  ></t:else></t:let>
+         ><t:let name="nav.path-head.anchor"
+                 ><t:if exists="nav.path.tail"
+                        ><t:insert name="nav.path-path"
+                        with="nav.path.tail"
+                        />.</t:if
+                        ><t:if exists="nav.path.head.apply"
+                        ><t:insert name="nav.path-path"
+                        with="nav.path.head.apply.fun"
+                        />(<t:insert name="nav.path-path"
+                        with="nav.path.head.apply.arg"
+                        />)</t:if
+                        ><t:else><t:insert name="doc.mktext"
+                        with="nav.path.head.anchor"
+                        /></t:else></t:let
+                        ><t:if exists=".head.href">
+      <t:let name="nav.path-head.href"><t:insert name="nav.path.head.href"
+      /></t:let><t:insert name="nav.link" with="nav.path-head"/></t:if>
+    <t:else><t:insert name="nav.path-head.anchor"/></t:else
+    ></t:let>
 
-  <t:let name=".path.segment"
-         ><t:let name=".anchor"
-                 ><t:link from=".text"
-                 /><t:insert name="doc.mktext" with="nav.path.segment.text"
-                 /></t:let
-                 ><t:insert name="nav.link" with="nav.path.segment"
-                 /></t:let>
+  <t:let name=".path-path"
+         ><t:if exists="nav.path-path.tail"
+                ><t:insert name="nav.path-path" with=".tail"
+                />.</t:if
+                ><t:if exists="nav.path-path.head.apply"
+                ><t:insert name="nav.path-path"
+                with="nav.path-path.head.apply.fun"
+                />(<t:insert name="nav.path-path"
+                with="nav.path-path.head.apply.arg"
+                />)</t:if>
+  <t:else><t:insert name="doc.mktext" with=".head.anchor"/></t:else
+  ></t:let>
 
   <!-- nav.region is the template for page fragments.
        It takes a .render child containing the template to use for content. -->
