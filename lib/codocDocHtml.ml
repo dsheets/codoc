@@ -433,11 +433,11 @@ let rec of_text_element ~pathloc txt_ =
             tag "ext" ]
   | Reference (Exception e, None) ->
     of_kv [ "ref", of_list (link_reference ~pathloc (any e));
-            tag "exc" ]
+            tag "exn" ]
   | Reference (Exception e, Some els) -> (* TODO: test *)
     let text = of_text_elements els in
     of_kv [ "ref", of_list (link_reference ~text ~pathloc (any e));
-            tag "exc" ]
+            tag "exn" ]
   | Reference (Value v, None) ->
     of_kv [ "ref", of_list (link_reference ~pathloc (any v));
             tag "val" ]
@@ -495,9 +495,10 @@ let rec of_text_element ~pathloc txt_ =
     of_kv [ "ref", of_list (of_string s::of_string s'::text);
             tag "custom" ]
   | Special (Modules mods) ->
-    let mods_html = List.map (fun m ->
-      of_list (link_reference ~pathloc (any m))
-    ) mods in
+    let mods_html = List.map (fun m -> of_kv [
+      "ref", of_list (link_reference ~pathloc (any m));
+      tag "mod";
+    ]) mods in
     of_cons "modules" (of_list mods_html)
   | Special Index -> (* TODO: test *)
     of_cons "index" (empty ())
