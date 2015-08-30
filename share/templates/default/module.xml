@@ -392,8 +392,31 @@
         <div class="intro">
           <t:let name="keyword.text">module type</t:let>
           <t:insert name="keyword"/>
-          <t:insert name=".name"/> =
-          <t:insert name="module.rhs-sig" with=".decl"/>
+          <t:insert name=".name"/>
+          <!-- TODO: this will be less awful when blueprint has OR -->
+          <t:if exists=".decl.path">
+            = <t:insert name="module.rhs-sig" with=".decl"/>
+          </t:if>
+          <t:else>
+            <t:if exists=".decl.sig">
+              = <t:insert name="module.rhs-sig" with=".decl"/>
+            </t:if>
+            <t:else>
+              <t:if exists=".decl.functor">
+                = <t:insert name="module.rhs-sig" with=".decl"/>
+              </t:if>
+              <t:else>
+                <t:if exists=".decl.with">
+                = <t:insert name="module.rhs-sig" with=".decl"/>
+                </t:if>
+                <t:else>
+                  <t:if exists=".decl.typeof">
+                    = <t:insert name="module.rhs-sig" with=".decl"/>
+                  </t:if>
+                </t:else>
+              </t:else>
+            </t:else>
+          </t:else>
         </div>
       </div>
       <t:insert name="doc.div" with=".doc"/>
