@@ -4,7 +4,9 @@ let version = "0.2.0"
 
 let warnings = ["-w";"@f@p@u@y"]
 let flags =
-  Flags.(v (`Compile `Byte) warnings @@@ v (`Compile `Native) warnings)
+  Flags.(v (`Compile `Byte) warnings @@@
+         v (`Compile `Native) warnings @@@
+         v (`Link `Native) [(*"-p"*)])
 
 let unix = pkg "unix"
 
@@ -39,6 +41,14 @@ let codoc_util = unit "codocUtil" ~deps:[
   stringext;
   doc_ock;
   codoc_doc;
+] library
+
+let codoc_unit = unit "codocUnit" ~deps:[
+  uri;
+  doc_ock;
+  codoc_util;
+  codoc_doc;
+  codoc_doc_maps;
 ] library
 
 let codoc_doc_html = unit "codocDocHtml" ~deps:[
@@ -80,6 +90,7 @@ let codoc = lib ~flags "codoc" (`Units [
   codoc_doc_maps;
   codoc_doc;
   codoc_util;
+  codoc_unit;
   codoc_doc_html;
   codoc_xml;
   codoc_index;
@@ -101,7 +112,7 @@ let codoc_cli = unit "codocCli" ~deps:[
   codoc_config;
 ] cli
 
-let cli_lib = lib ~flags "codoc.cli" (`Units [
+let cli_lib = lib ~flags "cli" (`Units [
   codoc_cli;
 ])
 

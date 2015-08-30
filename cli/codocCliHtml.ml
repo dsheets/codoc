@@ -25,35 +25,7 @@ let (/) = Filename.concat
 let index_template = Lazy.from_fun CodocTemplate.(fun () -> load index)
 let interface_template = Lazy.from_fun CodocTemplate.(fun () -> load interface)
 
-let html_name_of path =
-  (try
-     let last_dot = String.rindex path '.' in
-     String.sub path 0 last_dot
-   with Not_found -> path
-  )^ ".html"
-
-let uri_of_path ~scheme path =
-  Uri.of_string begin
-    if scheme <> "file" && Filename.check_suffix path "/index.html"
-    then Filename.chop_suffix path "index.html"
-    else path
-  end
-
-let normal_uri ~scheme uri =
-  if scheme <> "file"
-  then uri
-  else Uri.(resolve "" uri (of_string "index.html"))
-
-let pathloc ?pkg_root scheme unit = CodocDocHtml.pathloc
-  ~unit
-  ~index:CodocDoc.(fun root -> match root with
-  | Html (path, _) -> Some (uri_of_path ~scheme path)
-  | Xml (path, _) ->
-    Some (uri_of_path ~scheme (html_name_of path)) (* TODO: fixme? *)
-  | _ -> None (* TODO: log *)
-  )
-  ?pkg_root
-  ~normal_uri:(normal_uri ~scheme)
+let html_name_of = CodocUnit.Href.html_name_of
 
 let write_html ~css ~title html_file templ path =
   (* TODO: polyglot! *)
@@ -73,7 +45,39 @@ let write_html ~css ~title html_file templ path =
   with Blueprint.Error err ->
     [ CodocIndex.Template_error (Blueprint.error_message err) ]
 
-let render_interface ?pkg_root in_file out_file scheme css =
+let render_class pathloc unit_dir css () c =
+  let open DocOckTypes in
+  let open DocOckPaths in
+  let { Class.id } = c in
+  CodocUnit.Href.id_of_ident pathloc (Identifier.any id)
+
+let render_classtype pathloc unit_dir css () c =
+  let open DocOckTypes in
+  let open DocOckPaths in
+  let { ClassType.id } = c in
+  CodocUnit.Href.id_of_ident pathloc (Identifier.any id)
+
+let render_module pathloc unit_dir css () m =
+  let open DocOckTypes in
+  let open DocOckPaths in
+  let { Module.id } = m in
+  CodocUnit.Href.id_of_ident pathloc (Identifier.any id)
+
+let render_moduletype pathloc unit_dir css () m =
+  let open DocOckTypes in
+  let open DocOckPaths in
+  let { ModuleType.id } = m in
+  CodocUnit.Href.id_of_ident pathloc (Identifier.any id)
+
+let render_substruct pathloc unit_dir css =
+  CodocUnit.Substruct.({
+    map_class = render_class pathloc unit_dir css;
+    map_classtype = render_classtype pathloc unit_dir css;
+    map_module = render_module pathloc unit_dir css;
+    map_moduletype = render_moduletype pathloc unit_dir css;
+  })
+
+let render_unit ?pkg_root in_file out_file scheme css =
   let ic = open_in in_file in
   let input = Xmlm.make_input (`Channel ic) in
   match DocOckXmlParse.file CodocXml.doc_parser input with
@@ -88,24 +92,32 @@ let render_interface ?pkg_root in_file out_file scheme css =
       | Html (_,_) -> root
       | _ -> Html (Filename.basename out_file, root)
     ) in
-    let id = unit.DocOckTypes.Unit.id in
-    let id = CodocDoc.Maps.replace_ident_module_root html_root id in
-    let unit = { unit with DocOckTypes.Unit.id } in
+    DocOckTypes.Unit.(match unit.content with
+      | Pack _ -> [] (* TODO: support pack *)
+      | Module signature ->
+        let substruct =
+          CodocUnit.Substruct.root_of_unit_signature unit signature
+        in
+        match CodocUnit.Href.loc ?pkg_root scheme substruct with
+        | None -> [] (* TODO: proper error for failure to construct a loc *)
+        | Some loc ->
+          let html = CodocDocHtml.of_unit loc unit in
+          let _, title = CodocUtil.root_of_unit unit in
+          let html = Blueprint.Tree.of_cons "data" html in
+          let template = Lazy.force interface_template in
+          let html = Blueprint.Scope.overlay html template in
+          let issues = write_html ~css ~title out_file html "interface" in
 
-    let pathloc = pathloc ?pkg_root scheme unit in
-    let html = CodocDocHtml.of_unit ~pathloc unit in
-    let _, title = CodocUtil.root_of_unit unit in
-    let html = Blueprint.Tree.of_cons "data" html in
-    let html = Blueprint.Scope.overlay html (Lazy.force interface_template) in
-    let template_issues = write_html ~css ~title out_file html "interface" in
-
-    (* TODO: why??? *)
-    let oc = open_out in_file in
-    let output = Xmlm.make_output (`Channel oc) in
-    DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
-      (fun () signal -> Xmlm.output output signal) () unit;
-    close_out oc;
-    template_issues
+          let id = unit.DocOckTypes.Unit.id in
+          let id = CodocDoc.Maps.replace_ident_module_root html_root id in
+          let unit = { unit with DocOckTypes.Unit.id } in
+          let oc = open_out in_file in
+          let output = Xmlm.make_output (`Channel oc) in
+          DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
+            (fun () signal -> Xmlm.output output signal) () unit;
+          close_out oc;
+          issues
+    )
 
 let print_issues in_file = List.iter (fun issue ->
   let `Error (_,msg) = CodocIndex.error_of_issue in_file issue in
@@ -121,13 +133,13 @@ let render_interface_ok ~force in_file out_file scheme css =
     | Some err -> err
     | None ->
       let issues =
-        render_interface in_file (html_name_of in_file) scheme css
+        render_unit in_file (html_name_of in_file) scheme css
       in
       print_issues in_file issues; `Ok ()
 
 let render_index name index out_file scheme css =
-  let normal_uri = normal_uri ~scheme in
-  let uri_of_path = uri_of_path ~scheme in
+  let normal_uri = CodocUnit.Href.normal_uri_for_scheme scheme in
+  let uri_of_path = CodocUnit.Href.uri_of_path ~scheme in
   let html = CodocIndexHtml.of_package ~name ~index ~normal_uri ~uri_of_path in
   let html = Blueprint.Tree.of_cons "data" html in
   let html = Blueprint.Scope.overlay html (Lazy.force index_template) in
@@ -183,7 +195,10 @@ let render_dir ~force ~index in_index out_dir scheme css =
       let html_path = path / html_file in
       let css = CodocUtil.(ascent_of_depth css (depth html_path)) in
       let html_root = out_dir / html_path in
-      let issues = render_interface ~pkg_root xml_file html_root scheme css in
+      (*let render_substruct = render_substruct pathloc out_dir path css in
+      let substructs =
+        CodocUnit.Substruct.map_of_unit render_substruct unit in*)
+      let issues = render_unit ~pkg_root xml_file html_root scheme css in
       if index
       then
         let out_index = read_cache { idx with root = out_dir } idx.path in

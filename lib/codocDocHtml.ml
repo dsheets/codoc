@@ -25,26 +25,6 @@ open CodocDoc
 
 type 'a href = 'a * Uri.t
 
-type pathloc = {
-  root        : root;
-  path        : root Identifier.signature;
-  index       : root -> Uri.t option;
-  pkg_root    : string option;
-  normal_uri  : Uri.t -> Uri.t;
-}
-
-let pathloc ~unit ~index ?pkg_root ~normal_uri =
-  let signature = Identifier.signature_of_module unit.Unit.id in
-  {
-    root = fst (Maps.root_of_ident_signature signature);
-    path = signature;
-    index;
-    pkg_root;
-    normal_uri;
-  }
-
-let self_uri = Uri.of_string ""
-
 let link ?href text = BlueTree.(of_kv_maybe [
   "anchor", Some (of_list text);
   "href", begin match href with
@@ -54,94 +34,13 @@ let link ?href text = BlueTree.(of_kv_maybe [
 ])
 let txt text = [BlueTree.(of_cons "raw" (of_string text))]
 
-let type_class = "type"
-let exn_class = "exn" (* exception *)
-
-(* TODO: use these for CSS class names? *)
-let ident_class = Identifier.(function
-  | Root _ -> "root"
-  | Module _ -> "module"
-  | Argument _ -> "modarg"
-  | ModuleType _ -> "modtype"
-  | Type _ -> type_class
-  | CoreType _ -> type_class
-  | Constructor _ -> "cons" (* const *)
-  | Field _ -> "field" (* recfield *)
-  | Extension _ -> "ext"
-  | Exception _ -> exn_class
-  | CoreException _ -> exn_class
-  | Value _ -> "val"
-  | Class _ -> "class"
-  | ClassType _ -> "classtype"
-  | Method _ -> "method"
-  | InstanceVariable _ -> "var" (* attribute *)
-  | Label _ -> "label" (* section *)
-)
-
-let classify cls name = Printf.sprintf "%s:%s" cls name
-
-let name_of_argument i name = Printf.sprintf "%d:%s" i name
-
-class id_of_ident_map ~pathloc :
-  [unit, root, string] Identifier.any_fold =
-object (self)
-  inherit [unit, root, string] Identifier.any_parent_fold
-
-  method root () _ _ = ""
-  method core_type () name = classify type_class name
-  method core_exception () name = classify exn_class name
-  method argument () parent i name =
-    self#parent ()
-      (Identifier.Argument (parent, i, name))
-      (Identifier.parent_of_signature parent)
-      (name_of_argument i name)
-  method private parent () ident parent name =
-    Printf.sprintf "%s/%s"
-      (Identifier.fold_any self () (Identifier.any parent))
-      (classify (ident_class ident) name)
-end
-
-let id_of_ident_map ~pathloc = new id_of_ident_map ~pathloc
-
-let id_of_ident ~pathloc = Identifier.fold_any (id_of_ident_map ~pathloc) ()
-
-class href_of_ident_map ~pathloc :
-  [unit, root, Uri.t option] Identifier.any_fold =
-object (self)
-  inherit [unit, root, Uri.t option] Identifier.any_parent_fold
-
-  method root () r _name =
-    if r = pathloc.root
-    then Some self_uri
-    else pathloc.index r
-  method core_type () name = None (* TODO: fixme *)
-  method core_exception () name = None (* TODO: fixme *)
-  method argument () parent i name =
-    self#parent ()
-      (Identifier.Argument (parent, i, name))
-      (Identifier.parent_of_signature parent)
-      (name_of_argument i name)
-  method private parent () ident parent name = (* TODO: projections *)
-    match Maps.root_of_ident (Identifier.any parent) with
-    | None -> None
-    | Some (root, name) -> match self#root () root name with
-      | None -> None
-      | Some base ->
-        Some Uri.(with_fragment base (Some (id_of_ident ~pathloc ident)))
-end
-
-let href_of_ident_map ~pathloc = new href_of_ident_map ~pathloc
-
-let href_of_ident ~pathloc : 'a Identifier.any -> Uri.t option =
-  Identifier.fold_any (href_of_ident_map ~pathloc) ()
-
 class link_ident_map ?text ~pathloc () :
   [unit, root, Blueprint.t list] Identifier.any_fold =
 object (self)
   inherit [unit, root, Blueprint.t list] Identifier.any_parent_fold
 
   method root () r name =
-    let href = (new href_of_ident_map ~pathloc)#root () r name in
+    let href = CodocUnit.Href.of_ident pathloc (Identifier.Root (r, name)) in
     [ link ?href (txt name) ]
   method core_type () name = [ link (txt name) ] (* TODO: link *)
   method core_exception () name = [ link (txt name) ] (* TODO: link *)
@@ -149,9 +48,9 @@ object (self)
     self#parent ()
       (Identifier.Argument (parent, i, name))
       (Identifier.parent_of_signature parent)
-      (name_of_argument i name)
+      (CodocUnit.Id.name_of_argument i name)
   method private parent () ident parent name =
-    match href_of_ident ~pathloc ident, text with
+    match CodocUnit.Href.of_ident pathloc ident, text with
     | None, None ->
       let phtml = Identifier.fold_any self () (Identifier.any parent) in
       (link (txt name))::phtml
@@ -322,15 +221,20 @@ let rec string_of_reference : ('a,'b) Reference.t -> string =
   )
 
 let region ~pathloc id html =
-  BlueTree.(of_kv ([
-    "id", of_string (id_of_ident ~pathloc id);
-    "body", html;
-  ]@(match href_of_ident ~pathloc id with
-    | None -> []
-    | Some href -> [ "href", of_string (Uri.to_string href) ]
-  )))
+  let href = match CodocUnit.Href.of_ident pathloc id with
+    | None -> None
+    | Some href -> Some (BlueTree.of_string (Uri.to_string href))
+  in
+  let id = match CodocUnit.Href.id_of_ident pathloc id with
+    | None -> None
+    | Some id -> Some (BlueTree.of_string id)
+  in
+  BlueTree.(of_kv_maybe ([
+    "id", id;
+    "body", Some html;
+    "href", href;
+  ]))
 
-(* TODO: ids for unnamed sections? ocamldoc does it... *)
 let label_region ~pathloc label_opt html = match label_opt with
   | None -> BlueTree.of_cons "body" html
   | Some label -> region ~pathloc (Identifier.any label) html
@@ -989,8 +893,10 @@ let rec base_of_module_type_expr ~pathloc = ModuleType.(function
     Some (Identifier.signature_of_module_type (Path.Resolved.identifier path))
   | TypeOf (Module.Alias _)
   | Path _ -> None
-  | Signature _ | Functor _ -> (* TODO: make sure anonymous paths are named *)
-    Some pathloc.path
+  | Signature _ | Functor _ ->
+    (* TODO: make sure anonymous paths are named *)
+    (* TODO: link! *)
+    None
   | TypeOf (Module.ModuleType expr)
   | With (expr, _) -> base_of_module_type_expr ~pathloc expr
 )
@@ -1012,7 +918,7 @@ and decl_of_decl ~pathloc = Module.(BlueTree.(function
 and decl_of_sig ~pathloc = ModuleType.(BlueTree.(function
   | Path path -> of_cons "path" (of_list (link_path ~pathloc (Path.any path)))
   | Signature s -> of_cons "sig" (of_signature ~pathloc s)
-  | Functor (None, expr) -> (* TODO: test *)
+  | Functor (None, expr) ->
     of_cons "functor" (of_kv [
       "range", decl_of_sig ~pathloc expr;
     ])
@@ -1130,9 +1036,9 @@ let of_top_module ~pathloc { Module.id; doc; type_ } =
   let name = link_ident ~pathloc () id in
   let decl = decl_of_decl ~pathloc type_ in
   let tree = module_declaration ~id ~pathloc (BlueTree.of_list name) decl doc in
-  match pathloc.pkg_root with
-  | Some pkg_root ->
-    let up_href = Uri.to_string (pathloc.normal_uri (Uri.of_string pkg_root)) in
+  match CodocUnit.Href.up pathloc with
+  | Some up_href ->
+    let up_href = Uri.to_string up_href in
     BlueTree.(root (add "up" (of_cons "href" (of_string up_href)) tree))
   | None -> BlueTree.root tree
 

@@ -143,6 +143,46 @@ module Identifier = struct
       self#parent a (Label (p, n)) p n
   end
 
+  class virtual ['acc,'a,'b] any_container_fragment_fold = object (self : 'self)
+    constraint 'self = ('acc,'a,'b) #any_fold
+
+    method private virtual signature :
+      'acc -> 'a signature -> 'a parent -> string -> 'b
+
+    method private virtual class_signature :
+      'acc -> 'a class_signature -> 'a parent -> string -> 'b
+
+    method private virtual fragment :
+      'acc -> 'a any -> 'a parent -> string -> 'b
+
+    method module_ a p n =
+      self#signature a (Module (p, n)) (parent_of_signature p) n
+    method module_type a p n =
+      self#signature a (ModuleType (p, n)) (parent_of_signature p) n
+    method type_ a p n =
+      self#fragment a (Type (p, n)) (parent_of_signature p) n
+    method constructor a p n =
+      self#fragment a (Constructor (p, n)) (parent_of_datatype p) n
+    method field a p n =
+      self#fragment a (Field (p, n)) (parent_of_datatype p) n
+    method extension a p n =
+      self#fragment a (Extension (p, n)) (parent_of_signature p) n
+    method exception_ a p n =
+      self#fragment a (Exception (p, n)) (parent_of_signature p) n
+    method value a p n =
+      self#fragment a (Value (p, n)) (parent_of_signature p) n
+    method class_ a p n =
+      self#class_signature a (Class (p, n)) (parent_of_signature p) n
+    method class_type a p n =
+      self#class_signature a (ClassType (p, n)) (parent_of_signature p) n
+    method method_ a p n =
+      self#fragment a (Method (p, n)) (parent_of_class_signature p) n
+    method instance_variable a p n =
+      self#fragment a (InstanceVariable (p, n)) (parent_of_class_signature p) n
+    method label a p n =
+      self#fragment a (Label (p, n)) p n
+  end
+
   let fold_any fold a = function
     | Root (root, name)          -> fold#root a root name
     | CoreType name              -> fold#core_type a name
@@ -197,6 +237,32 @@ module Identifier = struct
     method argument a p _ _ = fold_signature self a p
     method private signature a _ p _ = fold_signature self a p
   end
+
+  let fold_class_signature fold a : 'a class_signature -> 'b = function
+    | Class (p, name)     -> fold#class_ a p name
+    | ClassType (p, name) -> fold#class_type a p name
+
+  class virtual ['acc,'a,'b] class_signature_signature_fold =
+    object (self : 'self)
+    constraint 'self = ('acc,'a,'b) #container_fold
+
+    method private virtual class_signature :
+        'acc -> 'a class_signature -> 'a signature -> string -> 'b
+
+    method class_ a p n =
+      self#class_signature a (Class (p, n)) p n
+    method class_type a p n =
+      self#class_signature a (ClassType (p, n)) p n
+  end
+
+  class virtual ['acc,'a,'b] class_signature_root_fold = object (self : 'self)
+    constraint 'self = ('acc,'a,'b) #container_fold
+    inherit ['acc,'a,'b] signature_root_fold
+    inherit ['acc,'a,'b] class_signature_signature_fold
+
+    method private class_signature a _ p _ = fold_signature self a p
+  end
+
 end
 
 module Path_resolved = struct
@@ -531,6 +597,8 @@ module type ROOTED_MAPS = sig
 
   val root_of_ident : root Identifier.any -> (root * string) option
   val root_of_ident_signature : root Identifier.signature -> root * string
+  val root_of_ident_class_signature :
+    root Identifier.class_signature -> root * string
 
   class string_of_ident_map : object
     inherit [unit, root, string] Identifier.any_fold
@@ -557,6 +625,17 @@ module Make(Root : ROOT) : ROOTED_MAPS with type root = Root.t = struct
   end
   let root_of_ident_map = new root_of_ident_map
   let root_of_ident = Identifier.fold_any root_of_ident_map ()
+
+  class root_of_ident_class_signature_map :
+    [unit, root, root * string] Identifier.container_fold =
+  object (self)
+    inherit [unit, root, root * string] Identifier.class_signature_root_fold
+
+    method root () r name = (r, name)
+  end
+  let root_of_ident_class_signature_map = new root_of_ident_class_signature_map
+  let root_of_ident_class_signature =
+    Identifier.fold_class_signature root_of_ident_class_signature_map ()
 
   class root_of_ident_signature_map :
     [unit, root, root * string] Identifier.signature_fold =

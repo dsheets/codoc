@@ -15,18 +15,10 @@
  *
  *)
 
-type pathloc
-
-val pathloc :
-  unit:CodocDoc.root DocOckTypes.Unit.t ->
-  index:(CodocDoc.root -> Uri.t option) -> ?pkg_root:string ->
-  normal_uri:(Uri.t -> Uri.t) -> pathloc
-(** Create a path location value for relative linking. *)
-
 val of_top_module :
-  pathloc:pathloc -> CodocDoc.root DocOckTypes.Module.t -> Blueprint.t
+  pathloc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Module.t -> Blueprint.t
 (** Generate a documentation page from a module. *)
 
 val of_unit :
-  pathloc:pathloc -> CodocDoc.root DocOckTypes.Unit.t -> Blueprint.t
+  pathloc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Unit.t -> Blueprint.t
 (** Generate a documentation page from a compilation unit. *)
