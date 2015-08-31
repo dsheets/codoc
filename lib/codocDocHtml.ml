@@ -907,45 +907,47 @@ let rec is_short_sig = ModuleType.(function
   | TypeOf (Module.ModuleType expr) -> is_short_sig expr
 )
 
-let rec base_of_module_type_expr ~pathloc = ModuleType.(function
+let rec base_of_module_type_expr ~pathloc id = ModuleType.(function
   | TypeOf (Module.Alias (Path.Resolved path)) ->
     Some (Identifier.signature_of_module (Path.Resolved.identifier path))
   | Path (Path.Resolved path) ->
     Some (Identifier.signature_of_module_type (Path.Resolved.identifier path))
   | TypeOf (Module.Alias _)
   | Path _ -> None
-  | Signature _ | Functor _ ->
-    (* TODO: make sure anonymous paths are named *)
-    (* TODO: link! *)
-    None
+  | Functor _ -> None (* TODO: can with of functor ever happen? *)
+  | Signature _ -> Some id
   | TypeOf (Module.ModuleType expr)
-  | With (expr, _) -> base_of_module_type_expr ~pathloc expr
+  | With (expr, _) -> base_of_module_type_expr ~pathloc id expr
 )
 
+let of_alias ~pathloc path = BlueTree.(of_cons "alias" (of_kv [
+  "path", of_list (link_path ~pathloc (Path.any path));
+]))
+
 let rec of_module ~pathloc { Module.id; doc; type_ } =
+  let decl =
+    decl_of_decl ~pathloc (Identifier.signature_of_module id) type_
+  in
   let id = Identifier.any id in
   let name = Identifier.name id in
-  let decl = decl_of_decl ~pathloc type_ in
   let doc = maybe_doc ~pathloc doc in
   module_declaration ~id ~pathloc (BlueTree.of_string name) decl doc
 
-and decl_of_decl ~pathloc = Module.(BlueTree.(function
-  | Alias path -> of_cons "alias" (of_kv [
-    "path", of_list (link_path ~pathloc (Path.any path));
-  ])
-  | ModuleType module_type -> of_cons "sig" (decl_of_sig ~pathloc module_type)
+and decl_of_decl ~pathloc id = Module.(BlueTree.(function
+  | Alias path -> of_alias ~pathloc path
+  | ModuleType module_type -> of_cons "sig" (decl_of_sig ~pathloc id module_type)
 ))
 
-and decl_of_sig ~pathloc = ModuleType.(BlueTree.(function
+and decl_of_sig ~pathloc id = ModuleType.(BlueTree.(function
   | Path path -> of_cons "path" (of_list (link_path ~pathloc (Path.any path)))
-  | Signature s -> of_cons "sig" (of_signature ~pathloc s)
+  | Signature s -> of_cons "sig" (of_signature ~pathloc id s)
   | Functor (None, expr) ->
     of_cons "functor" (of_kv [
-      "range", decl_of_sig ~pathloc expr;
+      "range", decl_of_sig ~pathloc id expr;
     ])
   | Functor (Some (arg_ident, arg_sig), expr) ->
-    let arg_decl = decl_of_sig ~pathloc arg_sig in
-    let range = decl_of_sig ~pathloc expr in
+    let arg_decl = decl_of_sig ~pathloc id arg_sig in
+    let range = decl_of_sig ~pathloc id expr in
     let arg = Identifier.name (Identifier.any arg_ident) in (* TODO: more? *)
     of_cons "functor" (of_kv [
       "arg", of_string arg;
@@ -953,10 +955,10 @@ and decl_of_sig ~pathloc = ModuleType.(BlueTree.(function
       "range", range;
     ])
   | With (With (expr, subs), subs') ->
-    decl_of_sig ~pathloc (With (expr, subs @ subs'))
+    decl_of_sig ~pathloc id (With (expr, subs @ subs'))
   | With (expr, subs) ->
-    let base = base_of_module_type_expr ~pathloc expr in
-    let decl = decl_of_sig ~pathloc expr in
+    let base = base_of_module_type_expr ~pathloc id expr in
+    let decl = decl_of_sig ~pathloc id expr in
     let tree = of_kv [
       "lhs", decl;
       "subs", of_substitutions ~pathloc base [] subs;
@@ -967,13 +969,17 @@ and decl_of_sig ~pathloc = ModuleType.(BlueTree.(function
     let path = Path.any path in
     of_cons "typeof" (of_cons "alias" (of_list (link_path ~pathloc path)))
   | TypeOf (Module.ModuleType module_type) ->
-    let decl = decl_of_sig ~pathloc module_type in
+    let decl = decl_of_sig ~pathloc id module_type in
     of_cons "typeof" (of_cons "type" decl)
 ))
 
 and of_substitutions ~pathloc base acc = ModuleType.(BlueTree.(function
   | (ModuleEq (module_frag, module_eqn))::subs ->
-    let decl = decl_of_decl ~pathloc module_eqn in
+    (* TODO: This seems too wide. See doc-ock#53. *)
+    let decl = begin match module_eqn with
+      | Module.Alias path -> of_alias ~pathloc path
+      | Module.ModuleType _ -> empty ()
+    end in
     let name = link_fragment ~pathloc base (Fragment.any module_frag) in
     let tree = of_cons "module" (of_kv [
       "name", of_list name;
@@ -1020,16 +1026,16 @@ and of_substitutions ~pathloc base acc = ModuleType.(BlueTree.(function
 
 and of_module_type ~pathloc { ModuleType.id; doc; expr } =
   let doc = maybe_doc ~pathloc doc in
-  let id = Identifier.any id in
-  let name = Identifier.name id in
   let decl = BlueTree.(match expr with
     | None -> empty ()
     | Some expr ->
-      decl_of_sig ~pathloc expr
+      decl_of_sig ~pathloc (Identifier.signature_of_module_type id) expr
   ) in
+  let id = Identifier.any id in
+  let name = Identifier.name id in
   module_declaration ~id ~pathloc (BlueTree.of_string name) decl doc
 
-and of_signature_item ~pathloc = Signature.(BlueTree.(function
+and of_signature_item ~pathloc id = Signature.(BlueTree.(function
   | Value val_ -> Some (of_cons "val" (of_value ~pathloc val_))
   | External ext -> Some (of_cons "external" (of_external ~pathloc ext))
   | Type type_ -> Some (of_cons "type" (of_type ~pathloc type_))
@@ -1042,20 +1048,22 @@ and of_signature_item ~pathloc = Signature.(BlueTree.(function
   | ModuleType module_type ->
     Some (of_cons "module-type" (of_module_type ~pathloc module_type))
   | Include module_type_expr ->
-    Some (of_cons "include" (decl_of_sig ~pathloc module_type_expr))
+    Some (of_cons "include" (decl_of_sig ~pathloc id module_type_expr))
   | Comment (Documentation.Documentation doc) ->
     Some (of_cons "doc" (maybe_doc ~pathloc doc))
   | Comment Documentation.Stop -> None
 ))
 
-and of_signature ~pathloc signature =
-  BlueTree.of_list (fold_doc_items (of_signature_item ~pathloc) [] signature)
+and of_signature ~pathloc id signature =
+  BlueTree.of_list (fold_doc_items (of_signature_item ~pathloc id) [] signature)
 
 let of_top_module ~pathloc { Module.id; doc; type_ } =
   let doc = maybe_doc ~pathloc doc in
+  let decl =
+    decl_of_decl ~pathloc (Identifier.signature_of_module id) type_
+  in
   let id = Identifier.any id in
   let name = link_ident ~pathloc () id in
-  let decl = decl_of_decl ~pathloc type_ in
   let tree = module_declaration ~id ~pathloc (BlueTree.of_list name) decl doc in
   match CodocUnit.Href.up pathloc with
   | Some up_href ->
