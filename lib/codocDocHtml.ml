@@ -464,9 +464,30 @@ let map_tag ~pathloc tag =
     make_tag ~rest "custom" (of_text_elements t)
   )
 
+let string_of_pos position = Documentation.Error.Position.(
+  string_of_int position.line ^":"^ string_of_int position.column
+)
+
+let of_error = Documentation.Error.(BlueTree.(
+  fun { offset; location; message } ->
+    let location = Location.(match location with
+      | None -> None
+      | Some { filename; start; finish } ->
+        let s = filename^":"^string_of_pos start^"-"^string_of_pos finish in
+        Some (of_string s)
+    ) in
+    let offset = Offset.(
+      of_string (string_of_pos offset.start ^"-"^ string_of_pos offset.finish)
+    ) in
+    of_kv_maybe [
+      "location", location;
+      "offset", Some offset;
+      "message", Some (of_string message);
+    ]
+))
+
 let maybe_doc ~pathloc = Documentation.(BlueTree.(function
-  | Error _ -> empty ()
-  (* TODO: Should this have a side effect? Emit something? *)
+  | Error error -> of_cons "error" (of_error error)
   | Ok { text; tags } -> match text, tags with
     | [], [] -> empty ()
     | text, tags ->
