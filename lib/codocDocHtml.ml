@@ -193,7 +193,7 @@ let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Blueprint.t list 
   | Dot (parent, name) ->
     begin match text with
       | None -> (link (txt name))::link_reference ~pathloc (any parent)
-      | Some html -> html (* TODO: link ?? *)
+      | Some html -> [link html]
     end
   | Resolved resolved -> link_resolved_reference ?text ~pathloc () resolved
   )
