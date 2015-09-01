@@ -41,28 +41,89 @@ let of_xml_location file l c =
     "col", string_of_int c;
   ]
 
+let of_doc_error = CodocAnalysis.(BlueTree.(function
+  | Empty_section label -> of_cons_string "empty-section" label
+  | Empty_tag tag -> of_cons_string "empty-tag" tag
+  | Unlinked_ref name -> of_cons_string "unlinked-ref" name
+  | Unlinked_path name -> of_cons_string "unlinked-path" name
+  | Unlinked_frag name -> of_cons_string "unlinked-frag" name
+  | Empty_code -> of_cons "empty-code" (empty ())
+  | Bad_stop -> of_cons "bad-stop" (empty ())
+  | Doc_error message -> of_cons_string "doc-error" message
+))
+
 let of_issue = CodocIndex.(BlueTree.(function
+  | Template_error message -> of_cons_string "template-error" message
+  | Doc_error doc_error -> of_cons "doc-error" (of_doc_error doc_error)
+))
+
+let of_unit_issue = CodocIndex.(BlueTree.(function
   | Module_resolution_failed mod_name ->
-    of_cons "module_resolution_failed" (of_cons "name" (of_string mod_name))
+    of_cons "module-resolution-failed" (of_cons "name" (of_string mod_name))
   | Xml_error (xml_file,(l,c),msg) ->
     let xml_loc = of_xml_location xml_file l c in
-    of_cons "xml_error" (of_kv [
+    of_cons "xml-error" (of_kv [
       "loc", xml_loc;
       "message", of_string msg;
     ])
-  | Template_error message -> of_cons_string "template_error" message
 ))
 
 let sort_issues = List.sort CodocIndex.(fun a b -> match a,b with
-  | Module_resolution_failed x, Module_resolution_failed y -> compare x y
-  | Xml_error (xml_file,pos,msg), Xml_error (xml_file',pos',msg') ->
-    compare (xml_file,pos,msg) (xml_file',pos',msg')
   | Template_error m, Template_error m' -> compare m m'
-  | Template_error _, _  ->  1
-  | _, Template_error _  -> -1
-  | Xml_error (_,_,_), _ ->  1
-  | _, Xml_error (_,_,_) -> -1
+  | Doc_error e, Doc_error e' -> compare e e'
+  | Doc_error _, _       ->  1
+  | _, Doc_error _       -> -1
 )
+
+let sort_unit_issues = List.sort CodocIndex.(fun a b -> match a,b with
+  | Module_resolution_failed x, Module_resolution_failed y -> compare x y
+  | Xml_error e, Xml_error e' -> compare e e'
+  | Xml_error _, _ ->  1
+  | _, Xml_error _ -> -1
+)
+
+let sort_names = List.sort CodocUnit.Substruct.(fun a b ->
+  String.compare (string_of_name a) (string_of_name b)
+)
+
+let substruct_type typ =
+  BlueTree.([ typ, Some (empty ()); "type", Some (of_string typ) ])
+
+let rec of_substruct ~uri_of_path ~normal_uri base name =
+  let open BlueTree in
+  let name, typ, children, sub =
+    destruct_name ~uri_of_path ~normal_uri base name
+  in
+  of_kv_maybe (typ@[
+    "name", Some (of_string name);
+    "issues", (match sub.CodocIndex.issues with
+      | [] -> None
+      | _::_ ->
+        Some (of_list (List.map of_issue (sort_issues sub.CodocIndex.issues))));
+    "href", (match sub.CodocIndex.html_file with
+      | Some html_file ->
+        let path = Filename.concat base html_file in
+        Some (of_string (Uri.to_string (normal_uri (uri_of_path path))))
+      | None -> None);
+    "children", Some (of_list children);
+  ])
+and destruct_name ~uri_of_path ~normal_uri base =
+  CodocUnit.Substruct.(BlueTree.(function
+    | ClassName (name, sub) -> name, substruct_type "class", [], sub
+    | ClassTypeName (name, sub) -> name, substruct_type "classtype", [], sub
+    | ModuleName (name, children, sub) ->
+      let recurse = of_substruct ~uri_of_path ~normal_uri base in
+      name,
+      substruct_type "module",
+      List.map recurse (sort_names children),
+      sub
+    | ModuleTypeName (name, children, sub) ->
+      let recurse = of_substruct ~uri_of_path ~normal_uri base in
+      name,
+      substruct_type "moduletype",
+      List.map recurse (sort_names children),
+      sub
+  ))
 
 let of_package ~name ~index ~normal_uri ~uri_of_path =
   let up =
@@ -96,30 +157,17 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
   let units = StringMap.fold (fun name unit lst -> (name,unit)::lst)
     index.CodocIndex.units []
   in
-  (* TODO: remove repetition *)
-  let units = List.map (function
-    | (name, { CodocIndex.html_file = None; issues = [] }) ->
-      BlueTree.of_kv_string ["name", name]
-    | (name, { CodocIndex.html_file = None; issues }) ->
-      BlueTree.(of_kv [
+  let units = List.map BlueTree.(CodocIndex.(
+    fun (name, { xml_file; substructs; unit_issues }) ->
+      let base = Filename.dirname xml_file in
+      of_kv [
         "name", of_string name;
-        "issues", of_list (List.map of_issue (sort_issues issues));
-      ])
-    | (name, { CodocIndex.html_file = Some html_file; issues = [] }) ->
-      BlueTree.of_kv_string [
-        "name", name;
-        "href", Uri.to_string (uri_of_path html_file);
-      ]
-    | (name, { CodocIndex.html_file = Some html_file; issues }) ->
-      BlueTree.(of_kv [
-        "name", of_string name;
-        "href", of_string (Uri.to_string (uri_of_path html_file));
-        "issues", of_list (List.map of_issue (sort_issues issues));
-      ])
-  ) (List.sort compare units) in
+        "module", of_substruct ~uri_of_path ~normal_uri base substructs;
+        "issues", of_list (List.map of_unit_issue (sort_unit_issues unit_issues));
+      ])) (List.sort compare units) in
   BlueTree.(of_kv_maybe ([
     "pkg-path", Some (of_list pkg_path);
     "pkgs", (match pkgs with [] -> None | pkgs -> Some (of_list pkgs));
-    "modules", (match units with [] -> None | units -> Some (of_list units));
+    "units", (match units with [] -> None | units -> Some (of_list units));
     "up", up;
   ]))

@@ -117,26 +117,26 @@ let run_index ~force ~index in_index out_dir package =
     | (_,((_::_) as errs)) -> CodocCli.combine_errors errs
     | (units,[]) ->
       List.iter (function
-      | (path, Some unit, _src_index, _gunit, _issues) ->
-        let oc = open_out path in
-        let output = Xmlm.make_output (`Channel oc) in
-        DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
-          (fun () signal -> Xmlm.output output signal) () unit;
-        close_out oc
-      | (_, None, _, _, _) -> ()
+        | (path, Some unit, _src_index, _gunit, _issues) ->
+          let oc = open_out path in
+          let output = Xmlm.make_output (`Channel oc) in
+          DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
+            (fun () signal -> Xmlm.output output signal) () unit;
+          close_out oc
+        | (_, None, _, _, _) -> ()
       ) units;
       let errs = List.fold_left
-        (fun errs (path, _unit_opt, src_index, gunit, issues) ->
+        (fun errs (path, _unit_opt, src_index, gunit, unit_issues) ->
           if index then
             let in_index = read_cache pkg_index src_index in
             let out_index = read_cache
               { in_index with root = out_dir } src_index
             in
-            let index = set_gunit out_index { gunit with issues } in
+            let index = set_gunit out_index { gunit with unit_issues } in
             let index = add_packages in_index index in
             write_cache index;
             errs
-          else (List.map (error_of_issue path) issues)@errs
+          else (List.map (error_of_unit_issue path) unit_issues)@errs
         ) [] units
       in
       (if index then flush_cache pkg_index);

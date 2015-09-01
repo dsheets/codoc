@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2014 David Sheets <sheets@alum.mit.edu>
+ * Copyright (c) 2014-2015 David Sheets <sheets@alum.mit.edu>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,9 +16,17 @@
  *)
 
 val of_top_module :
-  pathloc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Module.t -> Blueprint.t
+  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Module.t -> Blueprint.t
 (** Generate a documentation page from a module. *)
 
-val of_unit :
-  pathloc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Unit.t -> Blueprint.t
-(** Generate a documentation page from a compilation unit. *)
+val of_top_moduletype :
+  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.ModuleType.t -> Blueprint.t
+(** Generate a documentation page from a module type. *)
+
+val of_top_class :
+  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Class.t -> Blueprint.t
+(** Generate a documentation page from a class. *)
+
+val of_top_classtype :
+  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.ClassType.t -> Blueprint.t
+(** Generate a documentation page from a class type. *)

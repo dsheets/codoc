@@ -2,28 +2,48 @@
   <!-- Rendering debugging information -->
   <t:let name="debug">
     <t:let name=".issue">
-      <t:let name=".resolution_failed_t">
+      <t:let name=".resolution-failed-t">
         <li>Module <strong><t:insert name=".name"/></strong> not found</li>
       </t:let>
-      <t:let name=".xml_error_t">
-        <t:let name="xml_loc">
+      <t:let name=".xml-error-t">
+        <t:let name="xml-loc">
           <strong><t:insert name=".file"/></strong>:
           <strong><t:insert name=".line"/></strong>:
           <strong><t:insert name=".col"/></strong>
         </t:let>
-        <li>XML error parsing <t:insert name="xml_loc" with=".loc"/>:
+        <li>XML error parsing <t:insert name="xml-loc" with=".loc"/>:
         <t:insert name=".message"/>
         </li>
       </t:let>
-      <t:insert name=".resolution_failed_t"
-                with=".module_resolution_failed"><t:seq/></t:insert>
-      <t:insert name=".xml_error_t"
-                with=".xml_error"><t:seq/></t:insert>
-      <t:if exists=".template_error">
+      <t:insert name=".resolution-failed-t"
+                with=".module-resolution-failed"><t:seq/></t:insert>
+      <t:insert name=".xml-error-t"
+                with=".xml-error"><t:seq/></t:insert>
+      <t:if exists=".template-error">
         <li>Template error:<br/>
-        <t:insert name=".template_error"/>
+        <pre><t:insert name=".template-error"/></pre>
         </li>
       </t:if>
+      <t:if exists=".doc-error">
+        <li><t:insert name="debug.doc-error" with=".doc-error"/></li>
+      </t:if>
+    </t:let>
+
+    <t:let name=".doc-error">
+      <t:if exists=".empty-code">Empty code markup ([])</t:if>
+      <t:if exists=".bad-stop">Bad stop comment in item doc</t:if>
+      <t:if exists=".empty-section"
+            >Empty title: <t:insert name=".empty-section"/></t:if>
+      <t:if exists=".empty-tag"
+            >Empty tag: <t:insert name=".empty-tag"/></t:if>
+      <t:if exists=".unlinked-ref"
+            >Unresolved reference: <t:insert name=".unlinked-ref"/></t:if>
+      <t:if exists=".unlinked-path"
+            >Unresolved path: <t:insert name=".unlinked-path"/></t:if>
+      <t:if exists=".unlinked-frag"
+            >Unresolved fragment: <t:insert name=".unlinked-frag"/></t:if>
+      <t:if exists=".doc-error"
+            >Doc error: <t:insert name=".doc-error"/></t:if>
     </t:let>
   </t:let>
   
@@ -38,8 +58,8 @@
             <t:link from="index.pkgs.list" to="data.pkgs"/>
             <t:insert name="index.pkgs"><t:seq/></t:insert>
           </t:if>
-          <t:if exists="data.modules">
-            <t:link from="index.modules.list" to="data.modules"/>
+          <t:if exists="data.units">
+            <t:link from="index.modules.list" to="data.units"/>
             <t:insert name="index.modules"><t:seq/></t:insert>
           </t:if>
         </div>
@@ -65,43 +85,59 @@
       </section>
     </t:let>
 
-    <t:let name=".module-with-issues">
+    <t:let name=".issues">
       <t:let name=".map">
         <t:insert name="debug.issue" with=".head"/>
-        <t:insert name="index.module-with-issues.map"
-                  with=".tail"><t:seq/></t:insert>
+        <t:insert name="index.issues.map" with=".tail"><t:seq/></t:insert>
       </t:let>
-      <details>
-        <summary><t:if exists=".href"><a>
-          <t:attr name="href"><t:insert name=".href"/></t:attr
-          ><t:insert name=".name"/></a>
-        </t:if>
-        <t:else><t:insert name=".name"/></t:else
-        ></summary>
-        <ul>
-          <t:insert name=".map" with=".issues"/>
-        </ul>
-      </details>
+      <ul class="unit-issues">
+        <t:insert name=".map" with=".issues"/>
+      </ul>
+    </t:let>
+
+    <t:let name=".struct-issues">
+      <t:let name=".map">
+        <t:insert name="debug.issue" with=".head"/>
+        <t:insert name="index.issues.map" with=".tail"><t:seq/></t:insert>
+      </t:let>
+      <ul class="struct-issues">
+        <t:insert name=".map" with=".issues"/>
+      </ul>
     </t:let>
 
     <t:let name=".module">
-      <t:if exists=".href">
-        <a>
-          <t:attr name="href"><t:insert name=".href"/></t:attr
-          ><t:insert name=".name"/></a>
+      <t:if exists=".module.issues.head">
+        <t:insert name="index.struct-issues" with=".module"/>
       </t:if>
-      <t:else><t:insert name=".name"/></t:else>
+      <t:if exists=".module.children.head">
+        <ul>
+          <t:insert name="index.children" with=".module.children"/>
+        </ul>
+      </t:if>
+    </t:let>
+
+    <t:let name=".children">
+      <li>
+        <t:insert name="index.link" with=".head"/>
+        <t:if exists=".head.issues.head">
+          <t:insert name="index.struct-issues" with=".head"/>
+        </t:if>
+        <t:if exists=".head.children.head">
+          <ul>
+            <t:insert name="index.children" with=".head.children"/>
+          </ul>
+        </t:if>
+      </li>
+      <t:insert name="index.children" with=".tail"><t:seq/></t:insert>
     </t:let>
 
     <t:let name=".modules">
       <t:let name=".map">
-        <li>
-          <t:if exists=".head.issues">
-            <t:insert name="index.module-with-issues" with=".head"/>
+        <li><t:insert name="index.link" with=".head.module"/>
+          <t:if exists=".head.issues.head">
+            <t:insert name="index.issues" with=".head"/>
           </t:if>
-          <t:else>
-            <t:insert name="index.module" with=".head"/>
-          </t:else>
+          <t:insert name="index.module" with=".head"/>
         </li>
         <t:insert name="index.modules.map" with=".tail"><t:seq/></t:insert>
       </t:let>
@@ -112,6 +148,15 @@
         </ul>
       </section>
     </t:let>
-  </t:let>
 
+    <!-- TODO: use nav.link ? -->
+    <t:let name=".link"
+           ><t:if exists=".href"><a>
+      <t:attr name="href"><t:insert name=".href"/></t:attr
+      ><t:insert name=".name"
+      /></a></t:if>
+      <t:else><t:insert name=".name"/></t:else>
+    </t:let>
+
+  </t:let>
 </t:seq>

@@ -1,17 +1,33 @@
 <!-- Module language rendering -->
 <t:seq>
   <t:let name="module">
-    <div class="module codoc-doc">
+    <div class="mod codoc-doc">
       <t:insert name="nav.up" with=".up"><t:seq/></t:insert>
       <div class="intro">
         <h1>
           <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
-          <t:insert name="nav.ref-link" with=".name"/>
+          <t:insert name="nav.title-ref-link" with=".name"/>
           <t:insert name=".rhs" with=".decl"/>
         </h1>
         <t:insert name="doc.div" with=".doc"/>
       </div>
       <t:insert name=".decl-body" with=".decl"/>
+    </div>
+  </t:let>
+
+  <t:let name="module-type">
+    <div class="modt codoc-doc">
+      <t:insert name="nav.up" with=".up"><t:seq/></t:insert>
+      <div class="intro">
+        <h1>
+          <t:let name="keyword.text">module type</t:let
+          ><t:insert name="keyword"/>
+          <t:insert name="nav.title-ref-link" with=".name"/>
+          = <t:insert name="module.rhs-sig" with=".decl"/>
+        </h1>
+        <t:insert name="doc.div" with=".doc"/>
+      </div>
+      <t:insert name="module.sig-body" with=".decl"/>
     </div>
   </t:let>
 
@@ -25,7 +41,10 @@
           ><t:insert name="nav.path" with=".path"/></t:if>
     <t:if exists=".sig"
           ><t:let name="keyword.text">sig</t:let
-          ><t:insert name="keyword"/></t:if>
+          ><t:insert name="keyword"
+          /><t:if exists=".substruct"
+          > ..<t:let name="keyword.text">end</t:let
+          > <t:insert name="keyword"/></t:if></t:if>
     <t:if exists=".functor"
           ><t:insert name="module.functor-rhs" with=".functor"/></t:if>
     <t:if exists=".with"
@@ -72,12 +91,15 @@
     <t:if exists=".typeof"
           ><t:insert name="module.typeof-body" with=".typeof"/></t:if>
     <t:if exists=".sig">
-      <t:if exists=".sig.head">
-        <div class="sig"><t:insert name="module.signature" with=".sig"/></div>
-      </t:if>
-      <div class="outro"
-           ><t:let name="keyword.text">end</t:let
-           ><t:insert name="keyword"/></div>
+      <t:if exists=".substruct"/>
+      <t:else>
+        <t:if exists=".sig.head">
+          <div class="sig"><t:insert name="module.signature" with=".sig"/></div>
+        </t:if>
+        <div class="outro"
+             ><t:let name="keyword.text">end</t:let
+             ><t:insert name="keyword"/></div>
+      </t:else>
     </t:if>
     <!-- path has no body -->
   </t:let>
@@ -208,7 +230,7 @@
   </t:let>
 
   <t:let name="module.type">
-    <div class="type">
+    <div class="typ">
       <div class="def">
         <t:let name="keyword.text">type</t:let><t:insert name="keyword"/>
         <t:insert name="module.mkparams" with=".params"/>
@@ -330,7 +352,7 @@
       <t:insert name=".name"/>
     </t:let>
     <t:link from="nav.region.render" to="module.field.mk"/>
-    <tr class="field">
+    <tr class="fld">
       <td><t:insert name="nav.region" with=".region"/></td>
       <td>: <t:insert name="type" with=".region.body.type"/></td>
       <td>;</td>
@@ -373,11 +395,12 @@
   </t:let>
 
   <t:let name="module.module">
-    <div class="module">
+    <div class="mod">
       <div class="def">
         <div class="intro">
           <t:let name="keyword.text">module</t:let><t:insert name="keyword"/>
-          <t:insert name=".name"/>
+          <t:insert name=".name"
+                    ><t:insert name="nav.ref-link" with=".name"/></t:insert>
           <t:insert name="module.rhs" with=".decl"/>
         </div>
       </div>
@@ -387,13 +410,15 @@
   </t:let>
 
   <t:let name="module.module-type">
-    <div class="modtype">
+    <div class="modt">
       <div class="def">
         <div class="intro">
           <t:let name="keyword.text">module type</t:let>
           <t:insert name="keyword"/>
-          <t:insert name=".name"/>
+          <t:insert name=".name"
+                    ><t:insert name="nav.ref-link" with=".name"/></t:insert>
           <!-- TODO: this will be less awful when blueprint has OR -->
+          <!-- necessary for totally abstract sigs with no '=' -->
           <t:if exists=".decl.path">
             = <t:insert name="module.rhs-sig" with=".decl"/>
           </t:if>

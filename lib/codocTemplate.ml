@@ -17,8 +17,7 @@
 
 type t = string list
 
-(* TODO: proper path *)
-let default_root = "share/templates/default/"
+let default_template = Filename.concat "default" ""
 
 let global = [
   "page.xml";
@@ -50,8 +49,9 @@ let load_file file =
       line col (Xmlm.error_message err);
     exit 1
 
-let load spec =
+let load share spec =
+  let dir = Filename.(concat (concat share "templates") default_template) in
   List.fold_left (fun template name ->
-    let t = load_file (default_root ^ name) in
+    let t = load_file (dir ^ name) in
     Blueprint.Scope.overlay t template
   ) (Blueprint.Tree.empty ()) spec

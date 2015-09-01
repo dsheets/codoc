@@ -30,13 +30,19 @@ module Substruct : sig
     map_moduletype : 'a -> root ModuleType.t -> 'b;
   }
 
-  type 'a fold = ('a, 'a) map
+  type 'a collect = ('a, 'a) map
 
   type 'a t =
     | Class of root Class.t * 'a
     | ClassType of root ClassType.t * 'a
     | Module of root Module.t * 'a t list * 'a
     | ModuleType of root ModuleType.t * 'a t list * 'a
+
+  type 'a name =
+    | ClassName of string * 'a
+    | ClassTypeName of string * 'a
+    | ModuleName of string * 'a name list * 'a
+    | ModuleTypeName of string * 'a name list * 'a
 
   val root_of_unit_signature :
     root Unit.t -> root Signature.t -> unit t
@@ -45,6 +51,20 @@ module Substruct : sig
     (unit, 'a) map -> root Unit.t -> 'a t option
 
   val map : ('a, 'b) map -> 'a t -> 'b t
+
+  val fold : (('a * 'b), 'a) map -> 'a -> 'b t -> 'a
+
+  val compose : ('a, 'b) map -> ('b, 'c) map -> ('a, 'c) map
+
+  val homo_map : ('a -> 'b) -> ('a, 'b) map
+
+  val ident_map : ('a, root CodocDocMaps.Identifier.parent) map
+
+  val list_option_fold : unit -> (('a list * 'a option), 'a list) map
+
+  val to_name : 'a t -> 'a name
+
+  val string_of_name : 'a name -> string
 end
 
 module Href : sig
@@ -63,4 +83,8 @@ module Href : sig
 
   val id_of_ident :
     loc -> root CodocDocMaps.Identifier.any -> string option
+
+  val of_name : 'a Substruct.name -> Uri.t
+
+  val ascent_of_ident : root CodocDocMaps.Identifier.any -> string
 end

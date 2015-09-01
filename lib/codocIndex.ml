@@ -18,15 +18,23 @@
 module StringMap = Map.Make(String)
 
 type generation_issue =
-| Module_resolution_failed of string
-| Xml_error of string * Xmlm.pos * string
 | Template_error of string
+| Doc_error of CodocAnalysis.doc_error
 
-type generated_unit = {
-  mod_name  : string;
-  xml_file  : string;
+type unit_issue =
+| Module_resolution_failed of string
+| Xml_error of (string * Xmlm.pos * string)
+
+type generated_sub = {
   html_file : string option;
   issues    : generation_issue list;
+}
+
+type generated_unit = {
+  name        : string;
+  xml_file    : string;
+  substructs  : generated_sub CodocUnit.Substruct.name;
+  unit_issues : unit_issue list;
 }
 
 type pkg = {
@@ -42,25 +50,36 @@ type t = {
   cache : (string, t list) Hashtbl.t;
 }
 
+let xmlns = CodocXml.index_ns
+
 let (/) = Filename.concat
 
 let list_of_map map = List.rev_map snd (StringMap.bindings map)
 
 let error_of_issue path = function
+  | Template_error message ->
+    `Error (false, Printf.sprintf "%s: Template error:\n%s" path message)
+  | Doc_error doc_error ->
+    let message = CodocAnalysis.string_of_error doc_error in
+    `Error (false, Printf.sprintf "%s: Documentation error:\n%s" path message)
+
+let error_of_unit_issue path = function
   | Module_resolution_failed mod_name ->
     `Error (false, "writing "^path^" resolution of "^mod_name^" failed")
   | Xml_error (path, (l,c), s) ->
     `Error (false, Printf.sprintf "%s:%d:%d: XML error %s" path l c s)
-  | Template_error message ->
-    `Error (false, Printf.sprintf "%s: Template error:\n%s" path message)
-
-let xmlns = "https://opam.ocaml.org/packages/codoc/xmlns/doc-index"
 
 let index_filename = "index.xml"
 
 let index_file ?(rel_index=index_filename) dir = Filename.concat dir rel_index
 
 let xml_of_generation_issue = function
+  | Template_error message ->
+    [`El ((("","template-error"),[]),[`Data message])]
+  | Doc_error doc_error ->
+    [`El ((("","doc-error"),[]),CodocAnalysis.xml_of_error doc_error)]
+
+let xml_of_unit_issue = function
   | Module_resolution_failed mod_name ->
     let attrs = [
       ("","module"),mod_name;
@@ -73,25 +92,51 @@ let xml_of_generation_issue = function
       ("","col"),string_of_int c;
     ] in
     [`El ((("","xml-error"),attrs),[`Data msg])]
-  | Template_error message ->
-    [`El ((("","template-error"),[]),[`Data message])]
 
-let xml_of_generated_unit ({ mod_name; xml_file; html_file; issues }) =
-  let issues = match issues with
+let xml_of_substruct (acc,u) typ name children =
+  let issues = match u.issues with
     | [] -> []
     | issues ->
       [`El ((("","issues"),[]),
             List.(flatten (map xml_of_generation_issue issues)))]
   in
-  let html_file = match html_file with
+  let html_file = match u.html_file with
+    | None -> []
     | Some html_file ->
       [`El ((("","file"),[("","type"),"text/html";("","href"),html_file]),[])]
-    | None -> []
   in
-  [`El ((("","unit"),[("","name"),mod_name]),
+  (`El ((("",typ),[("","name"),name]),html_file@children@issues))::acc
+
+let rec fold_xml_of_substruct acc = CodocUnit.Substruct.(function
+  | ClassName (c, u)::rest ->
+    let a = xml_of_substruct (acc,u) "class" c [] in
+    fold_xml_of_substruct a rest
+  | ClassTypeName (c, u)::rest ->
+    let a = xml_of_substruct (acc,u) "classtype" c [] in
+    fold_xml_of_substruct a rest
+  | ModuleName (m, l, u)::rest ->
+    let a = xml_of_substruct (acc,u) "module" m (fold_xml_of_substruct [] l) in
+    fold_xml_of_substruct a rest
+  | ModuleTypeName (m, l, u)::rest ->
+    let a =
+      xml_of_substruct (acc,u) "moduletype" m (fold_xml_of_substruct [] l)
+    in
+    fold_xml_of_substruct a rest
+  | [] -> acc
+)
+
+let xml_of_generated_unit ({ name; xml_file; substructs; unit_issues }) =
+  let issues = match unit_issues with
+    | [] -> []
+    | issues ->
+      [`El ((("","issues"),[]),
+            List.(flatten (map xml_of_unit_issue issues)))]
+  in
+  let substructs = fold_xml_of_substruct [] [substructs] in
+  [`El ((("","unit"),[("","name"),name]),
         (`El ((("","file"),
                [("","type"),"application/xml";("","href"),xml_file]),[]);
-        )::(html_file@issues)
+        )::(substructs@issues)
        )
   ]
 
@@ -110,22 +155,26 @@ let to_xml ({ units; pkgs }) =
        )
   ]
 
-let string_of_pos (line,col) =
-  Printf.sprintf "line %d, col %d" line col
-
-let rec must_end xml = match Xmlm.input xml with
-  | `El_end -> ()
-  | `Data _ -> must_end xml (* TODO: ? *)
-  | _ -> (* TODO: fixme *)
-    failwith (Printf.sprintf "expected end: %s" (string_of_pos (Xmlm.pos xml)))
-
-let eat xml = ignore (Xmlm.input xml)
-
-let just_data xml = match Xmlm.peek xml with
-  | `Data data -> eat xml; data
-  | _ -> (* TODO: fixme *) failwith "expected data"
+let eat = CodocXml.eat
+let must_end = CodocXml.must_end
+let just_data = CodocXml.just_data
 
 let rec generation_issue_of_xml xml = match Xmlm.peek xml with
+  | `El_start ((ns,"doc-error"),[]) when ns = xmlns ->
+    eat xml;
+    let doc_error = CodocAnalysis.error_of_xml xml in
+    must_end xml;
+    Doc_error doc_error
+  | `El_start ((ns,"template-error"),[]) ->
+    eat xml;
+    let message = just_data xml in
+    must_end xml;
+    Template_error message
+  | `El_start _ -> (* TODO: fixme *) failwith "unknown element @ gen issue"
+  | `El_end -> (* TODO: fixme *) failwith "unexpected end @ gen issue"
+  | `Data _ | `Dtd _ -> eat xml; generation_issue_of_xml xml
+
+let rec unit_issue_of_xml xml = match Xmlm.peek xml with
   | `El_start ((ns,"resolution-failed"),[("","module"),name]) when ns = xmlns ->
     eat xml;
     must_end xml;
@@ -138,14 +187,9 @@ let rec generation_issue_of_xml xml = match Xmlm.peek xml with
     let message = just_data xml in
     must_end xml;
     Xml_error (href, (int_of_string line,int_of_string col), message)
-  | `El_start ((ns,"template-error"),[]) ->
-    eat xml;
-    let message = just_data xml in
-    must_end xml;
-    Template_error message
-  | `El_start _ -> (* TODO: fixme *) failwith "unknown element"
-  | `El_end -> (* TODO: fixme *) failwith "unexpected end"
-  | `Data _ | `Dtd _ -> eat xml; generation_issue_of_xml xml
+  | `El_start _ -> (* TODO: fixme *) failwith "unknown element @ unit issue"
+  | `El_end -> (* TODO: fixme *) failwith "unexpected end @ unit issue"
+  | `Data _ | `Dtd _ -> eat xml; unit_issue_of_xml xml
 
 let rec issues_of_xml xml issues = match Xmlm.peek xml with
   | `El_start _ ->
@@ -154,11 +198,18 @@ let rec issues_of_xml xml issues = match Xmlm.peek xml with
   | `El_end -> eat xml; issues
   | `Dtd _ | `Data _ -> eat xml; issues_of_xml xml issues
 
+let rec unit_issues_of_xml xml issues = match Xmlm.peek xml with
+  | `El_start _ ->
+    let issue = unit_issue_of_xml xml in
+    unit_issues_of_xml xml (issue::issues)
+  | `El_end -> eat xml; issues
+  | `Dtd _ | `Data _ -> eat xml; unit_issues_of_xml xml issues
+
 let rec inside xml tag fn = match Xmlm.peek xml with
   | `El_start (el,attrs) when el = tag ->
     eat xml;
     fn attrs
-  | `El_start _ -> (* TODO: fixme *) failwith "unknown element"
+  | `El_start _ -> (* TODO: fixme *) failwith "unknown element @ inside"
   | `El_end -> []
   | `Data _ | `Dtd _ -> eat xml; inside xml tag fn
 
@@ -171,15 +222,57 @@ let rec files_of_xml xml files = match Xmlm.peek xml with
   | `El_start _ | `El_end -> files
   | `Dtd _ | `Data _ -> eat xml; files_of_xml xml files
 
-let generated_unit_of_xml xml mod_name =
+let rec substructs_of_xml xml subs = CodocUnit.Substruct.(
+  match Xmlm.peek xml with
+  | `El_start ((ns,"class"),[("","name"),name]) when ns = xmlns ->
+    eat xml;
+    let _, sub = substruct_body_of_xml xml in
+    must_end xml;
+    substructs_of_xml xml (ClassName (name,sub)::subs)
+  | `El_start ((ns,"classtype"),[("","name"),name]) when ns = xmlns ->
+    eat xml;
+    let _, sub = substruct_body_of_xml xml in
+    must_end xml;
+    substructs_of_xml xml (ClassTypeName (name,sub)::subs)
+  | `El_start ((ns,"module"),[("","name"),name]) when ns = xmlns ->
+    eat xml;
+    let children, sub = substruct_body_of_xml xml in
+    must_end xml;
+    substructs_of_xml xml (ModuleName (name,children,sub)::subs)
+  | `El_start ((ns,"moduletype"),[("","name"),name]) when ns = xmlns ->
+    eat xml;
+    let children, sub = substruct_body_of_xml xml in
+    must_end xml;
+    substructs_of_xml xml (ModuleTypeName (name,children,sub)::subs)
+  | `El_start _ | `El_end -> subs
+  | `Dtd _ | `Data _ -> eat xml; substructs_of_xml xml subs
+)
+and substruct_body_of_xml xml =
+  let files = files_of_xml xml [] in
+  let html_file =
+    try Some (List.assoc "text/html" files)
+    with Not_found -> None
+  in
+  let children = substructs_of_xml xml [] in
+  let issues = inside xml (xmlns,"issues") (fun _ -> issues_of_xml xml []) in
+  (children, { html_file; issues })
+
+let generated_unit_of_xml xml name =
   let files = files_of_xml xml [] in
   let xml_file = List.assoc "application/xml" files in
-  let html_file =
-    try Some (List.assoc "text/html" files) with Not_found -> None
-  in
-  let issues = inside xml (xmlns,"issues") (fun _ -> issues_of_xml xml []) in
-  must_end xml;
-  { mod_name; xml_file; html_file; issues }
+  match substructs_of_xml xml [] with
+  | [] ->
+    must_end xml;
+    failwith "not enough structs in unit" (* TODO: fixme *)
+  | _::_::_ ->
+    must_end xml;
+    failwith "too many structs in unit" (* TODO: fixme *)
+  | [substructs] ->
+    let unit_issues =
+      inside xml (xmlns,"issues") (fun _ -> unit_issues_of_xml xml [])
+    in
+    must_end xml;
+    { name; xml_file; unit_issues; substructs; }
 
 let pkg_of_xml xml pkg_name index =
   must_end xml;
@@ -206,7 +299,7 @@ let rec of_xml root path xml =
         doc_index { index with
           pkgs = StringMap.add name (pkg_of_xml xml name href) index.pkgs
         }
-      | `El_start _ -> (* TODO: fixme *) failwith "unknown element"
+      | `El_start _ -> (* TODO: fixme *) failwith "unknown element @ index"
       | `El_end -> index
       | `Data _ | `Dtd _ -> doc_index index
   in
@@ -220,7 +313,7 @@ let rec of_xml root path xml =
   | `Data _ | `Dtd _ -> of_xml root path xml
 
 let set_gunit index gunit =
-  { index with units = StringMap.add gunit.mod_name gunit index.units }
+  { index with units = StringMap.add gunit.name gunit index.units }
 
 let add_packages from into =
   let pkgs = StringMap.merge (fun _k l r ->

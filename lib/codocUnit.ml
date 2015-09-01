@@ -21,33 +21,37 @@ module Id = struct
   open CodocDoc
   open CodocDocMaps
 
-  let type_class = "type"
+  let type_class = "typ"
   let exn_class = "exn" (* exception *)
+  let class_class = "cls"
+  let classtype_class = "clst"
+  let module_class = "mod"
+  let moduletype_class = "modt"
 
   (* TODO: use these for CSS class names? *)
   let ident_class = Identifier.(function
     | Root _ -> "root"
-    | Module _ -> "module"
-    | Argument _ -> "modarg"
-    | ModuleType _ -> "modtype"
+    | Module _ -> module_class
+    | Argument _ -> "moda"
+    | ModuleType _ -> moduletype_class
     | Type _ -> type_class
     | CoreType _ -> type_class
     | Constructor _ -> "cons" (* const *)
-    | Field _ -> "field" (* recfield *)
+    | Field _ -> "fld" (* recfield *)
     | Extension _ -> "ext"
     | Exception _ -> exn_class
     | CoreException _ -> exn_class
     | Value _ -> "val"
-    | Class _ -> "class"
-    | ClassType _ -> "classtype"
-    | Method _ -> "method"
+    | Class _ -> class_class
+    | ClassType _ -> classtype_class
+    | Method _ -> "meth"
     | InstanceVariable _ -> "var" (* attribute *)
-    | Label _ -> "label" (* section *)
+    | Label _ -> "labl" (* section *)
   )
 
-  let classify cls name = Printf.sprintf "%s:%s" cls name
+  let classify cls name = Printf.sprintf "%s.%s" name cls
 
-  let name_of_argument i name = Printf.sprintf "%d:%s" i name
+  let name_of_argument i name = Printf.sprintf "%s.%d" name i
 end
 
 module Substruct = struct
@@ -59,13 +63,19 @@ module Substruct = struct
     map_moduletype : 'a -> CodocDoc.root ModuleType.t -> 'b;
   }
 
-  type 'a fold = ('a,'a) map
+  type 'a collect = ('a,'a) map
 
   type 'a t =
     | Class of CodocDoc.root Class.t * 'a
     | ClassType of CodocDoc.root ClassType.t * 'a
     | Module of CodocDoc.root Module.t * 'a t list * 'a
     | ModuleType of CodocDoc.root ModuleType.t * 'a t list * 'a
+
+  type 'a name =
+    | ClassName of string * 'a
+    | ClassTypeName of string * 'a
+    | ModuleName of string * 'a name list * 'a
+    | ModuleTypeName of string * 'a name list * 'a
 
   type id =
     | Classy of CodocDoc.root DocOckPaths.Identifier.class_signature
@@ -85,7 +95,7 @@ module Substruct = struct
 
   let class_has_signature c = class_decl_has_signature c.Class.type_
 
-  let fold_sig_structs f acc = Signature.(function
+  let collect_sig_structs f acc = Signature.(function
     | Value _ | External _ | Type _ | TypExt _ | Exception _
     | Include _ | Comment _ -> acc
     | Class c -> if class_has_signature c then f.map_class acc c else acc
@@ -95,35 +105,36 @@ module Substruct = struct
     | ModuleType m -> f.map_moduletype acc m
   )
 
-  let rec fold_eqn_structs f acc = Module.(function
+  let rec collect_eqn_structs f acc = Module.(function
     | Alias _ -> None
-    | ModuleType type_ -> fold_module_type_expr_structs f acc type_
+    | ModuleType type_ -> collect_module_type_expr_structs f acc type_
   )
-  and fold_module_type_expr_structs f acc = ModuleType.(function
+  and collect_module_type_expr_structs f acc = ModuleType.(function
     | Path _ -> None
-    | Signature s -> Some (List.fold_left (fold_sig_structs f) acc s)
+    | Signature s -> Some (List.fold_left (collect_sig_structs f) acc s)
     | Functor (_, _) -> Some acc
-    | With (expr, _) -> fold_module_type_expr_structs f acc expr
-    | TypeOf eqn -> fold_eqn_structs f acc eqn
+    | With (expr, _) -> collect_module_type_expr_structs f acc expr
+    | TypeOf eqn -> collect_eqn_structs f acc eqn
   )
 
-  let fold_module_structs f acc { Module.type_ } = fold_eqn_structs f acc type_
+  let collect_module_structs f acc { Module.type_ } =
+    collect_eqn_structs f acc type_
 
-  let fold_module_type_structs f acc = ModuleType.(function
-    | { expr = Some expr } -> fold_module_type_expr_structs f acc expr
+  let collect_module_type_structs f acc = ModuleType.(function
+    | { expr = Some expr } -> collect_module_type_expr_structs f acc expr
     | { expr = None } -> None
   )
 
-  let rec substruct_fold f = {
+  let rec substruct_collect f = {
     map_class = (fun l c -> (Class (c, f.map_class () c))::l);
     map_classtype = (fun l c -> (ClassType (c, f.map_classtype () c))::l);
     map_module = (fun l m ->
-      match fold_module_structs (substruct_fold f) [] m with
+      match collect_module_structs (substruct_collect f) [] m with
       | Some subs -> (Module (m,subs,f.map_module () m))::l
       | None -> l
     );
     map_moduletype = (fun l m ->
-      match fold_module_type_structs (substruct_fold f) [] m with
+      match collect_module_type_structs (substruct_collect f) [] m with
       | Some subs -> (ModuleType (m,subs,f.map_moduletype () m))::l
       | None -> l
     );
@@ -145,18 +156,62 @@ module Substruct = struct
   let map_of_unit f = function
     | { Unit.content = Unit.Module signature } as unit ->
       let subs =
-        List.fold_left (fold_sig_structs (substruct_fold f)) [] signature
+        List.fold_left (collect_sig_structs (substruct_collect f)) [] signature
       in
       Some (map_of_unit_signature f subs unit signature)
     | { Unit.content = Unit.Pack _ } -> (* TODO: support packs *)
       None
 
-  let rec map f t = match t with
+  let rec map f = function
     | Class (c,a) -> Class (c, f.map_class a c)
     | ClassType (c,a) -> ClassType (c, f.map_classtype a c)
     | Module (m,l,a) -> Module (m, List.map (map f) l, f.map_module a m)
     | ModuleType (m,l,a) ->
       ModuleType (m, List.map (map f) l, f.map_moduletype a m)
+
+  let rec fold f acc = function
+    | Class (c,a) -> f.map_class (acc,a) c
+    | ClassType (c,a) -> f.map_classtype (acc,a) c
+    | Module (m,l,a) -> f.map_module (List.fold_left (fold f) acc l,a) m
+    | ModuleType (m,l,a) ->
+      f.map_moduletype (List.fold_left (fold f) acc l,a) m
+
+  let compose a b = {
+    map_class = (fun x c -> b.map_class (a.map_class x c) c);
+    map_classtype = (fun x c -> b.map_classtype (a.map_classtype x c) c);
+    map_module = (fun x m -> b.map_module (a.map_module x m) m);
+    map_moduletype = (fun x m -> b.map_moduletype (a.map_moduletype x m) m);
+  }
+
+  let homo_map f =
+    let f x _ = f x in {
+      map_class = f;
+      map_classtype = f;
+      map_module = f;
+      map_moduletype = f;
+    }
+
+  let ident_map = {
+    map_class = DocOckPaths.Identifier.(fun _ c ->
+      parent_of_class_signature
+        (class_signature_of_class c.DocOckTypes.Class.id)
+    );
+    map_classtype = DocOckPaths.Identifier.(fun _ c ->
+      parent_of_class_signature
+        (class_signature_of_class_type c.DocOckTypes.ClassType.id)
+    );
+    map_module = DocOckPaths.Identifier.(fun _ m ->
+      parent_of_signature (signature_of_module m.DocOckTypes.Module.id)
+    );
+    map_moduletype = DocOckPaths.Identifier.(fun _ m ->
+      parent_of_signature (signature_of_module_type m.DocOckTypes.ModuleType.id)
+    );
+  }
+
+  let list_option_fold () = homo_map (fun (list,next) -> match next with
+    | None -> list
+    | Some next -> next::list
+  )
 
   let id = function
     | Module ({ DocOckTypes.Module.id }, _, _) ->
@@ -167,6 +222,29 @@ module Substruct = struct
       Classy (DocOckPaths.Identifier.class_signature_of_class id)
     | ClassType ({ DocOckTypes.ClassType.id }, _) ->
       Classy (DocOckPaths.Identifier.class_signature_of_class_type id)
+
+  let class_name c =
+    DocOckPaths.Identifier.name c.DocOckTypes.Class.id
+  let classtype_name c =
+    DocOckPaths.Identifier.name c.DocOckTypes.ClassType.id
+  let module_name m =
+    DocOckPaths.Identifier.name m.DocOckTypes.Module.id
+  let moduletype_name m =
+    DocOckPaths.Identifier.name m.DocOckTypes.ModuleType.id
+
+  let rec to_name = function
+    | Class (c,a) -> ClassName (class_name c, a)
+    | ClassType (c,a) -> ClassTypeName (classtype_name c, a)
+    | Module (m,l,a) ->
+      ModuleName (module_name m, List.map to_name l, a)
+    | ModuleType (m,l,a) ->
+      ModuleTypeName (moduletype_name m, List.map to_name l, a)
+
+  let string_of_name = function
+    | ClassName (name,_) -> name
+    | ClassTypeName (name,_) -> name
+    | ModuleName (name,_,_) -> name
+    | ModuleTypeName (name,_,_) -> name
 end
 
 module Href = struct
@@ -261,9 +339,7 @@ module Href = struct
   let normal_uri { scheme } = normal_uri_for_scheme scheme
 
   let index { scheme } = function
-    | Html (path, _) -> Some (uri_of_path ~scheme path)
-    | Xml (path, _) ->
-      Some (uri_of_path ~scheme (html_name_of path)) (* TODO: fixme? *)
+    | Xml (path, _) -> Some (uri_of_path ~scheme (html_name_of path))
     | _ -> None
 
   let print_fragment loc = function
@@ -292,15 +368,16 @@ module Href = struct
         fragment;
         pkg_root;
       } in
-      print_fragment loc fragment;
+      (*print_fragment loc fragment;*)
       Some loc
     | None -> None
 
-  let up loc =
-    match loc.pkg_root with
-    | Some pkg_root ->
-      Some (normal_uri loc (Uri.of_string pkg_root))
-    | None -> None
+  let up loc = match loc.fragment.path with
+    | _::_ -> Some (normal_uri loc (Uri.of_string "../"))
+    | [] -> match loc.pkg_root with
+      | Some pkg_root ->
+        Some (normal_uri loc (Uri.of_string pkg_root))
+      | None -> None
 
   let rec subtract_list target base = match target, base with
     | x::xs, y::ys when x = y -> subtract_list xs ys
@@ -322,9 +399,10 @@ module Href = struct
     let page = match path with
       | [] -> Uri.empty
       | path ->
-        let path = List.fold_left (fun a b -> a^b^"/") base path in
+        let path = List.fold_left (fun a b -> a^b^"/") "" path in
         normal_uri loc (Uri.with_path Uri.empty path)
     in
+    let page = Uri.(resolve "" (normal_uri loc (of_string base)) page) in
     let uri_frag = match frag with
       | [] -> None
       | xs -> Some (string_of_frag_pieces xs)
@@ -336,11 +414,14 @@ module Href = struct
     match fragment_of_ident ident with
     | None -> None
     | Some frag ->
-      prerr_endline ("$"^Identifier.name ident);
-      print_fragment loc frag;
       let up, out = subtract frag self in
       match out.root with
-      | None -> Some (uri_of_diff loc up out.path out.frag Uri.empty)
+      | None -> begin match out.path, out.frag with
+        | [], [] when List.length self.path > 0 -> (* we have a parent! *)
+          Some (uri_of_diff loc 1 [] List.[hd (rev self.path)] Uri.empty)
+        | path, frag ->
+          Some (uri_of_diff loc up path frag Uri.empty)
+      end
       | Some root -> match index loc root with
         | None -> None (* TODO: log? *)
         | Some uri ->
@@ -354,4 +435,19 @@ module Href = struct
       | 0, { root = None; path; frag } ->
         Some (string_of_frag_pieces path ^ string_of_frag_pieces frag)
       | _, _ -> None
+
+  let of_name name = Substruct.(
+    let seg = match name with
+      | ClassName (name,_) -> Id.(classify class_class name)
+      | ClassTypeName (name,_) -> Id.(classify classtype_class name)
+      | ModuleName (name, _, _) -> Id.(classify module_class name)
+      | ModuleTypeName (name, _, _) -> Id.(classify moduletype_class name)
+    in
+    Uri.of_string (seg^"/")
+  )
+
+  let ascent_of_ident id =
+    match fragment_of_ident id with
+    | None -> ""
+    | Some fragment -> CodocUtil.ascent_of_depth "" (List.length fragment.path)
 end

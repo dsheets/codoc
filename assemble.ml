@@ -51,6 +51,11 @@ let codoc_unit = unit "codocUnit" ~deps:[
   codoc_doc_maps;
 ] library
 
+let codoc_analysis = unit "codocAnalysis" ~deps:[
+  xmlm;
+  doc_ock;
+] library
+
 let codoc_doc_html = unit "codocDocHtml" ~deps:[
   uri;
   doc_ock;
@@ -93,6 +98,7 @@ let codoc = lib ~flags "codoc" (`Units [
   codoc_unit;
   codoc_doc_html;
   codoc_xml;
+  codoc_analysis;
   codoc_index;
   codoc_index_html;
   codoc_env;

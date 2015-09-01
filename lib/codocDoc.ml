@@ -37,7 +37,6 @@ type root =
 (* TODO: use signature identifier when doc-ock-xml supports it *)
 | Proj of (*root DocOckPaths.Identifier.signature*) string * root
 | Xml of path * root
-| Html of path * root
 
 module Root = struct
   type t = root
@@ -51,15 +50,15 @@ module Root = struct
     | Proj (sig_, r) ->
       (*(self#name r)^"["^(map_ident self (Identifier.any sig_))^"]"*)
       (self#root_name () r)^"["^sig_^"]"
-    | Xml (_, r) | Html (_, r) -> self#root_name () r
+    | Xml (_, r) -> self#root_name () r
   end
 
   let rec to_source = function
     | Cmti _ as cmti -> cmti
-    | Resolved (_, r) | Proj (_, r) | Xml (_, r) | Html (_, r) -> to_source r
+    | Resolved (_, r) | Proj (_, r) | Xml (_, r) -> to_source r
 
   let rec to_path = function
-    | Cmti { cmti_path = path } | Xml (path, _) | Html (path, _) -> path
+    | Cmti { cmti_path = path } | Xml (path, _) -> path
     | Resolved (_, root) | Proj (_, root) -> to_path root
 
   let equal root root' = (to_source root) = (to_source root')
@@ -103,11 +102,6 @@ let rec xml_of_root = Root.(function
       ("","src"),xml_path;
     ] in
     [`El ((("","xml"),attrs), xml_of_root source)]
-  | Html (html_path,source) ->
-    let attrs = [
-      ("","src"),html_path;
-    ] in
-    [`El ((("","html"),attrs), xml_of_root source)]
 )
 
 let filter_children = List.fold_left (fun l -> function
@@ -147,13 +141,6 @@ let root_of_xml tag root_opt_list =
       | _::_::_ -> failwith "xml root has too many children" (* TODO: fixme *)
     in
     Some (Xml (List.assoc ("","src") attrs, root))
-  | ((ns,"html"),attrs) when ns = xmlns ->
-    let root = match filter_children root_opt_list with
-      | [] -> failwith "html root must have a source" (* TODO: fixme *)
-      | [root] -> root
-      | _::_::_ -> failwith "html root has too many children" (* TODO: fixme *)
-    in
-    Some (Html (List.assoc ("","src") attrs, root))
   | _ -> None (* TODO: fixme *)
 
 let data_of_xml _ = None    

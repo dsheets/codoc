@@ -187,9 +187,10 @@ let link_resolved_reference_map ?text ~pathloc () =
 let link_resolved_reference ?text ~pathloc () =
   Reference_resolved.fold_any (link_resolved_reference_map ?text ~pathloc ()) ()
 
+(* TODO: output special unlinked ref *)
 let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Blueprint.t list =
   Reference.(function
-  | Root root -> [ link (txt ("[root:"^root^"]")) ] (* TODO: test wtf *)
+  | Root root -> [ link (txt root) ]
   | Dot (parent, name) ->
     begin match text with
       | None -> (link (txt name))::link_reference ~pathloc (any parent)
@@ -198,32 +199,10 @@ let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Blueprint.t list 
   | Resolved resolved -> link_resolved_reference ?text ~pathloc () resolved
   )
 
-class string_of_resolved_reference_map
-  : [unit, root, string, Reference.kind] Reference_resolved.any_fold =
-object (self)
-  inherit [unit, root, string] Reference_resolved.any_parent_fold
-
-  method identifier () ident = Maps.string_of_ident (Identifier.any ident)
-  method private parent () _reference parent name =
-    Reference_resolved.(fold_any self () (any parent))^"."^name
-end
-
-let string_of_resolved_reference_map = new string_of_resolved_reference_map
-
-let string_of_resolved_reference =
-  Reference_resolved.fold_any string_of_resolved_reference_map ()
-
-let rec string_of_reference : ('a,'b) Reference.t -> string =
-  Reference.(function
-  | Root root -> root
-  | Dot (parent, name) -> (string_of_reference (any parent))^"."^name
-  | Resolved resolved -> string_of_resolved_reference resolved
-  )
-
 let region ~pathloc id html =
-  let href = match CodocUnit.Href.of_ident pathloc id with
+  let href = match CodocUnit.Href.id_of_ident pathloc id with
     | None -> None
-    | Some href -> Some (BlueTree.of_string (Uri.to_string href))
+    | Some id -> Some (BlueTree.of_string ("#"^id))
   in
   let id = match CodocUnit.Href.id_of_ident pathloc id with
     | None -> None
@@ -854,39 +833,34 @@ let rec of_class_decl ~pathloc = Class.(BlueTree.(function
     ])
 ))
 
-let of_class ~pathloc { Class.id; doc; virtual_; params; type_ } =
-  let doc = maybe_doc ~pathloc doc in
+let class_declaration ~id ~pathloc name params decl doc virtual_ =
   let id = Identifier.any id in
-  let name = Identifier.name id in
-  let params = of_type_params params in
-  let decl = of_class_decl ~pathloc type_ in
   let tree = BlueTree.(of_kv [
-    "name", of_string name;
+    "name", name;
     "params", params;
     "decl", decl;
-    "doc", doc;
-  ]) in
-  let tree = 
-    if virtual_ then BlueTree.(add "virtual" (empty ()) tree) else tree
-  in
-  region ~pathloc id tree
-
-let of_class_type ~pathloc { ClassType.id; doc; virtual_; params; expr } =
-  let doc = maybe_doc ~pathloc doc in
-  let id = Identifier.any id in
-  let name = Identifier.name id in
-  let params = of_type_params params in
-  let expr = of_class_type_expr ~pathloc expr in
-  let tree = BlueTree.(of_kv [
-    "name", of_string name;
-    "params", params;
-    "expr", expr;
     "doc", doc;
   ]) in
   let tree =
     if virtual_ then BlueTree.(add "virtual" (empty ()) tree) else tree
   in
   region ~pathloc id tree
+
+let of_class ~pathloc { Class.id; doc; virtual_; params; type_ } =
+  let doc = maybe_doc ~pathloc doc in
+  let id = Identifier.any id in
+  let name = BlueTree.of_string (Identifier.name id) in
+  let params = of_type_params params in
+  let decl = of_class_decl ~pathloc type_ in
+  class_declaration ~id ~pathloc name params decl doc virtual_
+
+let of_class_type ~pathloc { ClassType.id; doc; virtual_; params; expr } =
+  let doc = maybe_doc ~pathloc doc in
+  let id = Identifier.any id in
+  let name = BlueTree.of_string (Identifier.name id) in
+  let params = of_type_params params in
+  let decl = of_class_type_expr ~pathloc expr in
+  class_declaration ~id ~pathloc name params decl doc virtual_
 
 let module_declaration ~id ~pathloc name decl doc =
   let id = Identifier.any id in
@@ -924,30 +898,50 @@ let of_alias ~pathloc path = BlueTree.(of_cons "alias" (of_kv [
   "path", of_list (link_path ~pathloc (Path.any path));
 ]))
 
+let is_module_type_substruct type_ = not (is_short_sig type_)
+
+let is_module_expr_substruct = function
+  | None -> false
+  | Some type_ -> is_module_type_substruct type_
+
+let is_module_substruct = Module.(function
+  | Alias _ -> false
+  | ModuleType type_ -> is_module_type_substruct type_
+)
+
 let rec of_module ~pathloc { Module.id; doc; type_ } =
   let decl =
     decl_of_decl ~pathloc (Identifier.signature_of_module id) type_
   in
   let id = Identifier.any id in
   let name = Identifier.name id in
+  let name = BlueTree.(
+    if is_module_substruct type_
+    then of_list (link_ident ~text:(txt name) ~pathloc () id)
+    else of_string name
+  ) in
   let doc = maybe_doc ~pathloc doc in
-  module_declaration ~id ~pathloc (BlueTree.of_string name) decl doc
+  module_declaration ~id ~pathloc name decl doc
 
-and decl_of_decl ~pathloc id = Module.(BlueTree.(function
+and decl_of_decl ?top ~pathloc id = Module.(BlueTree.(function
   | Alias path -> of_alias ~pathloc path
-  | ModuleType module_type -> of_cons "sig" (decl_of_sig ~pathloc id module_type)
+  | ModuleType module_type ->
+    of_cons "sig" (decl_of_sig ?top ~pathloc id module_type)
 ))
 
-and decl_of_sig ~pathloc id = ModuleType.(BlueTree.(function
+and decl_of_sig ?(top=false) ~pathloc id = ModuleType.(BlueTree.(function
   | Path path -> of_cons "path" (of_list (link_path ~pathloc (Path.any path)))
-  | Signature s -> of_cons "sig" (of_signature ~pathloc id s)
+  | Signature s -> of_kv_maybe [
+    "substruct", if top then None else Some (empty ());
+    "sig", Some (of_signature ~pathloc id s);
+  ]
   | Functor (None, expr) ->
     of_cons "functor" (of_kv [
-      "range", decl_of_sig ~pathloc id expr;
+      "range", decl_of_sig ~top ~pathloc id expr;
     ])
   | Functor (Some (arg_ident, arg_sig), expr) ->
-    let arg_decl = decl_of_sig ~pathloc id arg_sig in
-    let range = decl_of_sig ~pathloc id expr in
+    let arg_decl = decl_of_sig ~top ~pathloc id arg_sig in
+    let range = decl_of_sig ~top ~pathloc id expr in
     let arg = Identifier.name (Identifier.any arg_ident) in (* TODO: more? *)
     of_cons "functor" (of_kv [
       "arg", of_string arg;
@@ -955,10 +949,10 @@ and decl_of_sig ~pathloc id = ModuleType.(BlueTree.(function
       "range", range;
     ])
   | With (With (expr, subs), subs') ->
-    decl_of_sig ~pathloc id (With (expr, subs @ subs'))
+    decl_of_sig ~top ~pathloc id (With (expr, subs @ subs'))
   | With (expr, subs) ->
     let base = base_of_module_type_expr ~pathloc id expr in
-    let decl = decl_of_sig ~pathloc id expr in
+    let decl = decl_of_sig ~top ~pathloc id expr in
     let tree = of_kv [
       "lhs", decl;
       "subs", of_substitutions ~pathloc base [] subs;
@@ -969,7 +963,7 @@ and decl_of_sig ~pathloc id = ModuleType.(BlueTree.(function
     let path = Path.any path in
     of_cons "typeof" (of_cons "alias" (of_list (link_path ~pathloc path)))
   | TypeOf (Module.ModuleType module_type) ->
-    let decl = decl_of_sig ~pathloc id module_type in
+    let decl = decl_of_sig ~top ~pathloc id module_type in
     of_cons "typeof" (of_cons "type" decl)
 ))
 
@@ -1033,7 +1027,12 @@ and of_module_type ~pathloc { ModuleType.id; doc; expr } =
   ) in
   let id = Identifier.any id in
   let name = Identifier.name id in
-  module_declaration ~id ~pathloc (BlueTree.of_string name) decl doc
+  let name = BlueTree.(
+    if is_module_expr_substruct expr
+    then of_list (link_ident ~text:(txt name) ~pathloc () id)
+    else of_string name
+  ) in
+  module_declaration ~id ~pathloc name decl doc
 
 and of_signature_item ~pathloc id = Signature.(BlueTree.(function
   | Value val_ -> Some (of_cons "val" (of_value ~pathloc val_))
@@ -1048,7 +1047,7 @@ and of_signature_item ~pathloc id = Signature.(BlueTree.(function
   | ModuleType module_type ->
     Some (of_cons "module-type" (of_module_type ~pathloc module_type))
   | Include module_type_expr ->
-    Some (of_cons "include" (decl_of_sig ~pathloc id module_type_expr))
+    Some (of_cons "include" (decl_of_sig ~top:true ~pathloc id module_type_expr))
   | Comment (Documentation.Documentation doc) ->
     Some (of_cons "doc" (maybe_doc ~pathloc doc))
   | Comment Documentation.Stop -> None
@@ -1057,27 +1056,54 @@ and of_signature_item ~pathloc id = Signature.(BlueTree.(function
 and of_signature ~pathloc id signature =
   BlueTree.of_list (fold_doc_items (of_signature_item ~pathloc id) [] signature)
 
-let of_top_module ~pathloc { Module.id; doc; type_ } =
+let add_up ~pathloc tree = match CodocUnit.Href.up pathloc with
+  | Some up_href ->
+    let up_href = Uri.to_string up_href in
+    BlueTree.(add "up" (of_cons "href" (of_string up_href)) tree)
+  | None -> tree
+
+let of_top_module ~loc { Module.id; doc; type_ } =
+  let pathloc = loc in
   let doc = maybe_doc ~pathloc doc in
+  let top = true in
   let decl =
-    decl_of_decl ~pathloc (Identifier.signature_of_module id) type_
+    decl_of_decl ~top ~pathloc (Identifier.signature_of_module id) type_
   in
   let id = Identifier.any id in
   let name = link_ident ~pathloc () id in
   let tree = module_declaration ~id ~pathloc (BlueTree.of_list name) decl doc in
-  match CodocUnit.Href.up pathloc with
-  | Some up_href ->
-    let up_href = Uri.to_string up_href in
-    BlueTree.(root (add "up" (of_cons "href" (of_string up_href)) tree))
-  | None -> BlueTree.root tree
+  BlueTree.(root (add_up ~pathloc (of_cons "module" tree)))
 
-let of_unit ~pathloc = Unit.(function
-  | { id; doc; digest; imports; content = Module items } ->
-    (* TODO: more? *)
-    of_top_module ~pathloc Module.({
-      id; doc; type_ = ModuleType (ModuleType.Signature items);
-    })
-  | { id; doc; digest; imports; content = Pack _ } ->
-    (* TODO: support packs *)
-    BlueTree.empty ()
-)
+let of_top_moduletype ~loc = function
+  | { ModuleType.expr = None } -> BlueTree.empty () (* TODO: ??? *)
+  | { ModuleType.id; doc; expr = Some expr } ->
+    let pathloc = loc in
+    let doc = maybe_doc ~pathloc doc in
+    let top = true in
+    let decl =
+      decl_of_sig ~top ~pathloc (Identifier.signature_of_module_type id) expr
+    in
+    let id = Identifier.any id in
+    let name = link_ident ~pathloc () id in
+    let tree = module_declaration ~id ~pathloc (BlueTree.of_list name) decl doc in
+    BlueTree.(root (add_up ~pathloc (of_cons "module-type" tree)))
+
+let of_top_class ~loc { Class.id; doc; virtual_; params; type_ } =
+  let pathloc = loc in
+  let doc = maybe_doc ~pathloc doc in
+  let id = Identifier.any id in
+  let name = BlueTree.of_list (link_ident ~pathloc () id) in
+  let params = of_type_params params in
+  let decl = of_class_decl ~pathloc type_ in
+  let tree = class_declaration ~id ~pathloc name params decl doc virtual_ in
+  BlueTree.(root (add_up ~pathloc (of_cons "class" tree)))
+
+let of_top_classtype ~loc { ClassType.id; doc; virtual_; params; expr } =
+  let pathloc = loc in
+  let doc = maybe_doc ~pathloc doc in
+  let id = Identifier.any id in
+  let name = BlueTree.of_list (link_ident ~pathloc () id) in
+  let params = of_type_params params in
+  let decl = of_class_type_expr ~pathloc expr in
+  let tree = class_declaration ~id ~pathloc name params decl doc virtual_ in
+  BlueTree.(root (add_up ~pathloc (of_cons "class-type" tree)))

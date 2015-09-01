@@ -34,7 +34,6 @@ type root =
 (* TODO: use signature identifier when doc-ock-xml supports it *)
 | Proj of (*root DocOckPaths.Identifier.signature*) string * root
 | Xml of path * root
-| Html of path * root
 
 module Root : sig
   include CodocDocMaps.ROOT with type t = root

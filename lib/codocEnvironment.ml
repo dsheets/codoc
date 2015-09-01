@@ -77,8 +77,8 @@ let index env path name root unit =
 
 let rec index_units env index = CodocIndex.(
   fold_down_units
-    ~unit_f:(fun env index { mod_name; xml_file } ->
-      Hashtbl.replace env.root_by_name mod_name
+    ~unit_f:(fun env index { name; xml_file } ->
+      Hashtbl.replace env.root_by_name name
         (Lazy.from_fun (fun () ->
           let dir = Filename.dirname index.path in
           let path_root = index.root / dir in
@@ -109,8 +109,6 @@ let relativize_root env from_path root =
   let rec relativize = function
     | Xml (path, parent) ->
       Xml (rel_of_path (depth from_path) to_path / path, relativize parent)
-    | Html (path, parent) ->
-      Html (rel_of_path (depth from_path) to_path / path, relativize parent)
     | Cmti cmti -> Cmti cmti
     | Resolved ({ resolution_root }, parent) ->
       let path = rel_of_path (depth from_path) to_path in

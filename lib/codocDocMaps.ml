@@ -389,8 +389,8 @@ module Fragment_resolved = struct
     inherit ['acc,'a,'b,'c,'d] any_fold
   end
 
-  class virtual ['acc,'a,'b,'c,'d] any_parent_fold = object (self : 'self)
-    constraint 'self = ('acc,'a,'b,'c,'d) #any_fold
+  class virtual ['acc,'a,'b,'kind,'sort] any_parent_fold = object (self : 'self)
+    constraint 'self = ('acc,'a,'b,'kind,'sort) #any_fold
 
     method private virtual parent :
         'acc -> 'a any -> 'a signature -> string -> 'b

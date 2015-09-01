@@ -60,27 +60,36 @@ let extract ~force ~index cmti out_dir rel_xml =
         (* TODO: fixme *)
         failwith "unimplemented: Not_an_implementation"
       | Ok unit ->
-        let _root, mod_name = CodocUtil.root_of_unit unit in
+        let _root, name = CodocUtil.root_of_unit unit in
         let oc = open_out xml in
         let xml_out = Xmlm.make_output (`Channel oc) in
         DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
           (fun () signal -> Xmlm.output xml_out signal) () unit;
         close_out oc;
         let open CodocIndex in
-        let unit = {
-          mod_name; xml_file = rel_xml; html_file = None;
-          issues = [];
-        } in
-        if not index then `Ok unit
-        else
-          (* TODO: Use index caching? *)
-          (* Creating *or* updating index so no need to check for force *)
-          (* TODO: FIXME this can raise *)
-          let index = read out_dir CodocConfig.rel_index_xml in
-          let units = StringMap.add mod_name unit index.units in
-          let index = { index with units } in
-          write index;
-          `Ok unit
+        let empty_sub = { CodocIndex.html_file = None; issues = [] } in
+        match CodocUnit.Substruct.(map_of_unit {
+          map_class = (fun _ _ -> empty_sub);
+          map_classtype = (fun _ _ -> empty_sub);
+          map_module = (fun _ _ -> empty_sub);
+          map_moduletype = (fun _ _ -> empty_sub);
+        } unit) with
+        | None -> failwith "packs not yet supported" (* TODO: support packs *)
+        | Some substructs ->
+          let substructs = CodocUnit.Substruct.to_name substructs in
+          let unit = {
+            name; xml_file = rel_xml; unit_issues = []; substructs;
+          } in
+          if not index then `Ok unit
+          else
+            (* TODO: Use index caching? *)
+            (* Creating *or* updating index so no need to check for force *)
+            (* TODO: FIXME this can raise *)
+            let index = read out_dir CodocConfig.rel_index_xml in
+            let units = StringMap.add name unit index.units in
+            let index = { index with units } in
+            write index;
+            `Ok unit
 
 let extract_package ~force ~index in_dir rel_cmti out_dir package =
   let rel_dir = Dir.name rel_cmti in
@@ -127,7 +136,7 @@ let run_dir ~force ~index in_dir out_dir package =
             traverse ~rel_index out_dir package
           in
           let units = List.fold_left (fun map unit ->
-            StringMap.add unit.mod_name unit map
+            StringMap.add unit.name unit map
           ) pkg_index.units units in
           let pkg_index = { pkg_index with units } in
           write pkg_index;

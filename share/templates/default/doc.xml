@@ -10,12 +10,12 @@
       </div>
     </t:if>
     <t:if exists=".error">
-      <t:let name="doc.error.message">
-        <t:insert name="doc.div.error.location"><t:seq/></t:insert>
-        <t:insert name="doc.div.error.offset"/> :
+      <t:let name="doc.div-error.message">
+        <t:insert name="doc.div.error.location"><t:seq/></t:insert><br/>
+        <t:insert name="doc.div.error.offset"/> :<br/>
         <t:insert name="doc.div.error.message"/>
       </t:let>
-      <t:insert name="doc.error"/>
+      <t:insert name="doc.div-error"/>
     </t:if>
   </t:let>
 
@@ -279,17 +279,24 @@
       <t:insert name="doc.mktext" with="doc.mktag.version"><t:seq/></t:insert>
       <t:if exists="doc.mktag.see-url">
         <t:let name="link.anchor"
-               ><t:insert name="doc.mktext" with="doc.mktag.see-url"/></t:let>
+               ><t:if exists="doc.mktag.see-url.head"
+                      ><t:insert name="doc.mktext" with="doc.mktag.see-url"
+                      /></t:if>
+        <t:else><t:insert name="doc.mktag.href"/></t:else></t:let>
         <t:let name="link.href"><t:insert name="doc.mktag.href"/></t:let>
         <t:insert name="nav.link" with="link"/>
       </t:if>
       <t:if exists="doc.mktag.see-file">
-        FILE [<t:insert name="doc.mktag.file"/>] <t:insert
-        name="doc.mktext" with="doc.mktag.see-file"/>
+        FILE [<t:insert name="doc.mktag.file"/>]
+        <t:if exists="doc.mktag.see-file.head"
+              ><t:insert name="doc.mktext" with="doc.mktag.see-file"
+              /></t:if>
       </t:if>
       <t:if exists="doc.mktag.see-doc">
-        DOC [<t:insert name="doc.mktag.doc"/>] <t:insert
-        name="doc.mktext" with="doc.mktag.see-doc"/>
+        DOC [<t:insert name="doc.mktag.doc"/>]
+        <t:if exists="doc.mktag.see-doc.head"
+              ><t:insert name="doc.mktext" with="doc.mktag.see-doc"
+              /></t:if>
       </t:if>
       <t:insert name="doc.mktext"
                 with="doc.mktag.since"><t:seq/></t:insert>
@@ -301,14 +308,17 @@
                 with="doc.mktag.deprecated"><t:seq/></t:insert>
       <t:if exists="doc.mktag.param">
         [<t:insert name="doc.mktag.name"/>]
-        <t:insert name="doc.mktext" with="doc.mktag.param"/>
+        <t:if exists="doc.mktag.param.head">
+          <t:insert name="doc.mktext" with="doc.mktag.param"/>
+        </t:if>
       </t:if>
       <t:if exists="doc.mktag.raises">
         [<t:insert name="doc.mktag.name"/>]
         <t:insert name="doc.mktext" with="doc.mktag.raises"/>
       </t:if>
-      <t:insert name="doc.mktext"
-                with="doc.mktag.return"><t:seq/></t:insert>
+      <t:if exists="doc.mktag.return.head">
+        <t:insert name="doc.mktext" with="doc.mktag.return"/>
+      </t:if>
       <t:if exists="doc.mktag.custom">
         [<t:insert name="doc.mktext"
         with="doc.mktag.custom"><t:seq/></t:insert>]
@@ -326,4 +336,6 @@
 
   <t:let name=".error"
          ><span class="error">ERROR: <t:insert name=".message"/></span></t:let>
+  <t:let name=".div-error"
+         ><div class="error">ERROR: <t:insert name=".message"/></div></t:let>
 </t:let>

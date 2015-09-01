@@ -15,6 +15,8 @@
  *
  *)
 
+let index_ns = "https://opam.ocaml.org/packages/codoc/xmlns/doc-index/0/#"
+
 exception ParseError of string * Xmlm.pos option * Xmlm.pos * string
 
 let doc_parser = DocOckXmlParse.build (fun input ->
@@ -35,3 +37,18 @@ let doc_printer output acc root =
       output acc `El_end
   in
   fold acc (List.hd (CodocDoc.xml_of_root root))
+
+let string_of_pos (line,col) =
+  Printf.sprintf "line %d, col %d" line col
+
+let rec must_end xml = match Xmlm.input xml with
+  | `El_end -> ()
+  | `Data _ -> must_end xml (* TODO: ? *)
+  | _ -> (* TODO: fixme *)
+    failwith (Printf.sprintf "expected end: %s" (string_of_pos (Xmlm.pos xml)))
+
+let eat xml = ignore (Xmlm.input xml)
+
+let just_data xml = match Xmlm.peek xml with
+  | `Data data -> eat xml; data
+  | _ -> (* TODO: fixme *) failwith "expected data"
