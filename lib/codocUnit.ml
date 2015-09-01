@@ -417,7 +417,8 @@ module Href = struct
       let up, out = subtract frag self in
       match out.root with
       | None -> begin match out.path, out.frag with
-        | [], [] when List.length self.path > 0 -> (* we have a parent! *)
+        | [], [] when up = 0 && List.length self.path > 0 ->
+          (* we have a parent! *)
           Some (uri_of_diff loc 1 [] List.[hd (rev self.path)] Uri.empty)
         | path, frag ->
           Some (uri_of_diff loc up path frag Uri.empty)
