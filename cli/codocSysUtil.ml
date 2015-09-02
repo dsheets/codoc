@@ -77,19 +77,21 @@ module Dir = struct
       `Error (false, "path "^path^" is not a directory")
   end
 
-  let rec make_exist ~perm path =
-    try Unix.access path []; None
-    with
-    | Unix.Unix_error (Unix.ENOENT, _, _) ->
-      let dir = Filename.dirname path in
-      begin match make_exist ~perm dir with
-      | None ->
-        Unix.(mkdir path perm);
-        None
-      | Some err -> Some err
-      end
-    | Unix.Unix_error (Unix.ENOTDIR, _, _) ->
-      Some (Error.nondirectory_segment path)
+  let rec make_exist ~perm = function
+    | "" -> None
+    | path ->
+      try Unix.access path []; None
+      with
+      | Unix.Unix_error (Unix.ENOENT, _, _) ->
+        let dir = Filename.dirname path in
+        begin match make_exist ~perm dir with
+          | None ->
+            Unix.(mkdir path perm);
+            None
+          | Some err -> Some err
+        end
+      | Unix.Unix_error (Unix.ENOTDIR, _, _) ->
+        Some (Error.nondirectory_segment path)
 
   let make_dirs_exist ~perm =
     List.fold_left (fun err_opt path ->
