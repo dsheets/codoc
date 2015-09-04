@@ -39,8 +39,7 @@ let extract ~force ~index cmti out_dir rel_xml =
     let dirs = (Dir.name xml)::(
       if index then [out_dir / CodocConfig.rel_index_xml] else []
     ) in
-    (* here, we rely on umask to set the perms correctly *)
-    match Dir.make_dirs_exist ~perm:0o777 dirs with
+    match Dir.make_dirs_exist ~perm:0o755 dirs with
     | Some err -> err
     | None ->
       let rel_cmti = cmti_path cmti xml in

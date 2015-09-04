@@ -45,8 +45,7 @@ let link_file ~force ~index in_file out_file package =
       then Error.use_force out_file
       else begin
         let out_dir = Filename.dirname out_file in
-        (* here, we rely on umask to set the perms correctly *)
-        match Dir.make_exist ~perm:0o777 out_dir with
+        match Dir.make_exist ~perm:0o755 out_dir with
         | Some err -> err
         | None ->
           (* TODO: rewrite root *)
@@ -66,8 +65,7 @@ let check_create_safe ~force index out_dir = CodocIndex.(
       if not force && Sys.file_exists path
       then (Error.use_force path)::errs
       else
-        (* here, we rely on umask to set the perms correctly *)
-        match Dir.make_exist ~perm:0o777 (Filename.dirname path) with
+        match Dir.make_exist ~perm:0o755 (Filename.dirname path) with
         | Some err -> err::errs
         | None -> errs
     )
