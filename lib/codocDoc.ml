@@ -177,3 +177,39 @@ let paragraphize txt =
     | Block acc, [] -> List.rev (Block (List.rev acc)::paras)
   ) in
   collect [] (Para []) txt
+
+let first_sentence_of_string s =
+  let len = String.length s in
+  let rec f i = function
+    | '.' -> let i = i + 1 in if i < len then g i s.[i] else None
+    | _   -> let i = i + 1 in if i < len then f i s.[i] else None
+  and g i = function
+    | ' ' -> Some (String.sub s 0 i)
+    | c -> f i c
+  in
+  if 0 < len then f 0 s.[0] else None
+
+let rec first_sentence_of_text acc els = DocOckTypes.Documentation.(
+  match els with
+  | [] -> false, List.rev acc
+  | (Raw s as el)::rest -> begin match first_sentence_of_string s with
+    | None -> first_sentence_of_text (el::acc) rest
+    | Some s -> true, List.rev ((Raw s)::acc)
+  end
+  | (Reference (Link _ as link, Some t) as el)::rest ->
+    let found, t = first_sentence_of_text [] t in
+    if found
+    then found, List.rev (Reference (link, Some t)::acc)
+    else first_sentence_of_text (el::acc) rest
+  | (Style (style, t) as el)::rest ->
+    let found, t = first_sentence_of_text [] t in
+    if found
+    then found, List.rev (Style (style, t)::acc)
+    else first_sentence_of_text (el::acc) rest
+  | (Newline | Title _ | Special _ | List _
+    | Enum _ | PreCode _ | Verbatim _)::_ ->
+    true, List.rev acc
+  | (Code _ | Target _ | Reference (_, _) as el)::rest ->
+    first_sentence_of_text (el::acc) rest
+)
+let first_sentence_of_text text = snd (first_sentence_of_text [] text)

@@ -52,9 +52,13 @@ module Substruct : sig
 
   val map : ('a, 'b) map -> 'a t -> 'b t
 
+  val apply : ('a, 'b) map -> 'a t -> 'b
+
   val fold : (('a * 'b), 'a) map -> 'a -> 'b t -> 'a
 
   val compose : ('a, 'b) map -> ('b, 'c) map -> ('a, 'c) map
+
+  val product : ('a, 'b) map -> ('a, 'c) map -> ('a, ('b * 'c)) map
 
   val homo_map : ('a -> 'b) -> ('a, 'b) map
 

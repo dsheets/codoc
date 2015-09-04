@@ -58,3 +58,5 @@ val root_of_xml : Xmlm.tag -> root option list -> root option
 val data_of_xml : string -> root option
 
 val paragraphize : text -> t list
+
+val first_sentence_of_text : text -> text

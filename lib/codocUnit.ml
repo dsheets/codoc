@@ -169,6 +169,12 @@ module Substruct = struct
     | ModuleType (m,l,a) ->
       ModuleType (m, List.map (map f) l, f.map_moduletype a m)
 
+  let apply f = function
+    | Class (c,a) -> f.map_class a c
+    | ClassType (c,a) -> f.map_classtype a c
+    | Module (m,_,a) -> f.map_module a m
+    | ModuleType (m,_,a) -> f.map_moduletype a m
+
   let rec fold f acc = function
     | Class (c,a) -> f.map_class (acc,a) c
     | ClassType (c,a) -> f.map_classtype (acc,a) c
@@ -181,6 +187,13 @@ module Substruct = struct
     map_classtype = (fun x c -> b.map_classtype (a.map_classtype x c) c);
     map_module = (fun x m -> b.map_module (a.map_module x m) m);
     map_moduletype = (fun x m -> b.map_moduletype (a.map_moduletype x m) m);
+  }
+
+  let product a b = {
+    map_class = (fun x c -> a.map_class x c, b.map_class x c);
+    map_classtype = (fun x c -> a.map_classtype x c, b.map_classtype x c);
+    map_module = (fun x c -> a.map_module x c, b.map_module x c);
+    map_moduletype = (fun x c -> a.map_moduletype x c, b.map_moduletype x c);
   }
 
   let homo_map f =
@@ -238,7 +251,8 @@ module Substruct = struct
     | Module (m,l,a) ->
       ModuleName (module_name m, List.map to_name l, a)
     | ModuleType (m,l,a) ->
-      ModuleTypeName (moduletype_name m, List.map to_name l, a)
+      let name = moduletype_name m in
+      ModuleTypeName (name, List.map to_name l, a)
 
   let string_of_name = function
     | ClassName (name,_) -> name

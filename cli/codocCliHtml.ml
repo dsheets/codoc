@@ -56,6 +56,10 @@ let write_substruct ~css ~title html html_file =
   let html = Blueprint.Scope.overlay html template in
   write_html ~css ~title html_file html "interface"
 
+let update_css id css = CodocUnit.Href.ascent_of_ident id ^ css
+
+let issues_of_doc_errors = List.map (fun x -> CodocIndex.Doc_error x)
+
 let resolve_html unit_file issues f = function
   | None -> failwith "invariant violation resolve_html" (* TODO: ? *)
   | Some html_uri ->
@@ -64,77 +68,57 @@ let resolve_html unit_file issues f = function
     let issues = (f out_file)@issues in
     CodocIndex.({ html_file = Some (Uri.to_string html_uri); issues; })
 
-let update_css id css = CodocUnit.Href.ascent_of_ident id ^ css
-
-let issues_of_doc_errors = List.map (fun x -> CodocIndex.Doc_error x)
-
-let render_class scheme unit_file pkg_root css uri_opt c =
+let render_class scheme unit_file pkg_root css (uri_opt,html) c =
   let open DocOckTypes in
   let open DocOckPaths in
-  let sub = CodocUnit.Substruct.Class (c,()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
-  | None -> failwith "invariant violation render_class/loc" (* TODO: ? *)
-  | Some loc ->
-    let id = c.Class.id in
-    let html = CodocDocHtml.of_top_class loc c in
-    let doc_errors = CodocAnalysis.of_class c in
-    let issues = issues_of_doc_errors doc_errors in
-    let title = Identifier.name id in
-    let css = update_css (Identifier.any id) css in
-    resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
+  let id = c.Class.id in
+  let doc_errors = CodocAnalysis.of_class c in
+  let issues = issues_of_doc_errors doc_errors in
+  let title = Identifier.name id in
+  let css = update_css (Identifier.any id) css in
+  resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
-let render_classtype scheme unit_file pkg_root css uri_opt c =
+let render_classtype scheme unit_file pkg_root css (uri_opt,html) c =
   let open DocOckTypes in
   let open DocOckPaths in
-  let sub = CodocUnit.Substruct.ClassType (c,()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
-  | None -> failwith "invariant violation render_classtype/loc" (* TODO: ? *)
-  | Some loc ->
-    let id = c.ClassType.id in
-    let html = CodocDocHtml.of_top_classtype loc c in
-    let doc_errors = CodocAnalysis.of_classtype c in
-    let issues = issues_of_doc_errors doc_errors in
-    let title = Identifier.name id in
-    let css = update_css (Identifier.any id) css in
-    resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
+  let id = c.ClassType.id in
+  let doc_errors = CodocAnalysis.of_classtype c in
+  let issues = issues_of_doc_errors doc_errors in
+  let title = Identifier.name id in
+  let css = update_css (Identifier.any id) css in
+  resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
-let render_module scheme unit_file pkg_root css uri_opt m =
+let render_module scheme unit_file pkg_root css (uri_opt,html) m =
   let open DocOckTypes in
   let open DocOckPaths in
-  let sub = CodocUnit.Substruct.Module (m,[],()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
-  | None -> failwith "invariant violation render_module/loc" (* TODO: ? *)
-  | Some loc ->
-    let id = m.Module.id in
-    let html = CodocDocHtml.of_top_module loc m in
-    let doc_errors = CodocAnalysis.of_module m in
-    let issues = issues_of_doc_errors doc_errors in
-    let title = Identifier.name id in
-    let css = update_css (Identifier.any id) css in
-    resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
+  let id = m.Module.id in
+  let doc_errors = CodocAnalysis.of_module m in
+  let issues = issues_of_doc_errors doc_errors in
+  let title = Identifier.name id in
+  let css = update_css (Identifier.any id) css in
+  resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
-let render_moduletype scheme unit_file pkg_root css uri_opt m =
+let render_moduletype scheme unit_file pkg_root css (uri_opt,html) m =
   let open DocOckTypes in
   let open DocOckPaths in
-  let sub = CodocUnit.Substruct.ModuleType (m,[],()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
-  | None -> failwith "invariant violation render_moduletype/loc" (* TODO: ? *)
-  | Some loc ->
-    let id = m.ModuleType.id in
-    let html = CodocDocHtml.of_top_moduletype loc m in
-    let doc_errors = CodocAnalysis.of_moduletype m in
-    let issues = issues_of_doc_errors doc_errors in
-    let title = Identifier.name id in
-    let css = update_css (Identifier.any id) css in
-    resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
+  let id = m.ModuleType.id in
+  let doc_errors = CodocAnalysis.of_moduletype m in
+  let issues = issues_of_doc_errors doc_errors in
+  let title = Identifier.name id in
+  let css = update_css (Identifier.any id) css in
+  resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
-let render_substruct scheme unit_file pkg_root css =
-  CodocUnit.Substruct.({
-    map_class = render_class scheme unit_file pkg_root css;
-    map_classtype = render_classtype scheme unit_file pkg_root css;
-    map_module = render_module scheme unit_file pkg_root css;
-    map_moduletype = render_moduletype scheme unit_file pkg_root css;
-  })
+let render_substruct scheme unit_file pkg_root css = CodocUnit.Substruct.(
+  let html_map = CodocUnitHtml.of_substruct_map scheme pkg_root in
+  compose
+    (product (homo_map (fun x -> x)) html_map)
+    {
+      map_class = render_class scheme unit_file pkg_root css;
+      map_classtype = render_classtype scheme unit_file pkg_root css;
+      map_module = render_module scheme unit_file pkg_root css;
+      map_moduletype = render_moduletype scheme unit_file pkg_root css;
+    }
+)
 
 let render_substructs scheme unit_file pkg_root css sub =
   CodocUnit.Substruct.map (render_substruct scheme unit_file pkg_root css) sub
@@ -207,10 +191,10 @@ let render_interface_ok ~force in_file out_file scheme css =
     print_substructs_issues subs;
     `Ok ()
 
-let render_index name index out_file scheme css =
-  let normal_uri = CodocUnit.Href.normal_uri_for_scheme scheme in
-  let uri_of_path = CodocUnit.Href.uri_of_path ~scheme in
-  let html = CodocIndexHtml.of_package ~name ~index ~normal_uri ~uri_of_path in
+let render_index name index substructs out_file scheme css =
+  let html =
+    CodocIndexHtml.of_package ~name ~index ~substructs ~scheme
+  in
   let html = Blueprint.Tree.of_cons "data" html in
   let html = Blueprint.Scope.overlay html (Lazy.force index_template) in
   (* TODO: fixme title *)
@@ -262,6 +246,7 @@ let render_dir ~force ~index in_index out_dir scheme css =
   | `Error errs -> CodocCli.combine_errors errs
   | `Ok subs ->
     let open CodocIndex in
+    let subcache = Hashtbl.create 10 in
     let unit_f idxs idx gunit =
       let path = match Filename.dirname idx.path with "." -> "" | p -> p in
       let html_file = html_name_of gunit.xml_file in
@@ -271,6 +256,7 @@ let render_dir ~force ~index in_index out_dir scheme css =
       let html_root = out_dir / html_path in
       let subs = StringMap.find html_root subs in (* TODO: shouldn't exn... *)
       let substructs = render_substructs scheme html_root pkg_root css subs in
+      Hashtbl.add subcache (out_dir / idx.path) substructs;
       if index
       then
         let out_index = read_cache { idx with root = out_dir } idx.path in
@@ -284,6 +270,7 @@ let render_dir ~force ~index in_index out_dir scheme css =
     (* TODO: errors? XML errors? *)
     let idxs = fold_down ~unit_f ~pkg_f [] idx in
     List.iter (fun idx ->
+      let subs = Hashtbl.find_all subcache (out_dir / idx.path) in
       let idx = read_cache { idx with root = out_dir } idx.path in
       let html_file = html_name_of idx.path in
       let path = out_dir / html_file in
@@ -292,7 +279,7 @@ let render_dir ~force ~index in_index out_dir scheme css =
         | dir -> dir
       in
       let css = CodocUtil.(ascent_of_depth css (depth idx.path)) in
-      let `Ok () = render_index name idx path scheme css in
+      let `Ok () = render_index name idx subs path scheme css in
       ()
     ) idxs;
     flush_cache idx;
@@ -342,7 +329,7 @@ let render_file ~force in_file out_file scheme css share =
         let root = Filename.dirname in_file in
         let path = Filename.basename in_file in
         let index = CodocIndex.read root path in
-        let render_f = render_index "" index out_file scheme in
+        let render_f = render_index "" index [] out_file scheme in
         render_with_css ~force share css_dir render_f css
 
 let run ({ CodocCli.Common.force; index }) output path scheme css share =

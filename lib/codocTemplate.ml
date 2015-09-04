@@ -25,6 +25,7 @@ let global = [
 ]
 
 let index : t = global @ [
+  "doc.xml";
   "index.xml";
 ]
 

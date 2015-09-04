@@ -222,7 +222,7 @@ let rec of_text_element ~pathloc txt_ =
   let of_text_elements = of_text_elements ~pathloc in
   Reference.(Documentation.(BlueTree.(match txt_ with
   | Raw s -> of_cons_string "raw" s
-  | Code "" -> empty () (* TODO: warn this isn't the empty list literal *)
+  | Code "" -> of_cons_string "raw" "[]"
   | Code s -> of_cons_string "code" s
   | PreCode s -> of_cons_string "precode" s
   | Verbatim s -> of_cons_string "verbatim" s
@@ -471,6 +471,10 @@ let maybe_doc ~pathloc = Documentation.(BlueTree.(function
     | [], [] -> empty ()
     | text, tags ->
       of_kv [
+        "descr", of_lazy_tree (fun () ->
+          let text = first_sentence_of_text text in
+          of_list (of_text_elements ~pathloc text)
+        );
         "text", paragraphs_of_text ~pathloc text;
         "tags", of_list (List.map (map_tag ~pathloc) tags);
       ]
@@ -805,22 +809,24 @@ let rec of_class_signature_item ~pathloc = ClassSignature.(BlueTree.(function
     Some (of_cons "doc" (maybe_doc ~pathloc doc))
   | Comment Documentation.Stop -> None
 ))
-and of_class_type_expr ~pathloc = ClassType.(BlueTree.(function
-  | Constr (path, []) -> of_cons "constr" (of_kv [
-    "name", of_list (link_path ~pathloc (Path.any path));
-  ])
-  | Constr (path, args) -> of_cons "constr" (of_kv [
-    "name", of_list (link_path ~pathloc (Path.any path));
-    "args", of_list (List.map (of_type_expr ~pathloc) args);
-  ])
-  | Signature { ClassSignature.self; items } -> of_cons "sig" (of_kv_maybe [
-    "self", (match self with
-      | None -> None
-      | Some expr -> Some (of_type_expr ~pathloc expr)
-    );
-    "items",
+and of_class_type_expr ~pathloc = ClassType.(BlueTree.(fun expr ->
+  of_lazy_tree (fun () -> match expr with
+    | Constr (path, []) -> of_cons "constr" (of_kv [
+      "name", of_list (link_path ~pathloc (Path.any path));
+    ])
+    | Constr (path, args) -> of_cons "constr" (of_kv [
+      "name", of_list (link_path ~pathloc (Path.any path));
+      "args", of_list (List.map (of_type_expr ~pathloc) args);
+    ])
+    | Signature { ClassSignature.self; items } -> of_cons "sig" (of_kv_maybe [
+      "self", (match self with
+        | None -> None
+        | Some expr -> Some (of_type_expr ~pathloc expr)
+      );
+      "items",
     Some (of_list (fold_doc_items (of_class_signature_item ~pathloc) [] items));
-  ])
+    ])
+  )
 ))
 
 let rec of_class_decl ~pathloc = Class.(BlueTree.(function
@@ -929,42 +935,44 @@ and decl_of_decl ?top ~pathloc id = Module.(BlueTree.(function
     of_cons "sig" (decl_of_sig ?top ~pathloc id module_type)
 ))
 
-and decl_of_sig ?(top=false) ~pathloc id = ModuleType.(BlueTree.(function
-  | Path path -> of_cons "path" (of_list (link_path ~pathloc (Path.any path)))
-  | Signature s -> of_kv_maybe [
-    "substruct", if top then None else Some (empty ());
-    "sig", Some (of_signature ~pathloc id s);
-  ]
-  | Functor (None, expr) ->
-    of_cons "functor" (of_kv [
-      "range", decl_of_sig ~top ~pathloc id expr;
-    ])
-  | Functor (Some (arg_ident, arg_sig), expr) ->
-    let arg_decl = decl_of_sig ~top ~pathloc id arg_sig in
-    let range = decl_of_sig ~top ~pathloc id expr in
-    let arg = Identifier.name (Identifier.any arg_ident) in (* TODO: more? *)
-    of_cons "functor" (of_kv [
-      "arg", of_string arg;
-      "arg-type", arg_decl;
-      "range", range;
-    ])
-  | With (With (expr, subs), subs') ->
-    decl_of_sig ~top ~pathloc id (With (expr, subs @ subs'))
-  | With (expr, subs) ->
-    let base = base_of_module_type_expr ~pathloc id expr in
-    let decl = decl_of_sig ~top ~pathloc id expr in
-    let tree = of_kv [
-      "lhs", decl;
-      "subs", of_substitutions ~pathloc base [] subs;
-    ] in
-    let tree = if is_short_sig expr then add "short" (empty ()) tree else tree in
-    of_cons "with" tree
-  | TypeOf (Module.Alias path) ->
-    let path = Path.any path in
-    of_cons "typeof" (of_cons "alias" (of_list (link_path ~pathloc path)))
-  | TypeOf (Module.ModuleType module_type) ->
-    let decl = decl_of_sig ~top ~pathloc id module_type in
-    of_cons "typeof" (of_cons "type" decl)
+and decl_of_sig ?(top=false) ~pathloc id = ModuleType.(BlueTree.(fun sig_ ->
+  of_lazy_tree (fun () -> match sig_ with
+    | Path path -> of_cons "path" (of_list (link_path ~pathloc (Path.any path)))
+    | Signature s -> of_kv_maybe [
+      "substruct", if top then None else Some (empty ());
+      "sig", Some (of_signature ~pathloc id s);
+    ]
+    | Functor (None, expr) ->
+      of_cons "functor" (of_kv [
+        "range", decl_of_sig ~top ~pathloc id expr;
+      ])
+    | Functor (Some (arg_ident, arg_sig), expr) ->
+      let arg_decl = decl_of_sig ~top ~pathloc id arg_sig in
+      let range = decl_of_sig ~top ~pathloc id expr in
+      let arg = Identifier.name (Identifier.any arg_ident) in (* TODO: more? *)
+      of_cons "functor" (of_kv [
+        "arg", of_string arg;
+        "arg-type", arg_decl;
+        "range", range;
+      ])
+    | With (With (expr, subs), subs') ->
+      decl_of_sig ~top ~pathloc id (With (expr, subs @ subs'))
+    | With (expr, subs) ->
+      let base = base_of_module_type_expr ~pathloc id expr in
+      let decl = decl_of_sig ~top ~pathloc id expr in
+      let tree = of_kv [
+        "lhs", decl;
+        "subs", of_substitutions ~pathloc base [] subs;
+      ] in
+      let tree = if is_short_sig expr then add "short" (empty ()) tree else tree in
+      of_cons "with" tree
+    | TypeOf (Module.Alias path) ->
+      let path = Path.any path in
+      of_cons "typeof" (of_cons "alias" (of_list (link_path ~pathloc path)))
+    | TypeOf (Module.ModuleType module_type) ->
+      let decl = decl_of_sig ~top ~pathloc id module_type in
+      of_cons "typeof" (of_cons "type" decl)
+  )
 ))
 
 and of_substitutions ~pathloc base acc = ModuleType.(BlueTree.(function

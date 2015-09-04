@@ -89,10 +89,26 @@ let sort_names = List.sort CodocUnit.Substruct.(fun a b ->
 let substruct_type typ =
   BlueTree.([ typ, Some (empty ()); "type", Some (of_string typ) ])
 
-let rec of_substruct ~uri_of_path ~normal_uri base name =
+let find_sub subl name =
+  try Some (List.find (fun sub ->
+    CodocUnit.Substruct.to_name sub = name
+  ) subl)
+  with Not_found -> None
+
+let children = CodocUnit.Substruct.(function
+  | None | Some (Class _ | ClassType _) -> []
+  | Some (Module (_,cs,_)) -> cs
+  | Some (ModuleType (_,cs,_)) -> cs
+)
+
+let rec of_substruct ~uri_of_path ~normal_uri scheme base substruct name =
   let open BlueTree in
   let name, typ, children, sub =
-    destruct_name ~uri_of_path ~normal_uri base name
+    destruct_name ~uri_of_path ~normal_uri scheme base substruct name
+  in
+  let substruct = match substruct with
+    | None -> None
+    | Some sub -> Some (CodocUnitHtml.of_substruct scheme None sub)
   in
   of_kv_maybe (typ@[
     "name", Some (of_string name);
@@ -106,26 +122,36 @@ let rec of_substruct ~uri_of_path ~normal_uri base name =
         Some (of_string (Uri.to_string (normal_uri (uri_of_path path))))
       | None -> None);
     "children", Some (of_list children);
+    "interface", substruct;
   ])
-and destruct_name ~uri_of_path ~normal_uri base =
+and destruct_name ~uri_of_path ~normal_uri scheme base substruct =
   CodocUnit.Substruct.(BlueTree.(function
     | ClassName (name, sub) -> name, substruct_type "class", [], sub
-    | ClassTypeName (name, sub) -> name, substruct_type "classtype", [], sub
-    | ModuleName (name, children, sub) ->
-      let recurse = of_substruct ~uri_of_path ~normal_uri base in
+    | ClassTypeName (name, sub) ->
+      name, substruct_type "classtype", [], sub
+    | ModuleName (name, cs, sub) ->
+      let recurse name =
+        let sub = find_sub (children substruct) name in
+        of_substruct ~uri_of_path ~normal_uri scheme base sub name
+      in
       name,
       substruct_type "module",
-      List.map recurse (sort_names children),
+      List.map recurse (sort_names cs),
       sub
-    | ModuleTypeName (name, children, sub) ->
-      let recurse = of_substruct ~uri_of_path ~normal_uri base in
+    | ModuleTypeName (name, cs, sub) ->
+      let recurse name =
+        let sub = find_sub (children substruct) name in
+        of_substruct ~uri_of_path ~normal_uri scheme base sub name
+      in
       name,
       substruct_type "moduletype",
-      List.map recurse (sort_names children),
+      List.map recurse (sort_names cs),
       sub
   ))
 
-let of_package ~name ~index ~normal_uri ~uri_of_path =
+let of_package ~name ~index ~substructs ~scheme =
+  let normal_uri = CodocUnit.Href.normal_uri_for_scheme scheme in
+  let uri_of_path = CodocUnit.Href.uri_of_path ~scheme in
   let up =
     if name = ""
     then None
@@ -158,12 +184,15 @@ let of_package ~name ~index ~normal_uri ~uri_of_path =
     index.CodocIndex.units []
   in
   let units = List.map BlueTree.(CodocIndex.(
-    fun (name, { xml_file; substructs; unit_issues }) ->
+    fun (name, { xml_file; substructs=subname; unit_issues }) ->
       let base = Filename.dirname xml_file in
+      let maybe_sub = find_sub substructs subname in
       of_kv [
         "name", of_string name;
-        "module", of_substruct ~uri_of_path ~normal_uri base substructs;
-        "issues", of_list (List.map of_unit_issue (sort_unit_issues unit_issues));
+        "module",
+        of_substruct ~uri_of_path ~normal_uri scheme base maybe_sub subname;
+        "issues",
+        of_list (List.map of_unit_issue (sort_unit_issues unit_issues));
       ])) (List.sort compare units) in
   BlueTree.(of_kv_maybe ([
     "pkg-path", Some (of_list pkg_path);
