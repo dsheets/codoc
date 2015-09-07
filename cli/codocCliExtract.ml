@@ -80,9 +80,12 @@ let extract ~force ~index input out_dir rel_xml_out =
         | Some substructs ->
           let substructs = CodocUnit.Substruct.to_name substructs in
           let xml_file = rel_xml_out in
-          let unit = {
-            name; xml_file; unit_issues = []; substructs;
-          } in
+          let unit_issues =
+            if CodocExtraction.is_cmti input
+            then []
+            else [ Non_cmti_source input ]
+          in
+          let unit = { name; xml_file; unit_issues; substructs; } in
           if not index then `Ok unit
           else
             (* TODO: Use index caching? *)

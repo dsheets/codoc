@@ -63,6 +63,8 @@ let is_extractable path = Filename.(
   check_suffix path ".cmi"
 )
 
+let is_cmti = function { typ = Cmti } -> true | { typ = Cmt | Cmi } -> false
+
 let filter { root; set = { cmti; cmi; cmt }; } = StringSet.({
   root;
   set = {

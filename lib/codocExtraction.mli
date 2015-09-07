@@ -28,6 +28,8 @@ type 'a r = {
 val file : ?src:string -> string -> file option
 val is_extractable : string -> bool
 
+val is_cmti : file -> bool
+
 val at : string -> env
 
 val filter : env -> t

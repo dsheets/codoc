@@ -23,6 +23,7 @@ type generation_issue =
 
 type unit_issue =
 | Module_resolution_failed of string
+| Non_cmti_source of CodocExtraction.file
 | Xml_error of (string * Xmlm.pos * string)
 
 type generated_sub = {
@@ -66,6 +67,9 @@ let error_of_issue path = function
 let error_of_unit_issue path = function
   | Module_resolution_failed mod_name ->
     `Error (false, "writing "^path^" resolution of "^mod_name^" failed")
+  | Non_cmti_source file ->
+    let path = CodocExtraction.rel_path file in
+    `Error (false, path ^ " is not a cmti")
   | Xml_error (path, (l,c), s) ->
     `Error (false, Printf.sprintf "%s:%d:%d: XML error %s" path l c s)
 
@@ -85,6 +89,11 @@ let xml_of_unit_issue = function
       ("","module"),mod_name;
     ] in
     [`El ((("","resolution-failed"),attrs),[])]
+  | Non_cmti_source file ->
+    let attrs = [
+      ("","href"),CodocExtraction.rel_path file;
+    ] in
+    [`El ((("","non-cmti-source"),attrs),[])]
   | Xml_error (xml_file, (l,c), msg) ->
     let attrs = [
       ("","href"),xml_file;
@@ -179,6 +188,13 @@ let rec unit_issue_of_xml xml = match Xmlm.peek xml with
     eat xml;
     must_end xml;
     Module_resolution_failed name
+  | `El_start ((ns,"non-cmti-source"),[("","href"),path]) when ns = xmlns ->
+    eat xml;
+    must_end xml;
+    begin match CodocExtraction.file path with
+      | None -> (* TODO: fixme *) failwith "non-cmti source isn't recognized"
+      | Some file -> Non_cmti_source file
+    end
   | `El_start ((ns,"xml-error"),
                [("","href"),href; ("","line"),line; ("","col"), col])
       when ns = xmlns ->

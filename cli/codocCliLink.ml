@@ -130,6 +130,7 @@ let run_index ~force ~index in_index out_dir package =
             let out_index = read_cache
               { in_index with root = out_dir } src_index
             in
+            let unit_issues = List.rev_append gunit.unit_issues unit_issues in
             let index = set_gunit out_index { gunit with unit_issues } in
             let index = add_packages in_index index in
             write_cache index;
