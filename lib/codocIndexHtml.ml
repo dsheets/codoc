@@ -188,17 +188,19 @@ let of_package ~name ~index ~substructs ~scheme =
   let units = StringMap.fold (fun name unit lst -> (name,unit)::lst)
     index.CodocIndex.units []
   in
-  let units = List.map BlueTree.(CodocIndex.(
-    fun (name, { xml_file; substructs=subname; unit_issues }) ->
+  let units = List.fold_left BlueTree.(CodocIndex.(fun list -> function
+    | (_, { hide = true }) -> list
+    | (name, { xml_file; substructs=subname; unit_issues }) ->
       let base = Filename.dirname xml_file in
       let maybe_sub = find_sub substructs subname in
-      of_kv [
+      (of_kv [
         "name", of_string name;
         "module",
         of_substruct ~uri_of_path ~normal_uri scheme base maybe_sub subname;
         "issues",
         of_list (List.map of_unit_issue (sort_unit_issues unit_issues));
-      ])) (List.sort compare units) in
+      ])::list)) [] (List.sort compare units) in
+  let units = List.rev units in
   BlueTree.(of_kv_maybe ([
     "pkg-path", Some (of_list pkg_path);
     "pkgs", (match pkgs with [] -> None | pkgs -> Some (of_list pkgs));

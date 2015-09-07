@@ -34,6 +34,7 @@ type generated_sub = {
 type generated_unit = {
   name        : string;
   xml_file    : string;
+  hide        : bool;
   substructs  : generated_sub CodocUnit.Substruct.name;
   unit_issues : unit_issue list;
 }
@@ -134,7 +135,7 @@ let rec fold_xml_of_substruct acc = CodocUnit.Substruct.(function
   | [] -> acc
 )
 
-let xml_of_generated_unit ({ name; xml_file; substructs; unit_issues }) =
+let xml_of_generated_unit ({ name; xml_file; substructs; unit_issues; hide }) =
   let issues = match unit_issues with
     | [] -> []
     | issues ->
@@ -142,7 +143,7 @@ let xml_of_generated_unit ({ name; xml_file; substructs; unit_issues }) =
             List.(flatten (map xml_of_unit_issue issues)))]
   in
   let substructs = fold_xml_of_substruct [] [substructs] in
-  [`El ((("","unit"),[("","name"),name]),
+  [`El ((("","unit"),[("","name"),name; ("","hide"), string_of_bool hide]),
         (`El ((("","file"),
                [("","type"),"application/xml";("","href"),xml_file]),[]);
         )::(substructs@issues)
@@ -273,7 +274,7 @@ and substruct_body_of_xml xml =
   let issues = inside xml (xmlns,"issues") (fun _ -> issues_of_xml xml []) in
   (children, { html_file; issues })
 
-let generated_unit_of_xml xml name =
+let generated_unit_of_xml xml name hide =
   let files = files_of_xml xml [] in
   let xml_file = List.assoc "application/xml" files in
   match substructs_of_xml xml [] with
@@ -288,7 +289,7 @@ let generated_unit_of_xml xml name =
       inside xml (xmlns,"issues") (fun _ -> unit_issues_of_xml xml [])
     in
     must_end xml;
-    { name; xml_file; unit_issues; substructs; }
+    { name; xml_file; unit_issues; substructs; hide; }
 
 let pkg_of_xml xml pkg_name index =
   must_end xml;
@@ -304,9 +305,12 @@ let empty root path = {
 
 let rec of_xml root path xml =
   let rec doc_index index = match Xmlm.input xml with
-      | `El_start ((ns,"unit"),[("","name"), name]) when ns = xmlns ->
+      | `El_start ((ns,"unit"),[("","name"), name; ("","hide"), hide])
+      | `El_start ((ns,"unit"),[("","hide"), hide; ("","name"), name])
+        when ns = xmlns ->
+        let hide = bool_of_string hide in
         doc_index { index with
-          units = StringMap.add name (generated_unit_of_xml xml name)
+          units = StringMap.add name (generated_unit_of_xml xml name hide)
             index.units
         }
       | `El_start ((ns,"package"),[("","name"), name; ("","href"), href])

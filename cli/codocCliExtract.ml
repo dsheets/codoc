@@ -80,7 +80,8 @@ let extract ~force ~index input out_dir rel_xml_out =
             then []
             else [ Non_cmti_source input ]
           in
-          let unit = { name; xml_file; unit_issues; substructs; } in
+          let hide = CodocExtraction.is_hidden input in
+          let unit = { name; xml_file; unit_issues; substructs; hide; } in
           if not index then `Ok unit
           else
             (* TODO: Use index caching? *)

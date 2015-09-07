@@ -27,6 +27,7 @@ let global = [
 let index : t = global @ [
   "doc.xml";
   "index.xml";
+  (*"publish.xml";*)
 ]
 
 let interface : t = global @ [
@@ -34,6 +35,7 @@ let interface : t = global @ [
   "type.xml";
   "doc.xml";
   "module.xml";
+  (*"publish.xml";*)
 ]
 
 let ns = function "t" -> Some Blueprint.xmlns | _ -> None

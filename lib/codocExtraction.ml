@@ -16,6 +16,7 @@
  *)
 
 module StringSet = Set.Make(String)
+module StringMap = Map.Make(String)
 
 type 'a r = {
   cmti : 'a;
@@ -29,19 +30,21 @@ type file = {
   typ : typ;
   rel : string;
   src : string;
+  hide : bool; (* cmt or packed *)
 }
 
-type t = {
+type 'a set = {
   root : string;
-  set  : StringSet.t r;
+  set  : 'a r;
 }
 
-type env = t
+type t = bool StringMap.t set
+type env = StringSet.t set
 
 let at root =
   StringSet.({ root; set = { cmti = empty; cmi = empty; cmt = empty; }; })
 
-let add_ set el = StringSet.add el set
+let add_ map el = StringSet.add el  map
 
 let add_cmti ({ cmti } as x) path = { x with cmti = add_ cmti path }
 let add_cmi  ({ cmi  } as x) path = { x with cmi  = add_ cmi  path }
@@ -49,11 +52,17 @@ let add_cmt  ({ cmt  } as x) path = { x with cmt  = add_ cmt  path }
 
 let file ?(src="") rel_file = Filename.(
   if check_suffix rel_file ".cmti"
-  then Some { typ = Cmti; rel = chop_suffix rel_file ".cmti"; src; }
+  then Some {
+    typ = Cmti; rel = chop_suffix rel_file ".cmti"; src; hide = false;
+  }
   else if check_suffix rel_file ".cmi"
-  then Some { typ = Cmi;  rel = chop_suffix rel_file ".cmi";  src; }
+  then Some {
+    typ = Cmi;  rel = chop_suffix rel_file ".cmi";  src; hide = false;
+  }
   else if check_suffix rel_file ".cmt"
-  then Some { typ = Cmt;  rel = chop_suffix rel_file ".cmt";  src; }
+  then Some {
+    typ = Cmt;  rel = chop_suffix rel_file ".cmt";  src; hide = true;
+  }
   else None
 )
 
@@ -65,30 +74,38 @@ let is_extractable path = Filename.(
 
 let is_cmti = function { typ = Cmti } -> true | { typ = Cmt | Cmi } -> false
 
-let filter { root; set = { cmti; cmi; cmt }; } = StringSet.({
-  root;
-  set = {
-    cmti;
-    cmi = diff cmi cmti;
-    cmt = diff (diff cmt cmti) cmi;
-  };
-})
+let is_hidden { hide } = hide
+
+let filter { root; set = { cmti; cmi; cmt }; } =
+  let cmt = StringSet.(fold (fun r ->
+    StringMap.add r true
+  ) (diff (diff cmt cmti) cmi)) StringMap.empty in
+  let cmi_map = StringSet.(fold (fun r ->
+    StringMap.add r false
+  ) (diff cmi cmti)) StringMap.empty in
+  let cmti = StringSet.fold (fun r ->
+    StringMap.add r (not (StringSet.mem r cmi))
+  ) cmti StringMap.empty in
+  StringSet.({
+    root;
+    set = { cmti; cmi = cmi_map; cmt; };
+  })
 
 let fold f acc { root; set = { cmti; cmi; cmt }; } =
-  let list = StringSet.fold (f.cmti root) cmti acc in
-  let list = StringSet.fold (f.cmi  root) cmi list in
-  StringSet.fold (f.cmt root) cmt list
+  let list = StringMap.fold (f.cmti root) cmti acc in
+  let list = StringMap.fold (f.cmi  root) cmi list in
+  StringMap.fold (f.cmt root) cmt list
 
 let map f = fold {
-  cmti = (fun root v list -> f.cmti root v :: list);
-  cmi  = (fun root v list -> f.cmi  root v :: list);
-  cmt  = (fun root v list -> f.cmt  root v :: list);
+  cmti = (fun root v hide list -> f.cmti root v hide :: list);
+  cmi  = (fun root v hide list -> f.cmi  root v hide :: list);
+  cmt  = (fun root v hide list -> f.cmt  root v hide :: list);
 }
 
 let apply f = function
-  | { typ = Cmti; src; rel; } -> f.cmti src rel
-  | { typ = Cmt;  src; rel; } -> f.cmt  src rel
-  | { typ = Cmi;  src; rel; } -> f.cmi  src rel
+  | { typ = Cmti; src; rel; hide; } -> f.cmti src rel hide
+  | { typ = Cmt;  src; rel; hide; } -> f.cmt  src rel hide
+  | { typ = Cmi;  src; rel; hide; } -> f.cmi  src rel hide
 
 let mapply a f = function
   | { typ = Cmti; rel; } -> { a with cmti = f.cmti rel a.cmti }
@@ -101,32 +118,32 @@ let add extr next = match file next with
   | None -> extr
   | Some file -> { extr with set = mapply extr.set add_f file }
 
-let rel_cmti _ path = path ^ ".cmti"
-let rel_cmt  _ path = path ^ ".cmt"
-let rel_cmi  _ path = path ^ ".cmi"
+let rel_cmti _ path _hide = path ^ ".cmti"
+let rel_cmt  _ path _hide = path ^ ".cmt"
+let rel_cmi  _ path _hide = path ^ ".cmi"
 
-let cmti root path = Filename.concat root (rel_cmti root path)
-let cmt  root path = Filename.concat root (rel_cmt  root path)
-let cmi  root path = Filename.concat root (rel_cmi  root path)
+let cmti root path hide = Filename.concat root (rel_cmti root path hide)
+let cmt  root path hide = Filename.concat root (rel_cmt  root path hide)
+let cmi  root path hide = Filename.concat root (rel_cmi  root path hide)
 
 let rel_path_f = { cmti = rel_cmti; cmt = rel_cmt; cmi = rel_cmi; }
 
 let path_f = { cmti; cmt; cmi; }
 
 let uniform_cons f = {
-  cmti = (fun src rel -> f { typ = Cmti; rel; src; });
-  cmi  = (fun src rel -> f { typ = Cmi;  rel; src; });
-  cmt  = (fun src rel -> f { typ = Cmt;  rel; src; });
+  cmti = (fun src rel hide -> f { typ = Cmti; rel; src; hide; });
+  cmi  = (fun src rel hide -> f { typ = Cmi;  rel; src; hide; });
+  cmt  = (fun src rel hide -> f { typ = Cmt;  rel; src; hide; });
 }
 
 let file_f = uniform_cons (fun x -> x)
 
-let rel_xml_path _ p =
+let rel_xml_path _ p _hide =
   let dir = match Filename.dirname p with "." -> "" | p -> p in
   let xml = Filename.(concat (String.capitalize (basename p)) "index.xml") in
   Filename.concat dir xml
 
-let xml_path root p = Filename.concat root (rel_xml_path root p)
+let xml_path root p hide = Filename.concat root (rel_xml_path root p hide)
 
 let uniform f = { cmti = f; cmi = f; cmt = f; }
 
@@ -156,9 +173,9 @@ let file_list = map file_f []
 let xml_list = map xml_f []
 
 let summarize { root; set } =
-  let cmti_count = StringSet.cardinal set.cmti in
-  let cmi_count  = StringSet.cardinal set.cmi  in
-  let cmt_count  = StringSet.cardinal set.cmt  in
+  let cmti_count = StringMap.cardinal set.cmti in
+  let cmi_count  = StringMap.cardinal set.cmi  in
+  let cmt_count  = StringMap.cardinal set.cmt  in
   Printf.sprintf
     "%4d cmti %4d cmi %4d cmt under %s" cmti_count cmi_count cmt_count root
 

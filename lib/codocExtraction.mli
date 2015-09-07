@@ -30,11 +30,13 @@ val is_extractable : string -> bool
 
 val is_cmti : file -> bool
 
+val is_hidden : file -> bool
+
 val at : string -> env
 
 val filter : env -> t
 
-val apply : (string -> string -> 'a) r -> file -> 'a
+val apply : (string -> string -> bool -> 'a) r -> file -> 'a
 
 val uapply : (string -> string -> string * string) -> file -> file
 
