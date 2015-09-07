@@ -109,7 +109,7 @@ let relativize_root env from_path root =
   let rec relativize = function
     | Xml (path, parent) ->
       Xml (rel_of_path (depth from_path) to_path / path, relativize parent)
-    | Cmti cmti -> Cmti cmti
+    | Cm cm -> Cm cm
     | Resolved ({ resolution_root }, parent) ->
       let path = rel_of_path (depth from_path) to_path in
       let resolution_root = path / resolution_root in

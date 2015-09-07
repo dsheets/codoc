@@ -17,8 +17,8 @@
 
 type path = string
 
-type cmti_root = {
-  cmti_path : path;
+type cm_root = {
+  unit_path : CodocExtraction.file;
   unit_name : string;
   unit_digest : Digest.t;
 }
@@ -29,7 +29,7 @@ type resolution = {
 }
 
 type root =
-| Cmti of cmti_root
+| Cm of cm_root
 | Resolved of resolution * root
 (* TODO: use signature identifier when doc-ock-xml supports it *)
 | Proj of (*root DocOckPaths.Identifier.signature*) string * root

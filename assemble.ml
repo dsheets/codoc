@@ -31,10 +31,15 @@ let codoc_doc_maps = unit "codocDocMaps" ~deps:[
   doc_ock;
 ] library
 
+let codoc_extraction = unit "codocExtraction" ~deps:[
+  doc_ock;
+] library
+
 let codoc_doc = unit "codocDoc" ~deps:[
   doc_ock;
   doc_ock_xml;
   codoc_doc_maps;
+  codoc_extraction;
 ] library
 
 let codoc_util = unit "codocUtil" ~deps:[
@@ -98,6 +103,7 @@ let codoc_template = unit "codocTemplate" ~deps:[
 
 let codoc = lib ~flags "codoc" (`Units [
   codoc_doc_maps;
+  codoc_extraction;
   codoc_doc;
   codoc_util;
   codoc_unit;
@@ -131,6 +137,7 @@ let cli_lib = lib ~flags "cli" (`Units [
 let codoc_cli_list_extractions = unit "codocCliListExtractions" ~deps:[
   cli_lib;
   codoc_sys_util;
+  codoc;
 ] cli
 
 let codoc_cli_extract = unit "codocCliExtract" ~deps:[

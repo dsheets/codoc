@@ -20,8 +20,8 @@ open CodocDocMaps
 
 type path = string
 
-type cmti_root = {
-  cmti_path : path;
+type cm_root = {
+  unit_path : CodocExtraction.file;
   unit_name : string;
   unit_digest : Digest.t;
 }
@@ -32,7 +32,7 @@ type resolution = {
 }
 
 type root =
-| Cmti of cmti_root
+| Cm of cm_root
 | Resolved of resolution * root
 (* TODO: use signature identifier when doc-ock-xml supports it *)
 | Proj of (*root DocOckPaths.Identifier.signature*) string * root
@@ -45,7 +45,7 @@ module Root = struct
     constraint 'self = (unit, t, string) #Identifier.any_fold
 
     method root_name () = function
-    | Cmti { unit_name } -> unit_name
+    | Cm { unit_name } -> unit_name
     | Resolved (_, r) -> self#root_name () r
     | Proj (sig_, r) ->
       (*(self#name r)^"["^(map_ident self (Identifier.any sig_))^"]"*)
@@ -54,11 +54,12 @@ module Root = struct
   end
 
   let rec to_source = function
-    | Cmti _ as cmti -> cmti
+    | Cm _ as cm -> cm
     | Resolved (_, r) | Proj (_, r) | Xml (_, r) -> to_source r
 
   let rec to_path = function
-    | Cmti { cmti_path = path } | Xml (path, _) -> path
+    | Cm { unit_path } -> CodocExtraction.path unit_path
+    | Xml (path, _) -> path
     | Resolved (_, root) | Proj (_, root) -> to_path root
 
   let equal root root' = (to_source root) = (to_source root')
@@ -77,14 +78,14 @@ type t =
 let xmlns = DocOckXml.ns
 
 let rec xml_of_root = Root.(function
-  | Cmti { cmti_path; unit_name = name; unit_digest = digest } ->
+  | Cm { unit_path; unit_name = name; unit_digest = digest } ->
     let digest = Digest.to_hex digest in
     let attrs = [
       ("","name"),name;
-      ("","src"),cmti_path;
+      ("","src"),CodocExtraction.path unit_path;
       ("","digest"),digest;
     ] in
-    [`El ((("","cmti"),attrs), [])]
+    [`El ((("","cm"),attrs), [])]
   | Resolved ({ resolution_root = root }, source) ->
     let attrs = [
       ("","root"),root;
@@ -112,12 +113,17 @@ let filter_children = List.fold_left (fun l -> function
 (* TODO: handle exceptions (e.g. Not_found) *)
 let root_of_xml tag root_opt_list =
   match tag with
-  | ((ns,"cmti"),attrs) when ns = xmlns -> (* TODO: cmti can't have children *)
-    let cmti_path = List.assoc ("","src") attrs in
+  | ((ns,"cm"),attrs) when ns = xmlns -> (* TODO: cm can't have children *)
+    let src = List.assoc ("","src") attrs in
+    let unit_path = match CodocExtraction.file src with
+      | None ->
+        failwith "unit extraction path is of unknown type" (* TODO: fixme *)
+      | Some p -> p
+    in
     let unit_name = List.assoc ("","name") attrs in
     let unit_digest = List.assoc ("","digest") attrs in
     let unit_digest = Digest.from_hex unit_digest in
-    Some (Cmti { cmti_path; unit_name; unit_digest })
+    Some (Cm { unit_path; unit_name; unit_digest })
   | ((ns,"resolved"),attrs) when ns = xmlns ->
     let root = match filter_children root_opt_list with
       | [] -> failwith "resolved root must have a source" (* TODO: fixme *)

@@ -15,18 +15,43 @@
  *
  *)
 
-module Error = CodocCli.Error
+type file
+type env
+type t
 
-let collect dir = CodocExtraction.(
-  filter (CodocSysUtil.foldp_paths add (fun _ _ -> true) (at dir) dir)
-)
+type 'a r = {
+  cmti : 'a;
+  cmi  : 'a;
+  cmt  : 'a;
+}
 
-let run = function
-  | `Missing path -> Error.source_missing path
-  | `File in_file when not (CodocExtraction.is_extractable in_file) ->
-    `Error (false, "source "^in_file^" is not cmti, cmt, or cmi")
-  | `File in_file -> print_endline in_file; `Ok ()
-  | `Dir in_dir ->
-    let extractions = collect in_dir in
-    List.iter print_endline (CodocExtraction.path_list extractions);
-    `Ok ()
+val file : ?src:string -> string -> file option
+val is_extractable : string -> bool
+
+val at : string -> env
+
+val filter : env -> t
+
+val apply : (string -> string -> 'a) r -> file -> 'a
+
+val uapply : (string -> string -> string * string) -> file -> file
+
+val add : env -> string -> env
+
+val path : file -> string
+
+val rel_path : file -> string
+
+val xml : file -> string
+
+val rel_xml : file -> string
+
+val relocate : string -> file -> file
+
+val path_list : t -> string list
+val file_list : t -> file list
+val xml_list  : t -> string list
+
+val summarize : t -> string
+
+val read : (string -> Digest.t -> 'a) -> file -> 'a DocOck.result

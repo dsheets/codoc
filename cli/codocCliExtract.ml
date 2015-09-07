@@ -20,7 +20,9 @@ module Dir = CodocSysUtil.Dir
 
 let (/) = Filename.concat
 
-let cmti_path path output = CodocUtil.(rel_of_path (depth output) path)
+let hypot output root path = CodocUtil.(rel_of_path (depth output) root, path)
+
+let rel_path fpath to_ = CodocExtraction.(uapply (hypot fpath) to_)
 
 let xml_filename_of_cmti cmti =
   Filename.(chop_suffix (basename cmti) ".cmti")^".xml"
@@ -31,36 +33,37 @@ let exists_package dir package rel_file =
   let path = dir / package / rel_file in
   if Sys.file_exists path then Some path else None
 
-let extract ~force ~index cmti out_dir rel_xml =
-  let xml = out_dir / rel_xml in
-  if not force && Sys.file_exists xml
-  then Error.use_force xml
+let extract ~force ~index input out_dir rel_xml_out =
+  let xml_out = out_dir / rel_xml_out in
+  if not force && Sys.file_exists xml_out
+  then Error.use_force rel_xml_out
   else
-    let dirs = (Dir.name xml)::(
+    let dirs = (Dir.name xml_out)::(
       if index then [out_dir / CodocConfig.rel_index_xml] else []
     ) in
     match Dir.make_dirs_exist ~perm:0o755 dirs with
     | Some err -> err
     | None ->
-      let rel_cmti = cmti_path cmti xml in
-      let xml_file = Filename.basename rel_xml in
+      let unit_path = rel_path xml_out input in
       let root_fn unit_name unit_digest =
         let open CodocDoc in
-        let cmti = { cmti_path = rel_cmti; unit_name; unit_digest } in
-        Xml (xml_file, Cmti cmti)
+        let cm = { unit_path; unit_name; unit_digest } in
+        let xml_file = Filename.basename xml_out in
+        Xml (xml_file, Cm cm)
       in
       let open DocOck in
-      match read_cmti root_fn cmti with
-      | Not_an_interface -> Error.not_an_interface cmti
-      | Wrong_version -> Error.wrong_version_interface cmti
-      | Corrupted -> Error.corrupted_interface cmti
-      | Not_a_typedtree -> Error.not_a_typedtree cmti
+      let open CodocExtraction in
+      match read root_fn input with
+      | Not_an_interface -> Error.not_an_interface (path input)
+      | Wrong_version -> Error.wrong_version_interface (path input)
+      | Corrupted -> Error.corrupted_interface (path input)
+      | Not_a_typedtree -> Error.not_a_typedtree (path input)
       | Not_an_implementation ->
         (* TODO: fixme *)
         failwith "unimplemented: Not_an_implementation"
       | Ok unit ->
         let _root, name = CodocUtil.root_of_unit unit in
-        let oc = open_out xml in
+        let oc = open_out xml_out in
         let xml_out = Xmlm.make_output (`Channel oc) in
         DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
           (fun () signal -> Xmlm.output xml_out signal) () unit;
@@ -76,8 +79,9 @@ let extract ~force ~index cmti out_dir rel_xml =
         | None -> failwith "packs not yet supported" (* TODO: support packs *)
         | Some substructs ->
           let substructs = CodocUnit.Substruct.to_name substructs in
+          let xml_file = rel_xml_out in
           let unit = {
-            name; xml_file = rel_xml; unit_issues = []; substructs;
+            name; xml_file; unit_issues = []; substructs;
           } in
           if not index then `Ok unit
           else
@@ -90,38 +94,23 @@ let extract ~force ~index cmti out_dir rel_xml =
             write index;
             `Ok unit
 
-let extract_package ~force ~index in_dir rel_cmti out_dir package =
-  let rel_dir = Dir.name rel_cmti in
-  let xml_file = xml_index_of_cmti rel_cmti in
-  let cmti = in_dir / rel_cmti in
-  extract ~force ~index cmti (out_dir / package) (rel_dir / xml_file)
-
 let run_dir ~force ~index in_dir out_dir package =
-  let cmtis = CodocCliListExtractions.list in_dir in
-  let cmti_count = List.length cmtis in
-  Printf.printf
-    "%4d cmti under %s\n" cmti_count in_dir;
-  match if force then [] else List.fold_left (fun errs rel_cmti ->
-    let rel_dir = Dir.name rel_cmti in
-    let xml_file = xml_index_of_cmti rel_cmti in
-    match exists_package out_dir package (rel_dir / xml_file) with
+  let extr = CodocCliListExtractions.collect in_dir in
+  Printf.printf "%s\n" (CodocExtraction.summarize extr);
+  let files = CodocExtraction.file_list extr in
+  match if force then [] else List.fold_left (fun errs file ->
+    match exists_package out_dir package (CodocExtraction.rel_xml file) with
     | None -> errs
     | Some path -> (Error.use_force path)::errs
-  ) [] cmtis with
+  ) [] files with
     | (_::_) as errs -> CodocCli.combine_errors errs
-    | [] -> match List.fold_left (fun (units,errs) rel_cmti ->
-      let rel_dir = Dir.name rel_cmti in
-      let xml_file = xml_index_of_cmti rel_cmti in
+    | [] -> match List.fold_left (fun (units,errs) file ->
       let index = false in
-      match if package = ""
-        then
-          extract ~force ~index (in_dir / rel_cmti) out_dir (rel_dir / xml_file)
-        else
-          extract_package ~force ~index in_dir rel_cmti out_dir package
-      with
+      let rel_xml = CodocExtraction.rel_xml file in
+      match extract ~force ~index file (out_dir / package) rel_xml with
       | `Ok unit -> (unit::units, errs)
       | `Error err -> (units, (`Error err)::errs)
-    ) ([],[]) cmtis with
+    ) ([],[]) files with
       | _, ((_::_) as errs) -> CodocCli.combine_errors errs
       | [], [] -> `Ok (`Dir out_dir)
       | units, [] -> if not index then `Ok (`Dir out_dir)
@@ -142,42 +131,58 @@ let run_dir ~force ~index in_dir out_dir package =
           List.iter (fun (_name, index) -> write index) pkg_parents;
           `Ok (`Dir out_dir)
 
-let extract_file ~force ~index in_file out_dir xml_file package =
+let extract_file ~force ~index file package out_dir rel_out =
   if package = ""
   then if index
     then Error.no_file_index
     else
       CodocCli.map_ret (fun _ -> ())
-        (extract ~force ~index in_file out_dir xml_file)
+        (extract ~force ~index file out_dir rel_out)
   else Error.no_file_package
+
+let file in_file f =
+  let src = Filename.dirname in_file in
+  let rel = Filename.basename in_file in
+  match CodocExtraction.file ~src rel with
+  | None -> `Error (false, "source "^in_file^" is not a cmti, cmt, or cmi")
+  | Some file -> f file
+
+let file_to_file ~force ~index in_file package out_file =
+  (* simple doc gen *)
+  file in_file (fun file ->
+    let out_dir = Dir.name out_file in
+    CodocCli.map_ret
+      (fun () -> `File out_file)
+      (extract_file ~force ~index file package out_dir out_file)
+  )
+
+let file_to_dir ~force ~index in_file package out_dir =
+  file in_file (fun file ->
+    let out_dir = out_dir / package in
+    let out = CodocExtraction.relocate out_dir file in
+    let rel_xml_out = CodocExtraction.rel_xml out in
+    CodocCli.map_ret (fun _ -> `Dir out_dir)
+      (extract ~force ~index file out_dir rel_xml_out)
+  )
 
 let run ({ CodocCli.Common.force; index }) output path package =
   match path, output with
   | `Missing path, _ -> Error.source_missing path
-  | `File in_file, _ when not (Filename.check_suffix in_file ".cmti") ->
-    `Error (false, "source "^in_file^" is not a cmti")
-  | `File in_file, None ->
-    let xml_file = xml_filename_of_cmti in_file in
+  | `File in_file, None -> file in_file (fun file ->
     let out_dir = Dir.name in_file in
+    let xml_file = CodocExtraction.rel_xml file in
     CodocCli.map_ret
       (fun () -> `File xml_file)
-      (extract_file ~force ~index in_file out_dir xml_file package)
-  | `File in_file, Some (`Missing out_file | `File out_file) ->
-    (* simple doc gen *)
-    let out_dir = Dir.name out_file in
-    let rel_file = Filename.basename out_file in
-    CodocCli.map_ret
-      (fun () -> `File out_file)
-      (extract_file ~force ~index in_file out_dir rel_file package)
+      (extract_file ~force ~index file package out_dir xml_file)
+  )
+  | `File in_file, Some (`File out_file) ->
+    file_to_file ~force ~index in_file package out_file
+  | `File in_file, Some (`Missing out_path) ->
+    if out_path.[String.length out_path - 1] = '/'
+    then file_to_dir ~force ~index in_file package out_path
+    else file_to_file ~force ~index in_file package out_path
   | `File in_file, Some (`Dir out_dir) ->
-    if package = ""
-    then CodocCli.map_ret (fun _ -> `Dir out_dir)
-      (extract ~force ~index in_file out_dir (xml_index_of_cmti in_file))
-    else
-      let in_dir = Dir.name in_file in
-      let rel_file = Filename.basename in_file in
-      CodocCli.map_ret (fun _ -> `Dir out_dir)
-        (extract_package ~force ~index in_dir rel_file out_dir package)
+    file_to_dir ~force ~index in_file package out_dir
   | `Dir in_dir, None -> run_dir ~force ~index in_dir in_dir package
   | `Dir in_dir, Some (`Missing out_dir | `Dir out_dir) ->
     run_dir ~force ~index in_dir out_dir package
