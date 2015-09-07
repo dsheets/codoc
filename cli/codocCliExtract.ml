@@ -24,11 +24,6 @@ let hypot output root path = CodocUtil.(rel_of_path (depth output) root, path)
 
 let rel_path fpath to_ = CodocExtraction.(uapply (hypot fpath) to_)
 
-let xml_filename_of_cmti cmti =
-  Filename.(chop_suffix (basename cmti) ".cmti")^".xml"
-let dir_of_cmti cmti = Filename.(chop_suffix (basename cmti) ".cmti")
-let xml_index_of_cmti cmti = (dir_of_cmti cmti) / "index.xml"
-
 let exists_package dir package rel_file =
   let path = dir / package / rel_file in
   if Sys.file_exists path then Some path else None
