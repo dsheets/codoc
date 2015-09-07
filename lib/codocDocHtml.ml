@@ -1054,8 +1054,8 @@ and of_signature_item ~pathloc id = Signature.(BlueTree.(function
   | Module module_ -> Some (of_cons "module" (of_module ~pathloc module_))
   | ModuleType module_type ->
     Some (of_cons "module-type" (of_module_type ~pathloc module_type))
-  | Include module_type_expr ->
-    Some (of_cons "include" (decl_of_sig ~top:true ~pathloc id module_type_expr))
+  | Include { Include.expr } ->
+    Some (of_cons "include" (decl_of_sig ~top:true ~pathloc id expr))
   | Comment (Documentation.Documentation doc) ->
     Some (of_cons "doc" (maybe_doc ~pathloc doc))
   | Comment Documentation.Stop -> None

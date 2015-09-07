@@ -209,6 +209,7 @@ class ['a] index = object (self)
   method identifier_value x = x
   method identifier_type x = x
   method identifier_module_type x = x
+  method identifier_signature x = x
   method identifier_module x = x
   method identifier_method x = x
   method identifier_label x = x
