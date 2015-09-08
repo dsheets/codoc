@@ -109,7 +109,8 @@ let render_moduletype scheme unit_file pkg_root css (uri_opt,html) m =
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
 let render_substruct scheme unit_file pkg_root css = CodocUnit.Substruct.(
-  let html_map = CodocUnitHtml.of_substruct_map scheme pkg_root in
+  let base = None in
+  let html_map = CodocUnitHtml.of_substruct_map scheme pkg_root base in
   compose
     (product (homo_map (fun x -> x)) html_map)
     {

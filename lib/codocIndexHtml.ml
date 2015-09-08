@@ -113,7 +113,10 @@ let rec of_substruct ~uri_of_path ~normal_uri scheme base substruct name =
   in
   let substruct = match substruct with
     | None -> None
-    | Some sub -> Some (CodocUnitHtml.of_substruct scheme None sub)
+    | Some sub ->
+      let pkg_root = Some "." in
+      let base = Some base in
+      Some (CodocUnitHtml.of_substruct scheme ~pkg_root ~base sub)
   in
   of_kv_maybe (typ@[
     "name", Some (of_string name);
@@ -129,6 +132,7 @@ let rec of_substruct ~uri_of_path ~normal_uri scheme base substruct name =
     "children", Some (of_list children);
     "interface", substruct;
   ])
+
 and destruct_name ~uri_of_path ~normal_uri scheme base substruct =
   CodocUnit.Substruct.(BlueTree.(function
     | ClassName (name, sub) -> name, substruct_type "class", [], sub

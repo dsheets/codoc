@@ -276,6 +276,7 @@ module Href = struct
     id          : root DocOckPaths.Identifier.parent;
     fragment    : fragment;
     pkg_root    : string option;
+    base        : string option;
   }
 
   let empty = { root = None; path = []; frag = [] }
@@ -369,7 +370,7 @@ module Href = struct
       prerr_endline (String.concat " :: " path);
       prerr_endline (String.concat " :: " frag)
 
-  let loc ?pkg_root scheme substruct =
+  let loc ?pkg_root ?base scheme substruct =
     let id = Substruct.(match id substruct with
       | Classy c -> DocOckPaths.Identifier.parent_of_class_signature c
       | Moduley m -> DocOckPaths.Identifier.parent_of_signature m
@@ -381,6 +382,7 @@ module Href = struct
         id;
         fragment;
         pkg_root;
+        base;
       } in
       (*print_fragment loc fragment;*)
       Some loc
@@ -423,6 +425,11 @@ module Href = struct
     in
     Uri.with_fragment page uri_frag
 
+  let uri_of_here loc frag =
+    let full = frag.path in
+    let path = match loc.base with None -> full | Some base -> base::full in
+    Some (uri_of_diff loc 0 path frag.frag Uri.empty)
+
   let of_ident loc ident =
     let self = loc.fragment in
     match fragment_of_ident ident with
@@ -430,12 +437,15 @@ module Href = struct
     | Some frag ->
       let up, out = subtract frag self in
       match out.root with
-      | None -> begin match out.path, out.frag with
-        | [], [] when up = 0 && List.length self.path > 0 ->
-          (* we have a parent! *)
-          Some (uri_of_diff loc 1 [] List.[hd (rev self.path)] Uri.empty)
-        | path, frag ->
-          Some (uri_of_diff loc up path frag Uri.empty)
+      | None -> begin match loc.pkg_root with
+        | Some "." -> uri_of_here loc frag
+        | Some _ | None -> begin match out.path, out.frag with
+          | [], [] when up = 0 && List.length self.path > 0 ->
+            (* we have a parent! *)
+            Some (uri_of_diff loc 1 [] List.[hd (rev self.path)] Uri.empty)
+          | path, frag ->
+            Some (uri_of_diff loc up path frag Uri.empty)
+        end
       end
       | Some root -> match index loc root with
         | None -> None (* TODO: log? *)

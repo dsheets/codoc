@@ -78,7 +78,8 @@ module Href : sig
   val uri_of_path : scheme:string -> string -> Uri.t
   val normal_uri_for_scheme : string -> (Uri.t -> Uri.t)
 
-  val loc : ?pkg_root:string -> string -> 'a Substruct.t -> loc option
+  val loc :
+    ?pkg_root:string -> ?base:string -> string -> 'a Substruct.t -> loc option
 
   val up : loc -> Uri.t option
 

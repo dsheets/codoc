@@ -15,40 +15,40 @@
  *
  *)
 
-let of_class scheme pkg_root _ c =
+let of_class scheme pkg_root base _ c =
   let sub = CodocUnit.Substruct.Class (c,()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
+  match CodocUnit.(Href.loc ?pkg_root ?base scheme sub) with
   | None -> failwith "invariant violation render_class/loc" (* TODO: ? *)
   | Some loc -> CodocDocHtml.of_top_class loc c
 
-let of_classtype scheme pkg_root _ c =
+let of_classtype scheme pkg_root base _ c =
   let sub = CodocUnit.Substruct.ClassType (c,()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
+  match CodocUnit.(Href.loc ?pkg_root ?base scheme sub) with
   | None -> failwith "invariant violation render_classtype/loc" (* TODO: ? *)
   | Some loc -> CodocDocHtml.of_top_classtype loc c
 
-let of_module scheme pkg_root _ m =
+let of_module scheme pkg_root base _ m =
   let sub = CodocUnit.Substruct.Module (m,[],()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
+  match CodocUnit.(Href.loc ?pkg_root ?base scheme sub) with
   | None -> failwith "invariant violation render_module/loc" (* TODO: ? *)
   | Some loc -> CodocDocHtml.of_top_module loc m
 
-let of_moduletype scheme pkg_root _ m =
+let of_moduletype scheme pkg_root base _ m =
   let sub = CodocUnit.Substruct.ModuleType (m,[],()) in
-  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
+  match CodocUnit.(Href.loc ?pkg_root ?base scheme sub) with
   | None -> failwith "invariant violation render_moduletype/loc" (* TODO: ? *)
   | Some loc -> CodocDocHtml.of_top_moduletype loc m
 
-let of_substruct_map scheme pkg_root =
+let of_substruct_map scheme pkg_root base =
   CodocUnit.Substruct.({
-    map_class = of_class scheme pkg_root;
-    map_classtype = of_classtype scheme pkg_root;
-    map_module = of_module scheme pkg_root;
-    map_moduletype = of_moduletype scheme pkg_root;
+    map_class = of_class scheme pkg_root base;
+    map_classtype = of_classtype scheme pkg_root base;
+    map_module = of_module scheme pkg_root base;
+    map_moduletype = of_moduletype scheme pkg_root base;
   })
 
-let of_substruct scheme pkg_root sub =
-  CodocUnit.Substruct.apply (of_substruct_map scheme pkg_root) sub
+let of_substruct scheme ~pkg_root ~base sub =
+  CodocUnit.Substruct.apply (of_substruct_map scheme pkg_root base) sub
 
-let of_substructs scheme pkg_root sub =
-  CodocUnit.Substruct.map (of_substruct_map scheme pkg_root) sub
+let of_substructs scheme ~pkg_root ~base sub =
+  CodocUnit.Substruct.map (of_substruct_map scheme pkg_root base) sub
