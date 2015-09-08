@@ -199,6 +199,47 @@ let rec link_reference ?text ~pathloc : ('a,'b) Reference.t -> Blueprint.t list 
   | Resolved resolved -> link_resolved_reference ?text ~pathloc () resolved
   )
 
+let tag_identifier = Identifier.(function
+  | Root _
+  | Module _
+  | Argument _ -> "mod"
+  | ModuleType _ -> "modtype"
+  | Type _ | CoreType _ -> "type"
+  | Constructor _ -> "cons"
+  | Field _ -> "field"
+  | Extension _ -> "ext"
+  | Exception _ | CoreException _ -> "exn"
+  | Value _ -> "val"
+  | Class _ -> "class"
+  | ClassType _ -> "classtype"
+  | Method _ -> "method"
+  | InstanceVariable _ -> "instance"
+  | Label _ -> "section"
+)
+
+let tag_resolved_reference = Reference.Resolved.(function
+  | Class _ -> "class"
+  | ClassType _ -> "classtype"
+  | Constructor _ -> "cons"
+  | Extension _ -> "ext"
+  | Exception _ -> "exn"
+  | Field _ -> "field"
+  | InstanceVariable _ -> "instance"
+  | Label _ -> "section"
+  | Method _ -> "method"
+  | Module _ -> "mod"
+  | ModuleType _ -> "modtype"
+  | Type _ -> "type"
+  | Value _ -> "val"
+  | Identifier ident -> tag_identifier ident
+)
+
+let tag_reference = Reference.(function
+  | Root _ -> BlueTree.tag "mod"
+  | Dot _  -> BlueTree.tag "element"
+  | Resolved resolved -> tag_resolved_reference resolved, BlueTree.empty ()
+)
+
 let region ~pathloc id html =
   let href = match CodocUnit.Href.id_of_ident pathloc id with
     | None -> None
@@ -356,13 +397,15 @@ let rec of_text_element ~pathloc txt_ =
     let text = of_text_elements els in
     of_kv [ "ref", of_list (link_reference ~text ~pathloc (any i));
             tag "instance" ]
-  | Reference (Element e, None) ->
-    of_kv [ "ref", of_list (link_reference ~pathloc (any e));
-            tag "element" ]
-  | Reference (Element e, Some els) -> (* TODO: test *)
+  | Reference (Element e, None) -> (* syntactically unspecified *)
+    let r = any e in
+    of_kv [ "ref", of_list (link_reference ~pathloc r);
+            tag_reference r ]
+  | Reference (Element e, Some els) -> (* syntactically unspecified *)
     let text = of_text_elements els in
-    of_kv [ "ref", of_list (link_reference ~text ~pathloc (any e));
-            tag "element" ]
+    let r = any e in
+    of_kv [ "ref", of_list (link_reference ~text ~pathloc r);
+            tag_reference r ]
   | Reference (Section s, None) ->
     of_kv [ "ref", of_list (link_reference ~pathloc (any s));
             tag "section" ]
