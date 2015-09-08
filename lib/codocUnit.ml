@@ -15,7 +15,7 @@
  *
  *)
 
-open DocOckTypes
+open DocOck.Types
 
 module Id = struct
   open CodocDoc
@@ -24,16 +24,16 @@ module Id = struct
   let type_class = "typ"
   let exn_class = "exn" (* exception *)
   let class_class = "cls"
-  let classtype_class = "clst"
+  let class_type_class = "clst"
   let module_class = "mod"
-  let moduletype_class = "modt"
+  let module_type_class = "modt"
 
   (* TODO: use these for CSS class names? *)
   let ident_class = Identifier.(function
     | Root _ -> "root"
     | Module _ -> module_class
     | Argument _ -> "moda"
-    | ModuleType _ -> moduletype_class
+    | ModuleType _ -> module_type_class
     | Type _ -> type_class
     | CoreType _ -> type_class
     | Constructor _ -> "cons" (* const *)
@@ -43,7 +43,7 @@ module Id = struct
     | CoreException _ -> exn_class
     | Value _ -> "val"
     | Class _ -> class_class
-    | ClassType _ -> classtype_class
+    | ClassType _ -> class_type_class
     | Method _ -> "meth"
     | InstanceVariable _ -> "var" (* attribute *)
     | Label _ -> "labl" (* section *)
@@ -52,213 +52,6 @@ module Id = struct
   let classify cls name = Printf.sprintf "%s.%s" name cls
 
   let name_of_argument i name = Printf.sprintf "%s.%d" name i
-end
-
-module Substruct = struct
-
-  type ('a,'b) map = {
-    map_class : 'a -> CodocDoc.root Class.t -> 'b;
-    map_classtype : 'a -> CodocDoc.root ClassType.t -> 'b;
-    map_module : 'a -> CodocDoc.root Module.t -> 'b;
-    map_moduletype : 'a -> CodocDoc.root ModuleType.t -> 'b;
-  }
-
-  type 'a collect = ('a,'a) map
-
-  type 'a t =
-    | Class of CodocDoc.root Class.t * 'a
-    | ClassType of CodocDoc.root ClassType.t * 'a
-    | Module of CodocDoc.root Module.t * 'a t list * 'a
-    | ModuleType of CodocDoc.root ModuleType.t * 'a t list * 'a
-
-  type 'a name =
-    | ClassName of string * 'a
-    | ClassTypeName of string * 'a
-    | ModuleName of string * 'a name list * 'a
-    | ModuleTypeName of string * 'a name list * 'a
-
-  type id =
-    | Classy of CodocDoc.root DocOckPaths.Identifier.class_signature
-    | Moduley of CodocDoc.root DocOckPaths.Identifier.signature
-
-  let classtype_expr_is_signature = ClassType.(function
-    | Constr _ -> false
-    | Signature _ -> true
-  )
-
-  let classtype_is_signature c = classtype_expr_is_signature c.ClassType.expr
-
-  let rec class_decl_has_signature = Class.(function
-    | Arrow (_,_,c) -> class_decl_has_signature c
-    | ClassType c -> classtype_expr_is_signature c
-  )
-
-  let class_has_signature c = class_decl_has_signature c.Class.type_
-
-  let collect_sig_structs f acc = Signature.(function
-    | Value _ | External _ | Type _ | TypExt _ | Exception _
-    | Include _ | Comment _ -> acc
-    | Class c -> if class_has_signature c then f.map_class acc c else acc
-    | ClassType c ->
-      if classtype_is_signature c then f.map_classtype acc c else acc
-    | Module m -> f.map_module acc m
-    | ModuleType m -> f.map_moduletype acc m
-  )
-
-  let rec collect_eqn_structs f acc = Module.(function
-    | Alias _ -> None
-    | ModuleType type_ -> collect_module_type_expr_structs f acc type_
-  )
-  and collect_module_type_expr_structs f acc = ModuleType.(function
-    | Path _ -> None
-    | Signature s -> Some (List.fold_left (collect_sig_structs f) acc s)
-    | Functor (_, _) -> Some acc
-    | With (expr, _) -> collect_module_type_expr_structs f acc expr
-    | TypeOf eqn -> collect_eqn_structs f acc eqn
-  )
-
-  let collect_module_structs f acc { Module.type_ } =
-    collect_eqn_structs f acc type_
-
-  let collect_module_type_structs f acc = ModuleType.(function
-    | { expr = Some expr } -> collect_module_type_expr_structs f acc expr
-    | { expr = None } -> None
-  )
-
-  let rec substruct_collect f = {
-    map_class = (fun l c -> (Class (c, f.map_class () c))::l);
-    map_classtype = (fun l c -> (ClassType (c, f.map_classtype () c))::l);
-    map_module = (fun l m ->
-      match collect_module_structs (substruct_collect f) [] m with
-      | Some subs -> (Module (m,subs,f.map_module () m))::l
-      | None -> l
-    );
-    map_moduletype = (fun l m ->
-      match collect_module_type_structs (substruct_collect f) [] m with
-      | Some subs -> (ModuleType (m,subs,f.map_moduletype () m))::l
-      | None -> l
-    );
-  }
-
-  let map_of_unit_signature f subs { Unit.doc; id; } items =
-    let modu = Module.(
-      { id; doc; type_ = ModuleType (ModuleType.Signature items) }
-    ) in
-    Module (modu, subs, f.map_module () modu)
-
-  let root_of_unit_signature = map_of_unit_signature {
-    map_module = (fun () _ -> ());
-    map_moduletype = (fun () _ -> ());
-    map_class = (fun () _ -> ());
-    map_classtype = (fun () _ -> ());
-  } []
-
-  let map_of_unit f = function
-    | { Unit.content = Unit.Module signature } as unit ->
-      let subs =
-        List.fold_left (collect_sig_structs (substruct_collect f)) [] signature
-      in
-      Some (map_of_unit_signature f subs unit signature)
-    | { Unit.content = Unit.Pack _ } -> (* TODO: support packs *)
-      None
-
-  let rec map f = function
-    | Class (c,a) -> Class (c, f.map_class a c)
-    | ClassType (c,a) -> ClassType (c, f.map_classtype a c)
-    | Module (m,l,a) -> Module (m, List.map (map f) l, f.map_module a m)
-    | ModuleType (m,l,a) ->
-      ModuleType (m, List.map (map f) l, f.map_moduletype a m)
-
-  let apply f = function
-    | Class (c,a) -> f.map_class a c
-    | ClassType (c,a) -> f.map_classtype a c
-    | Module (m,_,a) -> f.map_module a m
-    | ModuleType (m,_,a) -> f.map_moduletype a m
-
-  let rec fold f acc = function
-    | Class (c,a) -> f.map_class (acc,a) c
-    | ClassType (c,a) -> f.map_classtype (acc,a) c
-    | Module (m,l,a) -> f.map_module (List.fold_left (fold f) acc l,a) m
-    | ModuleType (m,l,a) ->
-      f.map_moduletype (List.fold_left (fold f) acc l,a) m
-
-  let compose a b = {
-    map_class = (fun x c -> b.map_class (a.map_class x c) c);
-    map_classtype = (fun x c -> b.map_classtype (a.map_classtype x c) c);
-    map_module = (fun x m -> b.map_module (a.map_module x m) m);
-    map_moduletype = (fun x m -> b.map_moduletype (a.map_moduletype x m) m);
-  }
-
-  let product a b = {
-    map_class = (fun x c -> a.map_class x c, b.map_class x c);
-    map_classtype = (fun x c -> a.map_classtype x c, b.map_classtype x c);
-    map_module = (fun x c -> a.map_module x c, b.map_module x c);
-    map_moduletype = (fun x c -> a.map_moduletype x c, b.map_moduletype x c);
-  }
-
-  let homo_map f =
-    let f x _ = f x in {
-      map_class = f;
-      map_classtype = f;
-      map_module = f;
-      map_moduletype = f;
-    }
-
-  let ident_map = {
-    map_class = DocOckPaths.Identifier.(fun _ c ->
-      parent_of_class_signature
-        (class_signature_of_class c.DocOckTypes.Class.id)
-    );
-    map_classtype = DocOckPaths.Identifier.(fun _ c ->
-      parent_of_class_signature
-        (class_signature_of_class_type c.DocOckTypes.ClassType.id)
-    );
-    map_module = DocOckPaths.Identifier.(fun _ m ->
-      parent_of_signature (signature_of_module m.DocOckTypes.Module.id)
-    );
-    map_moduletype = DocOckPaths.Identifier.(fun _ m ->
-      parent_of_signature (signature_of_module_type m.DocOckTypes.ModuleType.id)
-    );
-  }
-
-  let list_option_fold () = homo_map (fun (list,next) -> match next with
-    | None -> list
-    | Some next -> next::list
-  )
-
-  let id = function
-    | Module ({ DocOckTypes.Module.id }, _, _) ->
-      Moduley (DocOckPaths.Identifier.signature_of_module id)
-    | ModuleType ({ DocOckTypes.ModuleType.id }, _, _) ->
-      Moduley (DocOckPaths.Identifier.signature_of_module_type id)
-    | Class ({ DocOckTypes.Class.id }, _) ->
-      Classy (DocOckPaths.Identifier.class_signature_of_class id)
-    | ClassType ({ DocOckTypes.ClassType.id }, _) ->
-      Classy (DocOckPaths.Identifier.class_signature_of_class_type id)
-
-  let class_name c =
-    DocOckPaths.Identifier.name c.DocOckTypes.Class.id
-  let classtype_name c =
-    DocOckPaths.Identifier.name c.DocOckTypes.ClassType.id
-  let module_name m =
-    DocOckPaths.Identifier.name m.DocOckTypes.Module.id
-  let moduletype_name m =
-    DocOckPaths.Identifier.name m.DocOckTypes.ModuleType.id
-
-  let rec to_name = function
-    | Class (c,a) -> ClassName (class_name c, a)
-    | ClassType (c,a) -> ClassTypeName (classtype_name c, a)
-    | Module (m,l,a) ->
-      ModuleName (module_name m, List.map to_name l, a)
-    | ModuleType (m,l,a) ->
-      let name = moduletype_name m in
-      ModuleTypeName (name, List.map to_name l, a)
-
-  let string_of_name = function
-    | ClassName (name,_) -> name
-    | ClassTypeName (name,_) -> name
-    | ModuleName (name,_,_) -> name
-    | ModuleTypeName (name,_,_) -> name
 end
 
 module Href = struct
@@ -273,7 +66,7 @@ module Href = struct
 
   type loc = {
     scheme      : string;
-    id          : root DocOckPaths.Identifier.parent;
+    id          : root DocOck.Paths.Identifier.any;
     fragment    : fragment;
     pkg_root    : string option;
     base        : string option;
@@ -370,12 +163,8 @@ module Href = struct
       prerr_endline (String.concat " :: " path);
       prerr_endline (String.concat " :: " frag)
 
-  let loc ?pkg_root ?base scheme substruct =
-    let id = Substruct.(match id substruct with
-      | Classy c -> DocOckPaths.Identifier.parent_of_class_signature c
-      | Moduley m -> DocOckPaths.Identifier.parent_of_signature m
-    ) in
-    match fragment_of_ident (Identifier.any id) with
+  let loc ?pkg_root ?base scheme id =
+    match fragment_of_ident id with
     | Some fragment ->
       let loc = {
         scheme;
@@ -460,16 +249,6 @@ module Href = struct
       | 0, { root = None; path; frag } ->
         Some (string_of_frag_pieces path ^ string_of_frag_pieces frag)
       | _, _ -> None
-
-  let of_name name = Substruct.(
-    let seg = match name with
-      | ClassName (name,_) -> Id.(classify class_class name)
-      | ClassTypeName (name,_) -> Id.(classify classtype_class name)
-      | ModuleName (name, _, _) -> Id.(classify module_class name)
-      | ModuleTypeName (name, _, _) -> Id.(classify moduletype_class name)
-    in
-    Uri.of_string (seg^"/")
-  )
 
   let ascent_of_ident id =
     match fragment_of_ident id with

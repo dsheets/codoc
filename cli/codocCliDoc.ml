@@ -33,7 +33,7 @@ let generate common output path pkg scheme css share =
       err
     | `Ok () ->
       let html_ret =
-        CodocCliHtml.run common output intermediate scheme css share
+        CodocCliHtml.run common output intermediate pkg scheme css share
       in
       match html_ret with
       | `Error _ as err ->

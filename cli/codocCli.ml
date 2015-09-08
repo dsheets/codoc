@@ -143,6 +143,9 @@ module Error = struct
   let unknown_file_type path =
     `Error (false, "don't know how to handle file "^path)
 
+  let not_an_index path =
+    `Error (false, path^" is not an index")
+
   let not_an_interface path =
     `Error (false, path^" is not an interface")
 

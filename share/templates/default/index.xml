@@ -48,7 +48,7 @@
       <t:if exists=".unlinked-frag"
             >Unresolved fragment: <t:insert name=".unlinked-frag"/></t:if>
       <t:if exists=".doc-error"
-            >Doc error: <t:insert name=".doc-error"/></t:if>
+            >Syntax error: <t:insert name=".doc-error"/></t:if>
     </t:let>
   </t:let>
 
@@ -130,7 +130,9 @@
     <t:let name=".children">
       <li>
         <t:insert name="index.link" with=".head"/>
-        <t:insert name="index.gen-synopsis" with=".head.interface"/>
+        <t:if exists=".head.interface">
+          <t:insert name="index.gen-synopsis" with=".head.interface"/>
+        </t:if>
         <t:if exists=".head.issues.head">
           <t:insert name="index.struct-issues" with=".head"/>
         </t:if>
@@ -170,8 +172,17 @@
       <t:let name=".map">
         <li>
           <details>
-          <summary><t:insert name="index.link" with=".head.module"/></summary>
-          <t:insert name="index.synopsis" with=".head.module.interface.module"/>
+          <summary>
+            <t:if exists=".head.module">
+              <t:insert name="index.link" with=".head.module"/>
+            </t:if><t:else>
+              <t:insert name=".head.name"/>
+            </t:else>
+          </summary>
+          <t:if exists=".head.module.interface">
+            <t:insert name="index.synopsis" with=".head.module.interface.module"/>
+          </t:if>
+
           <t:if exists=".head.issues.head">
               <t:insert name="index.issues" with=".head"/>
           </t:if>

@@ -61,7 +61,7 @@ let file ?(src="") rel_file = Filename.(
   }
   else if check_suffix rel_file ".cmt"
   then Some {
-    typ = Cmt;  rel = chop_suffix rel_file ".cmt";  src; hide = true;
+    typ = Cmt;  rel = chop_suffix rel_file ".cmt";  src; hide = false;
   }
   else None
 )
@@ -77,18 +77,18 @@ let is_cmti = function { typ = Cmti } -> true | { typ = Cmt | Cmi } -> false
 let is_hidden { hide } = hide
 
 let filter { root; set = { cmti; cmi; cmt }; } =
-  let cmt = StringSet.(fold (fun r ->
-    StringMap.add r true
-  ) (diff (diff cmt cmti) cmi)) StringMap.empty in
+  let cmt_map = StringSet.(fold (fun r ->
+    StringMap.add r (not (StringSet.mem r cmi))
+  ) (diff cmt cmti)) StringMap.empty in
   let cmi_map = StringSet.(fold (fun r ->
     StringMap.add r false
-  ) (diff cmi cmti)) StringMap.empty in
-  let cmti = StringSet.fold (fun r ->
+  ) (diff (diff cmi cmti) cmt)) StringMap.empty in
+  let cmti_map = StringSet.fold (fun r ->
     StringMap.add r (not (StringSet.mem r cmi))
   ) cmti StringMap.empty in
   StringSet.({
     root;
-    set = { cmti; cmi = cmi_map; cmt; };
+    set = { cmti = cmti_map; cmi = cmi_map; cmt = cmt_map; };
   })
 
 let fold f acc { root; set = { cmti; cmi; cmt }; } =

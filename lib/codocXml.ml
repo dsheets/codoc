@@ -21,7 +21,7 @@ exception ParseError of string * Xmlm.pos option * Xmlm.pos * string
 
 let doc_parser = DocOckXmlParse.build (fun input ->
   match Xmlm.input_tree
-    ~el:CodocDoc.root_of_xml
+    ~el:(CodocDoc.root_of_xml DocOckXml.ns)
     ~data:CodocDoc.data_of_xml
     input
   with None -> failwith "can't find root" (* TODO: fixme *)
@@ -36,7 +36,7 @@ let doc_printer output acc root =
       let acc = List.fold_left fold acc children in
       output acc `El_end
   in
-  fold acc (List.hd (CodocDoc.xml_of_root root))
+  fold acc (List.hd (CodocDoc.xml_of_root DocOckXml.ns root))
 
 let string_of_pos (line,col) =
   Printf.sprintf "line %d, col %d" line col

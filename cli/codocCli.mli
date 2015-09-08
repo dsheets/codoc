@@ -62,6 +62,8 @@ module Error : sig
 
   val unknown_file_type : string -> [> `Error of bool * string ]
 
+  val not_an_index : string -> [> `Error of bool * string ]
+
   val not_an_interface : string -> [> `Error of bool * string ]
 
   val wrong_version_interface : string -> [> `Error of bool * string ]

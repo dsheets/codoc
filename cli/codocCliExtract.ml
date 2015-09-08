@@ -57,41 +57,34 @@ let extract ~force ~index input out_dir rel_xml_out =
         (* TODO: fixme *)
         failwith "unimplemented: Not_an_implementation"
       | Ok unit ->
-        let _root, name = CodocUtil.root_of_unit unit in
+        let root, name = CodocUtil.root_of_unit unit in
         let oc = open_out xml_out in
         let xml_out = Xmlm.make_output (`Channel oc) in
         DocOckXmlFold.((file { f = CodocXml.doc_printer }).f)
           (fun () signal -> Xmlm.output xml_out signal) () unit;
         close_out oc;
         let open CodocIndex in
-        let empty_sub = { CodocIndex.html_file = None; issues = [] } in
-        match CodocUnit.Substruct.(map_of_unit {
-          map_class = (fun _ _ -> empty_sub);
-          map_classtype = (fun _ _ -> empty_sub);
-          map_module = (fun _ _ -> empty_sub);
-          map_moduletype = (fun _ _ -> empty_sub);
-        } unit) with
-        | None -> failwith "packs not yet supported" (* TODO: support packs *)
-        | Some substructs ->
-          let substructs = CodocUnit.Substruct.to_name substructs in
-          let xml_file = rel_xml_out in
-          let unit_issues =
-            if CodocExtraction.is_cmti input
-            then []
-            else [ Non_cmti_source input ]
-          in
-          let hide = CodocExtraction.is_hidden input in
-          let unit = { name; xml_file; unit_issues; substructs; hide; } in
-          if not index then `Ok unit
-          else
-            (* TODO: Use index caching? *)
-            (* Creating *or* updating index so no need to check for force *)
-            (* TODO: FIXME this can raise *)
-            let index = read out_dir CodocConfig.rel_index_xml in
-            let units = StringMap.add name unit index.units in
-            let index = { index with units } in
-            write index;
-            `Ok unit
+        let xml_file = rel_xml_out in
+        let html_files = None in
+        let unit_issues =
+          if CodocExtraction.is_cmti input
+          then []
+          else [ Non_cmti_source input ]
+        in
+        let hide = CodocExtraction.is_hidden input in
+        let unit =
+          { name; root; xml_file; unit_issues; html_files; hide; }
+        in
+        if not index then `Ok unit
+        else
+          (* TODO: Use index caching? *)
+          (* Creating *or* updating index so no need to check for force *)
+          (* TODO: FIXME this can raise *)
+          let index = read out_dir CodocConfig.rel_index_xml in
+          let units = StringMap.add name unit index.units in
+          let index = { index with units } in
+          write index;
+          `Ok unit
 
 let run_dir ~force ~index in_dir out_dir package =
   let extr = CodocCliListExtractions.collect in_dir in
@@ -111,7 +104,6 @@ let run_dir ~force ~index in_dir out_dir package =
       | `Error err -> (units, (`Error err)::errs)
     ) ([],[]) files with
       | _, ((_::_) as errs) -> CodocCli.combine_errors errs
-      | [], [] -> `Ok (`Dir out_dir)
       | units, [] -> if not index then `Ok (`Dir out_dir)
         else
           (* TODO: use index caching? *)
@@ -126,9 +118,13 @@ let run_dir ~force ~index in_dir out_dir package =
             StringMap.add unit.name unit map
           ) pkg_index.units units in
           let pkg_index = { pkg_index with units } in
-          write pkg_index;
-          List.iter (fun (_name, index) -> write index) pkg_parents;
-          `Ok (`Dir out_dir)
+          let dir = Dir.name (pkg_index.root / pkg_index.path) in
+          match Dir.make_exist ~perm:0o755 dir with
+          | Some err -> err
+          | None ->
+            write pkg_index;
+            List.iter (fun (_name, index) -> write index) pkg_parents;
+            `Ok (`Dir out_dir)
 
 let extract_file ~force ~index file package out_dir rel_out =
   if package = ""

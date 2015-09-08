@@ -15,7 +15,7 @@
  *
  *)
 
-open DocOckPaths
+open DocOck.Paths
 open CodocDocMaps
 
 type path = string
@@ -35,7 +35,7 @@ type root =
 | Cm of cm_root
 | Resolved of resolution * root
 (* TODO: use signature identifier when doc-ock-xml supports it *)
-| Proj of (*root DocOckPaths.Identifier.signature*) string * root
+| Proj of (*root DocOck.Paths.Identifier.signature*) string * root
 | Xml of path * root
 
 module Root = struct
@@ -62,6 +62,16 @@ module Root = struct
     | Xml (path, _) -> path
     | Resolved (_, root) | Proj (_, root) -> to_path root
 
+  let rec to_digest = function
+    | Cm { unit_digest } -> unit_digest
+    | Xml (_, root) | Resolved (_, root) | Proj (_, root) ->
+      to_digest root
+
+  let rec to_name = function
+    | Cm { unit_name } -> unit_name
+    | Xml (_, root) | Resolved (_, root) | Proj (_, root) ->
+      to_name root
+
   let equal root root' = (to_source root) = (to_source root')
   let hash root = Hashtbl.hash (to_source root)
 end
@@ -69,15 +79,13 @@ end
 module Maps = CodocDocMaps.Make(Root)
 open Maps
 
-type text = Root.t DocOckTypes.Documentation.text
+type text = Root.t DocOck.Types.Documentation.text
 
 type t =
 | Para of text
 | Block of text
 
-let xmlns = DocOckXml.ns
-
-let rec xml_of_root = Root.(function
+let rec xml_of_root xmlns = Root.(function
   | Cm { unit_path; unit_name = name; unit_digest = digest } ->
     let digest = Digest.to_hex digest in
     let attrs = [
@@ -90,19 +98,19 @@ let rec xml_of_root = Root.(function
     let attrs = [
       ("","root"),root;
     ] in
-    [`El ((("","resolved"),attrs), xml_of_root source)]
+    [`El ((("","resolved"),attrs), xml_of_root xmlns source)]
   | Proj (sig_,source) ->
     (* TODO: serialize with doc-ock-xml vocab *)
     (*let sig_ = Identifier.any sig_ in*)
     let attrs = [
       ("","path"),sig_;
     ] in
-    [`El ((("","proj"),attrs), xml_of_root source)]
+    [`El ((("","proj"),attrs), xml_of_root xmlns source)]
   | Xml (xml_path,source) ->
     let attrs = [
       ("","src"),xml_path;
     ] in
-    [`El ((("","xml"),attrs), xml_of_root source)]
+    [`El ((("","xml"),attrs), xml_of_root xmlns source)]
 )
 
 let filter_children = List.fold_left (fun l -> function
@@ -111,7 +119,7 @@ let filter_children = List.fold_left (fun l -> function
 ) []
 
 (* TODO: handle exceptions (e.g. Not_found) *)
-let root_of_xml tag root_opt_list =
+let root_of_xml xmlns tag root_opt_list =
   match tag with
   | ((ns,"cm"),attrs) when ns = xmlns -> (* TODO: cm can't have children *)
     let src = List.assoc ("","src") attrs in
@@ -151,7 +159,7 @@ let root_of_xml tag root_opt_list =
 
 let data_of_xml _ = None    
 
-let is_block = DocOckTypes.Documentation.(function
+let is_block = DocOck.Types.Documentation.(function
   | Raw _ | Code _ | Reference _
   | Style ((Bold | Italic | Emphasize | Superscript | Subscript), _)
   | Newline -> false
@@ -164,7 +172,7 @@ let is_block = DocOckTypes.Documentation.(function
 )
 
 let paragraphize txt =
-  let rec collect paras acc els = DocOckTypes.Documentation.(match acc, els with
+  let rec collect paras acc els = DocOck.Types.Documentation.(match acc, els with
     | (Block [] | Para []), Newline::rest -> collect paras (Para []) rest
     | Para acc, Newline::rest ->
       collect (Para (List.rev acc)::paras) (Para []) rest
@@ -195,7 +203,7 @@ let first_sentence_of_string s =
   in
   if 0 < len then f 0 s.[0] else None
 
-let rec first_sentence_of_text acc els = DocOckTypes.Documentation.(
+let rec first_sentence_of_text acc els = DocOck.Types.Documentation.(
   match els with
   | [] -> false, List.rev acc
   | (Raw s as el)::rest -> begin match first_sentence_of_string s with

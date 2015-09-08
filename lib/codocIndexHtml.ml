@@ -87,78 +87,67 @@ let sort_unit_issues = List.sort CodocIndex.(fun a b -> match a,b with
   | _, Non_cmti_source _ -> -1
 )
 
-let sort_names = List.sort CodocUnit.Substruct.(fun a b ->
-  String.compare (string_of_name a) (string_of_name b)
+let sort_html_files = List.sort CodocIndex.(fun a b ->
+  String.compare (html_file_name a) (html_file_name b)
 )
 
-let substruct_type typ =
-  BlueTree.([ typ, Some (empty ()); "type", Some (of_string typ) ])
-
-let find_sub subl name =
-  try Some (List.find (fun sub ->
-    CodocUnit.Substruct.to_name sub = name
-  ) subl)
-  with Not_found -> None
-
-let children = CodocUnit.Substruct.(function
-  | None | Some (Class _ | ClassType _) -> []
-  | Some (Module (_,cs,_)) -> cs
-  | Some (ModuleType (_,cs,_)) -> cs
-)
-
-let rec of_substruct ~uri_of_path ~normal_uri scheme base substruct name =
+let rec of_html_file ~uri_of_path ~normal_uri scheme base html_file =
   let open BlueTree in
-  let name, typ, children, sub =
-    destruct_name ~uri_of_path ~normal_uri scheme base substruct name
+  let typ, name, href, issues, children =
+    destruct_html_file ~uri_of_path ~normal_uri scheme base html_file
   in
-  let substruct = match substruct with
-    | None -> None
-    | Some sub ->
-      let pkg_root = Some "." in
-      let base = Some base in
-      Some (CodocUnitHtml.of_substruct scheme ~pkg_root ~base sub)
+  let type_t = Some (of_string typ) in
+  let name_t = Some (of_string name) in
+  let issues_t =
+    match issues with
+    | [] -> None
+    | _::_ ->
+        Some (of_list (List.map of_issue (sort_issues issues)))
   in
-  of_kv_maybe (typ@[
-    "name", Some (of_string name);
-    "issues", (match sub.CodocIndex.issues with
-      | [] -> None
-      | _::_ ->
-        Some (of_list (List.map of_issue (sort_issues sub.CodocIndex.issues))));
-    "href", (match sub.CodocIndex.html_file with
-      | Some html_file ->
-        let path = Filename.concat base html_file in
-        Some (of_string (Uri.to_string (normal_uri (uri_of_path path))))
-      | None -> None);
-    "children", Some (of_list children);
-    "interface", substruct;
+  let href_t =
+    let path = Filename.concat base href in
+      Some (of_string (Uri.to_string (normal_uri (uri_of_path path))))
+  in
+  let children_t = Some (of_list children) in
+  of_kv_maybe ([
+    typ, Some (empty ());
+    "type", type_t;
+    "name", name_t;
+    "issues", issues_t;
+    "href", href_t;
+    "children", children_t;
   ])
 
-and destruct_name ~uri_of_path ~normal_uri scheme base substruct =
-  CodocUnit.Substruct.(BlueTree.(function
-    | ClassName (name, sub) -> name, substruct_type "class", [], sub
-    | ClassTypeName (name, sub) ->
-      name, substruct_type "classtype", [], sub
-    | ModuleName (name, cs, sub) ->
-      let recurse name =
-        let sub = find_sub (children substruct) name in
-        of_substruct ~uri_of_path ~normal_uri scheme base sub name
+and destruct_html_file ~uri_of_path ~normal_uri scheme base =
+  CodocIndex.(BlueTree.(function
+    | Class (name, href, issues) ->
+        "class", name, href, issues, []
+    | ClassType (name, href, issues) ->
+        "class-type", name, href, issues, []
+    | Module (name, href, issues, children) ->
+      let children =
+        List.map
+          (of_html_file ~uri_of_path ~normal_uri scheme base)
+          (sort_html_files children)
       in
-      name,
-      substruct_type "module",
-      List.map recurse (sort_names cs),
-      sub
-    | ModuleTypeName (name, cs, sub) ->
-      let recurse name =
-        let sub = find_sub (children substruct) name in
-        of_substruct ~uri_of_path ~normal_uri scheme base sub name
+      "module", name, href, issues, children
+    | ModuleType (name, href, issues, children) ->
+      let children =
+        List.map
+          (of_html_file ~uri_of_path ~normal_uri scheme base)
+          (sort_html_files children)
       in
-      name,
-      substruct_type "moduletype",
-      List.map recurse (sort_names cs),
-      sub
+      "module-type", name, href, issues, children
+    | Argument (name, href, issues, children) ->
+      let children =
+        List.map
+          (of_html_file ~uri_of_path ~normal_uri scheme base)
+          (sort_html_files children)
+      in
+      "argument", name, href, issues, children
   ))
 
-let of_package ~name ~index ~substructs ~scheme =
+let of_package ~name ~index ~scheme =
   let normal_uri = CodocUnit.Href.normal_uri_for_scheme scheme in
   let uri_of_path = CodocUnit.Href.uri_of_path ~scheme in
   let up =
@@ -194,15 +183,23 @@ let of_package ~name ~index ~substructs ~scheme =
   in
   let units = List.fold_left BlueTree.(CodocIndex.(fun list -> function
     | (_, { hide = true }) -> list
-    | (name, { xml_file; substructs=subname; unit_issues }) ->
+    | (name, { xml_file; html_files; unit_issues }) ->
       let base = Filename.dirname xml_file in
-      let maybe_sub = find_sub substructs subname in
-      (of_kv [
-        "name", of_string name;
-        "module",
-        of_substruct ~uri_of_path ~normal_uri scheme base maybe_sub subname;
-        "issues",
-        of_list (List.map of_unit_issue (sort_unit_issues unit_issues));
+      let name = of_string name in
+      let module_ =
+        match html_files with
+        | None -> None
+        | Some html_files ->
+          Some (of_html_file ~uri_of_path ~normal_uri
+                             scheme base html_files)
+      in
+      let issues =
+        of_list (List.map of_unit_issue (sort_unit_issues unit_issues))
+      in
+      (of_kv_maybe [
+        "name", Some name;
+        "module", module_;
+        "issues", Some issues;
       ])::list)) [] (List.sort compare units) in
   let units = List.rev units in
   BlueTree.(of_kv_maybe ([

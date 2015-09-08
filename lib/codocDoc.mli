@@ -32,7 +32,7 @@ type root =
 | Cm of cm_root
 | Resolved of resolution * root
 (* TODO: use signature identifier when doc-ock-xml supports it *)
-| Proj of (*root DocOckPaths.Identifier.signature*) string * root
+| Proj of (*root DocOck.Paths.Identifier.signature*) string * root
 | Xml of path * root
 
 module Root : sig
@@ -40,21 +40,23 @@ module Root : sig
 
   val to_source : t -> t
   val to_path : t -> path
+  val to_digest : t -> Digest.t
+  val to_name : t -> string
   val equal : t -> t -> bool
   val hash : t -> int
 end
 
 module Maps : CodocDocMaps.ROOTED_MAPS with type root = Root.t
 
-type text = root DocOckTypes.Documentation.text
+type text = root DocOck.Types.Documentation.text
 
 type t =
 | Para of text
 | Block of text
 
-val xml_of_root : root -> ('a Xmlm.frag as 'a) Xmlm.frag list
+val xml_of_root : string -> root -> ('a Xmlm.frag as 'a) Xmlm.frag list
 
-val root_of_xml : Xmlm.tag -> root option list -> root option
+val root_of_xml : string -> Xmlm.tag -> root option list -> root option
 val data_of_xml : string -> root option
 
 val paragraphize : text -> t list
