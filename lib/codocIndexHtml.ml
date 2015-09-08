@@ -99,6 +99,7 @@ let children = CodocUnit.Substruct.(function
   | None | Some (Class _ | ClassType _) -> []
   | Some (Module (_,cs,_)) -> cs
   | Some (ModuleType (_,cs,_)) -> cs
+  | Some (Unit (_,cs,_)) -> cs
 )
 
 let rec of_substruct ~uri_of_path ~normal_uri scheme base substruct name =
@@ -145,6 +146,15 @@ and destruct_name ~uri_of_path ~normal_uri scheme base substruct =
       in
       name,
       substruct_type "moduletype",
+      List.map recurse (sort_names cs),
+      sub
+    | UnitName (name, cs, sub) ->
+      let recurse name =
+        let sub = find_sub (children substruct) name in
+        of_substruct ~uri_of_path ~normal_uri scheme base sub name
+      in
+      name,
+      substruct_type "module",
       List.map recurse (sort_names cs),
       sub
   ))

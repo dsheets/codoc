@@ -32,6 +32,7 @@ type generated_sub = {
 
 type generated_unit = {
   name        : string;
+  root        : CodocDoc.root;
   xml_file    : string;
   substructs  : generated_sub CodocUnit.Substruct.name;
   unit_issues : unit_issue list;
@@ -122,10 +123,13 @@ let rec fold_xml_of_substruct acc = CodocUnit.Substruct.(function
       xml_of_substruct (acc,u) "moduletype" m (fold_xml_of_substruct [] l)
     in
     fold_xml_of_substruct a rest
+  | UnitName (m, l, u)::rest ->
+    let a = xml_of_substruct (acc,u) "module" m (fold_xml_of_substruct [] l) in
+    fold_xml_of_substruct a rest
   | [] -> acc
 )
 
-let xml_of_generated_unit ({ name; xml_file; substructs; unit_issues }) =
+let xml_of_generated_unit ({ name; root; xml_file; substructs; unit_issues }) =
   let issues = match unit_issues with
     | [] -> []
     | issues ->
@@ -136,6 +140,9 @@ let xml_of_generated_unit ({ name; xml_file; substructs; unit_issues }) =
   [`El ((("","unit"),[("","name"),name]),
         (`El ((("","file"),
                [("","type"),"application/xml";("","href"),xml_file]),[]);
+        )::
+        (`El ((("","root"),[]),
+              CodocDoc.xml_of_root xmlns root)
         )::(substructs@issues)
        )
   ]
@@ -260,6 +267,25 @@ and substruct_body_of_xml xml =
 let generated_unit_of_xml xml name =
   let files = files_of_xml xml [] in
   let xml_file = List.assoc "application/xml" files in
+  let root =
+    let rec loop xml =
+      match Xmlm.peek xml with
+      | `El_start ((ns,"root"),_) when ns = xmlns ->
+        eat xml;
+        let res =
+          Xmlm.input_tree ~el:(CodocDoc.root_of_xml xmlns)
+            ~data:CodocDoc.data_of_xml xml
+        in
+        must_end xml;
+        res
+      | `El_start _ -> (* TODO: fixme *) failwith "missing root data"
+      | `El_end -> None
+      | `Data _ | `Dtd _ -> eat xml; loop xml
+    in
+    match loop xml with
+    | None -> failwith "missing root data"
+    | Some root -> root
+  in
   match substructs_of_xml xml [] with
   | [] ->
     must_end xml;
@@ -272,7 +298,7 @@ let generated_unit_of_xml xml name =
       inside xml (xmlns,"issues") (fun _ -> unit_issues_of_xml xml [])
     in
     must_end xml;
-    { name; xml_file; unit_issues; substructs; }
+    { name; root; xml_file; unit_issues; substructs; }
 
 let pkg_of_xml xml pkg_name index =
   must_end xml;

@@ -62,6 +62,16 @@ module Root = struct
     | Xml (path, _) -> path
     | Resolved (_, root) | Proj (_, root) -> to_path root
 
+  let rec to_digest = function
+    | Cm { unit_digest } -> unit_digest
+    | Xml (_, root) | Resolved (_, root) | Proj (_, root) ->
+      to_digest root
+
+  let rec to_name = function
+    | Cm { unit_name } -> unit_name
+    | Xml (_, root) | Resolved (_, root) | Proj (_, root) ->
+      to_name root
+
   let equal root root' = (to_source root) = (to_source root')
   let hash root = Hashtbl.hash (to_source root)
 end
@@ -75,9 +85,7 @@ type t =
 | Para of text
 | Block of text
 
-let xmlns = DocOckXml.ns
-
-let rec xml_of_root = Root.(function
+let rec xml_of_root xmlns = Root.(function
   | Cm { unit_path; unit_name = name; unit_digest = digest } ->
     let digest = Digest.to_hex digest in
     let attrs = [
@@ -90,19 +98,19 @@ let rec xml_of_root = Root.(function
     let attrs = [
       ("","root"),root;
     ] in
-    [`El ((("","resolved"),attrs), xml_of_root source)]
+    [`El ((("","resolved"),attrs), xml_of_root xmlns source)]
   | Proj (sig_,source) ->
     (* TODO: serialize with doc-ock-xml vocab *)
     (*let sig_ = Identifier.any sig_ in*)
     let attrs = [
       ("","path"),sig_;
     ] in
-    [`El ((("","proj"),attrs), xml_of_root source)]
+    [`El ((("","proj"),attrs), xml_of_root xmlns source)]
   | Xml (xml_path,source) ->
     let attrs = [
       ("","src"),xml_path;
     ] in
-    [`El ((("","xml"),attrs), xml_of_root source)]
+    [`El ((("","xml"),attrs), xml_of_root xmlns source)]
 )
 
 let filter_children = List.fold_left (fun l -> function
@@ -111,7 +119,7 @@ let filter_children = List.fold_left (fun l -> function
 ) []
 
 (* TODO: handle exceptions (e.g. Not_found) *)
-let root_of_xml tag root_opt_list =
+let root_of_xml xmlns tag root_opt_list =
   match tag with
   | ((ns,"cm"),attrs) when ns = xmlns -> (* TODO: cm can't have children *)
     let src = List.assoc ("","src") attrs in

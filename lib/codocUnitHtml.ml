@@ -39,12 +39,19 @@ let of_moduletype scheme pkg_root _ m =
   | None -> failwith "invariant violation render_moduletype/loc" (* TODO: ? *)
   | Some loc -> CodocDocHtml.of_top_moduletype loc m
 
+let of_unit scheme pkg_root _ u =
+  let sub = CodocUnit.Substruct.Unit (u,[],()) in
+  match CodocUnit.(Href.loc ?pkg_root scheme sub) with
+  | None -> failwith "invariant violation render_module/loc" (* TODO: ? *)
+  | Some loc -> CodocDocHtml.of_top_unit loc u
+
 let of_substruct_map scheme pkg_root =
   CodocUnit.Substruct.({
     map_class = of_class scheme pkg_root;
     map_classtype = of_classtype scheme pkg_root;
     map_module = of_module scheme pkg_root;
     map_moduletype = of_moduletype scheme pkg_root;
+    map_unit = of_unit scheme pkg_root;
   })
 
 let of_substruct scheme pkg_root sub =

@@ -1115,3 +1115,18 @@ let of_top_classtype ~loc { ClassType.id; doc; virtual_; params; expr } =
   let decl = of_class_type_expr ~pathloc expr in
   let tree = class_declaration ~id ~pathloc name params decl doc virtual_ in
   BlueTree.(root (add_up ~pathloc (of_cons "class-type" tree)))
+
+let of_top_unit ~loc = function
+  | { Unit.content = Unit.Pack _ } -> BlueTree.empty () (* TODO: ??? *)
+  | { Unit.id; doc; content = Unit.Module sg } ->
+      let pathloc = loc in
+      let doc = maybe_doc ~pathloc doc in
+      let top = true in
+      let type_ = Module.ModuleType (ModuleType.Signature sg) in
+      let decl =
+        decl_of_decl ~top ~pathloc (Identifier.signature_of_module id) type_
+      in
+      let id = Identifier.any id in
+      let name = link_ident ~pathloc () id in
+      let tree = module_declaration ~id ~pathloc (BlueTree.of_list name) decl doc in
+      BlueTree.(root (add_up ~pathloc (of_cons "module" tree)))

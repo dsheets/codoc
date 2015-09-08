@@ -278,6 +278,11 @@ class ['a] index = object (self)
     then (top <- false; super#class_type c)
     else c
 
+  method unit u =
+    if top
+    then super#unit u
+    else (ignore (self#unit_content u.DocOckTypes.Unit.content); u)
+
   (* Check for missing tag content *)
 
   method documentation_see_url see = match see with
@@ -405,3 +410,9 @@ let of_moduletype x =
   let obj = new index in
   ignore (obj#module_type x);
   obj#issues
+
+let of_unit x =
+  let obj = new index in
+  ignore (obj#unit x);
+  obj#issues
+

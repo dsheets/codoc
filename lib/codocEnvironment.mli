@@ -30,9 +30,9 @@ type t
 *)
 val root_by_name : t -> string -> CodocDoc.root option
 
-val unit_by_root : t -> CodocDoc.root -> CodocDoc.root DocOckTypes.Unit.t
+val unit_by_root : t -> CodocDoc.root -> CodocDoc.root DocOckTypes.Unit.t option
 
-val unit_by_name : t -> string -> CodocDoc.root DocOckTypes.Unit.t
+val unit_by_name : t -> string -> CodocDoc.root DocOckTypes.Unit.t option
 
 val path_by_root : t -> CodocDoc.root -> string
 
@@ -46,5 +46,7 @@ val index_units : t -> CodocIndex.t -> t
 val create : CodocIndex.t -> t
 
 val resolver : t -> CodocDoc.root DocOck.resolver
+
+val expander : t -> CodocDoc.root DocOck.expander
 
 val failures_of_root : t -> CodocDoc.root -> string list

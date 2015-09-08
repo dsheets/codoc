@@ -30,3 +30,7 @@ val of_top_class :
 val of_top_classtype :
   loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.ClassType.t -> Blueprint.t
 (** Generate a documentation page from a class type. *)
+
+val of_top_unit :
+  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Unit.t -> Blueprint.t
+(** Generate a documentation page from a unit. *)

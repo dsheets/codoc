@@ -61,6 +61,7 @@ module Substruct = struct
     map_classtype : 'a -> CodocDoc.root ClassType.t -> 'b;
     map_module : 'a -> CodocDoc.root Module.t -> 'b;
     map_moduletype : 'a -> CodocDoc.root ModuleType.t -> 'b;
+    map_unit : 'a -> CodocDoc.root Unit.t -> 'b
   }
 
   type 'a collect = ('a,'a) map
@@ -70,12 +71,14 @@ module Substruct = struct
     | ClassType of CodocDoc.root ClassType.t * 'a
     | Module of CodocDoc.root Module.t * 'a t list * 'a
     | ModuleType of CodocDoc.root ModuleType.t * 'a t list * 'a
+    | Unit of CodocDoc.root Unit.t * 'a t list * 'a
 
   type 'a name =
     | ClassName of string * 'a
     | ClassTypeName of string * 'a
     | ModuleName of string * 'a name list * 'a
     | ModuleTypeName of string * 'a name list * 'a
+    | UnitName of string * 'a name list * 'a
 
   type id =
     | Classy of CodocDoc.root DocOckPaths.Identifier.class_signature
@@ -125,6 +128,11 @@ module Substruct = struct
     | { expr = None } -> None
   )
 
+  let collect_unit_structs f acc { Unit.content } =
+    match content with
+    | Unit.Pack _ -> []
+    | Unit.Module sg -> List.fold_left (collect_sig_structs f) acc sg
+
   let rec substruct_collect f = {
     map_class = (fun l c -> (Class (c, f.map_class () c))::l);
     map_classtype = (fun l c -> (ClassType (c, f.map_classtype () c))::l);
@@ -138,29 +146,24 @@ module Substruct = struct
       | Some subs -> (ModuleType (m,subs,f.map_moduletype () m))::l
       | None -> l
     );
+    map_unit = (fun l u ->
+      let subs = collect_unit_structs (substruct_collect f) [] u in
+        (Unit (u, subs,f.map_unit () u))::l
+    );
   }
 
-  let map_of_unit_signature f subs { Unit.doc; id; } items =
-    let modu = Module.(
-      { id; doc; type_ = ModuleType (ModuleType.Signature items) }
-    ) in
-    Module (modu, subs, f.map_module () modu)
+  let map_of_unit f u =
+    let subs = collect_unit_structs (substruct_collect f) [] u in
+      Unit(u, subs, f.map_unit () u)
 
-  let root_of_unit_signature = map_of_unit_signature {
-    map_module = (fun () _ -> ());
-    map_moduletype = (fun () _ -> ());
-    map_class = (fun () _ -> ());
-    map_classtype = (fun () _ -> ());
-  } []
-
-  let map_of_unit f = function
-    | { Unit.content = Unit.Module signature } as unit ->
-      let subs =
-        List.fold_left (collect_sig_structs (substruct_collect f)) [] signature
-      in
-      Some (map_of_unit_signature f subs unit signature)
-    | { Unit.content = Unit.Pack _ } -> (* TODO: support packs *)
-      None
+  let root_of_unit u =
+    map_of_unit {
+      map_class = (fun () _ -> ());
+      map_classtype = (fun () _ -> ());
+      map_module = (fun () _ -> ());
+      map_moduletype = (fun () _ -> ());
+      map_unit = (fun () _ -> ());
+    } u
 
   let rec map f = function
     | Class (c,a) -> Class (c, f.map_class a c)
@@ -168,12 +171,14 @@ module Substruct = struct
     | Module (m,l,a) -> Module (m, List.map (map f) l, f.map_module a m)
     | ModuleType (m,l,a) ->
       ModuleType (m, List.map (map f) l, f.map_moduletype a m)
+    | Unit (u,l,a) -> Unit (u, List.map (map f) l, f.map_unit a u)
 
   let apply f = function
     | Class (c,a) -> f.map_class a c
     | ClassType (c,a) -> f.map_classtype a c
     | Module (m,_,a) -> f.map_module a m
     | ModuleType (m,_,a) -> f.map_moduletype a m
+    | Unit (u,_,a) -> f.map_unit a u
 
   let rec fold f acc = function
     | Class (c,a) -> f.map_class (acc,a) c
@@ -181,12 +186,14 @@ module Substruct = struct
     | Module (m,l,a) -> f.map_module (List.fold_left (fold f) acc l,a) m
     | ModuleType (m,l,a) ->
       f.map_moduletype (List.fold_left (fold f) acc l,a) m
+    | Unit (u,l,a) -> f.map_unit (List.fold_left (fold f) acc l,a) u
 
   let compose a b = {
     map_class = (fun x c -> b.map_class (a.map_class x c) c);
     map_classtype = (fun x c -> b.map_classtype (a.map_classtype x c) c);
     map_module = (fun x m -> b.map_module (a.map_module x m) m);
     map_moduletype = (fun x m -> b.map_moduletype (a.map_moduletype x m) m);
+    map_unit = (fun x u -> b.map_unit (a.map_unit x u) u);
   }
 
   let product a b = {
@@ -194,6 +201,7 @@ module Substruct = struct
     map_classtype = (fun x c -> a.map_classtype x c, b.map_classtype x c);
     map_module = (fun x c -> a.map_module x c, b.map_module x c);
     map_moduletype = (fun x c -> a.map_moduletype x c, b.map_moduletype x c);
+    map_unit = (fun x c -> a.map_unit x c, b.map_unit x c);
   }
 
   let homo_map f =
@@ -202,6 +210,7 @@ module Substruct = struct
       map_classtype = f;
       map_module = f;
       map_moduletype = f;
+      map_unit = f;
     }
 
   let ident_map = {
@@ -219,6 +228,9 @@ module Substruct = struct
     map_moduletype = DocOckPaths.Identifier.(fun _ m ->
       parent_of_signature (signature_of_module_type m.DocOckTypes.ModuleType.id)
     );
+    map_unit = DocOckPaths.Identifier.(fun _ u ->
+      parent_of_signature (signature_of_module u.DocOckTypes.Unit.id)
+    );
   }
 
   let list_option_fold () = homo_map (fun (list,next) -> match next with
@@ -231,6 +243,8 @@ module Substruct = struct
       Moduley (DocOckPaths.Identifier.signature_of_module id)
     | ModuleType ({ DocOckTypes.ModuleType.id }, _, _) ->
       Moduley (DocOckPaths.Identifier.signature_of_module_type id)
+    | Unit ({ DocOckTypes.Unit.id }, _, _) ->
+      Moduley (DocOckPaths.Identifier.signature_of_module id)
     | Class ({ DocOckTypes.Class.id }, _) ->
       Classy (DocOckPaths.Identifier.class_signature_of_class id)
     | ClassType ({ DocOckTypes.ClassType.id }, _) ->
@@ -244,6 +258,8 @@ module Substruct = struct
     DocOckPaths.Identifier.name m.DocOckTypes.Module.id
   let moduletype_name m =
     DocOckPaths.Identifier.name m.DocOckTypes.ModuleType.id
+  let unit_name u =
+    DocOckPaths.Identifier.name u.DocOckTypes.Unit.id
 
   let rec to_name = function
     | Class (c,a) -> ClassName (class_name c, a)
@@ -253,12 +269,14 @@ module Substruct = struct
     | ModuleType (m,l,a) ->
       let name = moduletype_name m in
       ModuleTypeName (name, List.map to_name l, a)
+    | Unit (u,l,a) -> UnitName (unit_name u, List.map to_name l, a)
 
   let string_of_name = function
     | ClassName (name,_) -> name
     | ClassTypeName (name,_) -> name
     | ModuleName (name,_,_) -> name
     | ModuleTypeName (name,_,_) -> name
+    | UnitName (name, _, _) -> name
 end
 
 module Href = struct
@@ -457,6 +475,7 @@ module Href = struct
       | ClassTypeName (name,_) -> Id.(classify classtype_class name)
       | ModuleName (name, _, _) -> Id.(classify module_class name)
       | ModuleTypeName (name, _, _) -> Id.(classify moduletype_class name)
+      | UnitName (name, _, _) -> Id.(classify module_class name)
     in
     Uri.of_string (seg^"/")
   )

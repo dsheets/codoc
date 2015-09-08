@@ -28,6 +28,7 @@ module Substruct : sig
     map_classtype : 'a -> root ClassType.t -> 'b;
     map_module : 'a -> root Module.t -> 'b;
     map_moduletype : 'a -> root ModuleType.t -> 'b;
+    map_unit : 'a -> root Unit.t -> 'b;
   }
 
   type 'a collect = ('a, 'a) map
@@ -37,18 +38,20 @@ module Substruct : sig
     | ClassType of root ClassType.t * 'a
     | Module of root Module.t * 'a t list * 'a
     | ModuleType of root ModuleType.t * 'a t list * 'a
+    | Unit of root Unit.t * 'a t list * 'a
 
   type 'a name =
     | ClassName of string * 'a
     | ClassTypeName of string * 'a
     | ModuleName of string * 'a name list * 'a
     | ModuleTypeName of string * 'a name list * 'a
-
-  val root_of_unit_signature :
-    root Unit.t -> root Signature.t -> unit t
+    | UnitName of string * 'a name list * 'a
 
   val map_of_unit :
-    (unit, 'a) map -> root Unit.t -> 'a t option
+    (unit, 'a) map -> root Unit.t -> 'a t
+
+  val root_of_unit :
+    root Unit.t -> unit t
 
   val map : ('a, 'b) map -> 'a t -> 'b t
 

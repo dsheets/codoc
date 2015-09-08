@@ -98,6 +98,16 @@ let render_module scheme unit_file pkg_root css (uri_opt,html) m =
   let css = update_css (Identifier.any id) css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
+let render_unit scheme unit_file pkg_root css (uri_opt,html) u =
+  let open DocOckTypes in
+  let open DocOckPaths in
+  let id = u.Unit.id in
+  let doc_errors = CodocAnalysis.of_unit u in
+  let issues = issues_of_doc_errors doc_errors in
+  let title = Identifier.name id in
+  let css = update_css (Identifier.any id) css in
+  resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
+
 let render_moduletype scheme unit_file pkg_root css (uri_opt,html) m =
   let open DocOckTypes in
   let open DocOckPaths in
@@ -117,13 +127,14 @@ let render_substruct scheme unit_file pkg_root css = CodocUnit.Substruct.(
       map_classtype = render_classtype scheme unit_file pkg_root css;
       map_module = render_module scheme unit_file pkg_root css;
       map_moduletype = render_moduletype scheme unit_file pkg_root css;
+      map_unit = render_unit scheme unit_file pkg_root css;
     }
 )
 
 let render_substructs scheme unit_file pkg_root css sub =
   CodocUnit.Substruct.map (render_substruct scheme unit_file pkg_root css) sub
 
-let prepare_create_interface ~force in_file out =
+let prepare_create_interface ~force ~env in_file out =
   let ic = open_in in_file in
   let input = Xmlm.make_input (`Channel ic) in
   match DocOckXmlParse.file CodocXml.doc_parser input with
@@ -131,45 +142,45 @@ let prepare_create_interface ~force in_file out =
     close_in ic;
     let issue = CodocIndex.Xml_error (in_file, pos, s) in
     `Error [ CodocIndex.error_of_unit_issue in_file issue ]
-  | DocOckXmlParse.Ok unit ->
+  | DocOckXmlParse.Ok (unit : _ DocOckTypes.Unit.t)->
     close_in ic;
-    DocOckTypes.Unit.(match unit.content with
-      | Pack _ -> (* TODO: support packs *)
-        `Error [
-          `Error (false, "packs not yet supported so cannot render "^in_file)
-        ]
-      | Module signature ->
-        let substruct =
-          CodocUnit.Substruct.root_of_unit_signature unit signature
-        in
-        match CodocUnit.Href.loc "file" substruct with
-        | None -> `Error [
-          `Error (false, "failed to construct interface loc")
-        ]
-        | Some loc ->
-          match CodocUnit.Substruct.(
-            map_of_unit (compose ident_map (homo_map (fun id ->
-              CodocUnit.Href.of_ident loc (DocOckPaths.Identifier.any id)
-            ))) unit
-          ) with
-          | None -> `Error [
-            `Error (false,
-                    "packs not yet supported so cannot render "^in_file)
-          ]
-          | Some substructs ->
-            let f = CodocUnit.Substruct.list_option_fold () in
-            let uris = CodocUnit.Substruct.fold f [] substructs in
-            match List.fold_left (fun errs uri ->
-              let out = Uri.(to_string (resolve "" (of_string out) uri)) in
-              if not force && Sys.file_exists out
-              then (Error.use_force out)::errs
-              else match Dir.make_exist ~perm:0o755 (Filename.dirname out) with
-                | Some err -> err::errs
-                | None -> errs
-            ) [] uris with
-            | [] -> `Ok substructs
-            | errs -> `Error errs
-    )
+    let expansion =
+      match env with
+      | None -> None
+      | Some env ->
+        DocOck.expand_unit (CodocEnvironment.expander env) unit
+    in
+    let unit =
+      match expansion with
+      | Some sg ->
+        DocOckTypes.Unit.{ unit with content = Module sg }
+      | None -> unit
+    in
+    let substruct = CodocUnit.Substruct.root_of_unit unit in
+    match CodocUnit.Href.loc "file" substruct with
+    | None -> `Error [
+      `Error (false, "failed to construct interface loc")
+    ]
+    | Some loc ->
+      let substructs =
+        CodocUnit.Substruct.(
+          map_of_unit (compose ident_map (homo_map (fun id ->
+            CodocUnit.Href.of_ident loc (DocOckPaths.Identifier.any id)
+          ))) unit
+        )
+      in
+      let f = CodocUnit.Substruct.list_option_fold () in
+      let uris = CodocUnit.Substruct.fold f [] substructs in
+      match List.fold_left (fun errs uri ->
+        let out = Uri.(to_string (resolve "" (of_string out) uri)) in
+        if not force && Sys.file_exists out
+        then (Error.use_force out)::errs
+        else match Dir.make_exist ~perm:0o755 (Filename.dirname out) with
+          | Some err -> err::errs
+          | None -> errs
+      ) [] uris with
+      | [] -> `Ok substructs
+      | errs -> `Error errs
 
 let print_issues in_file = List.iter (fun issue ->
   let `Error (_,msg) = CodocIndex.error_of_issue in_file issue in
@@ -184,7 +195,7 @@ let print_substructs_issues substructs =
     )) substructs)
 
 let render_interface_ok ~force in_file out_file scheme css =
-  match prepare_create_interface ~force in_file out_file with
+  match prepare_create_interface ~force ~env:None in_file out_file with
   | `Error errs -> CodocCli.combine_errors errs
   | `Ok substructs ->
     let subs = render_substructs scheme out_file None css substructs in
@@ -205,14 +216,16 @@ let render_index name index substructs out_file scheme css =
 
 module StringMap = Map.Make(String)
 
-let check_create_safe ~force index out_dir = CodocIndex.(
+let check_create_safe ~force index out_dir =
+  let env = CodocEnvironment.create index in
+  let open CodocIndex in
   fold_down
     ~unit_f:(fun r index ({ xml_file; substructs }) ->
       let html_file = html_name_of xml_file in
       let path = match Filename.dirname index.path with "." -> "" | p -> p in
       let xml_file = out_dir / path / xml_file in
       let path = out_dir / path / html_file in
-      match prepare_create_interface ~force xml_file path with
+      match prepare_create_interface ~force ~env:(Some env) xml_file path with
       | `Error es -> begin match r with
         | `Error errs -> `Error (es@errs)
         | `Ok _ -> `Error es
@@ -236,7 +249,6 @@ let check_create_safe ~force index out_dir = CodocIndex.(
           | `Ok _ -> `Error [ err ]
     )
     (`Ok StringMap.empty) index
-)
 
 let render_dir ~force ~index in_index out_dir scheme css =
   let root = Filename.dirname in_index in

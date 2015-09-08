@@ -67,8 +67,8 @@ let filter { root; set = { cmti; cmi; cmt }; } = StringSet.({
   root;
   set = {
     cmti;
-    cmi = diff cmi cmti;
-    cmt = diff (diff cmt cmti) cmi;
+    cmt = diff cmt cmti;
+    cmi = diff (diff cmi cmti) cmt;
   };
 })
 
