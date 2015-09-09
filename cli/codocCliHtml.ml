@@ -68,44 +68,45 @@ let resolve_html unit_file issues f = function
     let issues = (f out_file)@issues in
     CodocIndex.({ html_file = Some (Uri.to_string html_uri); issues; })
 
+let title_of_id id =
+  let name = DocOckPaths.Identifier.name id in
+  let path = CodocDoc.Maps.string_of_ident id in
+  Printf.sprintf "%s (%s)" name path
+
 let render_class scheme unit_file pkg_root css (uri_opt,html) c =
   let open DocOckTypes in
-  let open DocOckPaths in
-  let id = c.Class.id in
+  let id = DocOckPaths.Identifier.any c.Class.id in
   let doc_errors = CodocAnalysis.of_class c in
   let issues = issues_of_doc_errors doc_errors in
-  let title = Identifier.name id in
-  let css = update_css (Identifier.any id) css in
+  let title = title_of_id id in
+  let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
 let render_classtype scheme unit_file pkg_root css (uri_opt,html) c =
   let open DocOckTypes in
-  let open DocOckPaths in
-  let id = c.ClassType.id in
+  let id = DocOckPaths.Identifier.any c.ClassType.id in
   let doc_errors = CodocAnalysis.of_classtype c in
   let issues = issues_of_doc_errors doc_errors in
-  let title = Identifier.name id in
-  let css = update_css (Identifier.any id) css in
+  let title = title_of_id id in
+  let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
 let render_module scheme unit_file pkg_root css (uri_opt,html) m =
   let open DocOckTypes in
-  let open DocOckPaths in
-  let id = m.Module.id in
+  let id = DocOckPaths.Identifier.any m.Module.id in
   let doc_errors = CodocAnalysis.of_module m in
   let issues = issues_of_doc_errors doc_errors in
-  let title = Identifier.name id in
-  let css = update_css (Identifier.any id) css in
+  let title = title_of_id id in
+  let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
 let render_moduletype scheme unit_file pkg_root css (uri_opt,html) m =
   let open DocOckTypes in
-  let open DocOckPaths in
-  let id = m.ModuleType.id in
+  let id = DocOckPaths.Identifier.any m.ModuleType.id in
   let doc_errors = CodocAnalysis.of_moduletype m in
   let issues = issues_of_doc_errors doc_errors in
-  let title = Identifier.name id in
-  let css = update_css (Identifier.any id) css in
+  let title = title_of_id id in
+  let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
 let render_substruct scheme unit_file pkg_root css = CodocUnit.Substruct.(
