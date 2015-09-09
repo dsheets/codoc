@@ -34,10 +34,10 @@ let interface_template = Lazy.from_fun CodocTemplate.(fun () ->
 let html_name_of = CodocUnit.Href.html_name_of
 
 let write_html ~css ~title html_file templ path =
-  let vars = Blueprint.Tree.of_kv_string [
-    "css", css;
-    "title", title;
-  ] in
+  let vars = Blueprint.Tree.(of_kv_maybe [
+    "css", Some (of_string css);
+    "title", match title with None -> None | Some s -> Some (of_string s);
+  ]) in
   let vars = Blueprint.Scope.overlay vars templ in
   let templ = Blueprint.Scope.(match find templ path with
     | None -> Printf.eprintf "template path '%s' missing" path; exit 1
@@ -78,7 +78,7 @@ let render_class scheme unit_file pkg_root css (uri_opt,html) c =
   let id = DocOckPaths.Identifier.any c.Class.id in
   let doc_errors = CodocAnalysis.of_class c in
   let issues = issues_of_doc_errors doc_errors in
-  let title = title_of_id id in
+  let title = Some (title_of_id id) in
   let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
@@ -87,7 +87,7 @@ let render_classtype scheme unit_file pkg_root css (uri_opt,html) c =
   let id = DocOckPaths.Identifier.any c.ClassType.id in
   let doc_errors = CodocAnalysis.of_classtype c in
   let issues = issues_of_doc_errors doc_errors in
-  let title = title_of_id id in
+  let title = Some (title_of_id id) in
   let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
@@ -96,7 +96,7 @@ let render_module scheme unit_file pkg_root css (uri_opt,html) m =
   let id = DocOckPaths.Identifier.any m.Module.id in
   let doc_errors = CodocAnalysis.of_module m in
   let issues = issues_of_doc_errors doc_errors in
-  let title = title_of_id id in
+  let title = Some (title_of_id id) in
   let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
@@ -105,7 +105,7 @@ let render_moduletype scheme unit_file pkg_root css (uri_opt,html) m =
   let id = DocOckPaths.Identifier.any m.ModuleType.id in
   let doc_errors = CodocAnalysis.of_moduletype m in
   let issues = issues_of_doc_errors doc_errors in
-  let title = title_of_id id in
+  let title = Some (title_of_id id) in
   let css = update_css id css in
   resolve_html unit_file issues (write_substruct ~css ~title html) uri_opt
 
@@ -200,7 +200,7 @@ let render_index name index substructs out_file scheme css =
   let html = Blueprint.Tree.of_cons "data" html in
   let html = Blueprint.Scope.overlay html (Lazy.force index_template) in
   (* TODO: fixme title *)
-  let title = if name = "" then "Documentation Index" else name in
+  let title = if name = "" then None else Some name in
   let issues = write_html ~css ~title out_file html "index" in
   print_issues out_file issues;
   `Ok ()
