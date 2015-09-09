@@ -243,7 +243,9 @@ let tag_reference = Reference.(function
 let region ~pathloc id html =
   let href = match CodocUnit.Href.id_of_ident pathloc id with
     | None -> None
-    | Some id -> Some (BlueTree.of_string ("#"^id))
+    | Some id ->
+      let uri = Uri.(to_string (with_fragment empty (Some id))) in
+      Some (BlueTree.of_string uri)
   in
   let id = match CodocUnit.Href.id_of_ident pathloc id with
     | None -> None
