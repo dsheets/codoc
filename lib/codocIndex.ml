@@ -23,7 +23,7 @@ type generation_issue =
 
 type unit_issue =
 | Module_resolution_failed of string
-| Non_cmti_source of CodocExtraction.file
+| Cmi_source of CodocExtraction.file
 | Xml_error of (string * Xmlm.pos * string)
 
 type html_file =
@@ -38,7 +38,7 @@ type generated_unit = {
   root        : CodocDoc.root;
   xml_file    : string;
   html_files  : html_file option;
-  hide        : bool;
+  hidden        : bool;
   unit_issues : unit_issue list;
 }
 
@@ -81,9 +81,9 @@ let error_of_issue path issue =
 let error_message_of_unit_issue path = function
   | Module_resolution_failed mod_name ->
     "writing "^path^" resolution of "^mod_name^" failed"
-  | Non_cmti_source file ->
+  | Cmi_source file ->
     let path = CodocExtraction.rel_path file in
-    path ^ " is not a cmti"
+    path ^ " is not a cmt(i)"
   | Xml_error (path, (l,c), s) ->
     Printf.sprintf "%s:%d:%d: XML error %s" path l c s
 
@@ -126,11 +126,11 @@ let xml_of_unit_issue = function
       ("","module"),mod_name;
     ] in
     [`El ((("","resolution-failed"),attrs),[])]
-  | Non_cmti_source file ->
+  | Cmi_source file ->
     let attrs = [
       ("","href"),CodocExtraction.rel_path file;
     ] in
-    [`El ((("","non-cmti-source"),attrs),[])]
+    [`El ((("","cmi-source"),attrs),[])]
   | Xml_error (xml_file, (l,c), msg) ->
     let attrs = [
       ("","href"),xml_file;
@@ -178,7 +178,7 @@ let rec fold_xml_of_html_file acc = function
     fold_xml_of_html_file acc rest
   | [] -> acc
 
-let xml_of_generated_unit ({ name; root; xml_file; html_files; unit_issues; hide }) =
+let xml_of_generated_unit ({ name; root; xml_file; html_files; unit_issues; hidden }) =
   let issues = match unit_issues with
     | [] -> []
     | issues ->
@@ -190,7 +190,7 @@ let xml_of_generated_unit ({ name; root; xml_file; html_files; unit_issues; hide
     | None -> []
     | Some html_files -> fold_xml_of_html_file [] [html_files]
   in
-  [`El ((("","unit"),[("","name"),name; ("","hide"), string_of_bool hide]),
+  [`El ((("","unit"),[("","name"),name; ("","hidden"), string_of_bool hidden]),
         (`El ((("","file"),
                [("","type"),"application/xml";("","href"),xml_file]),[]);
         )::
@@ -239,12 +239,12 @@ let rec unit_issue_of_xml xml = match Xmlm.peek xml with
     eat xml;
     must_end xml;
     Module_resolution_failed name
-  | `El_start ((ns,"non-cmti-source"),[("","href"),path]) when ns = xmlns ->
+  | `El_start ((ns,"cmi-source"),[("","href"),path]) when ns = xmlns ->
     eat xml;
     must_end xml;
     begin match CodocExtraction.file path with
-      | None -> (* TODO: fixme *) failwith "non-cmti source isn't recognized"
-      | Some file -> Non_cmti_source file
+      | None -> (* TODO: fixme *) failwith "cmi source isn't recognized"
+      | Some file -> Cmi_source file
     end
   | `El_start ((ns,"xml-error"),
                [("","href"),href; ("","line"),line; ("","col"), col])
@@ -336,7 +336,7 @@ and fold_html_file_of_xml xml acc =
   | `El_start _ | `El_end -> acc
   | `Dtd _ | `Data _ -> eat xml; fold_html_file_of_xml xml acc
 
-let generated_unit_of_xml xml name hide =
+let generated_unit_of_xml xml name hidden =
   let files = files_of_xml xml [] in
   let xml_file = List.assoc "application/xml" files in
   let root =
@@ -370,7 +370,7 @@ let generated_unit_of_xml xml name hide =
     inside xml (xmlns,"issues") (fun _ -> unit_issues_of_xml xml [])
   in
   must_end xml;
-  { name; root; xml_file; unit_issues; html_files; hide; }
+  { name; root; xml_file; unit_issues; html_files; hidden; }
 
 let pkg_of_xml xml pkg_name index =
   must_end xml;
@@ -386,12 +386,12 @@ let empty root path = {
 
 let rec of_xml root path xml =
   let rec doc_index index = match Xmlm.input xml with
-      | `El_start ((ns,"unit"),[("","name"), name; ("","hide"), hide])
-      | `El_start ((ns,"unit"),[("","hide"), hide; ("","name"), name])
+      | `El_start ((ns,"unit"),[("","name"), name; ("","hidden"), hidden])
+      | `El_start ((ns,"unit"),[("","hidden"), hidden; ("","name"), name])
         when ns = xmlns ->
-        let hide = bool_of_string hide in
+        let hidden = bool_of_string hidden in
         doc_index { index with
-          units = StringMap.add name (generated_unit_of_xml xml name hide)
+          units = StringMap.add name (generated_unit_of_xml xml name hidden)
             index.units
         }
       | `El_start ((ns,"package"),[("","name"), name; ("","href"), href])

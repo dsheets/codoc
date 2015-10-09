@@ -60,8 +60,8 @@ let of_issue = CodocIndex.(BlueTree.(function
 let of_unit_issue = CodocIndex.(BlueTree.(function
   | Module_resolution_failed mod_name ->
     of_cons "module-resolution-failed" (of_cons "name" (of_string mod_name))
-  | Non_cmti_source file ->
-    of_cons "non-cmti-source" (of_string (CodocExtraction.rel_path file))
+  | Cmi_source file ->
+    of_cons "cmi-source" (of_string (CodocExtraction.rel_path file))
   | Xml_error (xml_file,(l,c),msg) ->
     let xml_loc = of_xml_location xml_file l c in
     of_cons "xml-error" (of_kv [
@@ -79,12 +79,12 @@ let sort_issues = List.sort CodocIndex.(fun a b -> match a,b with
 
 let sort_unit_issues = List.sort CodocIndex.(fun a b -> match a,b with
   | Module_resolution_failed x, Module_resolution_failed y -> compare x y
-  | Non_cmti_source e, Non_cmti_source e' -> compare e e'
+  | Cmi_source e, Cmi_source e' -> compare e e'
   | Xml_error e, Xml_error e' -> compare e e'
   | Xml_error _, _ ->  1
   | _, Xml_error _ -> -1
-  | Non_cmti_source _, _ ->  1
-  | _, Non_cmti_source _ -> -1
+  | Cmi_source _, _ ->  1
+  | _, Cmi_source _ -> -1
 )
 
 let sort_html_files = List.sort CodocIndex.(fun a b ->
@@ -182,7 +182,7 @@ let of_package ~name ~index ~scheme =
     index.CodocIndex.units []
   in
   let units = List.fold_left BlueTree.(CodocIndex.(fun list -> function
-    | (_, { hide = true }) -> list
+    | (_, { hidden = true }) -> list
     | (name, { xml_file; html_files; unit_issues }) ->
       let base = Filename.dirname xml_file in
       let name = of_string name in

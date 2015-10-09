@@ -149,6 +149,9 @@ module Error = struct
   let not_an_interface path =
     `Error (false, path^" is not an interface")
 
+  let not_an_implementation path =
+    `Error (false, path^" is not an implementation")
+
   let wrong_version_interface path =
     `Error (false, path^" has the wrong format version")
 

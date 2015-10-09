@@ -66,6 +66,8 @@ module Error : sig
 
   val not_an_interface : string -> [> `Error of bool * string ]
 
+  val not_an_implementation : string -> [> `Error of bool * string ]
+
   val wrong_version_interface : string -> [> `Error of bool * string ]
 
   val corrupted_interface : string -> [> `Error of bool * string ]

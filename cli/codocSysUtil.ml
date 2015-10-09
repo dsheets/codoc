@@ -71,6 +71,11 @@ let foldp_paths f p acc dir =
     if p file dir then f acc file else acc
   ) acc files
 
+let collect dir =
+  foldp_paths
+    CodocExtraction.add (fun _ _ -> true)
+    (CodocExtraction.empty ~root:dir) dir
+
 module Dir = struct
   module Error = struct
     let nondirectory_segment path =
