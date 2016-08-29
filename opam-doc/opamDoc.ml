@@ -70,9 +70,9 @@ let extract output pkg pkg_dir list =
   let prefix = "_build/" in
   let prefix_len = String.length prefix in
   let pkg_dir =
-    if List.length list > 0 && List.for_all (begins_with prefix_len prefix) list
-    then
-      String.sub pkg_dir prefix_len (String.length pkg_dir - prefix_len)
+    if list <> [] && begins_with prefix_len prefix pkg_dir &&
+       List.for_all (begins_with prefix_len prefix) list
+    then String.sub pkg_dir prefix_len (String.length pkg_dir - prefix_len)
     else pkg_dir
   in
   match get_package_version pkg with
