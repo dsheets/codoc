@@ -1,4 +1,7 @@
-# codoc
+# codoc [DEPRECATED]
+
+NOTE: codoc is now deprecated in favour of
+https://github.com/ocaml-doc/odoc
 
 **codoc** is a new OCaml documentation tool. It does not impose any
   specific package manager on you or assume a specific
