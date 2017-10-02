@@ -3,7 +3,7 @@
 NOTE: codoc is now deprecated in favour of
 https://github.com/ocaml-doc/odoc
 
-**codoc** is a new OCaml documentation tool. It does not impose any
+**codoc** is a new OCaml documentation tool **which allows to/which adds …**. It does not impose any
   specific package manager on you or assume a specific
   workflow. **codoc** requires at least **OCaml** `4.02.2`.
 
