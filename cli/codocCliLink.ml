@@ -74,12 +74,14 @@ let check_create_safe ~force index out_dir = CodocIndex.(
 
 (* TODO: should read from out_dir's indexes *)
 let run_index ~force ~index in_index out_dir package =
-  let index_root = Filename.dirname in_index in
-  let idx = CodocIndex.read index_root (Filename.basename in_index) in
+  let root = Filename.dirname in_index in
+  let path = Filename.basename in_index in
+  let idx = CodocIndex.read root path in
   let env = CodocEnvironment.create idx in
   let pkg_index = CodocIndex.goto idx package in
-  match check_create_safe ~force idx out_dir with
-  | (_::_) as errs -> CodocCli.combine_errors errs
+  let errs = check_create_safe ~force pkg_index out_dir in
+  match errs with
+  | (_::_) -> CodocCli.combine_errors errs
   | [] ->
     let open CodocIndex in
     let unit_f (units,errs) index gunit =
@@ -147,13 +149,14 @@ let run_index ~force ~index in_index out_dir package =
 let run ({ CodocCli.Common.force; index }) output path package =
   match path, output with
   | `Missing path, _ -> Error.source_missing path
-  | `File in_file, None -> begin match CodocSysUtil.deduce_file_type in_file with
-    | Unknown -> Error.unknown_file_type in_file
-    | Interface -> `Ok () (* TODO: do something? rewrite root? *)
-    | Index ->
-      let out_dir = Filename.dirname in_file in
-      run_index ~force ~index in_file out_dir package
-  end
+  | `File in_file, None -> begin
+      match CodocSysUtil.deduce_file_type in_file with
+      | Unknown -> Error.unknown_file_type in_file
+      | Interface -> `Ok () (* TODO: do something? rewrite root? *)
+      | Index ->
+        let out_dir = Filename.dirname in_file in
+        run_index ~force ~index in_file out_dir package
+    end
   | `File in_file, Some (`Missing out_file) ->
     begin match CodocSysUtil.deduce_file_type in_file with
     | Unknown -> Error.unknown_file_type in_file

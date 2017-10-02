@@ -15,18 +15,33 @@
  *
  *)
 
-val of_top_module :
-  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Module.t -> Blueprint.t
+val of_module :
+  loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
+    CodocDoc.root DocOck.Types.Module.t -> Blueprint.t
 (** Generate a documentation page from a module. *)
 
-val of_top_moduletype :
-  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.ModuleType.t -> Blueprint.t
+val of_module_type :
+  loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
+    CodocDoc.root DocOck.Types.ModuleType.t -> Blueprint.t
 (** Generate a documentation page from a module type. *)
 
-val of_top_class :
-  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.Class.t -> Blueprint.t
+val of_argument :
+  loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
+    CodocDoc.root DocOck.Paths.Identifier.module_
+    * CodocDoc.root DocOck.Types.ModuleType.expr -> Blueprint.t
+(** Generate a documentation page from a module. *)
+
+val of_class :
+  loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
+    CodocDoc.root DocOck.Types.Class.t -> Blueprint.t
 (** Generate a documentation page from a class. *)
 
-val of_top_classtype :
-  loc:CodocUnit.Href.loc -> CodocDoc.root DocOckTypes.ClassType.t -> Blueprint.t
+val of_class_type :
+  loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
+    CodocDoc.root DocOck.Types.ClassType.t -> Blueprint.t
 (** Generate a documentation page from a class type. *)
+
+val of_unit :
+  loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
+    CodocDoc.root DocOck.Types.Unit.t -> Blueprint.t
+(** Generate a documentation page from a unit. *)

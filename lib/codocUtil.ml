@@ -15,8 +15,8 @@
  *
  *)
 
-let root_of_unit ({ DocOckTypes.Unit.id = unit_id }) =
-  let unit_sig_id = DocOckPaths.Identifier.signature_of_module unit_id in
+let root_of_unit ({ DocOck.Types.Unit.id = unit_id }) =
+  let unit_sig_id = DocOck.Paths.Identifier.signature_of_module unit_id in
   CodocDoc.Maps.root_of_ident_signature unit_sig_id
 
 let rec ascent_of_depth tl = function

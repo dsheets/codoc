@@ -15,47 +15,46 @@
  *
  *)
 
-type file
-type env
-type t
-
-type 'a r = {
-  cmti : 'a;
-  cmi  : 'a;
-  cmt  : 'a;
-}
-
-val file : ?src:string -> string -> file option
 val is_extractable : string -> bool
 
-val is_cmti : file -> bool
+type t
 
-val is_hidden : file -> bool
+val empty : root:string -> t
 
-val at : string -> env
+val add : t -> string -> t
 
-val filter : env -> t
+val summarize : t -> string
 
-val apply : (string -> string -> bool -> 'a) r -> file -> 'a
+type source
 
-val uapply : (string -> string -> string * string) -> file -> file
+val sources : t -> source list
 
-val add : env -> string -> env
+val xml_source : source -> string
+
+val rel_xml_source : source -> string
+
+type file
+
+val file : ?root:string -> string -> file option
+
+val cmti : source -> file option
+
+val cmt : source -> file option
+
+val cmi : source -> file option
+
+val files : t -> file list
+
+val is_cmi : file -> bool
+
+val read : (string -> Digest.t -> 'a) -> file -> 'a DocOck.result
 
 val path : file -> string
 
 val rel_path : file -> string
 
-val xml : file -> string
+val xml_file : file -> string
 
-val rel_xml : file -> string
+val rel_xml_file : file -> string
 
-val relocate : string -> file -> file
-
-val path_list : t -> string list
-val file_list : t -> file list
-val xml_list  : t -> string list
-
-val summarize : t -> string
-
-val read : (string -> Digest.t -> 'a) -> file -> 'a DocOck.result
+val relocate : (string -> string) -> file -> file

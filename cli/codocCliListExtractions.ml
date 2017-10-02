@@ -17,16 +17,14 @@
 
 module Error = CodocCli.Error
 
-let collect dir = CodocExtraction.(
-  filter (CodocSysUtil.foldp_paths add (fun _ _ -> true) (at dir) dir)
-)
-
 let run = function
   | `Missing path -> Error.source_missing path
   | `File in_file when not (CodocExtraction.is_extractable in_file) ->
     `Error (false, "source "^in_file^" is not cmti, cmt, or cmi")
   | `File in_file -> print_endline in_file; `Ok ()
   | `Dir in_dir ->
-    let extractions = collect in_dir in
-    List.iter print_endline (CodocExtraction.path_list extractions);
+    let extractions = CodocSysUtil.collect in_dir in
+    let files = CodocExtraction.files extractions in
+    let paths = List.map CodocExtraction.path files in
+    List.iter print_endline paths;
     `Ok ()

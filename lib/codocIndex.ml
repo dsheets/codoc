@@ -23,19 +23,22 @@ type generation_issue =
 
 type unit_issue =
 | Module_resolution_failed of string
-| Non_cmti_source of CodocExtraction.file
+| Cmi_source of CodocExtraction.file
 | Xml_error of (string * Xmlm.pos * string)
 
-type generated_sub = {
-  html_file : string option;
-  issues    : generation_issue list;
-}
+type html_file =
+  | Class of string * string * generation_issue list
+  | ClassType of string * string * generation_issue list
+  | Module of string * string * generation_issue list * html_file list
+  | ModuleType of string * string * generation_issue list * html_file list
+  | Argument of string * string * generation_issue list * html_file list
 
 type generated_unit = {
   name        : string;
+  root        : CodocDoc.root;
   xml_file    : string;
-  hide        : bool;
-  substructs  : generated_sub CodocUnit.Substruct.name;
+  html_files  : html_file option;
+  hidden        : bool;
   unit_issues : unit_issue list;
 }
 
@@ -58,21 +61,54 @@ let (/) = Filename.concat
 
 let list_of_map map = List.rev_map snd (StringMap.bindings map)
 
-let error_of_issue path = function
+let html_file_name = function
+  | Class(name, _, _) -> name
+  | ClassType(name, _, _) -> name
+  | Module(name, _, _, _) -> name
+  | ModuleType(name, _, _, _) -> name
+  | Argument(name, _, _, _) -> name
+
+let error_message_of_issue path = function
   | Template_error message ->
-    `Error (false, Printf.sprintf "%s: Template error:\n%s" path message)
+      Printf.sprintf "%s: Template error:\n%s" path message
   | Doc_error doc_error ->
     let message = CodocAnalysis.string_of_error doc_error in
-    `Error (false, Printf.sprintf "%s: Documentation error:\n%s" path message)
+      Printf.sprintf "%s: Documentation error:\n%s" path message
 
-let error_of_unit_issue path = function
+let error_of_issue path issue =
+  `Error (false, error_message_of_issue path issue)
+
+let error_message_of_unit_issue path = function
   | Module_resolution_failed mod_name ->
-    `Error (false, "writing "^path^" resolution of "^mod_name^" failed")
-  | Non_cmti_source file ->
+    "writing "^path^" resolution of "^mod_name^" failed"
+  | Cmi_source file ->
     let path = CodocExtraction.rel_path file in
-    `Error (false, path ^ " is not a cmti")
+    path ^ " is not a cmt(i)"
   | Xml_error (path, (l,c), s) ->
-    `Error (false, Printf.sprintf "%s:%d:%d: XML error %s" path l c s)
+    Printf.sprintf "%s:%d:%d: XML error %s" path l c s
+
+let error_of_unit_issue path issue =
+  `Error (false, error_message_of_unit_issue path issue)
+
+let print_issues path issues =
+  List.iter
+    (fun issue ->
+       let msg = error_message_of_issue path issue in
+         prerr_endline msg)
+    issues
+
+let rec print_html_file_issues = function
+  | Class(name, path, issues) -> print_issues path issues
+  | ClassType(name, path, issues) -> print_issues path issues
+  | Module(name, path, issues, children) ->
+      print_issues path issues;
+      List.iter print_html_file_issues children
+  | ModuleType(name, path, issues, children) ->
+      print_issues path issues;
+      List.iter print_html_file_issues children
+  | Argument(name, path, issues, children) ->
+      print_issues path issues;
+      List.iter print_html_file_issues children
 
 let index_filename = "index.xml"
 
@@ -90,11 +126,11 @@ let xml_of_unit_issue = function
       ("","module"),mod_name;
     ] in
     [`El ((("","resolution-failed"),attrs),[])]
-  | Non_cmti_source file ->
+  | Cmi_source file ->
     let attrs = [
       ("","href"),CodocExtraction.rel_path file;
     ] in
-    [`El ((("","non-cmti-source"),attrs),[])]
+    [`El ((("","cmi-source"),attrs),[])]
   | Xml_error (xml_file, (l,c), msg) ->
     let attrs = [
       ("","href"),xml_file;
@@ -103,50 +139,64 @@ let xml_of_unit_issue = function
     ] in
     [`El ((("","xml-error"),attrs),[`Data msg])]
 
-let xml_of_substruct (acc,u) typ name children =
-  let issues = match u.issues with
+let xml_of_html_file acc typ name file issues children =
+  let issues = match issues with
     | [] -> []
     | issues ->
       [`El ((("","issues"),[]),
             List.(flatten (map xml_of_generation_issue issues)))]
   in
-  let html_file = match u.html_file with
-    | None -> []
-    | Some html_file ->
-      [`El ((("","file"),[("","type"),"text/html";("","href"),html_file]),[])]
+  let html_file =
+    [`El ((("","file"),[("","type"),"text/html";("","href"),file]),[])]
   in
   (`El ((("",typ),[("","name"),name]),html_file@children@issues))::acc
 
-let rec fold_xml_of_substruct acc = CodocUnit.Substruct.(function
-  | ClassName (c, u)::rest ->
-    let a = xml_of_substruct (acc,u) "class" c [] in
-    fold_xml_of_substruct a rest
-  | ClassTypeName (c, u)::rest ->
-    let a = xml_of_substruct (acc,u) "classtype" c [] in
-    fold_xml_of_substruct a rest
-  | ModuleName (m, l, u)::rest ->
-    let a = xml_of_substruct (acc,u) "module" m (fold_xml_of_substruct [] l) in
-    fold_xml_of_substruct a rest
-  | ModuleTypeName (m, l, u)::rest ->
-    let a =
-      xml_of_substruct (acc,u) "moduletype" m (fold_xml_of_substruct [] l)
+let rec fold_xml_of_html_file acc = function
+  | Class (name, file, issues)::rest ->
+    let acc = xml_of_html_file acc "class" name file issues [] in
+    fold_xml_of_html_file acc rest
+  | ClassType (name, file, issues)::rest ->
+    let acc = xml_of_html_file acc "class-type" name file issues [] in
+    fold_xml_of_html_file acc rest
+  | Module (name, file, issues, children)::rest ->
+    let acc =
+      xml_of_html_file acc "module"
+        name file issues (fold_xml_of_html_file [] children)
     in
-    fold_xml_of_substruct a rest
+    fold_xml_of_html_file acc rest
+  | ModuleType (name, file, issues, children)::rest ->
+    let acc =
+      xml_of_html_file acc "module-type"
+        name file issues (fold_xml_of_html_file [] children)
+    in
+    fold_xml_of_html_file acc rest
+  | Argument (name, file, issues, children)::rest ->
+    let acc =
+      xml_of_html_file acc "argument"
+        name file issues (fold_xml_of_html_file [] children)
+    in
+    fold_xml_of_html_file acc rest
   | [] -> acc
-)
 
-let xml_of_generated_unit ({ name; xml_file; substructs; unit_issues; hide }) =
+let xml_of_generated_unit ({ name; root; xml_file; html_files; unit_issues; hidden }) =
   let issues = match unit_issues with
     | [] -> []
     | issues ->
       [`El ((("","issues"),[]),
             List.(flatten (map xml_of_unit_issue issues)))]
   in
-  let substructs = fold_xml_of_substruct [] [substructs] in
-  [`El ((("","unit"),[("","name"),name; ("","hide"), string_of_bool hide]),
+  let html_files =
+    match html_files with
+    | None -> []
+    | Some html_files -> fold_xml_of_html_file [] [html_files]
+  in
+  [`El ((("","unit"),[("","name"),name; ("","hidden"), string_of_bool hidden]),
         (`El ((("","file"),
                [("","type"),"application/xml";("","href"),xml_file]),[]);
-        )::(substructs@issues)
+        )::
+        (`El ((("","root"),[]),
+              CodocDoc.xml_of_root xmlns root)
+        )::(html_files@issues)
        )
   ]
 
@@ -189,12 +239,12 @@ let rec unit_issue_of_xml xml = match Xmlm.peek xml with
     eat xml;
     must_end xml;
     Module_resolution_failed name
-  | `El_start ((ns,"non-cmti-source"),[("","href"),path]) when ns = xmlns ->
+  | `El_start ((ns,"cmi-source"),[("","href"),path]) when ns = xmlns ->
     eat xml;
     must_end xml;
     begin match CodocExtraction.file path with
-      | None -> (* TODO: fixme *) failwith "non-cmti source isn't recognized"
-      | Some file -> Non_cmti_source file
+      | None -> (* TODO: fixme *) failwith "cmi source isn't recognized"
+      | Some file -> Cmi_source file
     end
   | `El_start ((ns,"xml-error"),
                [("","href"),href; ("","line"),line; ("","col"), col])
@@ -239,57 +289,88 @@ let rec files_of_xml xml files = match Xmlm.peek xml with
   | `El_start _ | `El_end -> files
   | `Dtd _ | `Data _ -> eat xml; files_of_xml xml files
 
-let rec substructs_of_xml xml subs = CodocUnit.Substruct.(
+let rec html_file_of_xml xml =
+  let files = files_of_xml xml [] in
+  let file =
+    match files with
+    | ["text/html", file] -> file
+    | [] -> failwith "missing html file data" (* TODO: fixme *)
+    | _ -> failwith "too much html file data" (* TODO: fixme *)
+  in
+  let children = fold_html_file_of_xml xml [] in
+  let issues = inside xml (xmlns,"issues") (fun _ -> issues_of_xml xml []) in
+  (file, issues, children)
+
+and fold_html_file_of_xml xml acc =
   match Xmlm.peek xml with
   | `El_start ((ns,"class"),[("","name"),name]) when ns = xmlns ->
     eat xml;
-    let _, sub = substruct_body_of_xml xml in
+    let file, issues, _ = html_file_of_xml xml in
     must_end xml;
-    substructs_of_xml xml (ClassName (name,sub)::subs)
-  | `El_start ((ns,"classtype"),[("","name"),name]) when ns = xmlns ->
+    let acc = Class(name, file, issues) :: acc in
+    fold_html_file_of_xml xml acc
+  | `El_start ((ns,"class-type"),[("","name"),name]) when ns = xmlns ->
     eat xml;
-    let _, sub = substruct_body_of_xml xml in
+    let file, issues, _ = html_file_of_xml xml in
     must_end xml;
-    substructs_of_xml xml (ClassTypeName (name,sub)::subs)
+    let acc = ClassType (name, file, issues) :: acc in
+    fold_html_file_of_xml xml acc
   | `El_start ((ns,"module"),[("","name"),name]) when ns = xmlns ->
     eat xml;
-    let children, sub = substruct_body_of_xml xml in
+    let file, issues, children = html_file_of_xml xml in
     must_end xml;
-    substructs_of_xml xml (ModuleName (name,children,sub)::subs)
-  | `El_start ((ns,"moduletype"),[("","name"),name]) when ns = xmlns ->
+    let acc = Module (name, file, issues, children) :: acc in
+    fold_html_file_of_xml xml acc
+  | `El_start ((ns,"module-type"),[("","name"),name]) when ns = xmlns ->
     eat xml;
-    let children, sub = substruct_body_of_xml xml in
+    let file, issues, children = html_file_of_xml xml in
     must_end xml;
-    substructs_of_xml xml (ModuleTypeName (name,children,sub)::subs)
-  | `El_start _ | `El_end -> subs
-  | `Dtd _ | `Data _ -> eat xml; substructs_of_xml xml subs
-)
-and substruct_body_of_xml xml =
-  let files = files_of_xml xml [] in
-  let html_file =
-    try Some (List.assoc "text/html" files)
-    with Not_found -> None
-  in
-  let children = substructs_of_xml xml [] in
-  let issues = inside xml (xmlns,"issues") (fun _ -> issues_of_xml xml []) in
-  (children, { html_file; issues })
+    let acc = ModuleType (name, file, issues, children) :: acc in
+    fold_html_file_of_xml xml acc
+  | `El_start ((ns,"argument"),[("","name"),name]) when ns = xmlns ->
+    eat xml;
+    let file, issues, children = html_file_of_xml xml in
+    must_end xml;
+    let acc = Argument (name, file, issues, children) :: acc in
+    fold_html_file_of_xml xml acc
+  | `El_start _ | `El_end -> acc
+  | `Dtd _ | `Data _ -> eat xml; fold_html_file_of_xml xml acc
 
-let generated_unit_of_xml xml name hide =
+let generated_unit_of_xml xml name hidden =
   let files = files_of_xml xml [] in
   let xml_file = List.assoc "application/xml" files in
-  match substructs_of_xml xml [] with
-  | [] ->
-    must_end xml;
-    failwith "not enough structs in unit" (* TODO: fixme *)
-  | _::_::_ ->
-    must_end xml;
-    failwith "too many structs in unit" (* TODO: fixme *)
-  | [substructs] ->
-    let unit_issues =
-      inside xml (xmlns,"issues") (fun _ -> unit_issues_of_xml xml [])
+  let root =
+    let rec loop xml =
+      match Xmlm.peek xml with
+      | `El_start ((ns,"root"),_) when ns = xmlns ->
+        eat xml;
+        let res =
+          Xmlm.input_tree ~el:(CodocDoc.root_of_xml xmlns)
+            ~data:CodocDoc.data_of_xml xml
+        in
+        must_end xml;
+        res
+      | `El_start _ -> (* TODO: fixme *) failwith "missing root data"
+      | `El_end -> None
+      | `Data _ | `Dtd _ -> eat xml; loop xml
     in
-    must_end xml;
-    { name; xml_file; unit_issues; substructs; hide; }
+    match loop xml with
+    | None -> failwith "missing root data"
+    | Some root -> root
+  in
+  let html_files =
+    match fold_html_file_of_xml xml [] with
+    | [] -> None
+    | _::_::_ ->
+      must_end xml;
+      failwith "too many html files in unit" (* TODO: fixme *)
+    | [html_files] -> Some html_files
+  in
+  let unit_issues =
+    inside xml (xmlns,"issues") (fun _ -> unit_issues_of_xml xml [])
+  in
+  must_end xml;
+  { name; root; xml_file; unit_issues; html_files; hidden; }
 
 let pkg_of_xml xml pkg_name index =
   must_end xml;
@@ -305,12 +386,12 @@ let empty root path = {
 
 let rec of_xml root path xml =
   let rec doc_index index = match Xmlm.input xml with
-      | `El_start ((ns,"unit"),[("","name"), name; ("","hide"), hide])
-      | `El_start ((ns,"unit"),[("","hide"), hide; ("","name"), name])
+      | `El_start ((ns,"unit"),[("","name"), name; ("","hidden"), hidden])
+      | `El_start ((ns,"unit"),[("","hidden"), hidden; ("","name"), name])
         when ns = xmlns ->
-        let hide = bool_of_string hide in
+        let hidden = bool_of_string hidden in
         doc_index { index with
-          units = StringMap.add name (generated_unit_of_xml xml name hide)
+          units = StringMap.add name (generated_unit_of_xml xml name hidden)
             index.units
         }
       | `El_start ((ns,"package"),[("","name"), name; ("","href"), href])
@@ -420,6 +501,15 @@ let goto index pkg =
   in
   descend index (Stringext.split ~on:'/' pkg)
 
+let diff index pkg =
+  let rec descend acc index = function
+    | [] -> index :: acc
+    | step::rest ->
+      let subpkg = StringMap.find step index.pkgs in
+      descend (index :: acc) (read_cache_rel index subpkg.index) rest
+  in
+  descend [] index (Stringext.split ~on:'/' pkg)
+
 let fold_down ~unit_f ~pkg_f acc index =
   let rec descend index acc =
     let acc = StringMap.fold (fun _name gunit acc ->
@@ -432,7 +522,11 @@ let fold_down ~unit_f ~pkg_f acc index =
   in
   pkg_f (descend index) acc index
 
-let fold_down_units = fold_down ~pkg_f:(fun rc acc _index -> rc acc)
+let fold_down_units ~unit_f =
+  fold_down ~unit_f ~pkg_f:(fun rc acc _index -> rc acc)
+
+let fold_down_pkgs ~pkg_f =
+  fold_down ~pkg_f ~unit_f:(fun acc _index _gunit -> acc)
 
 (* TODO: this is a very specific merge function... describe *)
 (*let merge from into =
@@ -454,3 +548,4 @@ let fold_down_units = fold_down ~pkg_f:(fun rc acc _index -> rc acc)
     ) from.pkgs into.pkgs in
     { into with units; pkgs; }
 *)
+

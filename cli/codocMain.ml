@@ -96,7 +96,7 @@ let html_cmd =
   let path_doc = "the file, directory, or index hierarchy to render to HTML" in
   let path' = path ~doc:path_doc (Arg.pos 0) in
   Term.(ret (pure CodocCliHtml.run
-               $ Common.term $ output $ path'
+               $ Common.term $ output $ path' $ package
                $ scheme $ uri_ref ~doc:css_doc ["css"] $ share_dir),
         info "html" ~doc ~sdocs ~man)
 

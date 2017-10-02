@@ -90,7 +90,7 @@ let rec error_of_xml xml = match Xmlm.peek xml with
   | `El_end -> (* TODO: fixme *) failwith "unexpected end"
   | `Data _ | `Dtd _ -> CodocXml.eat xml; error_of_xml xml
 
-open DocOckPaths
+open DocOck.Paths
 
 module MyRef = struct
   open Reference
@@ -249,7 +249,7 @@ class ['a] index = object (self)
       | Resolved _ -> p
       | Dot (_,_) as p -> self#unlinked_frag (MyFrag.to_string p); p
 
-  (* Don't go into substructs *)
+  (* Don't go into subcomponents *)
 
   method signature s =
     if top
@@ -259,12 +259,12 @@ class ['a] index = object (self)
   method module_ m =
     if top
     then super#module_ m
-    else (ignore (self#module_decl m.DocOckTypes.Module.type_); m)
+    else (ignore (self#module_decl m.DocOck.Types.Module.type_); m)
 
   method module_type m =
     if top
     then super#module_type m
-    else match m.DocOckTypes.ModuleType.expr with
+    else match m.DocOck.Types.ModuleType.expr with
       | None -> m
       | Some expr -> ignore (self#module_type_expr expr); m
 
@@ -277,6 +277,11 @@ class ['a] index = object (self)
     if top
     then (top <- false; super#class_type c)
     else c
+
+  method unit u =
+    if top
+    then super#unit u
+    else (ignore (self#unit_content u.DocOck.Types.Unit.content); u)
 
   (* Check for missing tag content *)
 
@@ -291,13 +296,13 @@ class ['a] index = object (self)
     | _ -> see
 
   method documentation_text txt = match txt with
-    | [] | [DocOckTypes.Documentation.Raw ""] -> begin match current_tag with
+    | [] | [DocOck.Types.Documentation.Raw ""] -> begin match current_tag with
       | Some tag -> self#empty_tag tag; txt
       | None -> match current_label with
         | Some label -> self#empty_label label; txt
         | None -> txt
     end
-    | [DocOckTypes.Documentation.Raw "/*"] -> self#bad_stop; txt
+    | [DocOck.Types.Documentation.Raw "/*"] -> self#bad_stop; txt
     | x -> super#documentation_text txt
 
   method with_tag tag f =
@@ -306,7 +311,7 @@ class ['a] index = object (self)
     current_tag <- None
 
   method documentation_tag tag =
-    let open DocOckTypes.Documentation in
+    let open DocOck.Types.Documentation in
     match tag with
     | Author "" -> self#empty_tag "author"; tag
     | Author _ -> tag
@@ -327,13 +332,14 @@ class ['a] index = object (self)
     | Raise(_, _) -> tag
     | Return txt ->
       self#with_tag "return" (fun () -> self#documentation_text txt); tag
+    | Inline -> tag
     | Tag("", _) -> self#empty_tag "custom"; tag
     | Tag(_, _) -> tag
 
   (* Check for early documentation errors *)
 
   method documentation_error err =
-    let open DocOckTypes.Documentation.Error in
+    let open DocOck.Types.Documentation.Error in
     let string_of_pos position = Position.(
       string_of_int position.line ^":"^ string_of_int position.column
     ) in
@@ -351,7 +357,7 @@ class ['a] index = object (self)
   (* Check for empty sections *)
 
   method documentation_text_element elem =
-    let open DocOckTypes.Documentation in
+    let open DocOck.Types.Documentation in
     match elem with
     | Code "" -> self#empty_code; elem
     | Raw _
@@ -367,7 +373,7 @@ class ['a] index = object (self)
     | Enum _ -> super#documentation_text_element elem
     | Newline -> elem
     | Title(_, Some label, text) ->
-      let label = DocOckPaths.Identifier.any label in
+      let label = DocOck.Paths.Identifier.any label in
       current_label <- Some (CodocDoc.Maps.string_of_ident label);
       ignore (self#documentation_text text);
       current_label <- None;
@@ -391,7 +397,7 @@ let of_class x =
   ignore (obj#class_ x);
   obj#issues
 
-let of_classtype x =
+let of_class_type x =
   let obj = new index in
   ignore (obj#class_type x);
   obj#issues
@@ -401,7 +407,19 @@ let of_module x =
   ignore (obj#module_ x);
   obj#issues
 
-let of_moduletype x =
+let of_module_type x =
   let obj = new index in
   ignore (obj#module_type x);
   obj#issues
+
+let of_argument (id, expr) =
+  let obj = new index in
+  ignore (obj#identifier_module id);
+  ignore (obj#module_type_expr expr);
+  obj#issues
+
+let of_unit x =
+  let obj = new index in
+  ignore (obj#unit x);
+  obj#issues
+

@@ -15,7 +15,7 @@
  *
  *)
 
-open DocOckPaths
+open DocOck.Paths
 
 (* Polymorphic fold class hierarchies *)
 

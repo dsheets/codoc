@@ -79,15 +79,10 @@ let codoc_index = unit "codocIndex" ~deps:[
   stringext;
 ] library
 
-let codoc_unit_html = unit "codocUnitHtml" ~deps:[
-  blueprint;
-] library
-
 let codoc_index_html = unit "codocIndexHtml" ~deps:[
   uri;
   blueprint;
   codoc_util;
-  codoc_unit_html;
 ] library
 
 let codoc_env = unit "codocEnvironment" ~deps:[
@@ -107,13 +102,12 @@ let codoc = lib ~flags "codoc" (`Units [
   codoc_doc;
   codoc_util;
   codoc_unit;
-  codoc_doc_html;
   codoc_xml;
   codoc_analysis;
   codoc_index;
-  codoc_unit_html;
-  codoc_index_html;
   codoc_env;
+  codoc_doc_html;
+  codoc_index_html;
   codoc_template;
 ])
 
